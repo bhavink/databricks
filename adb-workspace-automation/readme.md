@@ -50,14 +50,14 @@ Here are quicks steps to get you started:
 <br>
 
 
-select "Delegated Permissions" and make sure that "user impersonation" check box is checked as shown below.
+**Select "Delegated Permissions" and make sure that "user impersonation" check box is checked as shown below.**
 
 ![Delegate API permission](https://raw.githubusercontent.com/bhavink/databricks/master/adb-workspace-automation/images/14.png)
 
 <br>(<a href="#">Back to top</a>)
 <br>
 
-On the API permissions page, make sure to click "Grant Permissions"
+**On the API permissions page, make sure to click "Grant Permissions"**
 
 ![Grant permissions](https://raw.githubusercontent.com/bhavink/databricks/master/adb-workspace-automation/images/15.png)
 
