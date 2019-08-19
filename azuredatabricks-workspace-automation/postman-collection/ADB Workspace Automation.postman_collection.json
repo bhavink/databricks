@@ -1,0 +1,1004 @@
+{
+	"info": {
+		"_postman_id": "3c2bf1ad-6ed2-42dd-99db-7f2c8dc7b923",
+		"name": "ADB Workspace Automation (share)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1-get management token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"management_token\", pm.response.json().access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_secret}}",
+							"type": "text"
+						},
+						{
+							"key": "resource",
+							"value": "{{management_resource_endpoint}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{tenant_id}}/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{tenant_id}}",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2-deploy databricks via arm template",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{management_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"properties\": {\n   \"mode\": \"Incremental\",\n   \"template\": {\n    \"$schema\": \"https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#\",\n    \"contentVersion\": \"1.0.0.0\",\n    \"parameters\": {\n        \"nsgName\": {\n            \"defaultValue\": \"databricks-{{databricks_workspace_name}}-nsg\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the network security group to create.\"\n            }\n        },\n        \"vnetName\": {\n            \"defaultValue\": \"databricks-vnet\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the virtual network to create.\"\n            }\n        },\n        \"workspaceName\": {\n            \"defaultValue\": \"test12\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the Azure Databricks workspace to create.\"\n            }\n        },\n        \"privateSubnetName\": {\n            \"defaultValue\": \"container-subnet\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the private subnet to create.\"\n            }\n        },\n        \"publicSubnetName\": {\n            \"defaultValue\": \"host-subnet\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the public subnet to create.\"\n            }\n        },\n        \"pricingTier\": {\n            \"defaultValue\": \"premium\",\n            \"allowedValues\": [\n                \"trial\",\n                \"standard\",\n                \"premium\"\n            ],\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The pricing tier of workspace.\"\n            }\n        },\n        \"location\": {\n            \"type\": \"string\",\n            \"defaultValue\": \"[resourceGroup().location]\",\n            \"metadata\": {\n                \"description\": \"Location for all resources.\"\n            }\n        },\n        \"vnetCidr\": {\n            \"defaultValue\": \"11.141.13.0/22\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the vnet.\"\n            }\n        },\n        \"publicSubnetCidr\": {\n            \"defaultValue\": \"11.141.13.64/26\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the public subnet..\"\n            }\n        },\n        \"privateSubnetCidr\": {\n            \"defaultValue\": \"11.141.13.128/26\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the private subnet.\"\n            }\n        },\n        \"enableNoPublicIp\": {\n            \"defaultValue\": \"[bool('false')]\",\n            \"type\": \"bool\"\n        }\n    },\n    \"variables\": {\n        \"azureRegionToControlPlaneIp\": {\n            \"centralus\": \"23.101.152.95/32\",\n            \"eastus\": \"23.101.152.95/32\",\n            \"eastus2\": \"23.101.152.95/32\",\n            \"northcentralus\": \"23.101.152.95/32\",\n            \"southcentralus\": \"40.83.178.242/32\",\n            \"westcentralus\": \"40.83.178.242/32\",\n            \"westus\": \"40.83.178.242/32\",\n            \"westus2\": \"40.83.178.242/32\"\n        },\n        \"controlPlaneIp\": \"[variables('azureRegionToControlPlaneIp')[parameters('location')]]\",\n        \"azureRegionToWebappIp\": {\n            \"centralus\": \"40.70.58.221/32\",\n            \"eastus\": \"40.70.58.221/32\",\n            \"eastus2\": \"40.70.58.221/32\",\n            \"northcentralus\": \"40.70.58.221/32\",\n            \"southcentralus\": \"40.118.174.12/32\",\n            \"westcentralus\": \"40.118.174.12/32\",\n            \"westus\": \"40.118.174.12/32\",\n            \"westus2\": \"40.118.174.12/32\"\n        },\n        \"webappIp\": \"[variables('azureRegionToWebappIp')[parameters('location')]]\",\n        \"nsgId\": \"[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]\",\n        \"vnetId\": \"[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]\",\n        \"managedResourceGroupId\": \"[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]\",\n        \"managedResourceGroupName\": \"[concat('databricks-rg-', parameters('workspaceName'), '-', uniqueString(parameters('workspaceName'), resourceGroup().id))]\"\n    },\n    \"resources\": [\n        {\n            \"apiVersion\": \"2018-02-01\",\n            \"type\": \"Microsoft.Network/networkSecurityGroups\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('nsgName')]\",\n            \"properties\": {\n                \"securityRules\": [\n                    {\n                        \"name\": \"databricks-worker-to-worker-inbound\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for worker nodes communication within a cluster.\",\n                            \"destinationAddressPrefix\": \"*\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Inbound\",\n                            \"priority\": 200,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"VirtualNetwork\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-control-plane-ssh\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for Databricks control plane management of worker nodes.\",\n                            \"destinationAddressPrefix\": \"*\",\n                            \"destinationPortRange\": \"22\",\n                            \"direction\": \"Inbound\",\n                            \"priority\": 100,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"[variables('controlPlaneIp')]\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-control-plane-worker-proxy\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for Databricks control plane communication with worker nodes.\",\n                            \"destinationAddressPrefix\": \"*\",\n                            \"destinationPortRange\": \"5557\",\n                            \"direction\": \"Inbound\",\n                            \"priority\": 110,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"[variables('controlPlaneIp')]\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-worker-to-webapp\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for workers communication with Databricks Webapp.\",\n                            \"destinationAddressPrefix\": \"[variables('webappIp')]\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Outbound\",\n                            \"priority\": 100,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"*\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-worker-to-sql\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for workers communication with Azure SQL services.\",\n                            \"destinationAddressPrefix\": \"Sql\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Outbound\",\n                            \"priority\": 110,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"*\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-worker-to-storage\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for workers communication with Azure Storage services.\",\n                            \"destinationAddressPrefix\": \"Storage\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Outbound\",\n                            \"priority\": 120,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"*\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-worker-to-worker-outbound\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for worker nodes communication within a cluster.\",\n                            \"destinationAddressPrefix\": \"VirtualNetwork\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Outbound\",\n                            \"priority\": 130,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"*\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-worker-to-any\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for worker nodes communication with any destination.\",\n                            \"destinationAddressPrefix\": \"*\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Outbound\",\n                            \"priority\": 140,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"*\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"apiVersion\": \"2018-02-01\",\n            \"type\": \"Microsoft.Network/virtualNetworks\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('vnetName')]\",\n            \"dependsOn\": [\n                \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\"\n            ],\n            \"properties\": {\n                \"addressSpace\": {\n                    \"addressPrefixes\": [\n                        \"[parameters('vnetCidr')]\"\n                    ]\n                },\n                \"subnets\": [\n                    {\n                        \"name\": \"[parameters('publicSubnetName')]\",\n                        \"properties\": {\n                            \"addressPrefix\": \"[parameters('publicSubnetCidr')]\",\n                            \"networkSecurityGroup\": {\n                                \"id\": \"[variables('nsgId')]\"\n                            }\n                        }\n                    },\n                    {\n                        \"name\": \"[parameters('privateSubnetName')]\",\n                        \"properties\": {\n                            \"addressPrefix\": \"[parameters('privateSubnetCidr')]\",\n                            \"networkSecurityGroup\": {\n                                \"id\": \"[variables('nsgId')]\"\n                            }\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"apiVersion\": \"2018-04-01\",\n            \"type\": \"Microsoft.Databricks/workspaces\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('workspaceName')]\",\n            \"dependsOn\": [\n                \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\",\n                \"[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]\"\n            ],\n            \"sku\": {\n                \"name\": \"[parameters('pricingTier')]\"\n            },\n            \"comments\": \"The resource group specified will be locked after deployment.\",\n            \"properties\": {\n                \"ManagedResourceGroupId\": \"[variables('managedResourceGroupId')]\",\n                \"parameters\": {\n                    \"customVirtualNetworkId\": {\n                        \"value\": \"[variables('vnetId')]\"\n                    },\n                    \"customPublicSubnetName\": {\n                        \"value\": \"[parameters('publicSubnetName')]\"\n                    },\n                    \"customPrivateSubnetName\": {\n                        \"value\": \"[parameters('privateSubnetName')]\"\n                    },\n                    \"enableNoPublicIp\": {\n                        \"value\": \"[parameters('enableNoPublicIp')]\"\n                    }\n                }\n            }\n        }\n    ]\n},\n   \"parameters\": {\n     \"workspaceName\": {\n       \"value\": \"{{databricks_workspace_name}}\"\n     },\n     \"pricingTier\":{\n       \"value\":\"{{databricks_pricing_tier}}\"\n     },\n     \"nsgName\":{\n       \"value\":\"{{databricks_nsg_name}}\"\n     },\n     \"vnetName\":{\n       \"value\":\"{{databricks_vnet_name}}\"\n     },\n     \"vnetCidr\":{\n       \"value\":\"{{databricks_vnet_cidr}}\"\n     },\n     \"privateSubnetName\":{\n       \"value\":\"{{databricks_container_subnet_name}}\"\n     },\n     \"publicSubnetName\":{\n       \"value\":\"{{databricks_host_subnet_name}}\"\n     },\n     \"privateSubnetCidr\":{\n       \"value\":\"{{databricks_container_subnet_cidr}}\"\n     },\n     \"publicSubnetCidr\":{\n       \"value\":\"{{databricks_host_subnet_cidr}}\"\n     }\n   }\n }\n}\n"
+				},
+				"url": {
+					"raw": "https://management.azure.com/subscriptions/{{subscription_id}}/resourcegroups/{{resource_group}}/providers/Microsoft.Resources/deployments/{{resource_deployment_name}}?api-version=2019-05-01",
+					"protocol": "https",
+					"host": [
+						"management",
+						"azure",
+						"com"
+					],
+					"path": [
+						"subscriptions",
+						"{{subscription_id}}",
+						"resourcegroups",
+						"{{resource_group}}",
+						"providers",
+						"Microsoft.Resources",
+						"deployments",
+						"{{resource_deployment_name}}"
+					],
+					"query": [
+						{
+							"key": "api-version",
+							"value": "2019-05-01"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2.1-check deployment status",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{management_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://management.azure.com/subscriptions/{{subscription_id}}/resourcegroups/{{resource_group}}/providers/Microsoft.Resources/deployments/{{resource_deployment_name}}?api-version=2018-05-01",
+					"protocol": "https",
+					"host": [
+						"management",
+						"azure",
+						"com"
+					],
+					"path": [
+						"subscriptions",
+						"{{subscription_id}}",
+						"resourcegroups",
+						"{{resource_group}}",
+						"providers",
+						"Microsoft.Resources",
+						"deployments",
+						"{{resource_deployment_name}}"
+					],
+					"query": [
+						{
+							"key": "api-version",
+							"value": "2018-05-01"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3-get an aad access token for databricks resource",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"access_token\", pm.response.json().access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_secret}}",
+							"type": "text"
+						},
+						{
+							"key": "resource",
+							"value": "{{databricks_resource_id}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{tenant_id}}/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{tenant_id}}",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4-get an access token for management resource.",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"management_token\", pm.response.json().access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_secret}}",
+							"type": "text"
+						},
+						{
+							"key": "resource",
+							"value": "{{management_resource_endpoint}}",
+							"description": "get management access token",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{tenant_id}}/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{tenant_id}}",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5-list node types",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/{{databricks_workspace_name}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"value": "{{management_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/clusters/list-node-types",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"clusters",
+						"list-node-types"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6-create user group",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"type": "text",
+						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/{{databricks_workspace_name}}"
+					},
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"type": "text",
+						"value": "{{management_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\t\"group_name\": \"dev\"\n}"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/groups/create",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"groups",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7-list groups",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"type": "text",
+						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/{{databricks_workspace_name}}"
+					},
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"type": "text",
+						"value": "{{management_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/Groups",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Groups"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8-list groups(filter)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"group_id\", pm.response.json().Resources.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"type": "text",
+						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/{{databricks_workspace_name}}"
+					},
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"type": "text",
+						"value": "{{management_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/Groups?filter=displayName+sw+dev",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Groups"
+					],
+					"query": [
+						{
+							"key": "filter",
+							"value": "displayName+sw+dev",
+							"description": "displayName startsWith \"dev\""
+						}
+					]
+				},
+				"description": "check out a list of filters available over here = https://docs.azuredatabricks.net/api/latest/scim.html#filters\nhere I am using:\n\nsw\t= starts with : Attribute must start with and contain operator value."
+			},
+			"response": []
+		},
+		{
+			"name": "9-create databricks users and add them to a group",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/scim+json",
+						"type": "text"
+					},
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/{{databricks_workspace_name}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"value": "{{management_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:User\"\n  ],\n  \"userName\":\"testuser2@databricks.com\",\n  \"groups\":[\n    {\n       \"value\":\"1805378359307767\"\n    }\n  ],\n  \"entitlements\":[\n    {\n       \"value\":\"allow-cluster-create\"\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/Users",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10-generate databricks platform access token (PAT)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"databricks_platform_token\", pm.response.json().token_value);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"type": "text",
+						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/{{databricks_workspace_name}}"
+					},
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"type": "text",
+						"value": "{{management_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"lifetime_seconds\": 100000,\n  \"comment\": \"this is an example token generated for service principal\"\n}"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/token/create",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"token",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "11-create databricks users using PAT",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:User\"\n  ],\n  \"userName\":\"testuser2@databricks.com\",\n  \"groups\":[\n    {\n       \"value\":\"1805378359307767\"\n    }\n  ],\n  \"entitlements\":[\n    {\n       \"value\":\"allow-cluster-create\"\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/Users",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "12-add user to a group using PAT and no SCIM API",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"user_name\": \"testuser1@databricks.com\",\n  \"group_name\": \"dev\"\n}"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/groups/add-member",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"groups",
+						"add-member"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "13-get databricks users using PAT",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/Users",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Users"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "3eba84a3-ac67-424a-aa26-62e56cadb4ac",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "7f2caf8d-f4cd-4476-8f0d-5b0ddd4864d6",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "03cf6744-82e6-4f2c-a721-fedf596a0217",
+			"key": "tenant_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "7b1313e5-c56b-47a2-9663-e29dcdeb2c8c",
+			"key": "client_secret",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "fc150869-a1b8-495e-b7ac-369297264d54",
+			"key": "client_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "1a4f57a6-7717-4972-b7e4-2376c56e87b3",
+			"key": "databricks_resource_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "39f3dce8-de9c-42df-a078-102b9ca2ac6b",
+			"key": "subscription_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "6ac5da58-3d3c-4241-8fb3-16694c143de0",
+			"key": "management_resource_endpoint",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "a71987f2-ebc0-473b-8e6c-376e69bf46c1",
+			"key": "resource_group",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "4e2113c3-f823-437d-b8ed-669d76e1b760",
+			"key": "azure_region",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "7113dced-29fd-4d95-970e-9c078b9143a8",
+			"key": "resource_deployment_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "71e20497-9aec-4ceb-9142-afb7c54c7669",
+			"key": "databricks_workspace_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "d8294a04-ce18-43b0-8f6b-5d225d041018",
+			"key": "databricks_vnet_cidr",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "9b1789ee-0210-4ad7-a4b9-38f6bc7fc80b",
+			"key": "databricks_vnet_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "481d16cc-20a4-4758-9b13-13d3a2575c15",
+			"key": "databricks_host_subnet_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "1480c27c-8ef9-46d0-81a7-97ad1ecaeeb3",
+			"key": "databricks_host_subnet_cidr",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "ee7f5ee5-6e92-4754-9ebc-c83b667b921b",
+			"key": "databricks_container_subnet_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "b04c7976-4d3d-457d-b7d9-9a2f6b426b61",
+			"key": "databricks_container_subnet_cidr",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "07e03893-7ae5-4a3f-9b8b-6513f006425f",
+			"key": "databricks_nsg_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "41522b5d-8ff9-49d4-92f5-d6c73ae302ab",
+			"key": "databricks_pricing_tier",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "2c5085cf-33cd-4277-bfe3-bdc73f14037d",
+			"key": "databricks_enable_no_public_ip",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
