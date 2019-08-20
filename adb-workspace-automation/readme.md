@@ -1,5 +1,7 @@
 ***REMOVED******REMOVED*** Provisioning [Azure Databricks workspaces](https://docs.azuredatabricks.net/user-guide/workspace.html) using Service Principals
 
+<p><span style="color: red; font-weight: bold">![alert](https://raw.githubusercontent.com/bhavink/databricks/master/adb-workspace-automation/images/alert.jpg)</span></p>
+
 ***REMOVED******REMOVED******REMOVED*** Table of Contents
 1. [Prerequisites](***REMOVED***Prerequisites)
 2. [Create Service Principal](***REMOVED***Provisioning-Service-Principal-aka-Application)
