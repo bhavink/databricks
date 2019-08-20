@@ -1,12 +1,12 @@
 {
 	"info": {
-		"_postman_id": "3c2bf1ad-6ed2-42dd-99db-7f2c8dc7b923",
+		"_postman_id": "cba1c311-09fd-4b0a-b6ce-15bccf3ac052",
 		"name": "ADB Workspace Automation",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "1-get management token",
+			"name": "1-get management token to provision workspace",
 			"event": [
 				{
 					"listen": "test",
@@ -861,6 +861,429 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "14-list service principals",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "15-list service principals(filter)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals?filter=applicationId+eq+417926e2-6f5b-4f3f-82a8-dedc2271b35c",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals"
+					],
+					"query": [
+						{
+							"key": "filter",
+							"value": "applicationId+eq+417926e2-6f5b-4f3f-82a8-dedc2271b35c"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "16-get service principle by id",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals/7244399626388687",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"7244399626388687"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "17-add service principle",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:ServicePrincipal\"\n  ],\n  \"applicationId\":\"b4647a57-063a-43e3-a6b4-c9a4e9f9f0b7\",\n  \"displayName\":\"test-service-principal\",\n  \"groups\":[\n    {\n       \"value\":\"1805378359307767\"\n    }\n  ],\n  \"entitlements\":[\n    {\n       \"value\":\"allow-cluster-create\"\n    }\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "18-update service principle(add entitlements)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/scim+json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"add\",\n      \"path\":\"entitlements\",\n      \"value\":[\n        {\n           \"value\":\"allow-instance-pool-create\"\n        }\n      ]\n    }\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals/3519533359705150",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"3519533359705150"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "19-update service principle(remove entitlements)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"remove\",\n      \"path\":\"entitlements\",\n      \"value\":[\n        {\n           \"value\":\"allow-instance-pool-create\",\n           \"value\":\"allow-cluster-create\"\n        }\n      ]\n    }\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals/3519533359705150",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"3519533359705150"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "20-update service principle(add to group)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"add\",\n      \"path\":\"groups\",\n      \"value\":[\n        {\n           \"value\":\"3068647615194503\"\n        }\n      ]\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals/3519533359705150",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"3519533359705150"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "21-update service principle(remove from group)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"remove\",\n      \"path\":\"groups\",\n      \"value\":[\n        {\n           \"value\":\"3068647615194503\"\n        }\n      ]\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals/3519533359705150",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"3519533359705150"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "22-update service principle(by id)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:ServicePrincipal\"\n  ],\n  \"applicationId\":\"b4647a57-063a-43e3-a6b4-c9a4e9f9f0b7\",\n  \"displayName\":\"test-service-principal-updated\",\n  \"groups\":[\n    {\n       \"value\":\"3068647615194503\"\n    }\n  ],\n  \"entitlements\":[\n    {\n\t\"value\":\"allow-instance-pool-create\"\n    }\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals/3519533359705150",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"3519533359705150"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "23-delete service principle(by id)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{databricks_platform_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals/3519533359705150",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"3519533359705150"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"event": [
@@ -887,115 +1310,115 @@
 	],
 	"variable": [
 		{
-			"id": "03cf6744-82e6-4f2c-a721-fedf596a0217",
+			"id": "7496f0b8-cccd-4821-95f8-f4c4dc7b6315",
 			"key": "tenant_id",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "7b1313e5-c56b-47a2-9663-e29dcdeb2c8c",
+			"id": "add88afc-d562-4018-98cd-59b6f696020c",
 			"key": "client_secret",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "fc150869-a1b8-495e-b7ac-369297264d54",
+			"id": "64676a1f-40fc-458a-ace8-f0d0ef9da448",
 			"key": "client_id",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "1a4f57a6-7717-4972-b7e4-2376c56e87b3",
+			"id": "21543fe1-264f-4467-a52c-b02e776ed253",
 			"key": "databricks_resource_id",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "39f3dce8-de9c-42df-a078-102b9ca2ac6b",
+			"id": "057e73b6-d40a-4e31-9fe6-26383cc923be",
 			"key": "subscription_id",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "6ac5da58-3d3c-4241-8fb3-16694c143de0",
+			"id": "c370b0e7-fa1b-4304-bbc1-19f5a0ac8d67",
 			"key": "management_resource_endpoint",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "a71987f2-ebc0-473b-8e6c-376e69bf46c1",
+			"id": "19136682-edf8-4e5b-a1e4-fe301bcec17e",
 			"key": "resource_group",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "4e2113c3-f823-437d-b8ed-669d76e1b760",
+			"id": "6b9ddb8b-a805-443c-a872-7fedbf2ad403",
 			"key": "azure_region",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "7113dced-29fd-4d95-970e-9c078b9143a8",
+			"id": "916fe986-9e43-487e-a689-115ecba1abd6",
 			"key": "resource_deployment_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "71e20497-9aec-4ceb-9142-afb7c54c7669",
+			"id": "e2e1f0c6-3897-47d3-bf42-a5abfb6c15b1",
 			"key": "databricks_workspace_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "d8294a04-ce18-43b0-8f6b-5d225d041018",
+			"id": "8bc726cf-cd08-470b-bf3e-05ae8d5b3f40",
 			"key": "databricks_vnet_cidr",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "9b1789ee-0210-4ad7-a4b9-38f6bc7fc80b",
+			"id": "41752e68-c580-4f70-a17c-be4149a800ca",
 			"key": "databricks_vnet_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "481d16cc-20a4-4758-9b13-13d3a2575c15",
+			"id": "0b1dc7f2-fa9a-414c-8578-7737342e1472",
 			"key": "databricks_host_subnet_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "1480c27c-8ef9-46d0-81a7-97ad1ecaeeb3",
+			"id": "c58527a4-297c-4674-8544-e9ad0d0f471a",
 			"key": "databricks_host_subnet_cidr",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "ee7f5ee5-6e92-4754-9ebc-c83b667b921b",
+			"id": "daa85fae-c03a-4822-91d7-1fef3360f73c",
 			"key": "databricks_container_subnet_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "b04c7976-4d3d-457d-b7d9-9a2f6b426b61",
+			"id": "d5912ce2-9aae-4357-9156-7451c31e066a",
 			"key": "databricks_container_subnet_cidr",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "07e03893-7ae5-4a3f-9b8b-6513f006425f",
+			"id": "4ae14dd7-fe21-4c9f-8de4-7fd2a5b6315d",
 			"key": "databricks_nsg_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "41522b5d-8ff9-49d4-92f5-d6c73ae302ab",
+			"id": "483ad99b-04e6-48f9-aca6-fd0b8cd930f9",
 			"key": "databricks_pricing_tier",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "2c5085cf-33cd-4277-bfe3-bdc73f14037d",
+			"id": "bfb7533d-c20b-4e5e-8df9-10a1ccb805bf",
 			"key": "databricks_enable_no_public_ip",
 			"value": "",
 			"type": "string"
