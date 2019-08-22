@@ -42,40 +42,16 @@ Here are quicks steps to get you started:
 <br>
 
 
-2. Update API permission, click on "API permissions" and "Add permissions", Select an API , API's my Organization uses and search for "AzureDatabricks"
-
-![API permissions](https://raw.githubusercontent.com/bhavink/databricks/master/adb-workspace-automation/images/13.png)
-
-<br>(<a href="***REMOVED***">Back to top</a>)
-<br>
-
-
-**Select "Delegated Permissions" and make sure that "user impersonation" check box is checked as shown below.**
-
-![Delegate API permission](https://raw.githubusercontent.com/bhavink/databricks/master/adb-workspace-automation/images/14.png)
-
-<br>(<a href="***REMOVED***">Back to top</a>)
-<br>
-
-**On the API permissions page, make sure to click "Grant Permissions"**
-
-![Grant permissions](https://raw.githubusercontent.com/bhavink/databricks/master/adb-workspace-automation/images/15.png)
-
-<br>(<a href="***REMOVED***">Back to top</a>)
-<br>
-
-
-
-3. Once the application is registered, click on “Certificates & secrets” and generate a new client secret. Copy and store that secret in a secure place as this secret is the password for your application. 
+2. Once the application is registered, click on “Certificates & secrets” and generate a new client secret. Copy and store that secret in a secure place as this secret is the password for your application. 
 
 ![client secret](https://raw.githubusercontent.com/bhavink/databricks/master/adb-workspace-automation/images/12.png)
 
 <br>(<a href="***REMOVED***">Back to top</a>)
 <br>
 
-4. Click on “Overview” to look at details like Application(clientId) and Directory (tenant) ID. 
+3. Click on “Overview” to look at details like Application(clientId) and Directory (tenant) ID. 
 
-5. **Assign the “Contributor” role to the Service Principal on your Azure Resource**
+4. **Assign the “Contributor” role to the Service Principal on your Azure Resource**
 
     Navigate to your Azure Resource Group where you plan to deploy the Databricks workspace, click on the Access Control (IAM) tab and add the “Contributor” role to your service principal. 
 
