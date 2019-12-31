@@ -105,20 +105,16 @@
 		],
 		"variables": {
 			"tenant_id": {
-				"type": "String",
-				"defaultValue": "9f37a392-f0ae-4280-9796-f1864a10effc"
+				"type": "String"
 			},
 			"client_id": {
-				"type": "String",
-				"defaultValue": "96e91ccd-4947-40d3-862a-e5996303505a"
+				"type": "String"
 			},
 			"client_secret": {
-				"type": "String",
-				"defaultValue": "iAOc27A*BbsSV?Y?rm3[tdyKr0cJbGyF"
+				"type": "String"
 			},
 			"subscription_id": {
-				"type": "String",
-				"defaultValue": "3f2e4d32-8e8d-46d6-82bc-5bb8d962328b"
+				"type": "String"
 			},
 			"resource_group": {
 				"type": "String",
