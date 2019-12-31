@@ -1,0 +1,147 @@
+{
+	"name": "InvokeRestAPI-SP",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get AAD Mngmt Token",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get AAD Access Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://login.microsoftonline.com/',variables('tenant_id'),'/oauth2/token')",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=',variables('client_id'),'&client_secret=',variables('client_secret'),'&resource=',variables('management_resource_endpoint'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "List node types",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get AAD Mngmt Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://eastus2.azuredatabricks.net/api/2.0/clusters/list-node-types",
+					"method": "GET",
+					"headers": {
+						"X-Databricks-Azure-Workspace-Resource-Id": {
+							"value": "@concat('/subscriptions/',variables('subscription_id'),'/resourceGroups/',variables('resource_group'),'/providers/Microsoft.Databricks/workspaces/',variables('databricks_workspace_name'))",
+							"type": "Expression"
+						},
+						"X-Databricks-Azure-SP-Management-Token": {
+							"value": "@string(activity('Get AAD Mngmt Token').output.access_token)",
+							"type": "Expression"
+						},
+						"Authorization": {
+							"value": "@concat('Bearer ',activity('Get AAD Access Token').output.access_token)",
+							"type": "Expression"
+						},
+						"Content-Type": "application/x-www-form-urlencoded"
+					}
+				}
+			},
+			{
+				"name": "Get AAD Access Token",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://login.microsoftonline.com/',variables('tenant_id'),'/oauth2/token')",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=',variables('client_id'),'&client_secret=',variables('client_secret'),'&resource=',variables('databricks_resource_id'))",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"tenant_id": {
+				"type": "String",
+				"defaultValue": "9f37a392-f0ae-4280-9796-f1864a10effc"
+			},
+			"client_id": {
+				"type": "String",
+				"defaultValue": "96e91ccd-4947-40d3-862a-e5996303505a"
+			},
+			"client_secret": {
+				"type": "String",
+				"defaultValue": "iAOc27A*BbsSV?Y?rm3[tdyKr0cJbGyF"
+			},
+			"subscription_id": {
+				"type": "String",
+				"defaultValue": "3f2e4d32-8e8d-46d6-82bc-5bb8d962328b"
+			},
+			"resource_group": {
+				"type": "String",
+				"defaultValue": "lab-rg"
+			},
+			"azure_region": {
+				"type": "String",
+				"defaultValue": "eastus2"
+			},
+			"databricks_workspace_name": {
+				"type": "String",
+				"defaultValue": "npip-ws"
+			},
+			"management_resource_endpoint": {
+				"type": "String",
+				"defaultValue": "https://management.core.windows.net/"
+			},
+			"databricks_resource_id": {
+				"type": "String",
+				"defaultValue": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+			}
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
