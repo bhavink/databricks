@@ -1,0 +1,32 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "cmoonadls201Parquet1",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "sink_folder",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Filter1"
+				}
+			],
+			"script": "\n\nsource(output(\n\t\taction as string,\n\t\tdate as date,\n\t\tdeviceId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: true,\n\tlimit: 100,\n\tinferDriftedColumnTypes: true,\n\tformat: 'parquet') ~> source1\nsource1 filter(action=='Close') ~> Filter1\nFilter1 sink(allowSchemaDrift: true,\n\tvalidateSchema: true,\n\tformat: 'parquet',\n\tpartitionFileNames:['result.parquet'],\n\ttruncate: true,\n\tpartitionBy('hash', 1)) ~> sink1"
+		}
+	}
+}

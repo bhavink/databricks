@@ -1,0 +1,34 @@
+{
+	"name": "cmoonadls201Parquet1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "parquet",
+				"fileSystem": "fs01"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "action",
+				"type": "UTF8"
+			},
+			{
+				"name": "date",
+				"type": "DATE"
+			},
+			{
+				"name": "deviceId",
+				"type": "INT32"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
