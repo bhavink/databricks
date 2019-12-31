@@ -1,9 +1,9 @@
 {
-	"name": "PassParameters",
+	"name": "PassParamToNotebook",
 	"properties": {
 		"activities": [
 			{
-				"name": "ParamTest",
+				"name": "PassParamToNotebook",
 				"type": "DatabricksNotebook",
 				"dependsOn": [],
 				"policy": {
@@ -24,8 +24,11 @@
 					}
 				},
 				"linkedServiceName": {
-					"referenceName": "fieldeng",
-					"type": "LinkedServiceReference"
+					"referenceName": "bk_field_eng",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"partition": "TestParamFromADF"
+					}
 				}
 			}
 		],
