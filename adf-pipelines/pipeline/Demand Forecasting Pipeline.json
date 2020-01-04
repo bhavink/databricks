@@ -1,0 +1,89 @@
+{
+	"name": "Demand Forecasting Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Ingest and Prepare",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "/Users/bhavin.kukadia@databricks.com/Chick-fil-a/1 - Demand Forecasting for Chick-fil-a Data",
+						"type": "Expression"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "bk_field_eng",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Forecast Modeling",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "Ingest and Prepare",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "/Users/bhavin.kukadia@databricks.com/Chick-fil-a/2 - Machine Learning Pipelines",
+						"type": "Expression"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "bk_field_eng",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "POS Stream Ingest",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "Forecast Modeling",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "/Users/bhavin.kukadia@databricks.com/Chick-fil-a/3 - Streaming POS Data",
+						"type": "Expression"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "bk_field_eng",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

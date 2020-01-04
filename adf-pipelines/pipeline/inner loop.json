@@ -1,0 +1,245 @@
+{
+	"name": "inner loop",
+	"properties": {
+		"description": "each notebook activity acts upon a set of folders/partitions based on naming pattern match ex: If you have source1 to source30 as folders then this pipeline would act upon sourceX1 to sourceX9 where X is supplied by user i.e if you pass on 1 then it will iterate thru 11 to 20 folders for you in parallel",
+		"activities": [
+			{
+				"name": "Partiton X1",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/bhavin.kukadia@databricks.com/Utils/ParallelDataIngest/00-extract partition",
+					"baseParameters": {
+						"partition": {
+							"value": "@string(add(int(pipeline().parameters.PartitionFactor), int(1)))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Partion X6",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/bhavin.kukadia@databricks.com/Utils/ParallelDataIngest/00-extract partition",
+					"baseParameters": {
+						"partition": {
+							"value": "@string(add(int(pipeline().parameters.PartitionFactor), int(6)))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Partion X7",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/bhavin.kukadia@databricks.com/Utils/ParallelDataIngest/00-extract partition",
+					"baseParameters": {
+						"partition": {
+							"value": "@string(add(int(pipeline().parameters.PartitionFactor), int(7)))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Partion X8",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/bhavin.kukadia@databricks.com/Utils/ParallelDataIngest/00-extract partition",
+					"baseParameters": {
+						"partition": {
+							"value": "@string(add(int(pipeline().parameters.PartitionFactor), int(8)))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Partion X3",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/bhavin.kukadia@databricks.com/Utils/ParallelDataIngest/00-extract partition",
+					"baseParameters": {
+						"partition": {
+							"value": "@string(add(int(pipeline().parameters.PartitionFactor), int(3)))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Partion X4",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/bhavin.kukadia@databricks.com/Utils/ParallelDataIngest/00-extract partition",
+					"baseParameters": {
+						"partition": {
+							"value": "@string(add(int(pipeline().parameters.PartitionFactor), int(4)))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Partion X5",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/bhavin.kukadia@databricks.com/Utils/ParallelDataIngest/00-extract partition",
+					"baseParameters": {
+						"partition": {
+							"value": "@string(add(int(pipeline().parameters.PartitionFactor), int(5)))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Partion X2",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/bhavin.kukadia@databricks.com/Utils/ParallelDataIngest/00-extract partition",
+					"baseParameters": {
+						"partition": {
+							"value": "@string(add(int(pipeline().parameters.PartitionFactor), int(2)))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Partion X9",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/bhavin.kukadia@databricks.com/Utils/ParallelDataIngest/00-extract partition",
+					"baseParameters": {
+						"partition": {
+							"value": "@string(add(int(pipeline().parameters.PartitionFactor), int(9)))",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Partion X10",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/bhavin.kukadia@databricks.com/Utils/ParallelDataIngest/00-extract partition",
+					"baseParameters": {
+						"partition": {
+							"value": "@string(add(int(pipeline().parameters.PartitionFactor), int(10)))",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"PartitionFactor": {
+				"type": "string",
+				"defaultValue": "0"
+			}
+		},
+		"variables": {
+			"PartitionFactor": {
+				"type": "String",
+				"defaultValue": "0"
+			}
+		},
+		"folder": {
+			"name": "Data Ingestion Pattern"
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
