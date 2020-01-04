@@ -1,4 +1,4 @@
-{
+git statu{
 	"info": {
 		"_postman_id": "cba1c311-09fd-4b0a-b6ce-15bccf3ac052",
 		"name": "ADB Workspace Deployment",
@@ -96,7 +96,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n   \"properties\": {\n   \"mode\": \"Incremental\",\n   \"template\": {\n    \"$schema\": \"https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#\",\n    \"contentVersion\": \"1.0.0.0\",\n    \"parameters\": {\n        \"nsgName\": {\n            \"defaultValue\": \"databricks-{{databricks_workspace_name}}-nsg\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the network security group to create.\"\n            }\n        },\n        \"vnetName\": {\n            \"defaultValue\": \"databricks-vnet\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the virtual network to create.\"\n            }\n        },\n        \"workspaceName\": {\n            \"defaultValue\": \"test12\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the Azure Databricks workspace to create.\"\n            }\n        },\n        \"privateSubnetName\": {\n            \"defaultValue\": \"container-subnet\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the private subnet to create.\"\n            }\n        },\n        \"publicSubnetName\": {\n            \"defaultValue\": \"host-subnet\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the public subnet to create.\"\n            }\n        },\n        \"pricingTier\": {\n            \"defaultValue\": \"premium\",\n            \"allowedValues\": [\n                \"trial\",\n                \"standard\",\n                \"premium\"\n            ],\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The pricing tier of workspace.\"\n            }\n        },\n        \"location\": {\n            \"type\": \"string\",\n            \"defaultValue\": \"[resourceGroup().location]\",\n            \"metadata\": {\n                \"description\": \"Location for all resources.\"\n            }\n        },\n        \"vnetCidr\": {\n            \"defaultValue\": \"11.141.13.0/22\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the vnet.\"\n            }\n        },\n        \"publicSubnetCidr\": {\n            \"defaultValue\": \"11.141.13.64/26\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the public subnet..\"\n            }\n        },\n        \"privateSubnetCidr\": {\n            \"defaultValue\": \"11.141.13.128/26\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the private subnet.\"\n            }\n        },\n        \"enableNoPublicIp\": {\n            \"defaultValue\": \"[bool('false')]\",\n            \"type\": \"bool\"\n        }\n    },\n    \"variables\": {\n        \"azureRegionToControlPlaneIp\": {\n            \"centralus\": \"23.101.152.95/32\",\n            \"eastus\": \"23.101.152.95/32\",\n            \"eastus2\": \"23.101.152.95/32\",\n            \"northcentralus\": \"23.101.152.95/32\",\n            \"southcentralus\": \"40.83.178.242/32\",\n            \"westcentralus\": \"40.83.178.242/32\",\n            \"westus\": \"40.83.178.242/32\",\n            \"westus2\": \"40.83.178.242/32\"\n        },\n        \"controlPlaneIp\": \"[variables('azureRegionToControlPlaneIp')[parameters('location')]]\",\n        \"azureRegionToWebappIp\": {\n            \"centralus\": \"40.70.58.221/32\",\n            \"eastus\": \"40.70.58.221/32\",\n            \"eastus2\": \"40.70.58.221/32\",\n            \"northcentralus\": \"40.70.58.221/32\",\n            \"southcentralus\": \"40.118.174.12/32\",\n            \"westcentralus\": \"40.118.174.12/32\",\n            \"westus\": \"40.118.174.12/32\",\n            \"westus2\": \"40.118.174.12/32\"\n        },\n        \"webappIp\": \"[variables('azureRegionToWebappIp')[parameters('location')]]\",\n        \"nsgId\": \"[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]\",\n        \"vnetId\": \"[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]\",\n        \"managedResourceGroupId\": \"[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]\",\n        \"managedResourceGroupName\": \"[concat('databricks-rg-', parameters('workspaceName'), '-', uniqueString(parameters('workspaceName'), resourceGroup().id))]\"\n    },\n    \"resources\": [\n        {\n            \"apiVersion\": \"2018-02-01\",\n            \"type\": \"Microsoft.Network/networkSecurityGroups\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('nsgName')]\",\n            \"properties\": {\n                \"securityRules\": [\n                    {\n                        \"name\": \"databricks-worker-to-worker-inbound\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for worker nodes communication within a cluster.\",\n                            \"destinationAddressPrefix\": \"*\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Inbound\",\n                            \"priority\": 200,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"VirtualNetwork\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-control-plane-ssh\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for Databricks control plane management of worker nodes.\",\n                            \"destinationAddressPrefix\": \"*\",\n                            \"destinationPortRange\": \"22\",\n                            \"direction\": \"Inbound\",\n                            \"priority\": 100,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"[variables('controlPlaneIp')]\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-control-plane-worker-proxy\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for Databricks control plane communication with worker nodes.\",\n                            \"destinationAddressPrefix\": \"*\",\n                            \"destinationPortRange\": \"5557\",\n                            \"direction\": \"Inbound\",\n                            \"priority\": 110,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"[variables('controlPlaneIp')]\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-worker-to-webapp\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for workers communication with Databricks Webapp.\",\n                            \"destinationAddressPrefix\": \"[variables('webappIp')]\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Outbound\",\n                            \"priority\": 100,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"*\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-worker-to-sql\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for workers communication with Azure SQL services.\",\n                            \"destinationAddressPrefix\": \"Sql\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Outbound\",\n                            \"priority\": 110,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"*\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-worker-to-storage\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for workers communication with Azure Storage services.\",\n                            \"destinationAddressPrefix\": \"Storage\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Outbound\",\n                            \"priority\": 120,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"*\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-worker-to-worker-outbound\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for worker nodes communication within a cluster.\",\n                            \"destinationAddressPrefix\": \"VirtualNetwork\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Outbound\",\n                            \"priority\": 130,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"*\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    },\n                    {\n                        \"name\": \"databricks-worker-to-any\",\n                        \"properties\": {\n                            \"access\": \"Allow\",\n                            \"description\": \"Required for worker nodes communication with any destination.\",\n                            \"destinationAddressPrefix\": \"*\",\n                            \"destinationPortRange\": \"*\",\n                            \"direction\": \"Outbound\",\n                            \"priority\": 140,\n                            \"protocol\": \"*\",\n                            \"sourceAddressPrefix\": \"*\",\n                            \"sourcePortRange\": \"*\"\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"apiVersion\": \"2018-02-01\",\n            \"type\": \"Microsoft.Network/virtualNetworks\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('vnetName')]\",\n            \"dependsOn\": [\n                \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\"\n            ],\n            \"properties\": {\n                \"addressSpace\": {\n                    \"addressPrefixes\": [\n                        \"[parameters('vnetCidr')]\"\n                    ]\n                },\n                \"subnets\": [\n                    {\n                        \"name\": \"[parameters('publicSubnetName')]\",\n                        \"properties\": {\n                            \"addressPrefix\": \"[parameters('publicSubnetCidr')]\",\n                            \"networkSecurityGroup\": {\n                                \"id\": \"[variables('nsgId')]\"\n                            }\n                        }\n                    },\n                    {\n                        \"name\": \"[parameters('privateSubnetName')]\",\n                        \"properties\": {\n                            \"addressPrefix\": \"[parameters('privateSubnetCidr')]\",\n                            \"networkSecurityGroup\": {\n                                \"id\": \"[variables('nsgId')]\"\n                            }\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"apiVersion\": \"2018-04-01\",\n            \"type\": \"Microsoft.Databricks/workspaces\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('workspaceName')]\",\n            \"dependsOn\": [\n                \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\",\n                \"[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]\"\n            ],\n            \"sku\": {\n                \"name\": \"[parameters('pricingTier')]\"\n            },\n            \"comments\": \"The resource group specified will be locked after deployment.\",\n            \"properties\": {\n                \"ManagedResourceGroupId\": \"[variables('managedResourceGroupId')]\",\n                \"parameters\": {\n                    \"customVirtualNetworkId\": {\n                        \"value\": \"[variables('vnetId')]\"\n                    },\n                    \"customPublicSubnetName\": {\n                        \"value\": \"[parameters('publicSubnetName')]\"\n                    },\n                    \"customPrivateSubnetName\": {\n                        \"value\": \"[parameters('privateSubnetName')]\"\n                    },\n                    \"enableNoPublicIp\": {\n                        \"value\": \"[parameters('enableNoPublicIp')]\"\n                    }\n                }\n            }\n        }\n    ]\n},\n   \"parameters\": {\n     \"workspaceName\": {\n       \"value\": \"{{databricks_workspace_name}}\"\n     },\n     \"pricingTier\":{\n       \"value\":\"{{databricks_pricing_tier}}\"\n     },\n     \"nsgName\":{\n       \"value\":\"{{databricks_nsg_name}}\"\n     },\n     \"vnetName\":{\n       \"value\":\"{{databricks_vnet_name}}\"\n     },\n     \"vnetCidr\":{\n       \"value\":\"{{databricks_vnet_cidr}}\"\n     },\n     \"privateSubnetName\":{\n       \"value\":\"{{databricks_container_subnet_name}}\"\n     },\n     \"publicSubnetName\":{\n       \"value\":\"{{databricks_host_subnet_name}}\"\n     },\n     \"privateSubnetCidr\":{\n       \"value\":\"{{databricks_container_subnet_cidr}}\"\n     },\n     \"publicSubnetCidr\":{\n       \"value\":\"{{databricks_host_subnet_cidr}}\"\n     }\n   }\n }\n}\n"
+					"raw": "{\n  \"properties\": {\n    \"mode\": \"Incremental\",\n    \"template\": {\n      \"$schema\": \"https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#\",\n      \"contentVersion\": \"1.0.0.0\",\n      \"parameters\": {\n        \"nsgName\": {\n          \"defaultValue\": \"databricks-{{databricks_workspace_name}}-nsg\",\n          \"type\": \"string\",\n          \"metadata\": {\n            \"description\": \"The name of the network security group to create.\"\n          }\n        },\n        \"vnetName\": {\n          \"defaultValue\": \"databricks-vnet\",\n          \"type\": \"string\",\n          \"metadata\": {\n            \"description\": \"The name of the virtual network to create.\"\n          }\n        },\n        \"workspaceName\": {\n          \"defaultValue\": \"test-vnet-name\",\n          \"type\": \"string\",\n          \"metadata\": {\n            \"description\": \"The name of the Azure Databricks workspace to create.\"\n          }\n        },\n        \"privateSubnetName\": {\n          \"defaultValue\": \"container-subnet\",\n          \"type\": \"string\",\n          \"metadata\": {\n            \"description\": \"The name of the private subnet to create.\"\n          }\n        },\n        \"publicSubnetName\": {\n          \"defaultValue\": \"host-subnet\",\n          \"type\": \"string\",\n          \"metadata\": {\n            \"description\": \"The name of the public subnet to create.\"\n          }\n        },\n        \"pricingTier\": {\n          \"defaultValue\": \"premium\",\n          \"allowedValues\": [\"trial\", \"standard\", \"premium\"],\n          \"type\": \"string\",\n          \"metadata\": {\n            \"description\": \"The pricing tier of workspace.\"\n          }\n        },\n        \"location\": {\n          \"type\": \"string\",\n          \"defaultValue\": \"[resourceGroup().location]\",\n          \"metadata\": {\n            \"description\": \"Location for all resources.\"\n          }\n        },\n        \"vnetCidr\": {\n          \"defaultValue\": \"11.141.13.0/22\",\n          \"type\": \"string\",\n          \"metadata\": {\n            \"description\": \"Cidr range for the vnet.\"\n          }\n        },\n        \"publicSubnetCidr\": {\n          \"defaultValue\": \"11.141.13.64/26\",\n          \"type\": \"string\",\n          \"metadata\": {\n            \"description\": \"Cidr range for the public subnet..\"\n          }\n        },\n        \"privateSubnetCidr\": {\n          \"defaultValue\": \"11.141.13.128/26\",\n          \"type\": \"string\",\n          \"metadata\": {\n            \"description\": \"Cidr range for the private subnet.\"\n          }\n        }\n      },\n      \"variables\": {\n        \"nsgId\": \"[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]\",\n        \"vnetId\": \"[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]\",\n        \"managedResourceGroupId\": \"[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]\",\n        \"managedResourceGroupName\": \"[concat('databricks-rg-', parameters('workspaceName'), '-', uniqueString(parameters('workspaceName'), resourceGroup().id))]\"\n      },\n      \"resources\": [\n        {\n          \"apiVersion\": \"2019-06-01\",\n          \"type\": \"Microsoft.Network/networkSecurityGroups\",\n          \"location\": \"[parameters('location')]\",\n          \"name\": \"[parameters('nsgName')]\"\n        },\n        {\n          \"apiVersion\": \"2019-06-01\",\n          \"type\": \"Microsoft.Network/virtualNetworks\",\n          \"location\": \"[parameters('location')]\",\n          \"name\": \"[parameters('vnetName')]\",\n          \"dependsOn\": [\n            \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\"\n          ],\n          \"properties\": {\n            \"addressSpace\": {\n              \"addressPrefixes\": [\"[parameters('vnetCidr')]\"]\n            },\n            \"subnets\": [\n              {\n                \"name\": \"[parameters('publicSubnetName')]\",\n                \"properties\": {\n                  \"addressPrefix\": \"[parameters('publicSubnetCidr')]\",\n                  \"networkSecurityGroup\": {\n                    \"id\": \"[variables('nsgId')]\"\n                  },\n                  \"delegations\": [\n                    {\n                      \"name\": \"databricks-del-public\",\n                      \"properties\": {\n                        \"serviceName\": \"Microsoft.Databricks/workspaces\"\n                      }\n                    }\n                  ]\n                }\n              },\n              {\n                \"name\": \"[parameters('privateSubnetName')]\",\n                \"properties\": {\n                  \"addressPrefix\": \"[parameters('privateSubnetCidr')]\",\n                  \"networkSecurityGroup\": {\n                    \"id\": \"[variables('nsgId')]\"\n                  },\n                  \"delegations\": [\n                    {\n                      \"name\": \"databricks-del-private\",\n                      \"properties\": {\n                        \"serviceName\": \"Microsoft.Databricks/workspaces\"\n                      }\n                    }\n                  ]\n                }\n              }\n            ]\n          }\n        },\n        {\n          \"apiVersion\": \"2018-04-01\",\n          \"type\": \"Microsoft.Databricks/workspaces\",\n          \"location\": \"[parameters('location')]\",\n          \"name\": \"[parameters('workspaceName')]\",\n          \"dependsOn\": [\n            \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\",\n            \"[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]\"\n          ],\n          \"sku\": {\n            \"name\": \"[parameters('pricingTier')]\"\n          },\n          \"comments\": \"The managed resource group specified will be locked after deployment.\",\n          \"properties\": {\n            \"ManagedResourceGroupId\": \"[variables('managedResourceGroupId')]\",\n            \"parameters\": {\n              \"customVirtualNetworkId\": {\n                \"value\": \"[variables('vnetId')]\"\n              },\n              \"customPublicSubnetName\": {\n                \"value\": \"[parameters('publicSubnetName')]\"\n              },\n              \"customPrivateSubnetName\": {\n                \"value\": \"[parameters('privateSubnetName')]\"\n              }\n            }\n          }\n        }\n      ]\n    },\n    \"parameters\": {\n      \"workspaceName\": {\n        \"value\": \"{{databricks_workspace_name}}\"\n      },\n      \"pricingTier\": {\n        \"value\": \"{{databricks_pricing_tier}}\"\n      },\n      \"nsgName\": {\n        \"value\": \"{{databricks_nsg_name}}\"\n      },\n      \"vnetName\": {\n        \"value\": \"{{databricks_vnet_name}}\"\n      },\n      \"vnetCidr\": {\n        \"value\": \"{{databricks_vnet_cidr}}\"\n      },\n      \"privateSubnetName\": {\n        \"value\": \"{{databricks_container_subnet_name}}\"\n      },\n      \"publicSubnetName\": {\n        \"value\": \"{{databricks_host_subnet_name}}\"\n      },\n      \"privateSubnetCidr\": {\n        \"value\": \"{{databricks_container_subnet_cidr}}\"\n      },\n      \"publicSubnetCidr\": {\n        \"value\": \"{{databricks_host_subnet_cidr}}\"\n      }\n    }\n  }\n}\n"
 				},
 				"url": {
 					"raw": "https://management.azure.com/subscriptions/{{subscription_id}}/resourcegroups/{{resource_group}}/providers/Microsoft.Resources/deployments/{{resource_deployment_name}}?api-version=2019-05-01",
@@ -170,7 +170,7 @@
 			"response": []
 		},
 		{
-			"name": "4-get an aad access token for databricks resource Copy",
+			"name": "4-get an aad access token for databricks resource",
 			"event": [
 				{
 					"listen": "test",
@@ -195,7 +195,9 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/x-www-form-urlencoded"
+						"name": "Content-Type",
+						"value": "text/plain",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -221,7 +223,12 @@
 							"value": "{{databricks_resource_id}}",
 							"type": "text"
 						}
-					]
+					],
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
 				},
 				"url": {
 					"raw": "https://login.microsoftonline.com/{{tenant_id}}/oauth2/token",
@@ -241,7 +248,7 @@
 			"response": []
 		},
 		{
-			"name": "5-get an access token for management resource. Copy",
+			"name": "5-get management resource token",
 			"event": [
 				{
 					"listen": "test",
@@ -266,7 +273,9 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/x-www-form-urlencoded"
+						"name": "Content-Type",
+						"value": "text/plain",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -293,7 +302,12 @@
 							"description": "get management access token",
 							"type": "text"
 						}
-					]
+					],
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
 				},
 				"url": {
 					"raw": "https://login.microsoftonline.com/{{tenant_id}}/oauth2/token",
@@ -313,7 +327,58 @@
 			"response": []
 		},
 		{
-			"name": "6-initialize databricks workspace",
+			"name": "6-initialize workspace",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/{{databricks_workspace_name}}",
+						"type": "text"
+					},
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"value": "{{management_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals",
+					"protocol": "https",
+					"host": [
+						"{{azure_region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7-list node types",
 			"event": [
 				{
 					"listen": "test",
@@ -347,11 +412,13 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/x-www-form-urlencoded"
+						"name": "Content-Type",
+						"value": "text/plain",
+						"type": "text"
 					},
 					{
 						"key": "X-Databricks-Azure-Workspace-Resource-Id",
-						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/test16",
+						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/{{databricks_workspace_name}}",
 						"type": "text"
 					},
 					{
@@ -362,7 +429,12 @@
 				],
 				"body": {
 					"mode": "urlencoded",
-					"urlencoded": []
+					"urlencoded": [],
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
 				},
 				"url": {
 					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/clusters/list-node-types",
@@ -383,7 +455,23 @@
 			"response": []
 		},
 		{
-			"name": "7-list service principals",
+			"name": "8-generate databricks platform access token (PAT)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"databricks_platform_token\", pm.response.json().token_value);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -395,26 +483,29 @@
 						}
 					]
 				},
-				"method": "GET",
+				"method": "POST",
 				"header": [
 					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
 						"key": "X-Databricks-Azure-Workspace-Resource-Id",
-						"value": "application/x-www-form-urlencoded",
-						"type": "text"
+						"type": "text",
+						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/{{databricks_workspace_name}}"
 					},
 					{
 						"key": "X-Databricks-Azure-SP-Management-Token",
-						"value": "/subscriptions/{{subscription_id}}/resourceGroups/{{resource_group}}/providers/Microsoft.Databricks/workspaces/test16",
-						"type": "text"
-					},
-					{
-						"key": "Content-Type",
-						"value": "{{management_token}}",
-						"type": "text"
+						"type": "text",
+						"value": "{{management_token}}"
 					}
 				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"lifetime_seconds\":10000,\n  \"comment\": \"this is an example token generated for service principal with no expiry\"\n}"
+				},
 				"url": {
-					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/preview/scim/v2/ServicePrincipals",
+					"raw": "https://{{azure_region}}.azuredatabricks.net/api/2.0/token/create",
 					"protocol": "https",
 					"host": [
 						"{{azure_region}}",
@@ -424,10 +515,8 @@
 					"path": [
 						"api",
 						"2.0",
-						"preview",
-						"scim",
-						"v2",
-						"ServicePrincipals"
+						"token",
+						"create"
 					]
 				}
 			},
@@ -458,112 +547,113 @@
 	],
 	"variable": [
 		{
-			"id": "25197579-2c2b-4c49-bcdf-15aab009d25e",
+			"id": "36111376-832b-4147-bf28-e9545f4d6cd6",
 			"key": "tenant_id",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "e9b79a64-99b1-42a2-8eb9-4387ce6fd1a5",
+			"id": "7d803c4f-267f-488e-931a-ba2fb8b6c179",
 			"key": "client_id",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "af4991be-e602-4e3b-864d-b783fb1251a4",
+			"id": "eee3a3b1-17e6-461f-8f66-334c607c69a4",
 			"key": "client_secret",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "b972b257-d752-450e-8fa7-5268bc7b773e",
+			"id": "6e517b3d-4811-4a93-8bad-41dcf39a5c32",
 			"key": "databricks_resource_id",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "2e6c3df3-aa7a-4fd5-a1d5-6c218144cb18",
+			"id": "2a24288f-b3b3-44b4-8fbf-9b36e06c7aaa",
 			"key": "subscription_id",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "ae104988-aaee-4950-9e04-61ce5104b5e5",
+			"id": "a9dfcefe-0617-4d83-b344-8d1ab9ebc726",
 			"key": "management_resource_endpoint",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "4393fbec-b8d6-4e1c-a0fc-4b2e522a1f24",
+			"id": "c29eaa14-f957-4347-91ee-d626b692a424",
 			"key": "resource_group",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "2f9de692-756e-4792-aa52-7389676f2ea6",
+			"id": "209f822f-1139-4846-aa28-9234a9aa855d",
 			"key": "azure_region",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "e3306693-1d11-4e91-ba21-b14580133e7f",
+			"id": "c60679a4-f389-4252-8a40-7bcd43910c09",
 			"key": "resource_deployment_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "7e8fe650-0adf-4ebb-96eb-c6ed430f88ed",
+			"id": "ddc41ee2-21f1-4835-8638-4dbce4e9ba12",
 			"key": "databricks_workspace_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "1a972f53-3488-4be2-8feb-fde4a26b12e3",
+			"id": "f4b72115-2c2b-4277-865e-6ace7a5b42b5",
 			"key": "databricks_vnet_cidr",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "f9afb815-0ec8-4800-8c9f-431b24df60d3",
+			"id": "d6cb9b86-d724-4ffe-945c-26184c0f0fe7",
 			"key": "databricks_vnet_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "348c48d5-8aa3-42aa-b874-2c15a8269fa9",
+			"id": "be0e8455-05fe-4bcc-a3fb-29b584876b6e",
 			"key": "databricks_host_subnet_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "05ebf316-765f-4e18-aed6-49d29af3a98f",
+			"id": "e6575edb-0001-4974-a5fa-1eb2d5af3ce0",
 			"key": "databricks_host_subnet_cidr",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "9667e541-c00a-4bdf-b36e-03a4c7b434a3",
+			"id": "1fa0c337-19fb-4037-9be8-a14176928b91",
 			"key": "databricks_container_subnet_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "d32c9b72-e8f8-4d45-8ad6-c00848376a0f",
+			"id": "9f07b459-102e-43e3-953c-76e650f0ef86",
 			"key": "databricks_container_subnet_cidr",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "9b08de71-a51d-433a-90dd-848d16dd45ac",
+			"id": "7579a6fa-41e3-47d7-870c-34e3f3b2b3d6",
 			"key": "databricks_nsg_name",
 			"value": "",
 			"type": "string"
 		},
 		{
-			"id": "eea98515-2b6c-4d61-8520-febd9a328ecd",
+			"id": "b0d68107-250d-439a-935d-b27d99d44a3b",
 			"key": "databricks_pricing_tier",
 			"value": "",
 			"type": "string"
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }
