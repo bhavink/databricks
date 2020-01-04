@@ -75,6 +75,10 @@
           "metadata": {
             "description": "Cidr range for the private subnet."
           }
+        },
+        "enableNoPublicIp": {
+          "defaultValue": "[bool('false')]",
+          "type": "bool"
         }
       },
       "variables": {
@@ -197,6 +201,9 @@
       },
       "publicSubnetCidr": {
         "value": "{{databricks_host_subnet_cidr}}"
+      },
+      "enableNoPublicIp": {
+        "value": "[parameters('enableNoPublicIp')]"
       }
     }
   }
