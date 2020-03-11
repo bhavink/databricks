@@ -1,437 +1,389 @@
 {
-	"info": {
-		"_postman_id": "ac65dff7-8c1b-4c54-9191-28ee7864610e",
-		"name": "ADB IP Access List",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "01-enable ip access list",
-			"request": {
-				"method": "PATCH",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\"enableIpAccessLists\": \"true\"\n}",
-					"options": {
-						"raw": {}
-					}
-				},
-				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/workspace-conf",
-					"host": [
-						"{{db_host}}"
-					],
-					"path": [
-						"api",
-						"2.0",
-						"preview",
-						"workspace-conf"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "02-get ip access list feature status",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
-						"exec": [
-							"pm.test(pm.info.requestName, () => {",
-							"    pm.response.to.not.be.error;",
-							"    pm.response.to.not.have.jsonBody('error');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/workspace-conf?keys=enableIpAccessLists",
-					"host": [
-						"{{db_host}}"
-					],
-					"path": [
-						"api",
-						"2.0",
-						"preview",
-						"workspace-conf"
-					],
-					"query": [
-						{
-							"key": "keys",
-							"value": "enableIpAccessLists"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "03-create ip access whitelist",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
-						"exec": [
-							"pm.test(pm.info.requestName, () => {",
-							"    pm.response.to.not.be.error;",
-							"    pm.response.to.not.have.jsonBody('error');",
-							"});",
-							"pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{ \n    \"label\": \"office\", \n    \"list_type\": \"WHITELIST\", \n    \"ip_addresses\": [ \n        \"0.0.0.0/0\" \n    ] \n}\n",
-					"options": {
-						"raw": {}
-					}
-				},
-				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/ip-access-lists",
-					"host": [
-						"{{db_host}}"
-					],
-					"path": [
-						"api",
-						"2.0",
-						"preview",
-						"ip-access-lists"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "03-create ip access blacklist",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
-						"exec": [
-							"pm.test(pm.info.requestName, () => {",
-							"    pm.response.to.not.be.error;",
-							"    pm.response.to.not.have.jsonBody('error');",
-							"});",
-							"pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{ \n    \"label\": \"starbucks\", \n    \"list_type\": \"BLACKLIST\", \n    \"ip_addresses\": [ \n        \"1.1.1.1\",\n        \"2.2.2.2/32\"\n    ] \n}\n",
-					"options": {
-						"raw": {}
-					}
-				},
-				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/ip-access-lists",
-					"host": [
-						"{{db_host}}"
-					],
-					"path": [
-						"api",
-						"2.0",
-						"preview",
-						"ip-access-lists"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "04-get ip access list",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
-						"exec": [
-							"",
-							"let template = `",
-							"<html>",
-							"<head>",
-							"    <script src=\"https://cdn.jsdelivr.net/npm/jsonpath@1.0.2/jsonpath.min.js\"></script>",
-							"    <script src=\"https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js\"></script>",
-							"</head>",
-							"<body>",
-							"    <div>",
-							"      <div>",
-							"        <input id=\"filter\" style=\"width:450px;\" type=\"text\" placeholder=\"Example query: $..name.first\">",
-							"      </div>",
-							"      <div>",
-							"        <button id=\"resetButton\" style=\"background-color:red;color:white;\">Reset</button>",
-							"        <input id=\"showErrors\" type=\"checkbox\" value=\"1\"/>",
-							"        <span class=\"item-text\" style=\"font-family:courier;\">Show Evaluation Errors</span>",
-							"      </div>",
-							"      <div id=\"errors\" style=\"font-family:courier;color:red;display:none;\"></div>",
-							"      <div>",
-							"        <p id=\"content\" style=\"font-family:courier;color:green;font-size:18px;\"></p>",
-							"      </div>",
-							"    </div>",
-							"</body>",
-							"</html>",
-							"",
-							"<script>",
-							"pm.getData( (error, value) => { ",
-							"    const extractedData = jsonpath.query(value, '$');",
-							"    ",
-							"    $(function() {",
-							"        $('***REMOVED***filter').keyup(function() {",
-							"            try {",
-							"                let filteredData = jsonpath.query(extractedData, $(this).val());",
-							"                $(\"***REMOVED***content, ***REMOVED***errors\").empty();",
-							"                $(\"***REMOVED***content\").append(\"<pre><code>\" + JSON.stringify(filteredData, null, 4) + \"</code></pre>\");",
-							"            } catch (err) {",
-							"                console.info(err);",
-							"                $(\"***REMOVED***errors\").empty();",
-							"                $(\"***REMOVED***errors\").append(\"<pre><code>\" + err + \"</code></pre>\");",
-							"            }",
-							"        });",
-							"    });",
-							"    ",
-							"    $( \"***REMOVED***resetButton\" ).click(function() {",
-							"        $(\"***REMOVED***content, ***REMOVED***errors\").empty();",
-							"        $(\"***REMOVED***filter\").val('');",
-							"        $(\"***REMOVED***content\").append(\"<pre><code>\" + JSON.stringify(extractedData, null, 4) + \"</code></pre>\");",
-							"    })",
-							"})",
-							"",
-							"$(function() {",
-							"  $(\"***REMOVED***showErrors\").on(\"click\",function() {",
-							"    $(\"***REMOVED***errors\").toggle(this.checked);",
-							"  });",
-							"});",
-							"</script>`",
-							"",
-							"pm.visualizer.set(template, pm.response.json())",
-							"",
-							"pm.test(pm.info.requestName, () => {",
-							"    pm.response.to.not.be.error;",
-							"    pm.response.to.not.have.jsonBody('error');",
-							"});",
-							"pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"id": "29c44e15-20dd-4387-b741-883c633adaf4",
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/ip-access-lists/{{access_list_id}}",
-					"host": [
-						"{{db_host}}"
-					],
-					"path": [
-						"api",
-						"2.0",
-						"preview",
-						"ip-access-lists",
-						"{{access_list_id}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "05-get all ip access lists",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
-						"exec": [
-							"pm.test(pm.info.requestName, () => {",
-							"    pm.response.to.not.be.error;",
-							"    pm.response.to.not.have.jsonBody('error');",
-							"});",
-							"pm.globals.set(\"access_list_id\", pm.response.json(1).list_id);"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/ip-access-lists/",
-					"host": [
-						"{{db_host}}"
-					],
-					"path": [
-						"api",
-						"2.0",
-						"preview",
-						"ip-access-lists",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "06-update ip access list",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
-						"exec": [
-							"pm.test(pm.info.requestName, () => {",
-							"    pm.response.to.not.be.error;",
-							"    pm.response.to.not.have.jsonBody('error');",
-							"});",
-							"pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\"label\": \"starbucks_updated\",\n\"ip_addresses\": [\n\"2.2.2.2/21\"\n],\n\"list_type\": \"BLACKLIST\",\n\"enabled\": true\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/ip-access-lists/4d363ca3-a427-44c8-aea3-fb5e4b512a60",
-					"host": [
-						"{{db_host}}"
-					],
-					"path": [
-						"api",
-						"2.0",
-						"preview",
-						"ip-access-lists",
-						"4d363ca3-a427-44c8-aea3-fb5e4b512a60"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "07-delete ip access list",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
-						"exec": [
-							"pm.test(pm.info.requestName, () => {",
-							"    pm.response.to.not.be.error;",
-							"    pm.response.to.not.have.jsonBody('error');",
-							"});",
-							"pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/ip-access-lists/4d363ca3-a427-44c8-aea3-fb5e4b512a60",
-					"host": [
-						"{{db_host}}"
-					],
-					"path": [
-						"api",
-						"2.0",
-						"preview",
-						"ip-access-lists",
-						"4d363ca3-a427-44c8-aea3-fb5e4b512a60"
-					]
-				}
-			},
-			"response": []
-		}
-	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "REDACTED_DATABRICKS_PAT",
-				"type": "string"
-			}
-		]
-	},
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"id": "95beabf9-52c5-4b9e-b947-0f3ffeab6de7",
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"id": "053050ab-5492-45b8-ba68-37ed13b6efa4",
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"id": "38a8b49a-7cfc-4f02-9744-18387341323a",
-			"key": "db_host",
-			"value": "centralus",
-			"type": "string"
-		}
-	],
-	"protocolProfileBehavior": {}
+  "info": {
+    "_postman_id": "ac65dff7-8c1b-4c54-9191-28ee7864610e",
+    "name": "ADB IP Access List",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01-enable ip access list",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n\"enableIpAccessLists\": \"true\"\n}",
+          "options": {
+            "raw": {}
+          }
+        },
+        "url": {
+          "raw": "{{db_host}}/api/2.0/preview/workspace-conf",
+          "host": ["{{db_host}}"],
+          "path": ["api", "2.0", "preview", "workspace-conf"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02-get ip access list feature status",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+            "exec": [
+              "pm.test(pm.info.requestName, () => {",
+              "    pm.response.to.not.be.error;",
+              "    pm.response.to.not.have.jsonBody('error');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{db_host}}/api/2.0/preview/workspace-conf?keys=enableIpAccessLists",
+          "host": ["{{db_host}}"],
+          "path": ["api", "2.0", "preview", "workspace-conf"],
+          "query": [
+            {
+              "key": "keys",
+              "value": "enableIpAccessLists"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03-create ip access whitelist",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
+            "exec": [
+              "pm.test(pm.info.requestName, () => {",
+              "    pm.response.to.not.be.error;",
+              "    pm.response.to.not.have.jsonBody('error');",
+              "});",
+              "pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \n    \"label\": \"office\", \n    \"list_type\": \"WHITELIST\", \n    \"ip_addresses\": [ \n        \"0.0.0.0/0\" \n    ] \n}\n",
+          "options": {
+            "raw": {}
+          }
+        },
+        "url": {
+          "raw": "{{db_host}}/api/2.0/preview/ip-access-lists",
+          "host": ["{{db_host}}"],
+          "path": ["api", "2.0", "preview", "ip-access-lists"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03-create ip access blacklist",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
+            "exec": [
+              "pm.test(pm.info.requestName, () => {",
+              "    pm.response.to.not.be.error;",
+              "    pm.response.to.not.have.jsonBody('error');",
+              "});",
+              "pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \n    \"label\": \"starbucks\", \n    \"list_type\": \"BLACKLIST\", \n    \"ip_addresses\": [ \n        \"1.1.1.1\",\n        \"2.2.2.2/32\"\n    ] \n}\n",
+          "options": {
+            "raw": {}
+          }
+        },
+        "url": {
+          "raw": "{{db_host}}/api/2.0/preview/ip-access-lists",
+          "host": ["{{db_host}}"],
+          "path": ["api", "2.0", "preview", "ip-access-lists"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04-get ip access list",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
+            "exec": [
+              "",
+              "let template = `",
+              "<html>",
+              "<head>",
+              "    <script src=\"https://cdn.jsdelivr.net/npm/jsonpath@1.0.2/jsonpath.min.js\"></script>",
+              "    <script src=\"https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js\"></script>",
+              "</head>",
+              "<body>",
+              "    <div>",
+              "      <div>",
+              "        <input id=\"filter\" style=\"width:450px;\" type=\"text\" placeholder=\"Example query: $..name.first\">",
+              "      </div>",
+              "      <div>",
+              "        <button id=\"resetButton\" style=\"background-color:red;color:white;\">Reset</button>",
+              "        <input id=\"showErrors\" type=\"checkbox\" value=\"1\"/>",
+              "        <span class=\"item-text\" style=\"font-family:courier;\">Show Evaluation Errors</span>",
+              "      </div>",
+              "      <div id=\"errors\" style=\"font-family:courier;color:red;display:none;\"></div>",
+              "      <div>",
+              "        <p id=\"content\" style=\"font-family:courier;color:green;font-size:18px;\"></p>",
+              "      </div>",
+              "    </div>",
+              "</body>",
+              "</html>",
+              "",
+              "<script>",
+              "pm.getData( (error, value) => { ",
+              "    const extractedData = jsonpath.query(value, '$');",
+              "    ",
+              "    $(function() {",
+              "        $('***REMOVED***filter').keyup(function() {",
+              "            try {",
+              "                let filteredData = jsonpath.query(extractedData, $(this).val());",
+              "                $(\"***REMOVED***content, ***REMOVED***errors\").empty();",
+              "                $(\"***REMOVED***content\").append(\"<pre><code>\" + JSON.stringify(filteredData, null, 4) + \"</code></pre>\");",
+              "            } catch (err) {",
+              "                console.info(err);",
+              "                $(\"***REMOVED***errors\").empty();",
+              "                $(\"***REMOVED***errors\").append(\"<pre><code>\" + err + \"</code></pre>\");",
+              "            }",
+              "        });",
+              "    });",
+              "    ",
+              "    $( \"***REMOVED***resetButton\" ).click(function() {",
+              "        $(\"***REMOVED***content, ***REMOVED***errors\").empty();",
+              "        $(\"***REMOVED***filter\").val('');",
+              "        $(\"***REMOVED***content\").append(\"<pre><code>\" + JSON.stringify(extractedData, null, 4) + \"</code></pre>\");",
+              "    })",
+              "})",
+              "",
+              "$(function() {",
+              "  $(\"***REMOVED***showErrors\").on(\"click\",function() {",
+              "    $(\"***REMOVED***errors\").toggle(this.checked);",
+              "  });",
+              "});",
+              "</script>`",
+              "",
+              "pm.visualizer.set(template, pm.response.json())",
+              "",
+              "pm.test(pm.info.requestName, () => {",
+              "    pm.response.to.not.be.error;",
+              "    pm.response.to.not.have.jsonBody('error');",
+              "});",
+              "pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "id": "29c44e15-20dd-4387-b741-883c633adaf4",
+            "exec": [""],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{db_host}}/api/2.0/preview/ip-access-lists/{{access_list_id}}",
+          "host": ["{{db_host}}"],
+          "path": [
+            "api",
+            "2.0",
+            "preview",
+            "ip-access-lists",
+            "{{access_list_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05-get all ip access lists",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
+            "exec": [
+              "pm.test(pm.info.requestName, () => {",
+              "    pm.response.to.not.be.error;",
+              "    pm.response.to.not.have.jsonBody('error');",
+              "});",
+              "pm.globals.set(\"access_list_id\", pm.response.json(1).list_id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{db_host}}/api/2.0/preview/ip-access-lists/",
+          "host": ["{{db_host}}"],
+          "path": ["api", "2.0", "preview", "ip-access-lists", ""]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06-update ip access list",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
+            "exec": [
+              "pm.test(pm.info.requestName, () => {",
+              "    pm.response.to.not.be.error;",
+              "    pm.response.to.not.have.jsonBody('error');",
+              "});",
+              "pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "name": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n\"label\": \"starbucks_updated\",\n\"ip_addresses\": [\n\"2.2.2.2/21\"\n],\n\"list_type\": \"BLACKLIST\",\n\"enabled\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{db_host}}/api/2.0/preview/ip-access-lists/4d363ca3-a427-44c8-aea3-fb5e4b512a60",
+          "host": ["{{db_host}}"],
+          "path": [
+            "api",
+            "2.0",
+            "preview",
+            "ip-access-lists",
+            "4d363ca3-a427-44c8-aea3-fb5e4b512a60"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07-delete ip access list",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "59c93c10-91cc-48be-8e00-5359d5bfce51",
+            "exec": [
+              "pm.test(pm.info.requestName, () => {",
+              "    pm.response.to.not.be.error;",
+              "    pm.response.to.not.have.jsonBody('error');",
+              "});",
+              "pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{db_host}}/api/2.0/preview/ip-access-lists/4d363ca3-a427-44c8-aea3-fb5e4b512a60",
+          "host": ["{{db_host}}"],
+          "path": [
+            "api",
+            "2.0",
+            "preview",
+            "ip-access-lists",
+            "4d363ca3-a427-44c8-aea3-fb5e4b512a60"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "REDACTED_DATABRICKS_PAT",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "id": "95beabf9-52c5-4b9e-b947-0f3ffeab6de7",
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "id": "053050ab-5492-45b8-ba68-37ed13b6efa4",
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "id": "38a8b49a-7cfc-4f02-9744-18387341323a",
+      "key": "db_host",
+      "value": "centralus",
+      "type": "string"
+    }
+  ],
+  "protocolProfileBehavior": {}
 }
