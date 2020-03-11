@@ -9,3 +9,14 @@ Customers have a security requirement to restrict access to the DB Control plane
 This means they want to be able to add/remove IP addresses that can connect to databricks control plane as and when they make network changes or add a new datacenter.
 
 This is what this feature enables. It will provide admins a way to set a whitelist and blacklist for CIDR / IPs that can access Databricks. 
+
+
+Update postman collection
+===============
+
+- get a databricks platform token aka PAT for [azure](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication#authentication) or [aws](https://docs.databricks.com/dev-tools/api/latest/authentication.html#generate-a-token)
+- Use PAT as an authentication bearer token to invoke API's
+- db_host variable is used to decouple cloud specific databricks control plane endpoints
+e.g. https://[az-region].azuredatabricks.net
+
+- Edit postman collection [global variable](https://learning.postman.com/docs/postman/variables-and-environments/variables/) as as well as [auth header](https://learning.postman.com/docs/postman/sending-api-requests/authorization/#inheriting-auth) to update ``db_host`` and ``bearer token`` variables, these are used within the collection.
