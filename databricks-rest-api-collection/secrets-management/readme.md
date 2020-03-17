@@ -15,3 +15,4 @@ Update postman collection
 e.g. https://[az-region].azuredatabricks.net
 
 - Edit postman collection [global variable](https://learning.postman.com/docs/postman/variables-and-environments/variables/) as as well as [auth header](https://learning.postman.com/docs/postman/sending-api-requests/authorization/#inheriting-auth) to update ``db_host`` and ``bearer token`` variables, these are used within the collection.
+- example: db_host = https://eastus2.azuredatabricks.net and pat = dapiXXXXXXXXXXXXXXXX
