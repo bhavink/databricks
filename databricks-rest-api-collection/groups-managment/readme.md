@@ -14,4 +14,4 @@ Update postman collection
 - db_host variable is used to decouple cloud specific databricks control plane endpoints
 e.g. https://[az-region].azuredatabricks.net
 
-- Edit postman collection [global variable](https://learning.postman.com/docs/postman/variables-and-environments/variables/) as as well as [auth header](https://learning.postman.com/docs/postman/sending-api-requests/authorization/#inheriting-auth) to update ``db_host`` and ``bearer token`` variables, these are used within the collection.
+- Edit postman collection [global variable](https://learning.postman.com/docs/postman/variables-and-environments/variables/) as as well as [auth header](https://learning.postman.com/docs/postman/sending-api-requests/authorization/#inheriting-auth) to update ``db_host`` and ``pat`` variables, these are used within the collection.
