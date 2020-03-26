@@ -24,8 +24,8 @@ A Cluster Policy (aka Cluster Blueprint or Cluster Template) limits the ability 
 - Numeric attribute limited to a certain range
 
 ***REMOVED******REMOVED******REMOVED*** Policies API and Cluster Permissions API documentation with the customer.
-(Policy details)[https://docs.databricks.com/administration-guide/clusters/policies.html]
-(REST API)[https://docs.databricks.com/dev-tools/api/latest/policies.html]
+- [Policy feature details](https://docs.databricks.com/administration-guide/clusters/policies.html)
+- [REST API](https://docs.databricks.com/dev-tools/api/latest/policies.html)
 
 
 ***REMOVED******REMOVED******REMOVED*** Update postman collection
