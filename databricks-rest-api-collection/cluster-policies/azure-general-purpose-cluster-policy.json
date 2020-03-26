@@ -1,0 +1,52 @@
+{
+  "cluster_source": {
+    "type": "whitelist",
+    "values": ["Job", "UI"]
+  },
+  ".dbus_per_hour": {
+    "type": "range",
+    "maxValue": 100
+  },
+  "instance_pool_id": {
+    "type": "forbidden",
+    "hidden": "true"
+  },
+  "spark_conf.spark.databricks.cluster.profile": {
+    "type": "forbidden",
+    "hidden": "true"
+  },
+  "autoscale.min_workers": {
+    "type": "range",
+    "minValue": 1,
+    "maxValue": 5
+  },
+  "autoscale.max_workers": {
+    "type": "range",
+    "minValue": 2,
+    "maxValue": 20
+  },
+  "autotermination_minutes": {
+    "type": "fixed",
+    "value": 60
+  },
+  "node_type_id": {
+    "type": "regex",
+    "pattern": "Standard_[DLS]*[1-6]{1,2}_v[2,3]"
+  },
+  "driver_node_type_id": {
+    "type": "regex",
+    "pattern": "Standard_[DLS]*[1-6]{1,2}_v[2,3]"
+  },
+  "spark_version": {
+    "type": "regex",
+    "pattern": "6.[0-9].x-scala.*"
+  },
+  "custom_tags.tag_name1": {
+    "type": "fixed",
+    "value": "tag_value1"
+  },
+  "custom_tags.tag_name2": {
+    "type": "fixed",
+    "value": "tag_value2"
+  }
+}
