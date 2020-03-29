@@ -30,11 +30,11 @@ Currently, you can set permissions on the following objects using these APIs - *
 | CAN_EDIT  | Notebooks, Directories, Registered Models  |
 
 - These permission levels correlate directly to the permissions that you can configure in the UI.  For details on the abilities associated with these permission levels, check the following links: 
-  - Clusters [AWS](https://docs.databricks.com/administration-guide/admin-settings/cluster-acl.html***REMOVED***cluster-access-control) [Azure](https://docs.azuredatabricks.net/administration-guide/admin-settings/cluster-acl.html***REMOVED***cluster-access-control)
-  - Jobs [AWS](https://docs.databricks.com/administration-guide/access-control/jobs-acl.html***REMOVED***jobs-access-control) [Azure](https://docs.azuredatabricks.net/administration-guide/access-control/jobs-acl.html***REMOVED***jobs-access-control)
-  - Instance pools [AWS](https://docs.databricks.com/administration-guide/access-control/pool-acl.html***REMOVED***instance-pool-access-control) [Azure](https://docs.azuredatabricks.net/administration-guide/access-control/pool-acl.html***REMOVED***instance-pool-access-control)
-  - Notebooks [AWS](https://docs.databricks.com/administration-guide/access-control/workspace-acl.html***REMOVED***workspace-access-control) [Azure](https://docs.azuredatabricks.net/administration-guide/access-control/workspace-acl.html***REMOVED***workspace-access-control)
-  - Directories [AWS](https://docs.databricks.com/administration-guide/access-control/workspace-acl.html***REMOVED***workspace-access-control) [Azure](https://docs.azuredatabricks.net/administration-guide/access-control/workspace-acl.html***REMOVED***workspace-access-control)
+  - Clusters [AWS](https://docs.databricks.com/administration-guide/admin-settings/cluster-acl.html***REMOVED***cluster-access-control) || [Azure](https://docs.azuredatabricks.net/administration-guide/admin-settings/cluster-acl.html***REMOVED***cluster-access-control)
+  - Jobs [AWS](https://docs.databricks.com/administration-guide/access-control/jobs-acl.html***REMOVED***jobs-access-control) || [Azure](https://docs.azuredatabricks.net/administration-guide/access-control/jobs-acl.html***REMOVED***jobs-access-control)
+  - Instance pools [AWS](https://docs.databricks.com/administration-guide/access-control/pool-acl.html***REMOVED***instance-pool-access-control) || [Azure](https://docs.azuredatabricks.net/administration-guide/access-control/pool-acl.html***REMOVED***instance-pool-access-control)
+  - Notebooks [AWS](https://docs.databricks.com/administration-guide/access-control/workspace-acl.html***REMOVED***workspace-access-control) || [Azure](https://docs.azuredatabricks.net/administration-guide/access-control/workspace-acl.html***REMOVED***workspace-access-control)
+  - Directories [AWS](https://docs.databricks.com/administration-guide/access-control/workspace-acl.html***REMOVED***workspace-access-control) || [Azure](https://docs.azuredatabricks.net/administration-guide/access-control/workspace-acl.html***REMOVED***workspace-access-control)
 
 
 ***REMOVED******REMOVED******REMOVED*** FAQ
