@@ -3,7 +3,7 @@
 ***REMOVED*** databricks rest api for General Permissions
 
 This documents the endpoints for the Permissions API which enables you to set permissions on objects in Databricks.
-Currently, you can set permissions on the following objects using these APIs - clusters, jobs, pools, notebooks, instance_pools and directories.
+Currently, you can set permissions on the following objects using these APIs - **clusters, jobs, pools, notebooks, instance_pools and directories**.
 
 ***REMOVED******REMOVED*** Please note that in order to run these collection you'll need at-least one object of each type i.e. cluster, job, notebook, directory, instance-pool.
 
