@@ -1,5 +1,3 @@
-# In `Private Preview` - please reach out to your databricks team to enable this feature
-
 # databricks rest api collections
 
 - This documents the endpoints for the common databricks REST API's. This should work with [Azure](https://docs.azuredatabricks.net) as well [AWS](https://docs.databricks.com) based databricks deployments.
