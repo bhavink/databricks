@@ -37,5 +37,14 @@ A Cluster Policy (aka Cluster Blueprint or Cluster Template) limits the ability 
 e.g. https://[your-az-region].azuredatabricks.net
 
 - Edit postman collection and add an [environment](https://learning.postman.com/docs/postman/variables-and-environments/variables/***REMOVED***variables-quick-start)
+
+![Add Environment](https://github.com/bhavink/databricks/blob/master/databricks-rest-api-collection/images/1.png)
+
 - Add ``db_host`` and ``pat`` variables, these are used within the collection.
 example: db_host = https://eastus2.azuredatabricks.net and pat = REDACTED_DATABRICKS_PAT
+
+![Add Environment Variables](https://github.com/bhavink/databricks/blob/master/databricks-rest-api-collection/images/2.png)
+
+![Update Collection](https://github.com/bhavink/databricks/blob/master/databricks-rest-api-collection/images/3.png)
+
+![Use global var {{pat}} for authentication](https://github.com/bhavink/databricks/blob/master/databricks-rest-api-collection/images/4.png)
