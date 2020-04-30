@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "b7016026-73a4-46c6-8d4d-b6063f88f4bd",
+		"_postman_id": "c716986c-a555-4550-8ef6-0fb6d4e0925c",
 		"name": "Service Principal SCIM API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -11,7 +11,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "1cd85aca-fd9c-4647-b48a-bd1fb87f70cf",
+						"id": "699fd524-e881-447f-9805-701dab424427",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -56,7 +56,8 @@
 						},
 						{
 							"key": "resource",
-							"value": "{{databricks_resource_id}}",
+							"value": "{{databricks_res_id}}",
+							"description": "fixed value: 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d",
 							"type": "text"
 						}
 					],
@@ -77,7 +78,8 @@
 						"oauth2",
 						"token"
 					]
-				}
+				},
+				"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-an-azure-active-directory-access-token)\n\n- To access the Databricks REST API with the service principal, you get an Azure AD access token for the service principal. You can use the client credentials flow to get an access token (with the AzureDatabricks login application as the resource).\n\n- Replace the following parameters in the curl request:\n\n\t- **Databricks instance**: URL of your Databricks instance. See [Get workspace, cluster, notebook, and job identifiers](https://docs.microsoft.com/en-us/azure/databricks/workspace/workspace-details)\n\t- **Access token**: Token returned from the request in   Get an Azure Active Directory access token.\n\t- **Databricks workspace org ID** | The org ID of the workspace. See [Get workspace, cluster, notebook, and job identifiers](https://docs.microsoft.com/en-us/azure/databricks/workspace/workspace-details)"
 			},
 			"response": []
 		},
@@ -87,7 +89,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"id": "a66671a5-1af7-4b90-b923-b101a0f1856f",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -133,6 +135,7 @@
 						{
 							"key": "resource",
 							"value": "{{azure_management_resource_endpoint}}",
+							"description": "fixed value: https://management.core.windows.net/",
 							"type": "text"
 						}
 					],
@@ -153,7 +156,8 @@
 						"oauth2",
 						"token"
 					]
-				}
+				},
+				"description": "[get aad access token for management resource](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-the-azure-management-resource-endpoint-token)"
 			},
 			"response": []
 		},
@@ -232,7 +236,8 @@
 						"v2",
 						"ServicePrincipals"
 					]
-				}
+				},
+				"description": "[Add a service principal in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#add-service-principal)"
 			},
 			"response": []
 		},
@@ -242,7 +247,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "9593b999-53a6-487a-989e-b073cc6f9f7d",
+						"id": "f85b19b8-32ed-4d80-9e4a-2a130d96e517",
 						"exec": [
 							""
 						],
@@ -289,7 +294,8 @@
 						"v2",
 						"ServicePrincipals"
 					]
-				}
+				},
+				"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principals)"
 			},
 			"response": []
 		},
@@ -329,7 +335,8 @@
 						"ServicePrincipals",
 						"2260490761530565"
 					]
-				}
+				},
+				"description": "[Update a service principal resource with operations on specific attributes, except those that are immutable](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#update-service-principal-by-id-patch)\n\n- The `PATCH` method is recommended over the PUT method for setting or updating user entitlements."
 			},
 			"response": []
 		},
@@ -382,7 +389,8 @@
 						"ServicePrincipals",
 						"2260490761530565"
 					]
-				}
+				},
+				"description": "[Update service principal by ID (PUT)](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#update-service-principal-by-id-put)\n\n- Overwrite the service principal resource across multiple attributes, except those that are immutable."
 			},
 			"response": []
 		},
@@ -468,7 +476,8 @@
 						"ServicePrincipals",
 						"2260490761530565"
 					]
-				}
+				},
+				"description": "[Get service principal by ID](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principal-by-id)\n\n- Retrieve a single service principal resource from the Azure Databricks workspace, given an Azure Databricks ID."
 			},
 			"response": []
 		},
@@ -508,7 +517,8 @@
 						"ServicePrincipals",
 						"8312274534198164"
 					]
-				}
+				},
+				"description": "[Delete service principal by ID](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#delete-service-principal-by-id)"
 			},
 			"response": []
 		},
@@ -518,7 +528,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"id": "b7e0071a-36a7-4cfc-9908-bd717ea92f47",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -579,7 +589,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "3eba84a3-ac67-424a-aa26-62e56cadb4ac",
+				"id": "5b58f51e-f33d-48a0-b833-993c1e41347c",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -589,7 +599,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "7f2caf8d-f4cd-4476-8f0d-5b0ddd4864d6",
+				"id": "49a1f0ce-d57f-40d5-bc63-8c926b859db4",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -599,56 +609,56 @@
 	],
 	"variable": [
 		{
-			"id": "4d8d64b6-03d1-495a-9efa-214c0ec8c14c",
+			"id": "b482f85d-e9a0-40ad-bccb-1fd5f76cc909",
 			"key": "client_id",
 			"value": "",
 			"type": "string",
 			"disabled": true
 		},
 		{
-			"id": "0f11771a-5b4c-4014-817b-619f3649d3c5",
+			"id": "411cb428-eafd-45a2-b970-b902eb2ebbc8",
 			"key": "client_secret",
 			"value": "",
 			"type": "string",
 			"disabled": true
 		},
 		{
-			"id": "2032d07a-5da2-45ee-bc82-ce58bfdb119f",
+			"id": "e541f3f3-b4ed-4a11-aa52-2efb5394931e",
 			"key": "subscription_id",
 			"value": "",
 			"type": "string",
 			"disabled": true
 		},
 		{
-			"id": "8fb00a86-164a-4d06-87f0-31342917405d",
+			"id": "7ad14c44-4ee6-4ab7-ac92-a32ea790570a",
 			"key": "resource_group",
 			"value": "",
 			"type": "string",
 			"disabled": true
 		},
 		{
-			"id": "9802536e-a44b-428e-a212-945312ebd901",
+			"id": "00a1b957-3cf6-4a9b-8eee-f455a0c747aa",
 			"key": "azure_region",
 			"value": "",
 			"type": "string",
 			"disabled": true
 		},
 		{
-			"id": "d28696cb-11ae-478e-83f6-feb8dda4e8a5",
+			"id": "174458da-cbf1-476b-ac3a-0b577a6a30f9",
 			"key": "databricks_workspace_name",
 			"value": "",
 			"type": "string",
 			"disabled": true
 		},
 		{
-			"id": "a66e9864-a489-4bf8-bfa3-146c16689907",
+			"id": "7366de21-98bb-4ddd-b210-0863b672bafa",
 			"key": "management_resource_endpoint",
 			"value": "",
 			"type": "string",
 			"disabled": true
 		},
 		{
-			"id": "47604e99-25ba-4afc-970c-0cbe68e3ee67",
+			"id": "cabb518f-b879-4c95-b55f-927a5ca3a0ce",
 			"key": "databricks_resource_id",
 			"value": "",
 			"type": "string",
