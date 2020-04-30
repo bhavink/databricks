@@ -1,0 +1,659 @@
+{
+	"info": {
+		"_postman_id": "b7016026-73a4-46c6-8d4d-b6063f88f4bd",
+		"name": "Service Principal SCIM API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1-get aad token for databricks resource",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1cd85aca-fd9c-4647-b48a-bd1fb87f70cf",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"access_token\", pm.response.json().access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{sp_client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{sp_client_credential}}",
+							"type": "text"
+						},
+						{
+							"key": "resource",
+							"value": "{{databricks_resource_id}}",
+							"type": "text"
+						}
+					],
+					"options": {
+						"urlencoded": {}
+					}
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{azure_tenant_id}}/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{azure_tenant_id}}",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2-get aad token for management resource",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"management_token\", pm.response.json().access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "text/plain"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{sp_client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{sp_client_credential}}",
+							"type": "text"
+						},
+						{
+							"key": "resource",
+							"value": "{{azure_management_resource_endpoint}}",
+							"type": "text"
+						}
+					],
+					"options": {
+						"urlencoded": {}
+					}
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{azure_tenant_id}}/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{azure_tenant_id}}",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3-list groups (automatically adds service principal to workspace)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"type": "text",
+						"value": "{{databricks_workspace_resource_id}}"
+					},
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"type": "text",
+						"value": "{{management_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/Groups",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Groups"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4-add service principal to a group",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:ServicePrincipal\"\n  ],\n  \"applicationId\":\"{{sp_test_client_id}}\",\n  \"displayName\":\"devtest-sp\",\n  \"groups\":[\n    {\n       \"value\":\"8736130040124808\"\n    }\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6-list service principals",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "9593b999-53a6-487a-989e-b073cc6f9f7d",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"value": "{{databricks_workspace_resource_id}}",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"value": "{{management_token}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7-add entitlements to service principal",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"add\",\n      \"path\":\"entitlements\",\n      \"value\":[\n        {\n           \"value\":\"allow-cluster-create\"\n        }\n      ]\n    }\n  ]\n}",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals/2260490761530565",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"2260490761530565"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8-remove entitlements to service principal",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"type": "text",
+						"value": "{{management_token}}",
+						"disabled": true
+					},
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"type": "text",
+						"value": "{{databricks_workspace_resource_id}}",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"remove\",\n      \"path\":\"entitlements\",\n      \"value\":[\n        {\n           \"value\":\"allow-cluster-create\"\n        }\n      ]\n    }\n  ]\n}",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals/2260490761530565",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"2260490761530565"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "9-remove service principal from a group",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "X-Databricks-Azure-SP-Management-Token",
+						"type": "text",
+						"value": "{{management_token}}",
+						"disabled": true
+					},
+					{
+						"key": "X-Databricks-Azure-Workspace-Resource-Id",
+						"type": "text",
+						"value": "{{databricks_workspace_resource_id}}",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"remove\",\n      \"path\":\"groups\",\n      \"value\":[\n        {\n           \"value\":\"8736130040124808\"\n        }\n      ]\n    }\n  ]\n}\n",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals/2260490761530565",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"2260490761530565"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10-list service principal by id",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals/2260490761530565",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"2260490761530565"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "11-delete service principle(by id)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals/8312274534198164",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"ServicePrincipals",
+						"8312274534198164"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "12-create databricks platform token for service principals",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"lifetime_seconds\": 100,\n  \"comment\": \"this is an example token generated for service principal valid for 100 seconds, use -1 for valid forever.\"\n}",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "{{db_host}}/api/2.0/token/create",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"token",
+						"create"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{pat}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "3eba84a3-ac67-424a-aa26-62e56cadb4ac",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "7f2caf8d-f4cd-4476-8f0d-5b0ddd4864d6",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "4d8d64b6-03d1-495a-9efa-214c0ec8c14c",
+			"key": "client_id",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"id": "0f11771a-5b4c-4014-817b-619f3649d3c5",
+			"key": "client_secret",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"id": "2032d07a-5da2-45ee-bc82-ce58bfdb119f",
+			"key": "subscription_id",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"id": "8fb00a86-164a-4d06-87f0-31342917405d",
+			"key": "resource_group",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"id": "9802536e-a44b-428e-a212-945312ebd901",
+			"key": "azure_region",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"id": "d28696cb-11ae-478e-83f6-feb8dda4e8a5",
+			"key": "databricks_workspace_name",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"id": "a66e9864-a489-4bf8-bfa3-146c16689907",
+			"key": "management_resource_endpoint",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"id": "47604e99-25ba-4afc-970c-0cbe68e3ee67",
+			"key": "databricks_resource_id",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		}
+	],
+	"protocolProfileBehavior": {}
+}
