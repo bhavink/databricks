@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "48b25a51-debb-4b1b-9a91-2a47ac4517f1",
-		"name": "02-provision-azure-databricks",
+		"name": "02-provision-workspace",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [

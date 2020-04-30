@@ -1,0 +1,149 @@
+{
+	"info": {
+		"_postman_id": "0a1e29dd-7c82-46a3-9e2d-098a4212fc20",
+		"name": "06-manage-jobs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01-list-jobs",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/jobs/list",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"jobs",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "02-run-job-once",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"run_name\": \"{{app_name}} - just this once\",\n    \"new_cluster\": {\n        \"spark_version\": \"6.4.x-scala2.11\",\n        \"spark_conf\": {\n            \"spark.databricks.delta.preview.enabled\": \"true\"\n        },\n        \"node_type_id\": \"Standard_DS3_v2\",\n        \"spark_env_vars\": {\n            \"PYSPARK_PYTHON\": \"/databricks/python3/bin/python3\"\n        },\n        \"enable_elastic_disk\": true,\n        \"num_workers\": 2\n    },\n    \"notebook_task\": {\n        \"notebook_path\": \"/Shared/{{app_name}}/{{environment}}/notebooks/02-main\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/jobs/runs/submit",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"jobs",
+						"runs",
+						"submit"
+					]
+				},
+				"description": "See https://docs.databricks.com/dev-tools/api/latest/jobs.html#runs-submit for more details\n\n\tImportant\n\tWhen you run a job on a new jobs cluster, the job is treated as a Jobs Compute (automated) workload subject to Jobs Compute pricing.\n\tWhen you run a job on an existing all-purpose cluster, it is treated as an All-Purpose Compute (interactive) workload subject to All-Purpose Compute pricing."
+			},
+			"response": []
+		},
+		{
+			"name": "03-get-run-status",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/jobs/runs/get-output?run_id=4",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"jobs",
+						"runs",
+						"get-output"
+					],
+					"query": [
+						{
+							"key": "run_id",
+							"value": "4"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "1d80bdf0-9d31-4cdb-86e1-5cf76a38983c",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "d2a5ad4f-519d-4af4-84a9-e98ffa6b8689",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
