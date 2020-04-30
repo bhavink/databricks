@@ -3,7 +3,11 @@
 - This documents the endpoints for the common databricks REST API's. This should work with [Azure](https://docs.azuredatabricks.net) as well [AWS](https://docs.databricks.com) based databricks deployments.
 - In order to use these collections you'll first need to define a postman environment with certain global variables, these variables are then referenced through out the collection, this way you can decouple API calls from environments.
 
+## Authentication
+### Several options available:
 - Generate a databricks platform token aka PAT for [azure](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication#authentication) or [aws](https://docs.databricks.com/dev-tools/api/latest/authentication.html#generate-a-token)
+- [Authenticate using Azure AAD tokens](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/)
+  - [Get an Azure Active Directory token using a service principal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token)
 
 * Edit postman collection and add an [environment](https://learning.postman.com/docs/postman/variables-and-environments/variables/#variables-quick-start)
 
