@@ -1,0 +1,373 @@
+{
+	"info": {
+		"_postman_id": "85f91c03-c72f-49cc-8262-443976acfc4b",
+		"name": "Groups and Users Management SCIM API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1-get aad access token for databricks resource",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "426a8d84-6953-454a-9f63-525ba519f9a1",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"access_token\", pm.response.json().access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{sp_client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{sp_client_credential}}",
+							"type": "text"
+						},
+						{
+							"key": "resource",
+							"value": "{{databricks_resource_id}}",
+							"type": "text"
+						}
+					],
+					"options": {
+						"urlencoded": {}
+					}
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{azure_tenant_id}}/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{azure_tenant_id}}",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2-get me",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/Me",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Me"
+					]
+				},
+				"description": "[get me](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-me)"
+			},
+			"response": []
+		},
+		{
+			"name": "3-get users",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/Users",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Users"
+					]
+				},
+				"description": "[get users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#--get-users)"
+			},
+			"response": []
+		},
+		{
+			"name": "4-get user by id",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/Users/1950142778633211",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Users",
+						"1950142778633211"
+					]
+				},
+				"description": "[get user by id](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#get-user-by-id)"
+			},
+			"response": []
+		},
+		{
+			"name": "5-create user",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:User\"\n  ],\n  \"userName\":\"test@databricks.com\",\n  \"groups\":[\n    {\n       \"value\":\"123456\"\n    }\n  ],\n  \"entitlements\":[\n    {\n       \"value\":\"allow-cluster-create\"\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/Users",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Users"
+					]
+				},
+				"description": "[create user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#create-user)"
+			},
+			"response": []
+		},
+		{
+			"name": "6-update user by id (patch)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"add\",\n      \"path\":\"entitlements\",\n      \"value\":[\n        {\n           \"value\":\"allow-cluster-create\"\n        }\n      ]\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/Users/6638923151913830",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Users",
+						"6638923151913830"
+					]
+				},
+				"description": "[update user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#update-user-by-id-patch)<br>\n- **Admin users**: Update a user resource with operations on specific attributes, except those that are immutable. \n- **The PATCH method is recommended over the PUT method for setting or updating user entitlements.**"
+			},
+			"response": []
+		},
+		{
+			"name": "7-update user by id (put)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:User\"\n  ],\n  \"userName\":\"test@databricks.com\",\n  \"entitlements\":[\n    {\n       \"value\":\"allow-cluster-create\"\n    }\n  ],\n  \"groups\":[\n    {\n       \"value\":\"100000\"\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/Users/6638923151913830",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Users",
+						"6638923151913830"
+					]
+				},
+				"description": "[update user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#update-user-by-id-put)<br>\n- **Admin users**:Overwrite the user resource across multiple attributes, except those that are immutable.\n- Request must include the schemas attribute, set to urn:ietf:params:scim:schemas:core:2.0:User."
+			},
+			"response": []
+		},
+		{
+			"name": "8-delete user by id",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "application/scim+json"
+					}
+				],
+				"url": {
+					"raw": "{{db_host}}/api/2.0/preview/scim/v2/Users/6638923151913830",
+					"host": [
+						"{{db_host}}"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"preview",
+						"scim",
+						"v2",
+						"Users",
+						"6638923151913830"
+					]
+				},
+				"description": "[delete user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#delete-user-by-id)<br>\n- **Admin users**:Inactivate a user resource. A user that does not own or belong to a workspace in Azure Databricks is automatically purged after 30 days."
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "dapi9db17a5f57dcbe1e7cb3027cd822aaa1",
+				"type": "string"
+			}
+		]
+	},
+	"protocolProfileBehavior": {}
+}
