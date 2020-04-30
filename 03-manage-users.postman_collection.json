@@ -1,56 +1,17 @@
 {
 	"info": {
-		"_postman_id": "1abaf6fe-1381-4228-ab66-bb794687b2b0",
+		"_postman_id": "4cc28c6b-73b2-476c-a8cf-3d117399ec57",
 		"name": "03-manage-users",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
-		{
-			"name": "00-get-pat-token",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{personal_access_token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/preview/workspace-conf?keys=maxTokenLifetimeDays",
-					"protocol": "https",
-					"host": [
-						"{{region}}",
-						"azuredatabricks",
-						"net"
-					],
-					"path": [
-						"api",
-						"2.0",
-						"preview",
-						"workspace-conf"
-					],
-					"query": [
-						{
-							"key": "keys",
-							"value": "maxTokenLifetimeDays"
-						}
-					]
-				}
-			},
-			"response": []
-		},
 		{
 			"name": "01-list-groups",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
-						"id": "0ce7caf3-3190-4c34-8b8c-7a258b1add5b",
+						"id": "102d3294-6d16-4f4e-bb9e-6d9b129ea006",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -99,7 +60,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "0ea84bc3-4b6f-4680-863c-1ff753d9884f",
+						"id": "aadc6998-a22c-4688-9f89-639e1f953e57",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -153,12 +114,12 @@
 			"response": []
 		},
 		{
-			"name": "03-add-user-to-group",
+			"name": "03-add-user-to-group XXX",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
-						"id": "503f9167-530f-4596-a216-39f9eac9e43e",
+						"id": "04f90f12-bc7b-4bb1-93c1-8df26560ebae",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -215,7 +176,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "9b9961fc-98a4-4394-ad12-5af3c6ca0aab",
+				"id": "dc9ab91d-20f6-469c-a6ef-cf8766fcf307",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -225,7 +186,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "c6166d8b-3bf9-4510-80bd-a2feb3470195",
+				"id": "97189413-b8e3-44db-8346-7b30699282f7",
 				"type": "text/javascript",
 				"exec": [
 					""
