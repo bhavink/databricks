@@ -7,7 +7,7 @@ This documents the endpoints for the [SCIM API](https://docs.microsoft.com/en-us
 You can now use AAD user principals as well as AAD service principals as a **first class identity** in azure databricks.
 Follow [this](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token) guide to create and configure service principal to use in ADB.
 
-# published [postman collection](https://documenter.getpostman.com/view/2644780/SzmYAMkH) and api doc
+### published [postman collection](https://documenter.getpostman.com/view/2644780/SzmYAMkH) and api doc
 
 ### What are the goals?
 
