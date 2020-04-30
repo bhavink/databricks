@@ -1,0 +1,230 @@
+{
+	"info": {
+		"_postman_id": "7e70e032-c1fb-402a-8eb8-0edcc44858e4",
+		"name": "05-manage-workspace",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01-create-shared-folder",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"path\": \"/Shared/{{app_name}}/{{environment}}/notebooks\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/workspace/mkdirs",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"workspace",
+						"mkdirs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "02-check-folder-status",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"path\": \"/Shared/{{app_name}}/{{environment}}/notebooks\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/workspace/get-status",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"workspace",
+						"get-status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "03-upload-notebook",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"content\": \"MSsx\\n\",\n  \"path\": \"/Shared/{{app_name}}/{{environment}}/notebooks/00-hello-world\",\n  \"language\": \"SCALA\",\n  \"overwrite\": true,\n  \"format\": \"SOURCE\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/workspace/import",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"workspace",
+						"import"
+					]
+				},
+				"description": "The below request uploads a sample notebook with a single command that contains '1+1' within it.\n\nThis notebook is in a DBC format and is encoded into a Base64 format before upload.\n\nNOTE: When uploading real DBC files, it might be easiser to use the curl command below to upload files from your source folder using a command line.\n\n*Upload notebook named 01-initialize-app.scala*\n\n\tcurl -n -F path=/Shared/prod/app1/notebooks/01-initialize-app -F language=SCALA \\\n\t  -F content=@01-initialize-app.scala \\\n\t  --header 'Authorization: Bearer <personal-access-token>' \\\n\t  https://adb-6005497712010971.11.azuredatabricks.net/api/2.0/workspace/import\n\n*Upload notebook named 02-main.scala*\n\n\tcurl -n -F path=/Shared/prod/app1/notebooks/02-main -F language=SCALA \\\n\t  -F content=@02-main.scala \\\n\t  --header 'Authorization: Bearer <personal-access-token>' \\\n\t  https://adb-6005497712010971.11.azuredatabricks.net/api/2.0/workspace/import"
+			},
+			"response": []
+		},
+		{
+			"name": "04-check-notebook-status",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"path\": \"/Shared/{{app_name}}/{{environment}}/notebooks/00-hello-world\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/workspace/get-status",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"workspace",
+						"get-status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "05-list-folder-contents",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"path\": \"/Shared/{{app_name}}/{{environment}}/notebooks\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/workspace/list",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"workspace",
+						"list"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

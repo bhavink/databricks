@@ -1,0 +1,124 @@
+{
+	"info": {
+		"_postman_id": "9e8593e2-a74e-44b1-9aa5-c57dbe1b5f91",
+		"name": "04-manage-clusters",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01-list-clusters",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1feb41fb-9c93-4d0c-8759-36ac2ecf7cc7",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"group_name\": \"developers\"\n}"
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/clusters/list",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"clusters",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "02-create-cluster",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c71f8e62-660b-459c-983b-8b3a05106679",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cluster_name\": \"autoscaling-cluster\",\n    \"node_type_id\": \"Standard_D3_v2\",\n    \"spark_version\": \"latest-stable-scala2.11\",\n    \"autoscale\": {\n        \"min_workers\": 1,\n        \"max_workers\": 3\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/clusters/create",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"clusters",
+						"create"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
