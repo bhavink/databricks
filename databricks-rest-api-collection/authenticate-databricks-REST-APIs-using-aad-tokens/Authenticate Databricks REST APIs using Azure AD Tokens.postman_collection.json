@@ -1,0 +1,437 @@
+{
+	"info": {
+		"_postman_id": "9b77982f-648e-4e8b-83ad-f9445233a832",
+		"name": "Authenticate Databricks REST APIs using Azure AD Tokens",
+		"description": "\nTo authenticate to Databricks REST APIs, you can use Azure Databricks personal access tokens or Azure Active Directory tokens.\n### Authenticate using Azure Active Directory tokens\n\n- This section describes how to get, use, and refresh Azure AD tokens. For Azure Databricks personal access tokens, see Authentication using Azure Databricks personal access tokens.\n\n- This section describes two ways to get and use Azure AD access tokens:\n\n    - Use the Azure Active Directory Authentication Library (ADAL) to programmatically get an Azure AD access token for a user.\n    - Define a service principal in Azure Active Directory and get an Azure AD access token for the service principal rather than a user. You configure the service principal as one on which authentication and authorization policies can be enforced in Azure Databricks. Service principals in an Azure Databricks workspace can have different fine-grained access control than regular users (user principals).\n\n- In this section:\n\n    - [Get an Azure Active Directory token using Azure Active Directory Authentication Library](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/app-aad-token)\n    - [Get an Azure Active Directory token using a service principal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token)\n    - [Troubleshoot Azure Active Directory access tokens](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/troubleshoot-aad-token)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Admin user login",
+			"item": [
+				{
+					"name": "Get the Azure Active Directory access token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e0b29f0c-dd79-4198-a707-0d4153f01bb4",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"access_token\", pm.response.json().access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{clientSecret}}",
+									"type": "text"
+								},
+								{
+									"key": "resource",
+									"value": "{{databricksResourceId}}",
+									"description": "fixed value: 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d",
+									"type": "text"
+								}
+							],
+							"options": {
+								"urlencoded": {}
+							}
+						},
+						"url": {
+							"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
+							"protocol": "https",
+							"host": [
+								"login",
+								"microsoftonline",
+								"com"
+							],
+							"path": [
+								"{{tenantId}}",
+								"oauth2",
+								"token"
+							]
+						},
+						"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-an-azure-active-directory-access-token)\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#register)\n\t- **Databricks Resource Id**: `2ff814a6-3304-4ab8-85cb-cd0e6f879c1d` **fixed value**\n\t- **Application secret**: The secret generated for the application."
+					},
+					"response": []
+				},
+				{
+					"name": "Get the Azure Management Resource endpoint token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a06652b0-e050-4373-8317-ffcb269c54cd",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"management_token\", pm.response.json().access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{clientSecret}}",
+									"type": "text"
+								},
+								{
+									"key": "resource",
+									"value": "{{managementResource}}",
+									"description": "fixed value https://management.core.windows.net",
+									"type": "text"
+								}
+							],
+							"options": {}
+						},
+						"url": {
+							"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
+							"protocol": "https",
+							"host": [
+								"login",
+								"microsoftonline",
+								"com"
+							],
+							"path": [
+								"{{tenantId}}",
+								"oauth2",
+								"token"
+							]
+						},
+						"description": "[Documentation](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-the-azure-management-resource-endpoint-token)\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#register)\n\t- **Management Resource Endpoint**: `https://management.core.windows.net/` **fixed value**\n\t- **Application secret**: The secret generated for the application."
+					},
+					"response": []
+				},
+				{
+					"name": "Use the management endpoint access token to access the Databricks REST API",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "028b2f25-f0e2-4fbc-aeb0-2771ecb8ab16",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"description": " <management-access-token>",
+								"key": "X-Databricks-Azure-SP-Management-Token",
+								"type": "text",
+								"value": " {{management_token}}"
+							},
+							{
+								"description": " /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.Databricks/workspaces/<workspace-name>",
+								"key": "X-Databricks-Azure-Workspace-Resource-Id",
+								"type": "text",
+								"value": " /subscriptions/{{subscriptionId}}/resourceGroups/{{resourceGroup}}/providers/Microsoft.Databricks/workspaces/{{workspaceName}}"
+							},
+							{
+								"warning": "This is a duplicate header and will be overridden by the Authorization header generated by Postman.",
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://{{workspaceUrl}}/api/2.0/preview/scim/v2/ServicePrincipals",
+							"protocol": "https",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"ServicePrincipals"
+							]
+						},
+						"description": "[Use the management endpoint access token to access the Databricks REST API](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#use-the-management-endpoint-access-token-to-access-the-databricks-rest-api)\n\n\n- Replace the following parameters in the request:\n\n\t- **Databricks instance**: URL of your Databricks instance.\n\t- **Access token**: Access token obtained in [Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#get-token).\n\t- **Management access token**: Management endpoint access token obtained in [Get the Azure Management Resource endpoint token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#get-management-token).\n\t- **Subscription ID**: Subscription ID of the Azure Databricks resource.\n\t- **Resource group name**: Name of the Azure Databricks resource group.\n\t- **Workspace name**: Name of the Azure Databricks workspace."
+					},
+					"response": []
+				}
+			],
+			"description": "- If any of the following are true, you must be in a Contributor or Owner role on the workspace resource in Azure to log in using the service principal access token:\n    - The service principal does not belong to the workspace.\n    - The service principal belongs to the workspace, but you want to add it automatically as an admin user.\n    - You do not know the org ID of your workspace but you know the workspace resource ID in Azure.\n\n- You must provide:\n    - The X-Databricks-Azure-Workspace-Resource-Id header, which contains the ID of the workspace resource in Azure. You construct the ID using the Azure subscription ID, resource group name, and workspace resource name.\n    - A management access token for the Azure Resource Management endpoint.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "fea1650a-7ad0-4455-bb4c-5e7f8ed01065",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "e95d43f2-7ffb-4cb9-b94b-78bd7e71e5cb",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Non admin user login",
+			"item": [
+				{
+					"name": "Get the Azure Active Directory access token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c820fb44-6875-451d-a380-ec93e7999b32",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"access_token\", pm.response.json().access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{clientSecret}}",
+									"type": "text"
+								},
+								{
+									"key": "resource",
+									"value": "{{databricksResourceId}}",
+									"description": "fixed value: 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d",
+									"type": "text"
+								}
+							],
+							"options": {
+								"urlencoded": {}
+							}
+						},
+						"url": {
+							"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
+							"protocol": "https",
+							"host": [
+								"login",
+								"microsoftonline",
+								"com"
+							],
+							"path": [
+								"{{tenantId}}",
+								"oauth2",
+								"token"
+							]
+						},
+						"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-an-azure-active-directory-access-token)\n\n- To access the Databricks REST API with the service principal, you get an Azure AD access token for the service principal. You can use the client credentials flow to get an access token (with the AzureDatabricks login application as the resource).\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#register)\n\t- **Azure Databricks resource ID**: `2ff814a6-3304-4ab8-85cb-cd0e6f879c1d` fixed value\n\t- **Application secret**: The secret generated for the application."
+					},
+					"response": []
+				},
+				{
+					"name": "List clusters using aad access token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "badd5b6e-e8ee-41bc-bc61-3f5a858529e1",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "Bearer {{access_token}}",
+								"warning": "This is a duplicate header and will be overridden by the Authorization header generated by Postman."
+							}
+						],
+						"url": {
+							"raw": "https://{{workspaceUrl}}/api/2.0/clusters/list",
+							"protocol": "https",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"clusters",
+								"list"
+							]
+						},
+						"description": "[Retrieve a list of all clusters in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#use-an-access-token-to-access-the-databricks-rest-api)"
+					},
+					"response": []
+				}
+			],
+			"description": "- Prior to this login, the service principal must be added to the workspace either as part of the [admin user login](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#admin-user-login) or using the [Add service principal endpoint](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#add-service-principal).",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "766c6a73-eef7-4960-bcec-deeec84773b6",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "4443f835-5e66-47f4-8aea-391c67c886a9",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "9957a64f-e682-425f-b2d9-84f3c0b4b325",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "655095ca-5fe6-41aa-a702-2e3c41cafc59",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
