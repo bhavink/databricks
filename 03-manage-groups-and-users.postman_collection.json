@@ -1,0 +1,268 @@
+{
+	"info": {
+		"_postman_id": "1abaf6fe-1381-4228-ab66-bb794687b2b0",
+		"name": "03-manage-groups-and-users",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01-list-users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "02-list-groups",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0ce7caf3-3190-4c34-8b8c-7a258b1add5b",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/groups/list",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"groups",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "03-create-group",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0ea84bc3-4b6f-4680-863c-1ff753d9884f",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"group_name\": \"developers\" }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/groups/create",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"groups",
+						"create"
+					]
+				},
+				"description": "Create a group named developers in the azure databricks workspace\n\nDoes not work as expected."
+			},
+			"response": []
+		},
+		{
+			"name": "04-create-user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "882c5712-83d2-4693-82f6-ea31f03034e4",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"group_name\": \"developers\" }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/groups/create",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"groups",
+						"create"
+					]
+				},
+				"description": "Create a group named developers in the azure databricks workspace\n\nDoes not work as expected."
+			},
+			"response": []
+		},
+		{
+			"name": "05-add-user-to-group",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "503f9167-530f-4596-a216-39f9eac9e43e",
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{personal_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"user_name\": \"harry.potter@databricks.com\",\n  \"parent_name\": \"developer\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{region}}.azuredatabricks.net/api/2.0/groups/add-member",
+					"protocol": "https",
+					"host": [
+						"{{region}}",
+						"azuredatabricks",
+						"net"
+					],
+					"path": [
+						"api",
+						"2.0",
+						"groups",
+						"add-member"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "9b9961fc-98a4-4394-ad12-5af3c6ca0aab",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "c6166d8b-3bf9-4510-80bd-a2feb3470195",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
