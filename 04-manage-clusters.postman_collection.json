@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "9e8593e2-a74e-44b1-9aa5-c57dbe1b5f91",
+		"_postman_id": "f456695a-7309-41f4-a99b-118099583635",
 		"name": "04-manage-clusters",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -11,7 +11,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "1feb41fb-9c93-4d0c-8759-36ac2ecf7cc7",
+						"id": "e15f630a-2395-4c25-8a15-265d16f9eead",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -67,7 +67,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "c71f8e62-660b-459c-983b-8b3a05106679",
+						"id": "b43737c1-63eb-476c-8e74-0d81573f7744",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -94,7 +94,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cluster_name\": \"autoscaling-cluster\",\n    \"node_type_id\": \"Standard_D3_v2\",\n    \"spark_version\": \"latest-stable-scala2.11\",\n    \"autoscale\": {\n        \"min_workers\": 1,\n        \"max_workers\": 3\n    }\n}",
+					"raw": "{\r\n    \"num_workers\": 3,\r\n    \"cluster_name\": \"test\",\r\n    \"spark_version\": \"6.5.x-scala2.11\",\r\n    \"spark_conf\": {},\r\n    \"node_type_id\": \"Standard_DS3_v2\",\r\n    \"ssh_public_keys\": [],\r\n    \"custom_tags\": {},\r\n    \"spark_env_vars\": {\r\n        \"PYSPARK_PYTHON\": \"/databricks/python3/bin/python3\"\r\n    },\r\n    \"autotermination_minutes\": 30,\r\n    \"init_scripts\": []\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"

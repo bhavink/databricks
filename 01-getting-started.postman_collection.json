@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "4efb7f9e-d095-412f-9751-4eba342047a6",
+		"_postman_id": "1b05e854-846a-4983-bbf6-0b426b581974",
 		"name": "01-getting-started",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -11,7 +11,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+						"id": "0337edd8-7c6e-44ee-a7ae-852609716734",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -169,7 +169,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "3eba84a3-ac67-424a-aa26-62e56cadb4ac",
+				"id": "18b3e366-dc72-4890-bc39-13c4a1043379",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -179,7 +179,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "7f2caf8d-f4cd-4476-8f0d-5b0ddd4864d6",
+				"id": "03daef65-7823-4399-a349-d80c41b14229",
 				"type": "text/javascript",
 				"exec": [
 					""

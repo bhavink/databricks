@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "48b25a51-debb-4b1b-9a91-2a47ac4517f1",
+		"_postman_id": "86897406-eeb4-4e9a-a3ac-07219a53d502",
 		"name": "02-provision-azure-databricks",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -11,7 +11,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "874e3b2e-583e-4238-897a-dd522d9f8808",
+						"id": "c46049a7-c7e2-4333-9df1-8ec841f62f94",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -79,7 +79,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "b33fe6d0-397e-40c6-b712-bc49e4cf4156",
+						"id": "4e67439a-7e2c-4a13-9c3f-2370c5bb03d3",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -138,7 +138,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "f1c7db74-76e1-4d3a-be40-1690ed64be3c",
+						"id": "1ecd8efa-d204-4f0f-a0b2-6e801e65eeef",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
