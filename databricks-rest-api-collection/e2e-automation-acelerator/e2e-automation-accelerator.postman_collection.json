@@ -1,0 +1,2382 @@
+{
+	"info": {
+		"_postman_id": "11ece169-eb8a-4cf9-9a53-677c748bfdcd",
+		"name": "E2E automation accelerator",
+		"description": "## End to End [Azure Databricks](https://docs.microsoft.com/en-us/azure/databricks/workspace/) workspace provisioning, setup and configuration.\n\n### Pre-requistes:\n- [Azure Service Principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)\n    Please keep aside service principal\n    - client_id\n    - client_secret\n- [Azure Resource Group](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal#what-is-a-resource-group)\n- [AAD Contributor](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#contributor) role assigned to `service principal` on `resource group` used to deploy `azure databricks workspace`\n\n### Modules:\n- Provisioning Workspace\n- Authentication\n- Users and Groups Management\n- Cluster Policies & Permissions\n- Secure acess to workspace within corporate network (IP Access List)\n- Databricks Access Token Management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Provisioning Workspace",
+			"item": [
+				{
+					"name": "generate aad token for management resource",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a9b08347-ae01-405b-a661-d11d46aca125",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"management_token\", pm.response.json().access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{clientSecret}}",
+									"type": "text"
+								},
+								{
+									"key": "resource",
+									"value": "{{managementResource}}",
+									"description": "fixed value https://management.core.windows.net",
+									"type": "text"
+								}
+							],
+							"options": {}
+						},
+						"url": {
+							"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
+							"protocol": "https",
+							"host": [
+								"login",
+								"microsoftonline",
+								"com"
+							],
+							"path": [
+								"{{tenantId}}",
+								"oauth2",
+								"token"
+							]
+						},
+						"description": "[Documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow)"
+					},
+					"response": []
+				},
+				{
+					"name": "provision databricks workspace",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{management_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n   \"properties\": {\n   \"mode\": \"Incremental\",\n   \"template\": {\n   \t \"$schema\": \"https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#\",\n    \"contentVersion\": \"1.0.0.0\",\n    \"parameters\": {\n        \"nsgName\": {\n            \"defaultValue\": \"{{nsgName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the network security group to create.\"\n            }\n        },\n        \"vnetName\": {\n            \"defaultValue\": \"{{vnetName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the virtual network to create.\"\n            }\n        },\n        \"workspaceName\": {\n        \t\"defaultValue\":\"{{workspaceName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the Azure Databricks workspace to create.\"\n            }\n        },\n        \"privateSubnetName\": {\n            \"defaultValue\": \"{{privateSubnetName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the private subnet to create.\"\n            }\n        },\n        \"publicSubnetName\": {\n            \"defaultValue\": \"{{publicSubnetName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the public subnet to create.\"\n            }\n        },\n        \"pricingTier\": {\n            \"defaultValue\": \"{{pricingTier}}\",\n            \"allowedValues\": [\n                \"trial\",\n                \"standard\",\n                \"premium\"\n            ],\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The pricing tier of workspace.\"\n            }\n        },\n        \"location\": {\n            \"type\": \"string\",\n            \"defaultValue\": \"[resourceGroup().location]\",\n            \"metadata\": {\n                \"description\": \"Location for all resources.\"\n            }\n        },\n        \"vnetCidr\": {\n            \"defaultValue\": \"{{vnetCidr}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the vnet.\"\n            }\n        },\n        \"privateSubnetCidr\": {\n            \"defaultValue\": \"{{privateSubnetCidr}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the private subnet.\"\n            }\n        },\n        \"publicSubnetCidr\": {\n            \"defaultValue\": \"{{publicSubnetCidr}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the public subnet..\"\n            }\n        },\n        \"tag1\": {\n            \"type\": \"string\",\n            \"defaultValue\": \"{{tag1}}\",\n            \"metadata\": {\n                \"description\": \"workspace tag\"\n            }\n        }\n    },\n    \"variables\": {\n        \"nsgId\": \"[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]\",\n        \"vnetId\": \"[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]\",\n        \"managedResourceGroupId\": \"[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]\",\n        \"managedResourceGroupName\": \"[concat('databricks-rg-', parameters('workspaceName'), '-', uniqueString(parameters('workspaceName'), resourceGroup().id))]\"\n    },\n    \"resources\": [\n        {\n            \"apiVersion\": \"2019-06-01\",\n            \"type\": \"Microsoft.Network/networkSecurityGroups\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('nsgName')]\"\n        },\n        {\n            \"apiVersion\": \"2019-06-01\",\n            \"type\": \"Microsoft.Network/virtualNetworks\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('vnetName')]\",\n            \"dependsOn\": [\n                \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\"\n            ],\n            \"properties\": {\n                \"addressSpace\": {\n                    \"addressPrefixes\": [\n                        \"[parameters('vnetCidr')]\"\n                    ]\n                },\n                \"subnets\": [\n                    {\n                        \"name\": \"[parameters('publicSubnetName')]\",\n                        \"properties\": {\n                            \"addressPrefix\": \"[parameters('publicSubnetCidr')]\",\n                            \"networkSecurityGroup\": {\n                                \"id\": \"[variables('nsgId')]\"\n                            },\n                            \"delegations\": [\n                                {\n                                    \"name\": \"databricks-del-public\",\n                                    \"properties\": {\n                                        \"serviceName\": \"Microsoft.Databricks/workspaces\"\n                                    }\n                                }\n                            ]\n                        }\n                    },\n                    {\n                        \"name\": \"[parameters('privateSubnetName')]\",\n                        \"properties\": {\n                            \"addressPrefix\": \"[parameters('privateSubnetCidr')]\",\n                            \"networkSecurityGroup\": {\n                                \"id\": \"[variables('nsgId')]\"\n                            },\n                            \"delegations\": [\n                                {\n                                    \"name\": \"databricks-del-private\",\n                                    \"properties\": {\n                                        \"serviceName\": \"Microsoft.Databricks/workspaces\"\n                                    }\n                                }\n                            ]\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"apiVersion\": \"2018-04-01\",\n            \"type\": \"Microsoft.Databricks/workspaces\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('workspaceName')]\",\n            \"tags\": {\n                \"tag1\": \"[parameters('tag1')]\"\n            },\n            \"dependsOn\": [\n                \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\",\n                \"[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]\"\n            ],\n            \"sku\": {\n                \"name\": \"[parameters('pricingTier')]\"\n            },\n            \"comments\": \"The managed resource group specified will be locked after deployment.\",\n            \"properties\": {\n                \"ManagedResourceGroupId\": \"[variables('managedResourceGroupId')]\",\n                \"parameters\": {\n                    \"customVirtualNetworkId\": {\n                        \"value\": \"[variables('vnetId')]\"\n                    },\n                    \"customPublicSubnetName\": {\n                        \"value\": \"[parameters('publicSubnetName')]\"\n                    },\n                    \"customPrivateSubnetName\": {\n                        \"value\": \"[parameters('privateSubnetName')]\"\n                    }\n                }\n            }\n        }\n    \t]\n\t\t}\n\t}\n}",
+							"options": {}
+						},
+						"url": {
+							"raw": "https://management.azure.com/subscriptions/{{subscriptionId}}/resourcegroups/{{resourceGroup}}/providers/Microsoft.Resources/deployments/{{deploymentName}}?api-version=2019-05-01",
+							"protocol": "https",
+							"host": [
+								"management",
+								"azure",
+								"com"
+							],
+							"path": [
+								"subscriptions",
+								"{{subscriptionId}}",
+								"resourcegroups",
+								"{{resourceGroup}}",
+								"providers",
+								"Microsoft.Resources",
+								"deployments",
+								"{{deploymentName}}"
+							],
+							"query": [
+								{
+									"key": "api-version",
+									"value": "2019-05-01"
+								}
+							]
+						},
+						"description": "### Request body contains ARM template which is parameterized using global environment variables"
+					},
+					"response": []
+				},
+				{
+					"name": "get deployment status and workspace url",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "661bf05d-3bbb-4e5a-85d0-19ccfdb67e27",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"workspaceUrl\", \"https://\"+pm.response.json().properties.workspaceUrl);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{management_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://management.azure.com/subscriptions/{{subscriptionId}}/resourcegroups/{{resourceGroup}}/providers/Microsoft.Databricks/workspaces/{{workspaceName}}?api-version=2018-04-01",
+							"protocol": "https",
+							"host": [
+								"management",
+								"azure",
+								"com"
+							],
+							"path": [
+								"subscriptions",
+								"{{subscriptionId}}",
+								"resourcegroups",
+								"{{resourceGroup}}",
+								"providers",
+								"Microsoft.Databricks",
+								"workspaces",
+								"{{workspaceName}}"
+							],
+							"query": [
+								{
+									"key": "api-version",
+									"value": "2018-04-01"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "### This section provisions Azure Databricks workspace.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "0a10e706-f64a-4e01-90a0-4aba20f601b6",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "0f7e8c70-e098-402f-9118-17108184796c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Workspace Authentication",
+			"item": [
+				{
+					"name": "generate aad token for databricks resource",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "96057448-68ae-40d6-ae26-2effc7987eba",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"access_token\", pm.response.json().access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{clientSecret}}",
+									"type": "text"
+								},
+								{
+									"key": "resource",
+									"value": "{{databricksResourceId}}",
+									"description": "fixed value: 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d",
+									"type": "text"
+								}
+							],
+							"options": {
+								"urlencoded": {}
+							}
+						},
+						"url": {
+							"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
+							"protocol": "https",
+							"host": [
+								"login",
+								"microsoftonline",
+								"com"
+							],
+							"path": [
+								"{{tenantId}}",
+								"oauth2",
+								"token"
+							]
+						},
+						"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-an-azure-active-directory-access-token)\n\n- To access the Databricks REST API with the service principal, you get an Azure AD access token for the service principal. You can use the client credentials flow to get an access token (with the AzureDatabricks login application as the resource)."
+					},
+					"response": []
+				},
+				{
+					"name": "generate databricks platform token for service principal",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e3aff235-8a5e-4975-bea3-c0bd1f95b359",
+								"exec": [
+									"    pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"sp_pat\", pm.response.json().token_value);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"key": "",
+								"type": "text",
+								"value": "",
+								"disabled": true
+							},
+							{
+								"key": "",
+								"type": "text",
+								"value": "",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"lifetime_seconds\": 6000,\n  \"comment\": \"token generated for provisioning service principal, never expires\"\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/token/create",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"token",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list service principal using aad access token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "c29c394e-0587-40c2-a557-c2a4baa275ce",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/ServicePrincipals",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"ServicePrincipals"
+							]
+						},
+						"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principals)"
+					},
+					"response": []
+				},
+				{
+					"name": "list service principal using databricks platform access token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "b6443dc0-8d0c-442a-98af-95506957a178",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/ServicePrincipals",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"ServicePrincipals"
+							]
+						},
+						"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principals)"
+					},
+					"response": []
+				}
+			],
+			"description": "To [authenticate]((https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication)) to and access Databricks REST APIs, you can use Azure Databricks personal access tokens or Azure Active Directory (Azure AD) tokens.\n\n",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f047da62-81ac-4dfe-a35b-81c1a27c1927",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "d9c66996-44f0-4abc-8b4d-df5c8afdc1e7",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Users and Groups Management",
+			"item": [
+				{
+					"name": "list me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/scim+json"
+							}
+						],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/Me",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"Me"
+							]
+						},
+						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
+					},
+					"response": []
+				},
+				{
+					"name": "list users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/scim+json"
+							}
+						],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/Users",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"Users"
+							]
+						},
+						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
+					},
+					"response": []
+				},
+				{
+					"name": "list groups",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/scim+json"
+							}
+						],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/Groups",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"Groups"
+							]
+						},
+						"description": "[list groups](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-groups#get-groups)\n\n*Admin users*: Retrieve a list of all groups in the Azure Databricks workspace.\n \n*Non-admin users*: Retrieve a list of all groups in the Azure Databricks workspace, returning group display name and object ID only"
+					},
+					"response": []
+				},
+				{
+					"name": "create group",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8c78283f-d683-472f-9dfa-17a90a8c2317",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"groupId\", pm.response.json().id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/scim+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:Group\"\n  ],\n  \"displayName\":\"devgrouptest\"\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/Groups",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"Groups"
+							]
+						},
+						"description": "[create group](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-groups#create-group)\n\n*Admin users*: Create a group in Azure Databricks.\n\n*Request parameters follow the standard SCIM 2.0 protocol.*\n\nRequests must include the following attributes:\n\n`schemas set to urn:ietf:params:scim:schemas:core:2.0:Group`\n\n`displayName`\n\nMembers list is optional and can include users and other groups. You can also add members to a group using `PATCH`."
+					},
+					"response": []
+				},
+				{
+					"name": "update group entitlements",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/scim+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"add\",\n      \"path\":\"entitlements\",\n      \"value\":[\n        {\n                    \"value\": \"allow-cluster-create\"\n                },\n                {\n                    \"value\": \"allow-instance-pool-create\"\n                }\n      ]\n    }\n  ]\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/Groups/{{groupId}}",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"Groups",
+								"{{groupId}}"
+							]
+						},
+						"description": "[update user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#update-user-by-id-patch)<br>\n- **Admin users**: Update a user resource with operations on specific attributes, except those that are immutable. \n- **The PATCH method is recommended over the PUT method for setting or updating user entitlements.**"
+					},
+					"response": []
+				},
+				{
+					"name": "create users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "01e8c614-eb6a-4300-a92c-1551673914f4",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"userId\", pm.response.json().id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/scim+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:User\"\n  ],\n  \"userName\":\"test@corp.com\",\n  \"groups\":[\n    {\n       \"value\":\"{{groupId}}\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/Users",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"Users"
+							]
+						},
+						"description": "[create user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#create-user)\n\n*Admin users*: Create a user in the Azure Databricks workspace.\n\n*Request parameters follow the standard SCIM 2.0 protocol.*\n\nRequests must include the following attributes:\n\n`schemas set to urn:ietf:params:scim:schemas:core:2.0:User`\n\n`userName`"
+					},
+					"response": []
+				},
+				{
+					"name": "add user to group",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/scim+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"add\",\n      \"path\":\"members\",\n      \"value\":[\n        {\n                    \"value\": \"{{userId}}\"\n                }\n      ]\n    }\n  ]\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/Groups/{{groupId}}",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"Groups",
+								"{{groupId}}"
+							]
+						},
+						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
+					},
+					"response": []
+				},
+				{
+					"name": "add non admin service principal to a group",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:ServicePrincipal\"\n  ],\n  \"applicationId\":\"{{sp_test_client_id}}\",\n  \"displayName\":\"devtest-non-admin-sp\",\n  \"groups\":[\n    {\n       \"value\":\"{{groupId}}\"\n    }\n  ]\n}\n",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/ServicePrincipals",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"ServicePrincipals"
+							]
+						},
+						"description": "[Add a service principal in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#add-service-principal)"
+					},
+					"response": []
+				},
+				{
+					"name": "remove user from group",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/scim+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n    \"op\":\"remove\",\n    \"path\": \"members\",\n    \"value\":{\n        \"members\":[\n           {\n              \"value\":\"{{userId}}\"\n           }\n        ]\n      }\n    }\n  ]\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "https://{{workspaceUrl}}/api/2.0/preview/scim/v2/Groups/{{groupId}}",
+							"protocol": "https",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"Groups",
+								"{{groupId}}"
+							]
+						},
+						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
+					},
+					"response": []
+				},
+				{
+					"name": "add group as a member to another group",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/scim+json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:api:messages:2.0:PatchOp\"\n  ],\n  \"Operations\":[\n    {\n      \"op\":\"add\",\n      \"path\":\"members\",\n      \"value\":[\n        {\n                    \"value\": \"{{childGroupId}}\"\n                }\n      ]\n    }\n  ]\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/Groups/{{groupId}}",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"scim",
+								"v2",
+								"Groups",
+								"{{groupId}}"
+							]
+						},
+						"description": "[update user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#update-user-by-id-patch)<br>\n- **Admin users**: Update a user resource with operations on specific attributes, except those that are immutable. \n- **The PATCH method is recommended over the PUT method for setting or updating user entitlements.**"
+					},
+					"response": []
+				}
+			],
+			"description": "The [SCIM API](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/) allows you to manage groups of users.\n\nAzure Databricks supports [SCIM](http://www.simplecloud.info/), or System for Cross-domain Identity Management, an open standard that allows you to automate user provisioning using a REST API and JSON. The Azure Databricks SCIM API follows version 2.0 of the SCIM protocol.\n\n - An Azure Databricks administrator can invoke all `SCIM API` endpoints.\n - Non-admin users can invoke the Me Get endpoint, the `Users Get` endpoint to read user display names and IDs, and the Group Get endpoint to read group display names and IDs. \n\n",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "b1776482-8194-4e3e-ac6d-3abdc71cb3b4",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "a2e07c0b-7e99-4e75-9196-de3aebafd54a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Cluster Policies",
+			"item": [
+				{
+					"name": "create policy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bb0d698f-b542-4ed7-b6f0-e6b82ecd1cd0",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"clusterPolicyId\", pm.response.json().policy_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Dev Policy\",\n  \"definition\": \"{\\\"spark_version\\\": {\\\"type\\\": \\\"regex\\\",\\\"pattern\\\": \\\"6.[0-9].x-scala.*\\\"},\\\"custom_tags.tag_name1\\\": {\\\"type\\\": \\\"fixed\\\",\\\"value\\\": \\\"tag_value1\\\"},\\\"autoscale.min_workers\\\": {\\\"type\\\": \\\"range\\\",\\\"minValue\\\": 1,\\\"maxValue\\\": 5},\\\"driver_node_type_id\\\": {\\\"type\\\": \\\"regex\\\",\\\"pattern\\\": \\\"Standard_[DLS]*[1-6]{1,2}_v[2,3]\\\"},\\\"node_type_id\\\": {\\\"type\\\": \\\"regex\\\",\\\"pattern\\\": \\\"Standard_[DLS]*[1-6]{1,2}_v[2,3]\\\"},\\\"autotermination_minutes\\\": {\\\"type\\\": \\\"fixed\\\",\\\"value\\\": 60},\\\"autoscale.max_workers\\\": {\\\"type\\\": \\\"range\\\",\\\"minValue\\\": 2,\\\"maxValue\\\": 20}}\"\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/policies/clusters/create",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"policies",
+								"clusters",
+								"create"
+							]
+						},
+						"description": "[create cluster policy](https://docs.databricks.com/administration-guide/clusters/policies.html#create-policies)"
+					},
+					"response": []
+				},
+				{
+					"name": "list policies",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/policies/clusters/list",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"policies",
+								"clusters",
+								"list"
+							]
+						},
+						"description": "[list policies](https://docs.databricks.com/dev-tools/api/latest/policies.html#list)"
+					},
+					"response": []
+				},
+				{
+					"name": "add or modify policy permissions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{  \n   \"access_control_list\": [\n      {  \n         \"group_name\": \"devgroup\",\n         \"permission_level\": \"CAN_USE\",\n         \"inherited\": false\n      },\n      {  \n         \"user_name\":\"bhavin.kukadia@databricks.com\",\n         \"permission_level\": \"CAN_USE\",\n         \"inherited\": false\n      }\n   ]\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/permissions/cluster-policies/{{clusterPolicyId}}",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"permissions",
+								"cluster-policies",
+								"{{clusterPolicyId}}"
+							]
+						},
+						"description": "[modify permissions](https://docs.databricks.com/dev-tools/api/latest/policies.html#cluster-policy-permissions-rest-api)\n\nThe Cluster Policy Permissions API enables you to set permissions on a cluster policy. When you grant `CAN_USE` permission on a policy to a user, the user will be able to create new clusters based on it. A user does not need the `cluster_create` permission to create new clusters.\n\n\nOnly admin users can set permissions on cluster policies."
+					},
+					"response": []
+				}
+			],
+			"description": "A cluster policy limits the ability to create clusters based on a set of rules. A policy defines those rules as of limitations on the attributes used for the cluster creation. Cluster policies define ACLs to limit their use to a specific users and and groups.\n\nYou can use cluster policies to achieve the following goals:\n\n  - Limit users to create clusters with prescribed settings.\n  - Simplify the user interface and enable more users to start own clusters (by fixing and hiding some values).\n  - Control cost by limiting per cluster maximum cost (by setting limits on attributes whose values contribute to hourly price).\n  - Users who have access to a specific cluster policy can create clusters of that policy without having create cluster permission.\n\nOnly admin users can create, edit, and delete policies. Admin users also have access to all policies.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "40d2f5f8-05c7-482d-bfa0-7a4ddb9ebd4c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "634743d7-3e2f-47af-bbc1-3a5442ed5b2e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Cluster Permissions",
+			"item": [
+				{
+					"name": "list cluster policies",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "613cb229-f487-4286-80c1-d67ce987fdb4",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"clusterPolicyId\", pm.response.json().policies[0].policy_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/policies/clusters/list",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"policies",
+								"clusters",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create cluster based on policy",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "",
+								"value": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic dG9rZW46ZGFwaWUxOWU1Mzc5MGY2YmQyMTJmZGM4MDM5MGQzMWIwMmJl"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"num_workers\": null,\n    \"autoscale\": {\n        \"min_workers\": 2,\n        \"max_workers\": 8\n    },\n    \"cluster_name\": \"test-cluster\",\n    \"spark_version\": \"6.5.x-scala2.11\",\n    \"spark_conf\": {},\n    \"node_type_id\": \"Standard_DS3_v2\",\n    \"driver_node_type_id\": \"Standard_DS3_v2\",\n    \"ssh_public_keys\": [],\n    \"custom_tags\": {\n        \"tag_name1\": \"tag_value1\"\n    },\n    \"spark_env_vars\": {\n        \"PYSPARK_PYTHON\": \"/databricks/python3/bin/python3\"\n    },\n    \"autotermination_minutes\": 60,\n    \"init_scripts\": [],\n    \"policy_id\": \"{{clusterPolicyId}}\"\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/clusters/create",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"clusters",
+								"create"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "2 - get py job details - ADB",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "",
+										"value": ""
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic dG9rZW46ZGFwaWUxOWU1Mzc5MGY2YmQyMTJmZGM4MDM5MGQzMWIwMmJl"
+									}
+								],
+								"url": {
+									"raw": "https://eastus2.azuredatabricks.net/api/2.0/jobs/get?job_id=219",
+									"protocol": "https",
+									"host": [
+										"eastus2",
+										"azuredatabricks",
+										"net"
+									],
+									"path": [
+										"api",
+										"2.0",
+										"jobs",
+										"get"
+									],
+									"query": [
+										{
+											"key": "job_id",
+											"value": "219"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "connection",
+									"value": "keep-alive",
+									"name": "connection",
+									"description": "Options that are desired for the connection"
+								},
+								{
+									"key": "content-length",
+									"value": "975",
+									"name": "content-length",
+									"description": "The length of the response body in octets (8-bit bytes)"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json;charset=utf-8",
+									"name": "content-type",
+									"description": "The mime type of this content"
+								},
+								{
+									"key": "date",
+									"value": "Wed, 23 May 2018 13:45:25 GMT",
+									"name": "date",
+									"description": "The date and time that the message was sent"
+								},
+								{
+									"key": "server",
+									"value": "openresty/1.11.2.2",
+									"name": "server",
+									"description": "A name for the server"
+								},
+								{
+									"key": "strict-transport-security",
+									"value": "max-age=31536000; includeSubDomains; preload, max-age=31536000; includeSubDomains; preload",
+									"name": "strict-transport-security",
+									"description": "A HSTS Policy informing the HTTP client how long to cache the HTTPS only policy and whether this applies to subdomains."
+								},
+								{
+									"key": "x-content-type-options",
+									"value": "nosniff",
+									"name": "x-content-type-options",
+									"description": "The only defined value, \"nosniff\", prevents Internet Explorer from MIME-sniffing a response away from the declared content-type"
+								},
+								{
+									"key": "x-databricks-debug-attempt-0",
+									"value": "https://svc-cons-mix.production.svc.cluster.local OK! status 555",
+									"name": "x-databricks-debug-attempt-0",
+									"description": "Custom header"
+								},
+								{
+									"key": "x-databricks-debug-attempt-0-info",
+									"value": "redirect to https://cons-webapp-1.cons-webapp-r.production.svc.cluster.local",
+									"name": "x-databricks-debug-attempt-0-info",
+									"description": "Custom header"
+								},
+								{
+									"key": "x-databricks-debug-attempt-1",
+									"value": "https://cons-webapp-1.cons-webapp-r.production.svc.cluster.local OK! status 200",
+									"name": "x-databricks-debug-attempt-1",
+									"description": "Custom header"
+								},
+								{
+									"key": "x-databricks-debug-initial-route",
+									"value": "random",
+									"name": "x-databricks-debug-initial-route",
+									"description": "Custom header"
+								},
+								{
+									"key": "x-databricks-org-id",
+									"value": "984752964297111",
+									"name": "x-databricks-org-id",
+									"description": "Custom header"
+								},
+								{
+									"key": "x-databricks-reason-phrase",
+									"value": "OK",
+									"name": "x-databricks-reason-phrase",
+									"description": "Custom header"
+								},
+								{
+									"key": "x-databricks-route-to",
+									"value": "https://cons-webapp-1.cons-webapp-r.production.svc.cluster.local",
+									"name": "x-databricks-route-to",
+									"description": "Custom header"
+								},
+								{
+									"key": "x-databricks-server-name",
+									"value": "cons-webapp-1",
+									"name": "x-databricks-server-name",
+									"description": "Custom header"
+								}
+							],
+							"cookie": [],
+							"body": "{\"job_id\":218,\"settings\":{\"name\":\"SparkPi Python job\",\"new_cluster\":{\"spark_version\":\"4.0.x-scala2.11\",\"node_type_id\":\"Standard_D3_v2\",\"enable_elastic_disk\":true,\"num_workers\":2},\"libraries\":[{\"jar\":\"dbfs:/FileStore/jars/2caed1df_4697_4aa0_adb2_f08d2346f816-ngdbc.jar\"},{\"cran\":{\"package\":\"ggplot\",\"repo\":\"https://cloud.r-project.org\"}},{\"pypi\":{\"package\":\"matplotlib\"}},{\"maven\":{\"coordinates\":\"org.apache.kafka:kafka_2.12:0.10.2.1\"}}],\"email_notifications\":{\"on_start\":[\"bhavin.kukadia@databricks.com\"],\"on_success\":[\"bhavin.kukadia@databricks.com\"],\"on_failure\":[\"bhavin.kukadia@databricks.com\"]},\"timeout_seconds\":900,\"max_retries\":2,\"min_retry_interval_millis\":30000,\"retry_on_timeout\":true,\"schedule\":{\"quartz_cron_expression\":\"0 59 23 * * ?\",\"timezone_id\":\"US/Eastern\"},\"spark_python_task\":{\"python_file\":\"dbfs:/mnt/bhavin/blob/jobs/pi.py\",\"parameters\":[\"10\"]},\"max_concurrent_runs\":2},\"created_time\":1527082509911,\"creator_user_name\":\"bhavin.kukadia@databricks.com\"}\n"
+						}
+					]
+				},
+				{
+					"name": "get cluster id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d8c5dbdc-a9d2-4885-89d1-03f9f8414187",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"clusterId\", pm.response.json().clusters[0].cluster_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/clusters/list",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"clusters",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "list cluster permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4e747dc6-f683-4230-befe-111073437c32",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"//pm.globals.set(\"notebook_id\", pm.response.json().objects[0].object_id);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "95bcabb3-4cb8-4eec-871b-fc5e29518264",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"type": "text",
+								"value": "{{notebook_id}}"
+							}
+						],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/permissions/clusters/{{clusterId}}",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"permissions",
+								"clusters",
+								"{{clusterId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add or modify cluster permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1e028b00-adde-41b6-9ac3-5b8e4c590e21",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"//pm.globals.set(\"notebook_id\", pm.response.json().objects[0].object_id);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "7ef052e7-9f8a-499f-8e57-5f1901c46982",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "",
+								"type": "text",
+								"value": "{{notebook_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{  \n   \"access_control_list\": [\n      {  \n         \"user_name\":\"test@corp.com\",\n         \"permission_level\": \"CAN_RESTART\"\n      },\n      {  \n         \"group_name\":\"devgroup\",\n         \"permission_level\": \"CAN_MANAGE\"\n      },\n      {  \n         \"group_name\":\"testgroup\",\n         \"permission_level\": \"CAN_ATTACH_TO\"\n      }\n   ]\n}\n",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/permissions/clusters/{{clusterId}}",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"permissions",
+								"clusters",
+								"{{clusterId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "set or delete cluster permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b625ed32-fe39-4e7d-a130-e09bddd85633",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"//pm.globals.set(\"notebook_id\", pm.response.json().objects[0].object_id);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "772b67f5-13c8-481d-b839-d26441df932d",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "",
+								"type": "text",
+								"value": "{{notebook_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{  \n   \"access_control_list\": [\n      {  \n         \"user_name\":\"test@corp.com\",\n         \"permission_level\": \"CAN_RESTART\"\n      },\n      {  \n         \"group_name\":\"devgroup\",\n         \"permission_level\": \"CAN_MANAGE\"\n      },\n      {  \n         \"group_name\":\"testgroup\",\n         \"permission_level\": \"CAN_ATTACH_TO\"\n      }\n   ]\n}\n",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/permissions/clusters/{{clusterId}}",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"permissions",
+								"clusters",
+								"{{clusterId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "IP Access List",
+			"item": [
+				{
+					"name": "enable ip access list",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"enableIpAccessLists\": \"true\"\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/workspace-conf",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"workspace-conf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "is ip access list feature enabled",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "fcc78e7a-9599-40a0-8acb-88cbecde1b49",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/workspace-conf?keys=enableIpAccessLists",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"workspace-conf"
+							],
+							"query": [
+								{
+									"key": "keys",
+									"value": "enableIpAccessLists"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create ip access allowlist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f6da3f7f-550f-4bfc-a847-dfc7402f7c7c",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \n    \"label\": \"office\", \n    \"list_type\": \"WHITELIST\", \n    \"ip_addresses\": [ \n        \"0.0.0.0/0\" \n    ] \n}\n",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "https://{{workspaceUrl}}/api/2.0/preview/ip-access-lists",
+							"protocol": "https",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"ip-access-lists"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create ip access blocklist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2786a5dc-5d33-4c97-a3cb-81193a769c49",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \n    \"label\": \"starbucks\", \n    \"list_type\": \"BLACKLIST\", \n    \"ip_addresses\": [ \n        \"1.1.1.1\",\n        \"2.2.2.2/32\"\n    ] \n}\n",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/ip-access-lists",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"ip-access-lists"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all ip access lists",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2ba69879-7723-4546-914c-0501365dddde",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"access_list_id\", pm.response.json().ip_access_lists[0].list_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/ip-access-lists/",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"ip-access-lists",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update ip access list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "842ade49-4630-414a-85e9-bb1accfa2f79",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"access_list_id\", pm.response.json().ip_access_list.list_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"label\": \"starbucks_updt\",\n\"ip_addresses\": [\n\"2.2.2.2/21\"\n],\n\"list_type\": \"BLACKLIST\",\n\"enabled\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/ip-access-lists/{{access_list_id}}",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"ip-access-lists",
+								"{{access_list_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete ip access list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d852a8e0-c25a-480a-bd18-dea503dafa77",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});",
+									"pm.globals.set(\"access_list_id\", pm.response.json().list_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/ip-access-lists/{{access_list_id}}",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"ip-access-lists",
+								"{{access_list_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Customers have a security requirement to restrict access to the databricks control plane to specific IP addresses. The use case is that it requires all access to databricks to be routed through your data centers. This ensurea that employees are on corporate VPN or connect through companies data center which enforces policies before connecting to databricks control plane.\n\nThis means that you may want to be able to add/remove IP addresses that can connect to databricks control plane as and when you make a network change or add a new datacenter.\n\nThis is what this feature enables. It will provide databricks admins a way to set a `whitelist` and `blacklist` for `CIDR / IPs` that can access Databricks. ",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "119a8b7f-29ed-48a7-9126-4608ca411fcd",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "abca5416-6f06-4466-9619-a1fce2521598",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Token Management",
+			"item": [
+				{
+					"name": "set token max lifetime for the workspace",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "314f7351-14ff-4608-9937-e930a80a1270",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"maxTokenLifetimeDays\": \"90\" }",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl2}}/api/2.0/preview/workspace-conf",
+							"host": [
+								"{{workspaceUrl2}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"workspace-conf"
+							]
+						},
+						"description": "maximum token lifetime in days and\nIf maxTokenLifetime is set to a non-positive value, tokens with indefinite lifetime can be created."
+					},
+					"response": []
+				},
+				{
+					"name": "list all tokens",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6610c402-45ae-46e1-b76c-d08adc45ddd6",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/permissions/authorization/tokens/",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"permissions",
+								"authorization",
+								"tokens",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get permission levels for all tokens",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6144424e-50d6-45d2-bf85-a774a5353dae",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/permissions/authorization/tokens",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"permissions",
+								"authorization",
+								"tokens"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get permission levels for token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7a11f74b-ad98-49eb-b452-69effc935ef8",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/permissions/authorization/tokens/permissionLevels",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"permissions",
+								"authorization",
+								"tokens",
+								"permissionLevels"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "revoke permission",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8b389891-9083-4b36-be71-8926f4c00d43",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"access_control_list\": [\n        {\n            \"user_name\": \"test@company.com\",\n            \"permission_level\": \"CAN_USE\"\n        },\n        {\n            \"group_name\": \"dev-grp\",\n            \"permission_level\": \"CAN_USE\"\n        },\n        {\n            \"group_name\": \"admins-grp\",\n            \"permission_level\": \"CAN_MANAGE\"\n        }\n    ]\n}\n",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/permissions/tokens/all",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"permissions",
+								"tokens",
+								"all"
+							]
+						},
+						"description": "Since PUT completely <b>overwrites</b> the existing permissions, every PUT request should mandatorily specify { “group_name”: “admins”, “permission_level”: “CAN_MANAGE” } in the access control list in the payload"
+					},
+					"response": []
+				},
+				{
+					"name": "delete token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b3e4f368-a1fc-4afe-b7b9-3d2d8a8d6236",
+								"exec": [
+									"pm.test(pm.info.requestName, () => {",
+									"    pm.response.to.not.be.error;",
+									"    pm.response.to.not.have.jsonBody('error');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{sp_pat}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{workspaceUrl}}/api/2.0/preview/token-management/tokens/{{tokenId}}",
+							"host": [
+								"{{workspaceUrl}}"
+							],
+							"path": [
+								"api",
+								"2.0",
+								"preview",
+								"token-management",
+								"tokens",
+								"{{tokenId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Token Management provides Databricks administrators with more insight and control over [Personal Access Tokens](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication?toc=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fazure-databricks%2Ftoc.json&bc=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fbread%2Ftoc.json#--generate-a-personal-access-token) in their workspaces. It consists of three pieces: \n\n - The Token Management API enables Databricks admins to monitor these Personal Access Tokens.\n\n - The Maximum Token Lifetime workspace configuration gives admins the ability to control the lifetime of future tokens in their workspaces. \n\n - Token Permissions allow admins to control which users can create and use tokens.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "eb08e047-2952-49fd-affd-26bfb9377cc6",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "949513e1-c8d4-420c-a3ee-bd76a2b771e2",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "3eba84a3-ac67-424a-aa26-62e56cadb4ac",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "7f2caf8d-f4cd-4476-8f0d-5b0ddd4864d6",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
