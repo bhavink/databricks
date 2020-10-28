@@ -3,7 +3,7 @@
 
 ***REMOVED******REMOVED******REMOVED*** Pre-requistes:
 - [Azure Service Principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)
-    Please keep aside service principal
+    Please keep aside service principal as we plan to use it with our API calls
     - client_id
     - client_secret
 - [Azure Resource Group](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal***REMOVED***what-is-a-resource-group)
