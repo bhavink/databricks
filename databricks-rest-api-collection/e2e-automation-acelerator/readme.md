@@ -1,6 +1,9 @@
 
 ## End to End [Azure Databricks](https://docs.microsoft.com/en-us/azure/databricks/workspace/) workspace provisioning, setup and configuration.
 
+### Public BLOG:
+- Please make sure to go thru this [blog](https://databricks.com/blog/2020/09/16/automate-azure-databricks-platform-provisioning-and-configuration.html) as it will help you understand the scope of these collection
+
 ### Pre-requistes:
 - [Azure Service Principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)
     Please keep aside service principal as we plan to use it with our API calls
@@ -16,3 +19,6 @@
 - Cluster Policies & Permissions
 - Secure acess to workspace within corporate network (IP Access List)
 - Databricks Access Token Management
+
+
+
