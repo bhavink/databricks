@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "c716986c-a555-4550-8ef6-0fb6d4e0925c",
+		"_postman_id": "982d2c92-01f7-4e86-a894-dbb33d23e585",
 		"name": "Service Principal SCIM API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -11,7 +11,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "699fd524-e881-447f-9805-701dab424427",
+						"id": "c8d552bb-4550-4951-bde4-3545c66d7859",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -46,17 +46,17 @@
 						},
 						{
 							"key": "client_id",
-							"value": "{{sp_client_id}}",
+							"value": "{{clientId}}",
 							"type": "text"
 						},
 						{
 							"key": "client_secret",
-							"value": "{{sp_client_credential}}",
+							"value": "{{clientSecret}}",
 							"type": "text"
 						},
 						{
 							"key": "resource",
-							"value": "{{databricks_res_id}}",
+							"value": "{{databricksResourceId}}",
 							"description": "fixed value: 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d",
 							"type": "text"
 						}
@@ -66,7 +66,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://login.microsoftonline.com/{{azure_tenant_id}}/oauth2/token",
+					"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
 					"protocol": "https",
 					"host": [
 						"login",
@@ -74,7 +74,7 @@
 						"com"
 					],
 					"path": [
-						"{{azure_tenant_id}}",
+						"{{tenantId}}",
 						"oauth2",
 						"token"
 					]
@@ -89,7 +89,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "a66671a5-1af7-4b90-b923-b101a0f1856f",
+						"id": "9d4964ab-8656-4c69-9d78-c655aa4ab2ac",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -124,17 +124,17 @@
 						},
 						{
 							"key": "client_id",
-							"value": "{{sp_client_id}}",
+							"value": "{{clientId}}",
 							"type": "text"
 						},
 						{
 							"key": "client_secret",
-							"value": "{{sp_client_credential}}",
+							"value": "{{clientSecret}}",
 							"type": "text"
 						},
 						{
 							"key": "resource",
-							"value": "{{azure_management_resource_endpoint}}",
+							"value": "{{managementResourceEndpoint}}",
 							"description": "fixed value: https://management.core.windows.net/",
 							"type": "text"
 						}
@@ -144,7 +144,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://login.microsoftonline.com/{{azure_tenant_id}}/oauth2/token",
+					"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
 					"protocol": "https",
 					"host": [
 						"login",
@@ -152,7 +152,7 @@
 						"com"
 					],
 					"path": [
-						"{{azure_tenant_id}}",
+						"{{tenantId}}",
 						"oauth2",
 						"token"
 					]
@@ -179,7 +179,7 @@
 					{
 						"key": "X-Databricks-Azure-Workspace-Resource-Id",
 						"type": "text",
-						"value": "{{databricks_workspace_resource_id}}"
+						"value": "/subscriptions/{{azureSubscriptionId}}/resourceGroups/{{azureResourceGroup}}/providers/Microsoft.Databricks/workspaces/{{workspaceName}}"
 					},
 					{
 						"key": "X-Databricks-Azure-SP-Management-Token",
@@ -188,9 +188,9 @@
 					}
 				],
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/scim/v2/Groups",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/Groups",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -221,12 +221,12 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:ServicePrincipal\"\n  ],\n  \"applicationId\":\"{{sp_test_client_id}}\",\n  \"displayName\":\"devtest-sp\",\n  \"groups\":[\n    {\n       \"value\":\"8736130040124808\"\n    }\n  ]\n}\n"
+					"raw": "{\n  \"schemas\":[\n    \"urn:ietf:params:scim:schemas:core:2.0:ServicePrincipal\"\n  ],\n  \"applicationId\":\"{{clientId}}\",\n  \"displayName\":\"devtest-sp\",\n  \"groups\":[\n    {\n       \"value\":\"7244399626388687\"\n    }\n  ]\n}\n"
 				},
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/ServicePrincipals",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -247,7 +247,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "f85b19b8-32ed-4d80-9e4a-2a130d96e517",
+						"id": "34651d98-2122-449a-95ec-0bc2d6fcbce7",
 						"exec": [
 							""
 						],
@@ -267,24 +267,11 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "X-Databricks-Azure-Workspace-Resource-Id",
-						"value": "{{databricks_workspace_resource_id}}",
-						"type": "text",
-						"disabled": true
-					},
-					{
-						"key": "X-Databricks-Azure-SP-Management-Token",
-						"value": "{{management_token}}",
-						"type": "text",
-						"disabled": true
-					}
-				],
+				"header": [],
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/ServicePrincipals",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -322,9 +309,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals/2260490761530565",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/ServicePrincipals/2260490761530565",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -430,9 +417,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals/2260490761530565",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/ServicePrincipals/{{spIdFromListSPCall}}",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -441,7 +428,7 @@
 						"scim",
 						"v2",
 						"ServicePrincipals",
-						"2260490761530565"
+						"{{spIdFromListSPCall}}"
 					]
 				}
 			},
@@ -463,9 +450,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals/2260490761530565",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/ServicePrincipals/{{spIdFromListSPCall}}",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -474,7 +461,7 @@
 						"scim",
 						"v2",
 						"ServicePrincipals",
-						"2260490761530565"
+						"{{spIdFromListSPCall}}"
 					]
 				},
 				"description": "[Get service principal by ID](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principal-by-id)\n\n- Retrieve a single service principal resource from the Azure Databricks workspace, given an Azure Databricks ID."
@@ -504,9 +491,9 @@
 					}
 				},
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/scim/v2/ServicePrincipals/8312274534198164",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/scim/v2/ServicePrincipals/{{spIdFromListSPCall}}",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -515,7 +502,7 @@
 						"scim",
 						"v2",
 						"ServicePrincipals",
-						"8312274534198164"
+						"{{spIdFromListSPCall}}"
 					]
 				},
 				"description": "[Delete service principal by ID](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#delete-service-principal-by-id)"
@@ -528,7 +515,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "b7e0071a-36a7-4cfc-9908-bd717ea92f47",
+						"id": "ebf5e662-c5ba-442d-9e26-ed5097a62b8c",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -554,15 +541,15 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"lifetime_seconds\": 100,\n  \"comment\": \"this is an example token generated for service principal valid for 100 seconds, use -1 for valid forever.\"\n}",
+					"raw": "{\n  \"lifetime_seconds\": 100,\n  \"comment\": \"this is an example token generated for service principal valid for 100 seconds, -1 for forever alive token.\"\n}",
 					"options": {
 						"raw": {}
 					}
 				},
 				"url": {
-					"raw": "{{db_host}}/api/2.0/token/create",
+					"raw": "{{workspaceUrl}}/api/2.0/token/create",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -589,7 +576,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "5b58f51e-f33d-48a0-b833-993c1e41347c",
+				"id": "80253c57-659c-4673-a81f-471cc103574f",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -599,7 +586,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "49a1f0ce-d57f-40d5-bc63-8c926b859db4",
+				"id": "5e369860-75d2-4c71-92cf-bdf5f77f59ae",
 				"type": "text/javascript",
 				"exec": [
 					""
