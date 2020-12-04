@@ -2,7 +2,7 @@
 ## End to End [Azure Databricks](https://docs.microsoft.com/en-us/azure/databricks/workspace/) workspace provisioning, setup and configuration.
 
 ### Public BLOG:
-- Please make sure to go thru this [blog](https://databricks.com/blog/2020/09/16/automate-azure-databricks-platform-provisioning-and-configuration.html) as it will help you understand the scope of these collection
+- Please make sure to go thru this [blog](https://databricks.com/blog/2020/09/16/automate-azure-databricks-platform-provisioning-and-configuration.html) as it will help you understand the scope of this collection
 
 ### Pre-requistes:
 - [Azure Service Principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)
