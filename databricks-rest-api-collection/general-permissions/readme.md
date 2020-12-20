@@ -68,6 +68,6 @@ Currently, you can set permissions on the following objects using these APIs - *
   - e.g. https://[your-az-region].azuredatabricks.net
 
 - Edit postman collection and add an [environment](https://learning.postman.com/docs/postman/variables-and-environments/variables/#variables-quick-start)
-- Add `workspaceurl` and `pat` variables, these are used within the collection.
-  example: db_host = https://eastus2.azuredatabricks.net and pat = dapiXXXXXXXXXXXXXXXX
+- Add `workspaceUrl` and `pat` variables, these are used within the collection.
+  example: workspaceUrl = https://eastus2.azuredatabricks.net and pat = dapiXXXXXXXXXXXXXXXX
 - We set several global variables using [Tests](https://learning.postman.com/docs/postman/scripts/test-scripts/) section of each step, these variables are used with object specific operations (list, update)
