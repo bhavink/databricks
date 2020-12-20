@@ -1,6 +1,3 @@
-# In ``Private Preview`` - please reach out to your databricks team to enable this feature
-
-
 databricks rest api for platform token management
 =================================================
 - Token Management provides Databricks administrators with more insight and control over  Personal Access Tokens in their workspaces. It consists of three pieces: 
