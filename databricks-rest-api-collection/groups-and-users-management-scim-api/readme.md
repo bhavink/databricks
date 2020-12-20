@@ -1,5 +1,3 @@
-***REMOVED*** In `Public Preview`
-
 ***REMOVED*** databricks SCIM API for Users and Groups Management
 
 This documents the endpoints for the [SCIM Users & Groups API](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/).
