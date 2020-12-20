@@ -1,4 +1,3 @@
-# In ``Private Preview`` - please reach out to your databricks team to enable this feature
 
 databricks rest api for cluster policy
 =========================================
