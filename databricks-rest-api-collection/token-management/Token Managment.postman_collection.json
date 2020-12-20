@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "81b8529e-a1db-45be-b8e1-a005485975d7",
+		"_postman_id": "be409fa3-d3a8-4353-b671-3d444d5d4215",
 		"name": "Token Managment",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -11,7 +11,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+						"id": "f6887199-9985-42d1-9faa-005eda7e1ce0",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -36,9 +36,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/token-management/tokens",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/token-management/tokens",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -57,7 +57,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+						"id": "de81361b-fd87-4932-a99c-bb6adf530125",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -82,9 +82,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/token-management/tokens?created_by=bhavin.kukadia@databricks.com",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/token-management/tokens?created_by=bhavin.kukadia@databricks.com",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -109,7 +109,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+						"id": "df3f425e-afb4-4f5c-b51b-a19f7643dfa1",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -134,9 +134,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/token-management/tokens/f447013eb39c545f5575bca70d9a487a26e9ae69ec3cd9b87e51c66c3b77d408",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/token-management/tokens/f447013eb39c545f5575bca70d9a487a26e9ae69ec3cd9b87e51c66c3b77d408",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -156,7 +156,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+						"id": "379234c6-00f7-48d0-9e8e-823fc690c56e",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -185,9 +185,9 @@
 					"raw": "{ \"maxTokenLifetimeDays\": \"90\" }"
 				},
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/workspace-conf",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/workspace-conf",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -206,7 +206,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+						"id": "31b456b0-6137-4fd4-b94e-29ac687ef809",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -231,9 +231,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{db_host}}/api/2.0/preview/workspace-conf?keys=maxTokenLifetimeDays",
+					"raw": "{{workspaceUrl}}/api/2.0/preview/workspace-conf?keys=maxTokenLifetimeDays",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -258,7 +258,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+						"id": "688b1cca-9666-4dde-ab4f-20432c45043d",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -283,9 +283,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{db_host}}/api/2.0/permissions/tokens/all/permissionLevels",
+					"raw": "{{workspaceUrl}}/api/2.0/permissions/tokens/all/permissionLevels",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -305,7 +305,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+						"id": "3fdc21cb-84ee-409a-8392-31747b45bdf8",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -330,9 +330,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{db_host}}/api/2.0/permissions/tokens/all",
+					"raw": "{{workspaceUrl}}/api/2.0/permissions/tokens/all",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -351,7 +351,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+						"id": "61c16439-a3e9-4e83-8d56-bfc126f8e65a",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -380,9 +380,9 @@
 					"raw": "{\n    \"access_control_list\": [\n        {\n            \"user_name\": \"bhavin.kukadia@databricks.com\",\n            \"permission_level\": \"CAN_USE\"\n        }\n    ]\n}\n"
 				},
 				"url": {
-					"raw": "{{db_host}}/api/2.0/permissions/tokens/all",
+					"raw": "{{workspaceUrl}}/api/2.0/permissions/tokens/all",
 					"host": [
-						"{{db_host}}"
+						"{{workspaceUrl}}"
 					],
 					"path": [
 						"api",
@@ -402,7 +402,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+						"id": "3f67a69f-1a42-405f-a6e6-351ae936c593",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -443,7 +443,7 @@
 						"all"
 					]
 				},
-				"description": "Since PUT completely <b>overwrites</b> the existing permissions, every PUT request should mandatorily specify { “group_name”: “admins”, “permission_level”: “CAN_MANAGE” } in the access control list in the payload"
+				"description": "Since PUT completely <b>overwrites</b> the existing permissions, every PUT request should mandatorily specify { âgroup_nameâ: âadminsâ, âpermission_levelâ: âCAN_MANAGEâ } in the access control list in the payload"
 			},
 			"response": []
 		},
@@ -453,7 +453,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f901896-b88e-428e-b663-31c85eb31ae2",
+						"id": "f596155e-9501-4054-8307-94477a155cbd",
 						"exec": [
 							"pm.test(pm.info.requestName, () => {",
 							"    pm.response.to.not.be.error;",
@@ -493,6 +493,38 @@
 				}
 			},
 			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{pat}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "5d5f5ffc-1082-48f0-b94d-fbccbb53afd5",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "2061f99d-79e8-4e3f-b838-13734585d7a7",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	],
 	"protocolProfileBehavior": {}
