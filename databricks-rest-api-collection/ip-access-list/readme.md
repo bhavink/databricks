@@ -1,5 +1,3 @@
-# In ``Private Preview`` - please reach out to your databricks team to enable this feature
-
 databricks rest api for ip access control
 =========================================
 
@@ -18,9 +16,9 @@ Update postman collection
 
 - get a databricks platform token aka PAT for [azure](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication#authentication) or [aws](https://docs.databricks.com/dev-tools/api/latest/authentication.html#generate-a-token)
 - Use PAT as an authentication bearer token to invoke API's
-- db_host variable is used to decouple cloud specific databricks control plane endpoints
+- workspaceUrl variable is used to decouple cloud specific databricks control plane endpoints
 e.g. https://[your-az-region].azuredatabricks.net
 
 - Edit postman collection and add an [environment](https://learning.postman.com/docs/postman/variables-and-environments/variables/#variables-quick-start)
-- Add ``db_host`` and ``pat`` variables, these are used within the collection.
+- Add ``workspaceUrl`` and ``pat`` variables, these are used within the collection.
 example: db_host = https://eastus2.azuredatabricks.net and pat = dapiXXXXXXXXXXXXXXXX
