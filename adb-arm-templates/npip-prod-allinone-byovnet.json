@@ -5,7 +5,7 @@
     "workspaceName": {
       "type": "string",
       "metadata": {
-        "description": "The name of the Azure Databricks workspace to create."
+        "description": "The name of the Azure Databricks workspace to create"
       }
     },
     "pricingTier": {
