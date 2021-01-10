@@ -17,6 +17,7 @@
       }
     },
     "customVirtualNetworkId": {
+      "defaultValue":"/subscriptions/[subcription-id]/resourceGroups/[rg-name]/providers/Microsoft.Network/virtualNetworks/[vnet-name]",
       "type": "string",
       "metadata": {
         "description": "The complete ARM resource Id of the custom virtual network."
