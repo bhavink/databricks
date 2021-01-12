@@ -1,0 +1,18 @@
+Azure Databricks Control Plane Services,Type,Endpoint Address,Transport,Port
+relay,,,https,443
+artifacts (runtime images),blob storage,,https,443
+logs (audit and cluster),blob storage,,https,443
+health-check (observability),eventhub,,tcp,9093
+webapp,,,https,443
+dbfs (customer owned),blob storage,,https,443
+managed-hive,mysql,,tcp,3306
+,,,,
+External lib dependcy provider services required by application code,,,,
+python lib repo,public repo,"*pypi.org, *pythonhosted.org",https,443
+r package repo,public repo,"cran.r-project.org, cran.rstudio.com",https,443
+,,,,
+content delivery / required by Ganglia UI,cdn,cdnjs.cloudflare.com,https,443
+,,,,
+Optional Services,,,,
+"demo-datasets-mounts token service, to get temporary token from STS to access the databricks-datasets S3 bucket",,sts.amazonaws.com,https,443
+"demo-datasets-mounts storage bucket, to access the /databricks-datasets folder on DBFS in ADB",,databricks-datasets-oregon.s3.us-west-2.amazonaws.com/,https,443
