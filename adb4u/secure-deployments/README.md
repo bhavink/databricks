@@ -1,9 +1,9 @@
-databricks projects
+Secure Deployments
 ==============
-Documenting and sharing databricks example projects highlighting some of the unique capabilities of databricks platform, these are ready to use code samples to feed your curiosity and learn platform capabilities.
+Documenting and sharing security best practices related to platform deployment and configuration.
 
 
-Requirements
+Projects
 ------------
 
 -  Python Version > 3.5 and greater
