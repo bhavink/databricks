@@ -18,7 +18,7 @@
     },
     "customVirtualNetworkId": {
       "type": "string",
-      "defaultValue":"/subscriptions/3f2e4d32-8e8d-46d6-82bc-5bb8d962328b/resourceGroups/bk-labs-rg/providers/Microsoft.Network/virtualNetworks/spoke-vnet",
+      "defaultValue":"/subscriptions/[az_sub_id]/resourceGroups/[az_rg_name]/providers/Microsoft.Network/virtualNetworks/[az_vnet_name]",
       "metadata": {
         "description": "The complete ARM resource Id of the custom virtual network."
       }

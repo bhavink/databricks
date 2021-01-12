@@ -1,0 +1,413 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "to-dbx-hive": {
+            "defaultValue": [
+                "13.66.226.202",
+                "104.42.238.205",
+                "23.99.34.75"
+            ],
+            "type": "Array"
+        },
+        "to-dbx-webapp": {
+            "defaultValue": [
+                "40.118.174.12/32",
+                "104.42.238.205"
+            ],
+            "type": "Array"
+        },
+        "to-dbx-controlplane-relay-service": {
+            "defaultValue": [
+                "40.86.167.110"
+            ],
+            "type": "Array"
+        },
+        "to-dbx-logs": {
+            "defaultValue": [
+                "dblogprodwestus.blob.core.windows.net",
+                "dblogprodwestus2.blob.core.windows.net"
+            ],
+            "type": "Array"
+        },
+        "to-dbx-artifacts": {
+            "defaultValue": [
+                "dbartifactsprodwestus2.blob.core.windows.net",
+                "arprodwestus2a1.blob.core.windows.net",
+                "arprodwestus2a2.blob.core.windows.net",
+                "arprodwestus2a3.blob.core.windows.net",
+                "arprodwestus2a4.blob.core.windows.net",
+                "arprodwestus2a5.blob.core.windows.net",
+                "arprodwestus2a6.blob.core.windows.net"
+            ],
+            "type": "Array"
+        },
+        "to-dbfs": {
+            "defaultValue": [
+                "dbstorageabwnabnfexkww.blob.core.windows.net",
+                "dbstorage3ejzin3pipzoi.blob.core.windows.net"
+            ],
+            "type": "Array"
+        },
+        "to-dbx-observability": {
+            "defaultValue": [
+                "prod-westus-observabilityEventHubs.servicebus.windows.net"
+            ],
+            "type": "Array"
+        },
+        "to-external-python-lib-repo": {
+            "defaultValue": [
+                "*pypi.org",
+                "*pythonhosted.org"
+            ],
+            "type": "Array"
+        },
+        "to-external-r-package-repo": {
+            "defaultValue": [
+                "cran.r-project.org",
+                "cran.rstudio.com"
+            ],
+            "type": "Array"
+        },
+        "to-ganglia-cdn": {
+            "defaultValue": [
+                "cdnjs.cloudflare.com"
+            ],
+            "type": "Array"
+        },
+        "azure_firewall_name": {
+            "defaultValue": "fw",
+            "type": "String"
+        },
+        "azure_firewall_ext_ip_resource_id": {
+            "defaultValue": "/subscriptions/[az_sub_id]/resourceGroups/[az_rg_name]/providers/Microsoft.Network/publicIPAddresses/[az_fw_ext_ip_name]",
+            "type": "String"
+        },
+        "azure_firewall_vnet_resource_id": {
+            "defaultValue": "/subscriptions/[az_sub_id]/resourceGroups/[az_rg_name]/providers/Microsoft.Network/virtualNetworks/[az_fw_vnet_name]",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/azureFirewalls",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('azure_firewall_name')]",
+            "location": "westus2",
+            "properties": {
+                "sku": {
+                    "name": "AZFW_VNet",
+                    "tier": "Standard"
+                },
+                "threatIntelMode": "Alert",
+                "additionalProperties": {},
+                "ipConfigurations": [
+                    {
+                        "name": "firewall-npip",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[parameters('azure_firewall_ext_ip_resource_id')]"
+                            },
+                            "subnet": {
+                                "id": "[concat(parameters('azure_firewall_vnet_resource_id'), '/subnets/AzureFirewallSubnet')]"
+                            }
+                        }
+                    }
+                ],
+                "networkRuleCollections": [
+                    {
+                        "name": "to-dbx-hive",
+                        "properties": {
+                            "priority": 200,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "to-dbx-hive",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "destinationAddresses": "[parameters('to-dbx-hive')]",
+                                    "sourceIpGroups": [],
+                                    "destinationIpGroups": [],
+                                    "destinationFqdns": [],
+                                    "destinationPorts": [
+                                        "3306"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "to-dbx-webapp",
+                        "properties": {
+                            "priority": 201,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "westus2",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "destinationAddresses": "[parameters('to-dbx-webapp')]",
+                                    "sourceIpGroups": [],
+                                    "destinationIpGroups": [],
+                                    "destinationFqdns": [],
+                                    "destinationPorts": [
+                                        "443"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "to-dbx-controlplane-relay-service",
+                        "properties": {
+                            "priority": 202,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "to-dbx-controlplane-relay-service",
+                                    "protocols": [
+                                        "Any"
+                                    ],
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "destinationAddresses": "[parameters('to-dbx-controlplane-relay-service')]",
+                                    "sourceIpGroups": [],
+                                    "destinationIpGroups": [],
+                                    "destinationFqdns": [],
+                                    "destinationPorts": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "applicationRuleCollections": [
+                    {
+                        "name": "to-dbx-logs",
+                        "properties": {
+                            "priority": 203,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "to-dbx-logs",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "fqdnTags": [],
+                                    "targetFqdns": "[parameters('to-dbx-logs')]",
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "sourceIpGroups": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "to-dbx-observability",
+                        "properties": {
+                            "priority": 204,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "to-helathcheck-service",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "fqdnTags": [],
+                                    "targetFqdns": "[parameters('to-dbx-observability')]",
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "sourceIpGroups": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "to-dbx-artifacts",
+                        "properties": {
+                            "priority": 205,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "to-dbx-artifact",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "fqdnTags": [],
+                                    "targetFqdns": "[parameters('to-dbx-artifacts')]",
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "sourceIpGroups": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "to-dbfs",
+                        "properties": {
+                            "priority": 206,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "to-lab-ws-dbfs",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        }
+                                    ],
+                                    "fqdnTags": [],
+                                    "targetFqdns": "[parameters('to-dbfs')]",
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "sourceIpGroups": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "to-external-python-lib-repo",
+                        "properties": {
+                            "priority": 207,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "to-external-python-lib-repo",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        },
+                                        {
+                                            "protocolType": "Http",
+                                            "port": 80
+                                        },
+                                        {
+                                            "protocolType": "Http",
+                                            "port": 8080
+                                        }
+                                    ],
+                                    "fqdnTags": "[parameters('to-external-python-lib-repo')]",
+                                    "targetFqdns": [],
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "sourceIpGroups": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "to-external-r-package-repo",
+                        "properties": {
+                            "priority": 208,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "to-external-r-package-repo",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        },
+                                        {
+                                            "protocolType": "Http",
+                                            "port": 80
+                                        },
+                                        {
+                                            "protocolType": "Http",
+                                            "port": 8080
+                                        }
+                                    ],
+                                    "fqdnTags": "[parameters('to-external-r-package-repo')]",
+                                    "targetFqdns": [],
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "sourceIpGroups": []
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "to-ganglia-cdn",
+                        "properties": {
+                            "priority": 209,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "to-ganglia-cdn",
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": 443
+                                        },
+                                        {
+                                            "protocolType": "Http",
+                                            "port": 80
+                                        },
+                                        {
+                                            "protocolType": "Http",
+                                            "port": 8080
+                                        }
+                                    ],
+                                    "fqdnTags": "[parameters('to-ganglia-cdn')]",
+                                    "targetFqdns": [],
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "sourceIpGroups": []
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "natRuleCollections": []
+            }
+        }
+    ]
+}
