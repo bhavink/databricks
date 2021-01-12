@@ -7,10 +7,6 @@ Topics
 ------------
 
 -  Preventing Data Exfiltration - Secure Deployments
-
-
-** In Progress **
-
 -  IP Access List - Connect to Azure Databricks only through existing corporate networks with a secure perimeter
 -  Users and Groups Management - Automate users/groups onboarding and management
 -  Authenticating API calls - Securely accessing Azure Databricks REST API using AAD tokens
