@@ -11,5 +11,5 @@ Topics covered
 
 Guide
 -------------
--  [Deployment walk thru video](https://bit.ly/adbwithfirewall)
+-  [Deployment walk thru video](https://drive.google.com/file/d/155EwfiErDYBcnk6ntCHgDroQsnU6eo0N/view?usp=sharing)
 -  [Data Exfiltration Prevention Blog](https://databricks.com/blog/2020/03/27/data-exfiltration-protection-with-azure-databricks.html)
