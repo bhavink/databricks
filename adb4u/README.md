@@ -1,6 +1,8 @@
 Azure Databricks Security Best Practices
 ==============
-Documenting and sharing security best practices related to platform deployment and configuration.
+- Documenting and sharing security best practices related to platform deployment and configuration.
+- [Security Guide](https://bit.ly/adbsecurityguide)
+
 
 
 Topics
