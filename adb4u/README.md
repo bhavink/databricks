@@ -9,13 +9,14 @@ Topics
 ------------
 
 -  **Preventing Data Exfiltration** - Secure Deployments
+-  **Authenticating API calls using AAD tokens** - Securely accessing Azure Databricks REST API using AAD tokens
+-  **Accessing ADLS Gen2** - options available to read/write data from ADLS Gen2
 -  **IP Access List** - Connect to Azure Databricks only through existing corporate networks with a secure perimeter
 -  **Users and Groups Management** - Automate users/groups onboarding and management
--  **Authenticating API calls using AAD tokens** - Securely accessing Azure Databricks REST API using AAD tokens
+
 -  **Platform tokens** - Manage Azure Databricks platform tokens
 -  **Securely and Efficiently connect to:**
-    - ADF
-    - ADLS gen2
+    - ADF 
     - Power BI
     - Synapse DW
 -  **Working with Secrets**
