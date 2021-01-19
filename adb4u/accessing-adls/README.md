@@ -4,7 +4,7 @@ Documenting and sharing best practices related to using ADLS Gen2 with ADB.
 
 
 ***REMOVED******REMOVED******REMOVED*** Accessing ADLS
-- ***REMOVED******REMOVED******REMOVED******REMOVED*** [Demo video]()
+- ***REMOVED******REMOVED******REMOVED******REMOVED*** [Demo video](https://drive.google.com/file/d/1o9j6KIgQd-EjvEQiHEnu-I6A9aHnwn22/view?usp=sharing)
 - ***REMOVED******REMOVED******REMOVED******REMOVED*** [Access directly using storage account key](https://docs.microsoft.com/en-us/azure/databricks/data/data-sources/azure/azure-datalake-gen2***REMOVED***--access-directly-using-the-storage-account-access-key)
 - ***REMOVED******REMOVED******REMOVED******REMOVED*** Access using service principal
     - [Directly](https://docs.microsoft.com/en-us/azure/databricks/data/data-sources/azure/azure-datalake-gen2***REMOVED***create-and-grant-permissions-to-service-principal) or
