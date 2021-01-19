@@ -8,6 +8,8 @@ Azure Databricks Security Best Practices
 Topics
 ------------
 
+Ready to use
+------------
 -  **Preventing Data Exfiltration** - Secure Deployments
 -  **Authenticating API calls using AAD tokens** - Securely accessing Azure Databricks REST API using AAD tokens
 -  **Accessing ADLS Gen2** - options available to read/write data from ADLS Gen2
