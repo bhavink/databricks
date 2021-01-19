@@ -11,9 +11,11 @@ Topics
    Ready to use
    ------------
    - **Preventing Data Exfiltration** - Secure Deployments
-      - [Demo video](https://drive.google.com/file/d/1o9j6KIgQd-EjvEQiHEnu-I6A9aHnwn22/view?usp=sharing)
+      - [Deployment walk thru video](https://drive.google.com/file/d/155EwfiErDYBcnk6ntCHgDroQsnU6eo0N/view?usp=sharing)
    -  **Authenticating API calls using AAD tokens** - Securely accessing Azure Databricks REST API using AAD tokens
+      - [Video walk thru](https://drive.google.com/file/d/1oGUarjBIL5LlMzZc4DvGPpuG9-TOMKjM/view?usp=sharing)
    -  **Accessing ADLS Gen2** - options available to read/write data from ADLS Gen2
+      - [Demo video](https://drive.google.com/file/d/1o9j6KIgQd-EjvEQiHEnu-I6A9aHnwn22/view?usp=sharing)
 
    Work in progress
    ------------
