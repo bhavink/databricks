@@ -12,4 +12,4 @@ Two options available
 |---|---|
 |  Enable provisioning to Azure Databricks using Azure Active Directory (Azure AD) |Enable provisioning to Azure Databricks using Azure Databricks SCIM REST API’s|
 | Fully Automated |Requires manual stitching of API calls which then could be run in an automated fashion|
-|Guide   | Guide  |
+|[Video Walk Thru](https://drive.google.com/file/d/1GgxjM2UUGLFRwFqc5M2kbV0jeyJyk_B_/view?usp=sharing)   | [Documentation](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/) & [Ready to use API Postman collection](https://github.com/bhavink/databricks/tree/master/databricks-rest-api-collection/adb-e2e-automation-acelerator)  |
