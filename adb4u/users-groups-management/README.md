@@ -13,6 +13,6 @@ Two options available
 |  Enable provisioning to Azure Databricks using Azure Active Directory (Azure AD) |Enable provisioning to Azure Databricks using Azure Databricks SCIM REST API’s
    |
 | Fully Automated
-  |  Requires manual stitching of API calls which then could be run in an automated fashion
- |
+  |
+ |Requires manual stitching of API calls which then could be run in an automated fashion
 |Guide   | Guide  |
