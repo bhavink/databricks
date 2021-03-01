@@ -1,0 +1,917 @@
+{
+	"info": {
+		"_postman_id": "ebec365a-7b64-40e2-bf98-513bb4ab0878",
+		"name": "AAD SCIM Provisioning",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "generate access token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"access_token\", pm.response.json().access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{sp_client_id2}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{sp_client_credential2}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "https://graph.microsoft.com/.default",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{azure_tenant_id}}/oauth2/v2.0/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{azure_tenant_id}}",
+						"oauth2",
+						"v2.0",
+						"token"
+					]
+				},
+				"description": "[Documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow)"
+			},
+			"response": []
+		},
+		{
+			"name": "list databricks gallery SCIM app (BETA)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"id\",pm.response.json().value[0].id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/v1.0/applicationTemplates?$select=id,publisher,displayName,description&$filter=contains(displayName, 'Databricks')",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"v1.0",
+						"applicationTemplates"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "id,publisher,displayName,description"
+						},
+						{
+							"key": "$filter",
+							"value": "contains(displayName, 'Databricks')"
+						}
+					]
+				},
+				"description": "This API call is in BETA mode and not yet available in Graph V1.0\nhttps://docs.microsoft.com/en-us/graph/api/applicationtemplate-get?view=graph-rest-beta&tabs=http"
+			},
+			"response": []
+		},
+		{
+			"name": "instantiate databricks SCIM app (BETA)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"",
+							"pm.globals.set(\"id\", pm.response.json().application.id);",
+							"pm.globals.set(\"appId\", pm.response.json().application.appId);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"displayName\": \"{{scim_app_display_name}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/v1.0/applicationTemplates/{{id}}/instantiate",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"v1.0",
+						"applicationTemplates",
+						"{{id}}",
+						"instantiate"
+					]
+				},
+				"description": "This API call is in BETA mode and not yet available in Graph V1.0\nhttps://docs.microsoft.com/en-us/graph/api/applicationtemplate-get?view=graph-rest-beta&tabs=http"
+			},
+			"response": []
+		},
+		{
+			"name": "find SCIM app service principal by display name(optional)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"id\", pm.response.json().value[0].id);",
+							"pm.globals.set(\"appId\", pm.response.json().value[0].appId);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/v1.0/servicePrincipals?$select=id,appId,displayName&$filter=startswith(displayName, '{{scim_app_display_name}}')",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"v1.0",
+						"servicePrincipals"
+					],
+					"query": [
+						{
+							"key": "$select",
+							"value": "id,appId,displayName"
+						},
+						{
+							"key": "$filter",
+							"value": "startswith(displayName, '{{scim_app_display_name}}')"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "retrieve SCIM job template (BETA & optional)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/servicePrincipals/{{id}}/synchronization/templates",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"servicePrincipals",
+						"{{id}}",
+						"synchronization",
+						"templates"
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***retrieve-the-template-for-the-provisioning-connector"
+			},
+			"response": []
+		},
+		{
+			"name": "create SCIM provisioning job (BETA)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"job_id\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \n    \"templateId\": \"dataBricks\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/servicePrincipals/{{id}}/synchronization/jobs",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"servicePrincipals",
+						"{{id}}",
+						"synchronization",
+						"jobs"
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***step-2-create-the-provisioning-job-based-on-the-template"
+			},
+			"response": []
+		},
+		{
+			"name": "get SCIM provisioning jobId (BETA)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"job_id\", pm.response.json().value[0].id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/servicePrincipals/{{id}}/synchronization/jobs/",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"servicePrincipals",
+						"{{id}}",
+						"synchronization",
+						"jobs",
+						""
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***monitor-the-provisioning-job-status"
+			},
+			"response": []
+		},
+		{
+			"name": "validate SCIM app to ADB credentials (BETA)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \n    \"credentials\": [ \n        { \"key\":\"BaseAddress\", \"value\":\"{{databricks_scim_ep}}\" },\n        { \"key\": \"SecretToken\", \"value\":\"{{databricks_ws_token}}\" }\n    ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/servicePrincipals/{{id}}/synchronization/jobs/{{job_id}}/validateCredentials",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"servicePrincipals",
+						"{{id}}",
+						"synchronization",
+						"jobs",
+						"{{job_id}}",
+						"validateCredentials"
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***step-3-authorize-access"
+			},
+			"response": []
+		},
+		{
+			"name": "save SCIM app to ADB credentials (BETA)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \n    \"value\": [ \n        { \"key\":\"BaseAddress\", \"value\":\"{{databricks_scim_ep}}\"},\n        { \"key\": \"SecretToken\", \"value\":\"{{databricks_ws_token}}\" }\n    ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/servicePrincipals/{{id}}/synchronization/secrets",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"servicePrincipals",
+						"{{id}}",
+						"synchronization",
+						"secrets"
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***save-your-credentials"
+			},
+			"response": []
+		},
+		{
+			"name": "start SCIM provisioning job (BETA)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/servicePrincipals/{{id}}/synchronization/jobs/{{job_id}}/start",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"servicePrincipals",
+						"{{id}}",
+						"synchronization",
+						"jobs",
+						"{{job_id}}",
+						"start"
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***step-4-start-the-provisioning-job"
+			},
+			"response": []
+		},
+		{
+			"name": "monitor SCIM job (BETA)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/beta/servicePrincipals/{{id}}/synchronization/jobs/{{job_id}}/",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"beta",
+						"servicePrincipals",
+						"{{id}}",
+						"synchronization",
+						"jobs",
+						"{{job_id}}",
+						""
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***monitor-the-provisioning-job-status"
+			},
+			"response": []
+		},
+		{
+			"name": "list aad groups",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"pm.globals.set(\"group_id\", pm.response.json().value[0].id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/v1.0/groups?$filter=displayName+eq+'sqladmins'",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"v1.0",
+						"groups"
+					],
+					"query": [
+						{
+							"key": "$filter",
+							"value": "displayName+eq+'sqladmins'"
+						}
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/graph/query-parameters"
+			},
+			"response": []
+		},
+		{
+			"name": "list appRole id for group",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});",
+							"",
+							"//pm.globals.set(\"group_approle_id\", pm.response.json().value[0].appRoleId);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/v1.0/groups/{{group_id}}/appRoleAssignments",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"v1.0",
+						"groups",
+						"{{group_id}}",
+						"appRoleAssignments"
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/graph/query-parameters"
+			},
+			"response": []
+		},
+		{
+			"name": "add groups for SCIM provisioning",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"principalId\": \"{{group_id}}\",\n  \"resourceId\": \"{{id}}\",\n  \"appRoleId\": \"{{group_approle_id}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/v1.0/servicePrincipals/{{id}}/appRoleAssignments",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"v1.0",
+						"servicePrincipals",
+						"{{id}}",
+						"appRoleAssignments"
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/graph/api/serviceprincipal-post-approleassignedto?view=graph-rest-beta"
+			},
+			"response": []
+		},
+		{
+			"name": "list groups configured using SCIM app",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(pm.info.requestName, () => {",
+							"    pm.response.to.not.be.error;",
+							"    pm.response.to.not.have.jsonBody('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://graph.microsoft.com/v1.0/servicePrincipals/{{id}}/appRoleAssignedTo",
+					"protocol": "https",
+					"host": [
+						"graph",
+						"microsoft",
+						"com"
+					],
+					"path": [
+						"v1.0",
+						"servicePrincipals",
+						"{{id}}",
+						"appRoleAssignedTo"
+					]
+				},
+				"description": "https://docs.microsoft.com/en-us/graph/query-parameters"
+			},
+			"response": []
+		}
+	]
+}
