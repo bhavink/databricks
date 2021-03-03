@@ -28,7 +28,6 @@ Follow steps mentioned over [here](https://docs.microsoft.com/en-us/graph/auth-v
 
 - Application.ReadWrite.All
 - Application.ReadWrite.OwnedBy
-- Directory.ReadWrite.All
 
 # Get administrator consent
 
