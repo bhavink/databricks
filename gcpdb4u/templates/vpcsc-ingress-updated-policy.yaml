@@ -1,0 +1,39 @@
+- ingressFrom:
+    identities:
+    - serviceAccount:db-3812577995730654@staging-gcp-us-central1.iam.gserviceaccount.com
+    sources:
+      - accessLevel: '*'
+  ingressTo:
+    operations:
+    - methodSelectors:
+      - method: 'NetworksService.Get'
+      - method: 'ProjectsService.Get'
+      - method: 'SubnetworksService.Get'
+      - method: 'ZonesService.List'
+      - method: 'RegionsService.Get'
+      serviceName: compute.googleapis.com
+    - methodSelectors:
+      - method: 'google.storage.objects.create'
+      - method: 'google.storage.buckets.testIamPermissions'
+      - method: 'google.storage.objects.get'
+      - method: 'google.storage.objects.list'
+      ***REMOVED*** required by dbsql
+      - method: 'google.storage.buckets.get'
+      ***REMOVED*** required by mlflow autom_ml
+      - method: 'google.storage.objects.delete' ***REMOVED***
+      serviceName: storage.googleapis.com
+    - methodSelectors:
+      - method: '*'
+      serviceName: container.googleapis.com
+    - methodSelectors:
+      - method: '*'
+      serviceName: logging.googleapis.com
+    - methodSelectors:
+      - method: '*'
+      serviceName: cloudresourcemanager.googleapis.com
+    - methodSelectors:
+      - method: '*'
+      serviceName: iam.googleapis.com
+    resources:
+    - projects/808157460600
+    - projects/1063849655298

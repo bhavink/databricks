@@ -1,0 +1,45 @@
+- ingressFrom:
+    identities:
+    - user:bhavin.kukadia@databricks.com
+    sources:
+      - accessLevel: '*'
+  ingressTo:
+    operations:
+    - methodSelectors:
+      - method: '*'
+      serviceName: container.googleapis.com
+    - methodSelectors:
+      - method: 'NetworksService.Get'
+      - method: 'ProjectsService.Get'
+      - method: 'SubnetworksService.Get'
+      - method: 'ZonesService.List'
+      - method: 'RegionsService.Get'
+      serviceName: compute.googleapis.com
+    - methodSelectors:
+      - method: '*'
+      serviceName: logging.googleapis.com
+    - methodSelectors:
+      - method: '*'
+      serviceName: cloudresourcemanager.googleapis.com
+    - methodSelectors:
+      - method: '*'
+      serviceName: iam.googleapis.com
+    resources:
+    - projects/808157460600
+    - projects/1063849655298
+- ingressFrom:
+    identityType: ANY_SERVICE_ACCOUNT
+    sources:
+      - accessLevel: '*'
+  ingressTo:
+    operations:
+    - methodSelectors:
+    ***REMOVED*** required to create DBFS related buckets
+      - method: 'google.storage.buckets.create'
+      serviceName: storage.googleapis.com
+    ***REMOVED*** required to create the default k8s cluster used by databricks
+    - methodSelectors:
+      - method: '*'
+      serviceName: container.googleapis.com
+    resources:
+    - projects/808157460600

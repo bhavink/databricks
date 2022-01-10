@@ -1,0 +1,18 @@
+- egressTo:
+    operations:
+    - serviceName: storage.googleapis.com
+      methodSelectors: 
+      - method: google.storage.objects.list
+      - method: google.storage.buckets.testIamPermissions
+      - method: google.storage.objects.get
+      - method: google.storage.objects.create
+    - serviceName: containerregistry.googleapis.com
+      methodSelectors:
+      - method: containers.registry.read
+    resources:
+    - projects/160046497786
+    - projects/371673491732
+  egressFrom:
+    identities:
+    - serviceAccount:shard-sa@staging-gcp-us-central1.iam.gserviceaccount.com
+    - serviceAccount:us-gcr-access-sa@databricks-staging-artifacts.iam.gserviceaccount.com
