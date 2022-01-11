@@ -1,7 +1,7 @@
 - egressTo:
     operations:
     - serviceName: storage.googleapis.com
-      methodSelectors: 
+      methodSelectors:
       - method: google.storage.objects.list
       - method: google.storage.buckets.testIamPermissions
       - method: google.storage.objects.get
@@ -10,9 +10,19 @@
       methodSelectors:
       - method: containers.registry.read
     resources:
-    - projects/160046497786
-    - projects/371673491732
+    ***REMOVED*** Databricks owned projects(target) to which egress traffic from your project(source) is allowed to
+    ***REMOVED*** There are two GCP project per GCP region, one each for Databricks Regional Control Plane and 
+    ***REMOVED*** Databricks Artifacts (runtime image) Repository
+    ***REMOVED*** multiple entries could be added with addiotnal - projects/project_number entries
+    - projects/68422481410
+    - projects/643670579914
   egressFrom:
     identities:
-    - serviceAccount:shard-sa@staging-gcp-us-central1.iam.gserviceaccount.com
-    - serviceAccount:us-gcr-access-sa@databricks-staging-artifacts.iam.gserviceaccount.com
+    ***REMOVED*** Databricks owned projects(target) to which egress traffic from your project(source) is allowed to
+    ***REMOVED*** There are two GCP Service Accounts in use, one each for Databricks Regional Control Plane 
+    ***REMOVED*** and Databricks Artifacts (runtime image) Repository
+    ***REMOVED*** E.g. For US Central1 we have: 
+    ***REMOVED*** shard-sa@prod-gcp-us-central1.iam.gserviceaccount.com (Shard Service Account) & 
+    ***REMOVED*** us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)
+    - serviceAccount:shard-sa@prod-gcp-us-central1.iam.gserviceaccount.com
+    - serviceAccount:us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com

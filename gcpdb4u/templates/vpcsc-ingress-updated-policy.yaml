@@ -1,5 +1,11 @@
 - ingressFrom:
     identities:
+    ***REMOVED*** A GCP Service Account for the new workspace is created in the Databricks regional control plane project. 
+    ***REMOVED*** We use the login user’s (workspace creator) OAuth token to grant the Consumer SA with sufficient permissions 
+    ***REMOVED*** to setup and operate Databricks workspaces in the customer’s consumer (GCP) project. 
+    ***REMOVED*** Consumer SA follow’s db-WORKSPACEID@databricks-project.iam.gserviceaccount.com naming convention. 
+    ***REMOVED*** Workspace ID is generated as part of the workspace creation process.
+    ***REMOVED*** E.g. db-nnnnnnnnnnnnn@prod-gcp-[databricks-supported-gcp-region].iam.gserviceaccount.com
     - serviceAccount:db-3812577995730654@staging-gcp-us-central1.iam.gserviceaccount.com
     sources:
       - accessLevel: '*'
@@ -17,23 +23,30 @@
       - method: 'google.storage.buckets.testIamPermissions'
       - method: 'google.storage.objects.get'
       - method: 'google.storage.objects.list'
-      ***REMOVED*** required by dbsql
+      ***REMOVED*** required by databricks dbsql
       - method: 'google.storage.buckets.get'
-      ***REMOVED*** required by mlflow autom_ml
+      ***REMOVED*** required by databricks mlflow autom_ml feature
       - method: 'google.storage.objects.delete' ***REMOVED***
       serviceName: storage.googleapis.com
     - methodSelectors:
+      ***REMOVED*** container api does not support method level filtering
       - method: '*'
       serviceName: container.googleapis.com
     - methodSelectors:
       - method: '*'
       serviceName: logging.googleapis.com
     - methodSelectors:
+    ***REMOVED*** cloudresourcemanager api does not support method level filtering
       - method: '*'
       serviceName: cloudresourcemanager.googleapis.com
     - methodSelectors:
+    ***REMOVED*** iam api does not support method level filtering
       - method: '*'
       serviceName: iam.googleapis.com
     resources:
+    ***REMOVED*** projects on which you would like to enforce this ingress policy
+    ***REMOVED*** multiple entries could be added with addiotnal - projects/project_number entries
+    ***REMOVED*** if you are using shared-vpc then we'll need project_number for host-project (shared-vpc) as well as the service project (databricks workspace)
+    ***REMOVED*** host project provides the vpc and servcie project is where Databricks creates GKE cluster and Databricks related GCS storage accounts
     - projects/808157460600
     - projects/1063849655298
