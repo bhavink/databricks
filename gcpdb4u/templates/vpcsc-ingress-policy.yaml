@@ -1,6 +1,9 @@
 - ingressFrom:
     identities:
+    # GCP identity used to create the workspace
+    # could be a user principal or a service account
     - user:bhavin.kukadia@databricks.com
+    # - serviceAccount:872269723794-compute@developer.gserviceaccount.com
     sources:
       - accessLevel: '*'
   ingressTo:
@@ -19,14 +22,19 @@
       - method: '*'
       serviceName: logging.googleapis.com
     - methodSelectors:
+    # cloudresourcemanager api does not support method level filtering 
       - method: '*'
       serviceName: cloudresourcemanager.googleapis.com
     - methodSelectors:
+    # iam api does not support method level filtering
       - method: '*'
       serviceName: iam.googleapis.com
     resources:
-    - projects/808157460600
-    - projects/1063849655298
+    # projects on which you would like to enforce this ingress policy
+    # multiple entries could be added with addiotnal - projects/project_number entries
+    # if you are using shared-vpc then we'll need project_number for host-project (shared-vpc) as well as the service project (databricks workspace)
+    # host project provides the vpc and servcie project is where Databricks creates GKE cluster and Databricks related GCS storage accounts
+    - projects/872269723794
 - ingressFrom:
     identityType: ANY_SERVICE_ACCOUNT
     sources:
@@ -36,10 +44,29 @@
     - methodSelectors:
     # required to create DBFS related buckets
       - method: 'google.storage.buckets.create'
+      - method: 'google.storage.buckets.testIamPermissions'
       serviceName: storage.googleapis.com
     # required to create the default k8s cluster used by databricks
     - methodSelectors:
+    # container api does not support method level filtering
       - method: '*'
       serviceName: container.googleapis.com
+    # block start
+    # only required for databricks managed vpc based deployments
+    # in this case databricks creates and manages vpc and hence we need these permissions
+    # for bring your own vpc we do not need these permissions cause the vpc is pre-created by end user
+    - methodSelectors:
+      - method: 'NetworksService.Insert'
+      - method: 'RegionOperationsService.Get'
+      - method: 'GlobalOperationsService.Get'
+      - method: 'RegionRoutersService.Insert'
+      - method: 'SubnetworksService.Insert'
+      - method: 'ZonesService.List'
+      serviceName: compute.googleapis.com
+      # block end
     resources:
-    - projects/808157460600
+    # projects on which you would like to enforce this ingress policy
+    # multiple entries could be added with addiotnal - projects/project_number entries
+    # if you are using shared-vpc then we'll need project_number for host-project (shared-vpc) as well as the service project (databricks workspace)
+    # host project provides the vpc and servcie project is where Databricks creates GKE cluster and Databricks related GCS storage accounts
+    - projects/872269723794
