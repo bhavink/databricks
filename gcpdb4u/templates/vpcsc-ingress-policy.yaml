@@ -3,9 +3,10 @@
     # GCP identity used to create the workspace
     # could be a user principal or a service account
     - user:bhavin.kukadia@databricks.com
-    # - serviceAccount:872269723794-compute@developer.gserviceaccount.com
+    # - serviceAccount:sa1@project-name.iam.gserviceaccount.com
     sources:
-      - accessLevel: '*'
+    # request originating from databricks control plane shard project
+    - resource: projects/68422481410
   ingressTo:
     operations:
     - methodSelectors:
@@ -38,7 +39,8 @@
 - ingressFrom:
     identityType: ANY_SERVICE_ACCOUNT
     sources:
-      - accessLevel: '*'
+    # request originating from databricks control plane shard project
+    - resource: projects/68422481410
   ingressTo:
     operations:
     - methodSelectors:

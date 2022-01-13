@@ -8,7 +8,8 @@
     # E.g. db-nnnnnnnnnnnnn@prod-gcp-[databricks-supported-gcp-region].iam.gserviceaccount.com
     - serviceAccount:db-3812577995730654@staging-gcp-us-central1.iam.gserviceaccount.com
     sources:
-      - accessLevel: '*'
+    # request originating from databricks control plane shard project
+    - resource: projects/68422481410
   ingressTo:
     operations:
     - methodSelectors:
@@ -26,7 +27,7 @@
       # required by databricks dbsql
       - method: 'google.storage.buckets.get'
       # required by databricks mlflow autom_ml feature
-      - method: 'google.storage.objects.delete' #
+      - method: 'google.storage.objects.delete'
       serviceName: storage.googleapis.com
     - methodSelectors:
       # container api does not support method level filtering
@@ -45,8 +46,8 @@
       serviceName: iam.googleapis.com
     resources:
     # projects on which you would like to enforce this ingress policy
-    # multiple entries could be added with addiotnal - projects/project_number entries
+    # multiple entries could be added with additional - projects/project_number entries
     # if you are using shared-vpc then we'll need project_number for host-project (shared-vpc) as well as the service project (databricks workspace)
     # host project provides the vpc and servcie project is where Databricks creates GKE cluster and Databricks related GCS storage accounts
-    - projects/808157460600
-    - projects/1063849655298
+    - projects/872269723794
+    #- projects/1063849655298
