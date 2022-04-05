@@ -14,15 +14,23 @@
     # There are two GCP project per GCP region, one each for Databricks Regional Control Plane and 
     # Databricks Artifacts (runtime image) Repository
     # multiple entries could be added with addiotnal - projects/project_number entries
-    - projects/68422481410
-    - projects/643670579914
+    # when deploying a workspace outside of us-central1 (e.g. us-east4), 
+    # the egress policy at workspace creation needs to contain egress allowance from
+    # the regional control plane (e.g. us-east4 where your workspace is created), 
+    # as well as Databricks us-central1 regional control plane. 
+    - projects/68422481410 #us-central1 control plane project
+    - projects/643670579914 #artifact project
+    - projects/121886670913 #us-east4 control plane project
+
   egressFrom:
     identities:
     # Databricks owned projects(target) to which egress traffic from your project(source) is allowed to
-    # There are two GCP Service Accounts in use, one each for Databricks Regional Control Plane 
+    # There are three GCP Service Accounts in use, one each for Databricks Regional Control Plane, US Central1 
     # and Databricks Artifacts (runtime image) Repository
-    # E.g. For US Central1 we have: 
+    # E.g. For US East4 based workspace we have: 
     # shard-sa@prod-gcp-us-central1.iam.gserviceaccount.com (Shard Service Account) & 
+    # shard-sa@prod-gcp-us-east4.iam.gserviceaccount.com (Shard Service Account) &
     # us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)
     - serviceAccount:shard-sa@prod-gcp-us-central1.iam.gserviceaccount.com
+    - serviceAccount:shard-sa@prod-gcp-us-east4.iam.gserviceaccount.com
     - serviceAccount:us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com

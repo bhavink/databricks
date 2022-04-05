@@ -9,7 +9,9 @@
     - serviceAccount:db-3812577995730654@staging-gcp-us-central1.iam.gserviceaccount.com
     sources:
     # request originating from databricks control plane shard project
-    - resource: projects/68422481410
+    # after the workspace is created we only need ingress from regional control plane
+    # so if the workspace is in us-east4 then we need databricks us-east4 control plane project number
+    - resource: projects/121886670913 #us-east4 control plane project
   ingressTo:
     operations:
     - methodSelectors:
