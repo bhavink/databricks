@@ -5,8 +5,12 @@
     - user:bhavin.kukadia@databricks.com
     ***REMOVED*** - serviceAccount:sa1@project-name.iam.gserviceaccount.com
     sources:
-    ***REMOVED*** request originating from databricks control plane shard project
-    - resource: projects/68422481410
+    ***REMOVED*** when deploying a workspace outside of us-central1 (e.g. us-east4), 
+    ***REMOVED*** the ingress policy at workspace creation needs to contain ingress allowance from
+    ***REMOVED*** the regional control plane (e.g. us-east4 where your workspace is created), 
+    ***REMOVED*** as well as Databricks us-central1 regional control plane. 
+    - resource: projects/68422481410 ***REMOVED***us-central1 control plane project
+    - resource: projects/121886670913 ***REMOVED***us-east4 control plane project
   ingressTo:
     operations:
     - methodSelectors:
