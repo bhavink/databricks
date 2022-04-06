@@ -12,7 +12,6 @@
     resources:
     ***REMOVED*** Databricks owned projects(target) to which egress traffic from your project(source) is allowed to
     ***REMOVED*** multiple entries could be added with addiotnal - projects/project_number entries
-    - projects/68422481410 ***REMOVED***databricks central service
     - projects/643670579914 ***REMOVED***databricks runtime artifact
     - projects/121886670913 ***REMOVED***databricks regional control plane
 
@@ -23,6 +22,5 @@
     ***REMOVED*** shard-sa@prod-gcp-us-central1.iam.gserviceaccount.com (Central Service Account) & 
     ***REMOVED*** shard-sa@prod-gcp-us-east4.iam.gserviceaccount.com (Shard Service Account) &
     ***REMOVED*** us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)
-    - serviceAccount:shard-sa@prod-gcp-us-central1.iam.gserviceaccount.com ***REMOVED***required only during workspace creation
     - serviceAccount:shard-sa@prod-gcp-us-east4.iam.gserviceaccount.com
     - serviceAccount:us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com
