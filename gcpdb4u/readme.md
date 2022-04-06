@@ -1,4 +1,28 @@
 ***REMOVED*** Databricks on GCP
+
+<div id="top"></div>
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="***REMOVED***introduction">Introduction</a></li>
+    <li><a href="***REMOVED***introduction">Introduction</a></li>
+    <li>
+      <a href="***REMOVED***getting started">Getting Started</a>
+      <ul>
+        <li><a href="***REMOVED***prerequisites">Prerequisites</a></li>
+        <li><a href="***REMOVED***installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="***REMOVED***usage">Usage</a></li>
+    <li><a href="***REMOVED***roadmap">Roadmap</a></li>
+    <li><a href="***REMOVED***contributing">Contributing</a></li>
+    <li><a href="***REMOVED***license">License</a></li>
+    <li><a href="***REMOVED***contact">Contact</a></li>
+    <li><a href="***REMOVED***acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
+
 ***REMOVED******REMOVED*** _The best practice guide that you've been looking for_
 
 ***REMOVED******REMOVED*** Introduction
