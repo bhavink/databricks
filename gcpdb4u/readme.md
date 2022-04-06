@@ -1,7 +1,6 @@
 ***REMOVED*** Databricks on GCP
 ***REMOVED******REMOVED*** _The best practice guide that you've been looking for_
 
-
 <!-- ABOUT THE PROJECT -->
 ***REMOVED******REMOVED*** Introduction
 
@@ -17,7 +16,14 @@ In this guide we'll share with you architectural patterns and design guidelines 
 
 ***REMOVED******REMOVED*** Getting Started
 ***REMOVED******REMOVED******REMOVED*** Consuming Databricks on GCP
+Databricks service is available as a GCP market place offering and the unit of deployment is called a [`workspace`](https://docs.gcp.databricks.com/getting-started/concepts.html***REMOVED***workspace), from here onwards we'll be using `workspace` to refer to databricks service through out this guide.
+
+* Trying databricks in an indidvidual capacity? here's your 14 days free [trial](https://docs.gcp.databricks.com/getting-started/try-databricks-gcp.html***REMOVED***start-a-databricks-free-trial) Please note that free trial requires credit card and the trial is converted to a pay-as-you-go subscription after 14 days. Not ready for this? then check out our [community edition](https://community.cloud.databricks.com/login.html), no credit card required.
+* If your company has a contract subscription, you have two options, start the free trial or reach out to your databricks representative or send an email to `sales@databricks.com` about how to create your subscription with a Google Marketplace Private Offer, with a private offer you may be able to extend your trial period.
+
 ***REMOVED******REMOVED******REMOVED*** Mapping Databricks to GCP
+
+
 ***REMOVED******REMOVED******REMOVED*** Availability Regions
 
 
