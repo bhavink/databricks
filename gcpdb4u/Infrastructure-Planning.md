@@ -67,3 +67,6 @@ here we share few options
   * 1:1 mapping between workspaces tp GCP Project
   * M:1 mapping between workspaces to VPC i.e. multiple workspaces using a single [Shared VPC](https://cloud.google.com/vpc/docs/shared-vpc)
   * VPC and Workspace reside in different GCP Project
+
+
+**`We revisit this topic in detail along with VPC and IAM permissions requirements, sizing and automation options in `Workspace Provisioning` section`**
