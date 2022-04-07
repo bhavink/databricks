@@ -30,7 +30,7 @@
 [Databricks](https://www.databricks.com) provides a data lakehouse platform unifying the best of data warehouses and data lakes in one simple platform to handle all your data, analytics and AI use cases. It’s built on an open and reliable data foundation that efficiently handles all data types and applies one common security and governance approach across all of your data and cloud platforms.
 
 In this guide we'll share with you architectural patterns and design guidelines to:
-* [Infrastruture planning](gcpdb4u/Infrastructure-Planning.md)
+* [Infrastruture planning](Infrastructure-Planning.md)
 * Platform Security and Architecture
 * Provisioning the [workspace](https://docs.gcp.databricks.com/workspace/index.html)
 * Identity and Access Management
