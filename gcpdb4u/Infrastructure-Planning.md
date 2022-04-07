@@ -22,6 +22,7 @@ Databricks is a `Managed Service` and is fully hosted, managed, and supported by
 *Represents purchase, pricing, and payment mechanism for an account
 
 ***REMOVED*** Availability Regions
+
 Please refer to public doc site for [supported regions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/regions.html)
 
 ***REMOVED*** Things to remember
@@ -43,26 +44,26 @@ Please refer to public doc site for [supported regions](https://docs.gcp.databri
 * Subscription tier applies at account level so all of the workspace belonging to the account have same features.
 * Take advantage of [free training](https://docs.gcp.databricks.com/getting-started/free-training.html) to familiarize yourself with the offering.
 
-***REMOVED*** Workspace Architecture
-From [here](https://docs.gcp.databricks.com/getting-started/overview.html***REMOVED***high-level-architecture): Databricks is built on GCP and operates out of a `control plane` and a `data plane`.
+***REMOVED*** How many workspace do I need?
 
-The `control plane` includes the backend services that Databricks manages in its own Google Cloud account. Notebook commands and many other workspace configurations are stored in the control plane and encrypted at rest.
+Workspace deployment is influenced by your organization structure on GCP. Workspace is created within your GCP project utilizing your VPC so there are several options available to us. Taking a cue from the GCP recommendations on [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy)
+![resource-layout](https://cloud.google.com/resource-manager/img/cloud-hierarchy.svg)
 
-The `data plane` is managed by `your` Google Cloud account and is where `your data resides`. This is also where `data is processed`. You can use Databricks [connectors](https://docs.gcp.databricks.com/data/data-sources/index.html) so that your databricks clusters can `connect to data sources` to ingest data or for storage. You can also ingest data from external streaming data sources, such as events data, streaming data, IoT data, and more.
+here we share few options
+![deployment-patterns](./images/GCP-Databricks%20Workspace-Deployment%20Patterns.png)
 
-The following diagram represents the flow of data for Databricks on Google Cloud:
+* Option 1:
+  * 1:1 mapping between workspace to GCP Project
+  * 1:1 mapping between workspace to GCP VPC i.e. dedicated VPC for workspace
+  * VPC and Workspace reside in the same GCP Project
 
-![workspace-architecture](https://docs.gcp.databricks.com/_images/databricks-architecture-gcp.png)
+* Option 2:
+  * M:1 mapping between workspaces tp GCP Project i.e. Multiple workspaces in a single Project
+  * M:1 mapping between workspaces to VPC i.e. multiple workspaces to share a single VPC
+  * VPC could be a [Shared VPC](https://cloud.google.com/vpc/docs/shared-vpc) or a non Shared VPC
+  * VPC and Workspace reside in the same GCP Project
 
-*Things to remember*
-* There's a 1:1 mapping between a workspace and GKE cluster and a workspace can atmost have 1 GKE cluster
-* GKE cluster is managed by Databricks and runs under Customer's GCP Project, using customer's vpc
-* Workspace use GKE cluster in a multi-tenant fashion i.e. each Databricks cluster is mapped to a GKE namespace and is isolated from other databricks clusters running within same GKE, more details under `Data Plane Architecture` section
-* There's a:
-  * 1:1 mapping between a workspace and GCP Project
-  * A workspace  
-
-***REMOVED*** Workspace Deployment Considerations
-* How many workspaces do I need?
-* Do I need workspace per project or a team or a buisness unit?
-* Can I share workspaces among teams?
+* Option 3:
+  * 1:1 mapping between workspaces tp GCP Project
+  * M:1 mapping between workspaces to VPC i.e. multiple workspaces using a single [Shared VPC](https://cloud.google.com/vpc/docs/shared-vpc)
+  * VPC and Workspace reside in different GCP Project
