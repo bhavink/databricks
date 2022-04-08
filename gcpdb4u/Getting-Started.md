@@ -4,7 +4,7 @@ Databricks service is available as a GCP market place offering and the unit of d
 Databricks is a `Managed Service` and is fully hosted, managed, and supported by the Databricks. Although you register with the Databricks to use the service, Google handles all billing.
 
 # Try Databricks
-* Trying databricks in an indidvidual capacity? here's your 14 days free [trial](https://docs.gcp.databricks.com/getting-started/try-databricks-gcp.html) Please note that free trial requires credit card and the trial is converted to a pay-as-you-go subscription after 14 days. Not ready for this? then check out our [community edition](https://community.cloud.databricks.com/login.html), no credit card required.
+* Trying databricks in an individual capacity? here's your 14 days free [trial](https://docs.gcp.databricks.com/getting-started/try-databricks-gcp.html) Please note that free trial requires credit card and the trial is converted to a pay-as-you-go subscription after 14 days.
 * If your company has a contract subscription in place with GCP, you have two options:
   *  start the free trial and at the end of trial become a pay-as-you-go customer or end the trial.
   *  have a need to extend the trial then reach out to your databricks representative or send an email to `sales@databricks.com` about how to create/extend your subscription with a Google Marketplace Private Offer.
