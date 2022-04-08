@@ -13,7 +13,7 @@ The following diagram represents the flow of data for Databricks on Google Cloud
 
 *As the `data plane` resides within customers GCP project it is important to understand what gets created within your project*
 
-Assuming you have gone through the [getting started section](Infrastructure-Planning.md) and have subscribed to databricks offering on GCP, `workspace` creation involves:
+Assuming you have gone through the [getting started section](Getting-Started.md) and have subscribed to databricks offering on GCP, `workspace` creation involves:
 
 * GKE cluster is created utilizng customer managed VPC
 * Two GCS buckets are created for [Databricks File System](https://docs.gcp.databricks.com/data/databricks-file-system.html) or DBFS
