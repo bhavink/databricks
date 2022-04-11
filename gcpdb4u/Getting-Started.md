@@ -15,11 +15,13 @@ Databricks is a `Managed Service` and is fully hosted, managed, and supported by
 | Databricks  | Relationship  | GCP  |
 |---|---|---|
 | Account  |  1:1 maps to | [Billing Account](https://cloud.google.com/billing/docs/concepts#overview)  |
-| Subscription | maps to | Entitlements* |
+| Subscription | maps to | *Entitlements |
 | Workspaces | resides in | [Consumer Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) |
-| Worker Environment (dataplane) | 1:1 maps to | GKE cluster |
-| Databricks Cluster | 1:1 maps to | GKE namespace |
-*Represents purchase, pricing, and payment mechanism for an account
+| Worker Environment (dataplane) | 1:1 maps to | [**GKE cluster](https://cloud.google.com/kubernetes-engine/docs/how-to/private-clusters) |
+| Databricks Cluster | 1:1 maps to | [GKE namespace](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/) |
+
+- *Represents purchase, pricing, and payment mechanism for an account
+- **GKE resides within your GCP Project and utilizes your own VPC
 
 # Availability Regions
 
@@ -39,16 +41,16 @@ Please refer to public doc site for [supported regions](https://docs.gcp.databri
 # Recommendations
 
 * Read thru pricing and subscription tiers details before your begin.
-* Premium tier includes security features like [Customer Managed VPC](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html) and [IP Access List](https://docs.gcp.databricks.com/security/network/ip-access-list.html) which are are a must have for most of the enterprises.
-* Subscription tiers could be changed but once you are on a higher tier you cannot downgrade to a lower one.
+* Premium tier includes security features like [Customer Managed VPC](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html) and [IP Access List](https://docs.gcp.databricks.com/security/network/ip-access-list.html) which are are a must have for most of the enterprises and thats what rest of the docs are going to refer to.
+* Subscription tiers could be upgraded. This applies the upgrade to both current and future workspaces.
 * Subscription tier applies at account level so all of the workspace belonging to the account have same features.
 * Take advantage of [free training](https://docs.gcp.databricks.com/getting-started/free-training.html) to familiarize yourself with the offering.
 
-# How many workspace do I need?
+# Workspace Deployment Considerations
 
 Workspace deployment is influenced by your organization structure on GCP. Workspace is created within your GCP project utilizing your VPC so there are several options available to us. Taking a cue from the GCP recommendations on [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy)
 ![resource-layout](https://cloud.google.com/resource-manager/img/cloud-hierarchy.svg)
-
+ 
 here we share few options
 ![deployment-patterns](./images/GCP-Databricks%20Workspace-Deployment%20Patterns.png)
 
