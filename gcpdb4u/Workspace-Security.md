@@ -9,6 +9,7 @@ As part of workspace creation process, Databricks creates a GKE cluster with in 
 * Node pool's are shared by different Databricks cluster's
 * Spark Driver and Executor's are deployed as `pods` inside GKE nodes.
 * Nodes have Private IP addresses only
+* Spark Driver and Spark Executor runs as a GKE pod.
 * Databricks clusters are GKE tenants
   
 * To provide a secure logical isolation between tenants that are on the same GKE cluster, Databricks implements [GKE namespace’s](https://cloud.google.com/kubernetes-engine/docs/best-practices/enterprise-multitenancy#create-namespaces).
