@@ -54,7 +54,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <td class="pm-table-cell-content-wrap" style="width: 769px;" colspan="3" data-colwidth="190,190,190,190">
 <div class="fabric-editor-block-mark fabric-editor-align-center" data-align="center">
 <div class="pm-table-column-controls-decoration ProseMirror-widget" contenteditable="false" data-start-index="1" data-end-index="2">&nbsp;</div>
-<p><em><strong>Managed Services</strong></em></p>
+<p style="text-align: center;"><em><strong>Managed Services</strong></em></p>
 </div>
 </td>
 </tr>
@@ -106,7 +106,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <tr>
 <td class="pm-table-cell-content-wrap" style="width: 769px;" colspan="3" data-colwidth="190,190,190,190">
 <div class="fabric-editor-block-mark fabric-editor-align-center" data-align="center">
-<p><em><strong>Identity and Access Management (IAM)</strong></em></p>
+<p style="text-align: center;"><em><strong>Identity and Access Management (IAM)</strong></em></p>
 </div>
 </td>
 </tr>
@@ -135,7 +135,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <tr>
 <td class="pm-table-cell-content-wrap" style="width: 769px;" colspan="3" data-colwidth="190,190,190,190">
 <div class="fabric-editor-block-mark fabric-editor-align-center" data-align="center">
-<p><strong>Cloud Key Management Service (Cloud KMS)</strong></p>
+<p style="text-align: center;"><strong>Cloud Key Management Service (Cloud KMS)</strong></p>
 </div>
 </td>
 </tr>
@@ -151,7 +151,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <tr>
 <td class="pm-table-cell-content-wrap" style="width: 769px;" colspan="3" data-colwidth="190,190,190,190">
 <div class="fabric-editor-block-mark fabric-editor-align-center" data-align="center">
-<p><strong>Node Metadata</strong></p>
+<p style="text-align: center;"><strong>Node Metadata</strong></p>
 </div>
 </td>
 </tr>
@@ -185,7 +185,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <p style="text-align: center;"><strong>Yes</strong></p>
 </td>
 <td class="pm-table-cell-content-wrap" style="width: 299px;" data-colwidth="190">
-<p>&nbsp;</p>
+<p>Enabled by default</p>
 </td>
 </tr>
 <tr>
@@ -230,7 +230,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <p style="text-align: center;"><br /><strong>Yes</strong></p>
 </td>
 <td class="pm-table-cell-content-wrap" style="width: 299px;" data-colwidth="190">
-<p>&nbsp;</p>
+<p>Enabled by default</p>
 </td>
 </tr>
 <tr>
@@ -247,7 +247,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <tr>
 <td class="pm-table-cell-content-wrap" style="width: 769px;" colspan="3" data-colwidth="190,190,190,190">
 <div class="fabric-editor-block-mark fabric-editor-align-center" data-align="center">
-<p><strong>Cluster Networking</strong></p>
+<p style="text-align: center;"><strong>Cluster Networking</strong></p>
 </div>
 </td>
 </tr>
@@ -259,7 +259,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <p style="text-align: center;"><strong>Yes</strong></p>
 </td>
 <td class="pm-table-cell-content-wrap" style="width: 299px;" data-colwidth="190">
-<p>&nbsp;</p>
+<p>Enabled by default</p>
 </td>
 </tr>
 <tr>
@@ -270,7 +270,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <p style="text-align: center;"><strong>Yes</strong></p>
 </td>
 <td class="pm-table-cell-content-wrap" style="width: 299px;" data-colwidth="190">
-<p>&nbsp;</p>
+<p>Enabled by default</p>
 </td>
 </tr>
 <tr>
@@ -281,7 +281,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <p style="text-align: center;"><strong>Yes</strong></p>
 </td>
 <td class="pm-table-cell-content-wrap" style="width: 299px;" data-colwidth="190">
-<p>&nbsp;</p>
+<p>Enabled by default</p>
 </td>
 </tr>
 <tr>
@@ -303,7 +303,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <p style="text-align: center;"><strong>Yes</strong></p>
 </td>
 <td class="pm-table-cell-content-wrap" style="width: 299px;" data-colwidth="190">
-<p>&nbsp;</p>
+<p>Enabled by default</p>
 </td>
 </tr>
 <tr>
@@ -314,7 +314,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <p style="text-align: center;"><strong>Yes</strong></p>
 </td>
 <td class="pm-table-cell-content-wrap" style="width: 299px;" data-colwidth="190">
-<p>&nbsp;</p>
+<p>Enabled by default</p>
 </td>
 </tr>
 <tr>
@@ -331,7 +331,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <tr>
 <td class="pm-table-cell-content-wrap" style="width: 769px;" colspan="3" data-colwidth="190,190,190,190">
 <div class="fabric-editor-block-mark fabric-editor-align-center" data-align="center">
-<p><strong>Logging</strong></p>
+<p style="text-align: center;"><strong>Logging</strong></p>
 </div>
 </td>
 </tr>
@@ -343,7 +343,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <p style="text-align: center;"><strong>Yes</strong></p>
 </td>
 <td class="pm-table-cell-content-wrap" style="width: 299px;" data-colwidth="190">
-<p>&nbsp;</p>
+<p>Enabled by default</p>
 </td>
 </tr>
 <tr>
@@ -360,7 +360,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <tr>
 <td class="pm-table-cell-content-wrap" style="width: 769px;" colspan="3" data-colwidth="190,190,190,190">
 <div class="fabric-editor-block-mark fabric-editor-align-center" data-align="center">
-<p><strong>Authentication and Authorization</strong></p>
+<p style="text-align: center;"><strong>Authentication and Authorization</strong></p>
 </div>
 </td>
 </tr>
@@ -411,7 +411,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <tr>
 <td class="pm-table-cell-content-wrap" style="width: 769px;" colspan="3" data-colwidth="190,190,190,190">
 <div class="fabric-editor-block-mark fabric-editor-align-center" data-align="center">
-<p><strong>Storage</strong></p>
+<p style="text-align: center;"><strong>Storage</strong></p>
 </div>
 </td>
 </tr>
@@ -429,7 +429,7 @@ The purpose of the following table is to list relevant CIS GKE benchmark recomme
 <tr>
 <td class="pm-table-cell-content-wrap" style="width: 769px;" colspan="3" data-colwidth="190,190,190,190">
 <div class="fabric-editor-block-mark fabric-editor-align-center" data-align="center">
-<p><strong>Other Cluster Configurations</strong></p>
+<p style="text-align: center;"><strong>Other GKE Configurations</strong></p>
 </div>
 </td>
 </tr>
