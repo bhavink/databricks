@@ -1,23 +1,27 @@
 ***REMOVED*** Create Databricks Workspace
 
 ***REMOVED******REMOVED*** Objective
-Create Databricks workspace in a **customer managed VPC**. VPC could be a shared vpc or a stand alone vpc.
+Create Databricks workspace in a **customer managed VPC**. VPC could be a shared vpc or a customer managed stand alone vpc.
 ![](./images/customer-managed-vpc.png)
 
 ***REMOVED******REMOVED*** FAQ
 * How many subnets I need?
-  * In total we need 3 subnets
+  * In total we need 4 subnets
     * Node Subnet (primary)
     * Pod Subnet (secondary1)
     * Service Subnet (secondary2)
+    * Kube Master VPC - created and managed by GCP and is of fix size /28
 * Can I share subnets among different databricks workspace's?
   * No, each workspace requires its own dedicated, 3 subnets.
+* Can I change Subnet address space after the workspace is created?
+  * No
 * Can I share a VPC among different databricks workspace's?
-  * Yes
+  * Yes, as long as you do not use existing subnets being used by databricks.
 * Supported IP Address Range?
   * `10.0.0.0/8`, `100.64.0.0/10`, `172.16.0.0/12`, `192.168.0.0/16`, and `240.0.0.0/4`
 * Is there a VPC/Subnet sizing guide or calculator?
   * Yes, please try [this](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/network-sizing.html).
+* User creating the workspace is automatically added to the workspace as an admin.
 
 ***REMOVED******REMOVED*** Quick sizing guideline
 
@@ -71,3 +75,32 @@ Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-
 
 ***REMOVED******REMOVED*** Create Workspace (using Terraform)
 TODO
+
+***REMOVED******REMOVED*** Recommendation
+
+* Pay close attention to subnet CIDR ranges, they cannot be changed (increase or decrease) after the workspace is created.
+* Use Customer Managed VPC
+* Enable [Private Google Access](./security/Configure-PrivateGoogleAccess.md) on your vpc
+* Double check DNS is properly configured to resolve to restricted.googleapis.com correctly (part of private google access configuration)
+* Verify that VPC has an egress path to databricks control and managed hive metastore, this is typically achieved by attaching a Cloud NAT to your VPC.
+* If you have VPC SC configured than please make sure you read through [this](./security/Configure-VPC-SC.md) section.
+* Optional - Post workspace creation you may want to:
+  * Enable [Binary Authorization](./security/Enable-Binary-Authorization.md)
+  * Change Default [Compute SA role](./security/Customize-Default-ComputeSA-Role.md)
+
+***REMOVED******REMOVED*** Validate setup
+- Create a Databricks cluster to validate n/w setup
+- Databricks Cluster comes up fine
+![](./images/test-cluster-comesup1.png)
+![](./images/test-cluatser-comesup2.png)
+
+
+* Upon creation of workspace, immediately test it by creating a databricks cluster and run a test command in databricks notebook like:
+  ```
+  %sql
+  show tables
+  ```
+  make sure that commands runs successfully.
+
+
+
