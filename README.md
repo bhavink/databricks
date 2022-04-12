@@ -1,7 +1,6 @@
-databricks projects
+Repo for All things Databricks
 ==============
-Documenting and sharing databricks example projects highlighting some of the unique capabilities of Databricks platform, these are ready to use code samples to feed your curiosity and learn platform capabilities. 
-
+Highlighting some of the unique capabilities of Databricks platform, these are ready to use code samples & how-to guide's along with detailed deployment architectures to feed your curiosity and learn this wonderful platform we call `lakehouse`. 
 
 ### adb4u: Azure Databricks Security Best Practices
 -  Documenting and sharing security best practices related to platform deployment and configurations
@@ -13,15 +12,14 @@ Documenting and sharing databricks example projects highlighting some of the uni
     -  *Securely and Efficiently connect to ADF, ADLS gen2 and Power BI*
     -  *Working with Secrets*
     -  *Bring Your Own Keys* (Customer Managed Keys) for DBFS and Notebooks
-
-### adb-arm-templates: 
-- Azure Databricks ARM templates
+    -  - Azure Databricks ARM templates
 
 ### databricks-rest-api-collection: 
-- Azure Databricks REST API Postman collections
+- Cloud agnostic, common databricks REST API Postman collections
+### databricks-jump-start: 
+- Curated list of code samples based on Databricks public documention
 
-### getting-started: 
-- Curated list of spark example code based on Databricks public documention
-
-### spark-r-us: 
-- Databricks db-connect example
+### gcpdb4u: 
+- Databricks on GCP best practice guide
+- Preventing Data Exfiltration
+- Data Plane Security

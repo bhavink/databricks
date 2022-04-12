@@ -30,6 +30,6 @@ user's could further customize the security settings to suite their needs, for e
 * Customize Default [Compute SA role](./security/Customize-Default-ComputeSA-Role.md)
 * Enable [Binary Authorization](./security/Enable-Binary-Authorization.md)
 * Enable [Workload Idenity](./security/Workload-Identity.md)
-* Configure VPC Service Control to prevent data exfiltration
+* Configure [VPC Service Control](./security/Configure-VPC-SC.md) to prevent data exfiltration
 * Lock down [VPC firewall rules](./security/LockDown-VPC-Firewall-Rules.md)
   
