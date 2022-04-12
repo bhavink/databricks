@@ -29,6 +29,7 @@ user's could further customize the security settings to suite their needs, for e
 * Make sure GKE created by Databricks follows [CIS guidelines](./security/GKE-CIS-Guidelines.md)
 * Customize Default [Compute SA role](./security/Customize-Default-ComputeSA-Role.md)
 * Enable [Binary Authorization](./security/Enable-Binary-Authorization.md)
+* Enable [Workload Idenity](./security/Workload-Identity.md)
 * Configure VPC Service Control to prevent data exfiltration
-* Lock down VPC firewall rules
+* Lock down [VPC firewall rules](./security/LockDown-VPC-Firewall-Rules.md)
   
