@@ -19,9 +19,20 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 * Is there a VPC/Subnet sizing guide or calculator?
   * Yes, please try [this](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/network-sizing.html).
 
-* Quick sizing guideline
-* 
-* What are the typical VPC and Subnet CIDR ranges are?
+***REMOVED******REMOVED*** Quick sizing guideline
+
+| Subnet Size                                                                 | Total Nodes Per Workspace |
+|-----------------------------------------------------------------------------|---------------------------|
+| Nodes subnet size   /26, Pods subnet size    /22, Services subnet size    /22 |             32            |
+| Nodes subnet size   /25, Pods subnet size    /21, Services subnet size    /22 |             64            |
+| Nodes subnet size   /24, Pods subnet size    /20, Services subnet size    /22 |            128            |
+| Nodes subnet size   /23, Pods subnet size    /19, Services subnet size    /22 |            256            |
+| Nodes subnet size   /22, Pods subnet size    /18, Services subnet size    /22 |            512            |
+| Nodes subnet size   /21, Pods subnet size    /17, Services subnet size    /22 |            1024           |
+
+
+***REMOVED******REMOVED*** Subnet CIDR ranges
+
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 33%">
@@ -55,10 +66,8 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 </table>
 
 
-***REMOVED******REMOVED*** Pre-requistes
-Please follow [these](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html***REMOVED***requirements-1) steps
+***REMOVED******REMOVED*** Create Workspace (using UI)
+Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)
 
-
-
-
-
+***REMOVED******REMOVED*** Create Workspace (using Terraform)
+TODO
