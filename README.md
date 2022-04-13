@@ -16,6 +16,7 @@ Highlighting some of the unique capabilities of Databricks platform, these are r
 
 ***REMOVED******REMOVED******REMOVED*** databricks-rest-api-collection: 
 - Cloud agnostic, common databricks REST API Postman collections
+
 ***REMOVED******REMOVED******REMOVED*** databricks-jump-start: 
 - Curated list of code samples based on Databricks public documention
 
