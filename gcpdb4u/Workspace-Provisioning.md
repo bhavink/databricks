@@ -27,7 +27,6 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 
 | Subnet Size                                                                 | Total Nodes Per Workspace |
 |-----------------------------------------------------------------------------|---------------------------|
-| Nodes subnet size   /26, Pods subnet size    /22, Services subnet size    /22 |             32            |
 | Nodes subnet size   /25, Pods subnet size    /21, Services subnet size    /22 |             64            |
 | Nodes subnet size   /24, Pods subnet size    /20, Services subnet size    /22 |            128            |
 | Nodes subnet size   /23, Pods subnet size    /19, Services subnet size    /22 |            256            |

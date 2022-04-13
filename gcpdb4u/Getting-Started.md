@@ -36,15 +36,18 @@ Please refer to public doc site for [supported regions](https://docs.gcp.databri
 * Subscription [cost](https://databricks.com/product/pricing) does not include cloud resource cost (storage, compute, network)
 * Databricks pricing is based on your compute usage called DBU. Storage, networking and related costs will vary depending on the services you choose and your cloud service provider.
 * A Databricks Unit (DBU) is a normalized unit of processing power on the Databricks Lakehouse Platform used for measurement and pricing purposes. The number of DBUs a workload consumes is driven by processing metrics, which may include the compute resources used and the amount of data processed.
-* Databricks Unit (DBU), which is a unit of processing capability per hour, billed on per-second usage. See [pricing](https://databricks.com/product/gcp-pricing) for more details
+* Databricks Unit (DBU), which is a unit of processing capability per hour, billed on per-second usage. See [pricing](https://databricks.com/product/gcp-pricing) for more details.
+* Subscription tiers could be upgraded. This applies the upgrade to both current and future workspaces.
+* Subscription tier applies at account level so all of the workspace belonging to the account have same features.
 
 # Recommendations
 
 * Read thru pricing and subscription tiers details before your begin.
-* Premium tier includes security features like [Customer Managed VPC](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html) and [IP Access List](https://docs.gcp.databricks.com/security/network/ip-access-list.html) which are are a must have for most of the enterprises and thats what rest of the docs are going to refer to.
-* Subscription tiers could be upgraded. This applies the upgrade to both current and future workspaces.
-* Subscription tier applies at account level so all of the workspace belonging to the account have same features.
+* `Premium` tier includes security features like [Customer Managed VPC](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html) and [IP Access List](https://docs.gcp.databricks.com/security/network/ip-access-list.html) which are are a must have for most of the enterprises and thats what rest of the docs are going to refer to.
 * Take advantage of [free training](https://docs.gcp.databricks.com/getting-started/free-training.html) to familiarize yourself with the offering.
+* Upon subscribing to Databricks on GCP, make sure to add atleast one more user to the [account](https://accounts.gcp.databricks.com) console, typicaly someone who's going to manage Databricks, this way we won't need the `billing` admin to create workspaces later on.
+* Configure [audit log](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/log-delivery.html) delivery, this is an account level feature.
+* Configure [domain name](https://docs.gcp.databricks.com/security/network/firewall-rules.html) firewall rules.
 
 # Workspace Deployment Considerations
 
