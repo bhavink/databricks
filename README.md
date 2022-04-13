@@ -24,3 +24,4 @@ Highlighting some of the unique capabilities of Databricks platform, these are r
 - Databricks on GCP best practice guide
 - Preventing Data Exfiltration
 - Data Plane Security
+
