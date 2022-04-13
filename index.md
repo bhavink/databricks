@@ -1,37 +1,25 @@
-## Welcome to GitHub Pages
+Repo for All things Databricks
+==============
+Highlighting some of the unique capabilities of Databricks platform, these are ready to use code samples & how-to guide's along with detailed deployment architectures to feed your curiosity and learn this wonderful platform we call `lakehouse`. 
 
-You can use the [editor on GitHub](https://github.com/bhavink/databricks/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+### adb4u: Azure Databricks Security Best Practices
+-  Documenting and sharing security best practices related to platform deployment and configurations
+    -  *Preventing Data Exfiltration* - Secure Deployments
+    -  *IP Access List* - Connect to Azure Databricks only through existing corporate networks with a secure perimeter
+    -  *Users and Groups Management* - Automate users/groups onboarding and management
+    -  *Authenticating API calls* - Securely accessing Azure Databricks REST API using AAD tokens
+    -  *Platform tokens* - Manage Azure Databricks platform tokens
+    -  *Securely and Efficiently connect to ADF, ADLS gen2 and Power BI*
+    -  *Working with Secrets*
+    -  *Bring Your Own Keys* (Customer Managed Keys) for DBFS and Notebooks
+    -  - Azure Databricks ARM templates
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+### databricks-rest-api-collection: 
+- Cloud agnostic, common databricks REST API Postman collections
+### databricks-jump-start: 
+- Curated list of code samples based on Databricks public documention
 
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/bhavink/databricks/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+### gcpdb4u: 
+- Databricks on GCP best practice guide
+- Preventing Data Exfiltration
+- Data Plane Security
