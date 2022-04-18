@@ -16,6 +16,7 @@ Highlighting some of the unique capabilities of Databricks platform, these are r
 
 ### databricks-rest-api-collection: 
 - Cloud agnostic, common databricks REST API Postman collections
+
 ### databricks-jump-start: 
 - Curated list of code samples based on Databricks public documention
 
@@ -23,3 +24,4 @@ Highlighting some of the unique capabilities of Databricks platform, these are r
 - Databricks on GCP best practice guide
 - Preventing Data Exfiltration
 - Data Plane Security
+
