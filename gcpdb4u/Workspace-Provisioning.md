@@ -68,24 +68,29 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 </tbody>
 </table>
 
-
-***REMOVED******REMOVED*** Create Workspace (using UI)
-Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)
-
-***REMOVED******REMOVED*** Create Workspace (using Terraform)
-TODO
-
 ***REMOVED******REMOVED*** Recommendation
 
 * Pay close attention to subnet CIDR ranges, they cannot be changed (increase or decrease) after the workspace is created.
 * Use Customer Managed VPC
 * Enable [Private Google Access](./security/Configure-PrivateGoogleAccess.md) on your vpc
 * Double check DNS is properly configured to resolve to restricted.googleapis.com correctly (part of private google access configuration)
-* Verify that VPC has an egress path to databricks control and managed hive metastore, this is typically achieved by attaching a Cloud NAT to your VPC.
+* Verify that VPC has an egress path to databricks control plane and managed hive metastore, this is typically achieved by attaching a Cloud NAT to your VPC.
+* Relax your GCP organization policy so that it allows you to create Databricks workspace in your GCP Project.
+  * Allows you to create GCP resources (GKE/GCS)
+  * Enable `Workload Identity` is set to `true`
+  * Enable `serial port logging` is set to `true`
+
 * If you have VPC SC configured than please make sure you read through [this](./security/Configure-VPC-SC.md) section.
 * Optional - Post workspace creation you may want to:
   * Enable [Binary Authorization](./security/Enable-Binary-Authorization.md)
   * Change Default [Compute SA role](./security/Customize-Default-ComputeSA-Role.md)
+
+
+***REMOVED******REMOVED*** Create Workspace (using UI)
+Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)
+
+***REMOVED******REMOVED*** Create Workspace (using Terraform)
+TODO
 
 ***REMOVED******REMOVED*** Validate setup
 - Create a Databricks cluster to validate n/w setup
