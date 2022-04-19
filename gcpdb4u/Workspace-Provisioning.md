@@ -71,6 +71,7 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 ***REMOVED******REMOVED*** Recommendation
 
 * Pay close attention to subnet CIDR ranges, they cannot be changed (increase or decrease) after the workspace is created.
+* Review and Increase [GCP resource quota](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html) appropiately.
 * Use Customer Managed VPC
 * Enable [Private Google Access](./security/Configure-PrivateGoogleAccess.md) on your vpc
 * Double check DNS is properly configured to resolve to restricted.googleapis.com correctly (part of private google access configuration)
@@ -105,6 +106,34 @@ TODO
   show tables
   ```
   make sure that commands runs successfully.
+
+
+***REMOVED******REMOVED*** Troubleshooting
+
+* Not able to create Network Configuration
+  * Follow steps mentioned over [here](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html), pay close attention to required roles and permissions.
+  * If VPC SC is configured on the GCP project used by Databricks than please make sure that you have followed steps mentioned over here
+* Workspace creation fails
+  * Verify that there is no organization policy blocking workspace creation process, please see recommendations section above
+  * If VPC SC is configured on the GCP project used by Databricks than please make sure that you have followed steps mentioned over [here](./security/Configure-VPC-SC.md)
+  * Verify that you have required role and permissions
+* Databricks Cluster Creation fails with:
+  ```
+  {
+  "reason": {
+    "code": "K8S_DBR_CLUSTER_LAUNCH_TIMEOUT",
+    "type": "SERVICE_FAULT",
+    "parameters": {
+      "databricks_error_message": "Cluster launch timeout."
+    }
+  }
+  }
+  ```
+  or you see ![cluster-launch-failure](./images/cluster-launch-failure1.png)
+  Verify that you have egress/outbound network connectivity from your VPC to Databricks Control plane.
+    - Most likely VPC firewall is blocking egress communication
+    - You do not have a n/w route set for vpc to communicate with Databricks control plane
+    - Make sure an egress appliance like Cloud NAT is attached to subnets used by Databricks
 
 
 

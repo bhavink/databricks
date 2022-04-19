@@ -46,6 +46,7 @@ Please refer to public doc site for [supported regions](https://docs.gcp.databri
 * `Premium` tier includes security features like [Customer Managed VPC](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html) and [IP Access List](https://docs.gcp.databricks.com/security/network/ip-access-list.html) which are are a must have for most of the enterprises and thats what rest of the docs are going to refer to.
 * Take advantage of [free training](https://docs.gcp.databricks.com/getting-started/free-training.html) to familiarize yourself with the offering.
 * Upon subscribing to Databricks on GCP, make sure to add atleast one more user to the [account](https://accounts.gcp.databricks.com) console and make them [accounts admin](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/admin-users.html), typicaly someone who's going to manage Databricks, this way we won't need the `billing` admin to create workspaces later on.
+* Review and Increase [GCP resource quota](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html) appropiately.
 * Configure [audit log](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/log-delivery.html) delivery, this is an account level feature.
 * Configure [domain name](https://docs.gcp.databricks.com/security/network/firewall-rules.html) firewall rules.
 
