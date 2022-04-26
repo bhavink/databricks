@@ -27,11 +27,14 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 
 | Subnet Size                                                                 | Total Nodes Per Workspace |
 |-----------------------------------------------------------------------------|---------------------------|
-| Nodes subnet size   /25, Pods subnet size    /21, Services subnet size    /22 |             64            |
-| Nodes subnet size   /24, Pods subnet size    /20, Services subnet size    /22 |            128            |
-| Nodes subnet size   /23, Pods subnet size    /19, Services subnet size    /22 |            256            |
-| Nodes subnet size   /22, Pods subnet size    /18, Services subnet size    /22 |            512            |
-| Nodes subnet size   /21, Pods subnet size    /17, Services subnet size    /22 |            1024           |
+| Nodes subnet size   /25, Pods subnet size    /20, Services subnet size    /22 |             60            |
+| Nodes subnet size   /24, Pods subnet size    /19, Services subnet size    /22 |            120            |
+| Nodes subnet size   /23, Pods subnet size    /18, Services subnet size    /22 |            250            |
+| Nodes subnet size   /22, Pods subnet size    /17, Services subnet size    /22 |            500            |
+| Nodes subnet size   /21, Pods subnet size    /16, Services subnet size    /22 |            1000           |
+| Nodes subnet size   /20, Pods subnet size    /15, Services subnet size    /21 |            2000           |
+| Nodes subnet size   /19, Pods subnet size    /14, Services subnet size    /20 |            4000           |
+
 
 
 ***REMOVED******REMOVED*** Subnet CIDR ranges
@@ -135,5 +138,7 @@ TODO
     - You do not have a n/w route set for vpc to communicate with Databricks control plane
     - Make sure an egress appliance like Cloud NAT is attached to subnets used by Databricks
 
-
+* Databricks Cluster Creation fails with:
+![cluster-launch-failure2](./images/cluster-launch-failure2.png)
+  - Verify that you have adequate GCP resource quota limit set, follow steps mentioned over [here](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html).
 
