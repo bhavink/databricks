@@ -5,6 +5,8 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 ![](./images/customer-managed-vpc.png)
 
 ***REMOVED******REMOVED*** FAQ
+* Can I use Terraform to create workspace
+  * Yes you can, more details [here](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace).
 * How many subnets I need?
   * In total we need 4 subnets
     * Node Subnet (primary)
@@ -86,7 +88,6 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 
 * If you have VPC SC configured than please make sure you read through [this](./security/Configure-VPC-SC.md) section.
 * Optional - Post workspace creation you may want to:
-  * Enable [Binary Authorization](./security/Enable-Binary-Authorization.md)
   * Change Default [Compute SA role](./security/Customize-Default-ComputeSA-Role.md)
 
 
@@ -94,7 +95,7 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)
 
 ***REMOVED******REMOVED*** Create Workspace (using Terraform)
-TODO
+Please follow public [documentation](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace). Here's a sample [TF script](./templates/main_share.tf) to deploy a bring your VPC based workspace using TF
 
 ***REMOVED******REMOVED*** Validate setup
 - Create a Databricks cluster to validate n/w setup
