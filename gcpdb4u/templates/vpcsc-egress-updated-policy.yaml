@@ -14,6 +14,9 @@
     # multiple entries could be added with addiotnal - projects/project_number entries
     - projects/643670579914 #databricks runtime artifact
     - projects/121886670913 #databricks regional control plane
+    - projects/85638097580 #databricks log delivery control plane
+  
+
 
   egressFrom:
     identities:
@@ -22,5 +25,7 @@
     # shard-sa@prod-gcp-us-central1.iam.gserviceaccount.com (Central Service Account) & 
     # shard-sa@prod-gcp-us-east4.iam.gserviceaccount.com (Shard Service Account) &
     # us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)
+    # log delivery SA remains sa irrespective of the region
     - serviceAccount:shard-sa@prod-gcp-us-east4.iam.gserviceaccount.com
     - serviceAccount:us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com
+    - serviceAccount:log-delivery@databricks-prod-master.iam.gserviceaccount.com
