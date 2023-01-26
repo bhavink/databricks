@@ -95,7 +95,12 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)
 
 ## Create Workspace (using Terraform)
-Please follow public [documentation](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace). Here's a sample [TF script](./templates/main_share.tf) to deploy a bring your VPC based workspace using TF
+Please follow public [documentation](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace). Here's a sample [TF script](./templates/create_workspace.tf) to deploy a bring your VPC based workspace using TF
+
+There's also few additional script's:
+  * crete a [custom role](./templates/create-workspace-provisioning-sa.tf) which can be assigned to an SA to create the workspace
+  * create a [workspace and attach a custom SA](./templates/create-workspace-and-gke-sa) to GKE instead of using default compute engine SA
+
 
 ## Validate setup
 - Create a Databricks cluster to validate n/w setup
