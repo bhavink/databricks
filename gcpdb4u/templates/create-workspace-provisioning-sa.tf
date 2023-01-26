@@ -17,7 +17,7 @@ and need to have admin role assigned (https://docs.gcp.databricks.com/administra
 ***REMOVED*** used with sa and workspace name
 variable "prefix" { default = "test" }
 
-variable "databricks_account_id" { default = "e11e38c5-a449-47b9-b37f-0fa36c821612" }
+variable "databricks_account_id" { default = "e11e38c5-xyz-821612" }
 
 ***REMOVED*** if you are not using shared vpc then the host and service project would have the same project id
 variable "google_host_project_id" { default = "labs-byovpc-test" }

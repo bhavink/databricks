@@ -14,7 +14,7 @@ this script will be executed as [servie account].
 variable "delegate_from" {default="bhavin.kukadia@databricks.com"}
 
 ***REMOVED*** databricks account id available on accounts console > clicked on the logged in user email (top right corner)
-variable "databricks_account_id" { default = "e11e38c5-a449-47b9-b37f-0fa36c821612" }
+variable "databricks_account_id" { default = "e11e38c5-xyz-821612" }
 
 /*
 in case if you are NOT using a shared vpc than service and host project id will be same
