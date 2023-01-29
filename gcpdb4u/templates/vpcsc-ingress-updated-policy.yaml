@@ -6,7 +6,7 @@
     ***REMOVED*** Consumer SA follow’s db-WORKSPACEID@databricks-project.iam.gserviceaccount.com naming convention. 
     ***REMOVED*** Workspace ID is generated as part of the workspace creation process.
     ***REMOVED*** E.g. db-nnnnnnnnnnnnn@prod-gcp-[databricks-supported-gcp-region].iam.gserviceaccount.com
-    - serviceAccount:db-3812577995730654@staging-gcp-us-central1.iam.gserviceaccount.com
+    - serviceAccount:db-3812577995730654@prod-gcp-us-central1.iam.gserviceaccount.com
     sources:
     ***REMOVED*** request originating from databricks control plane shard project
     ***REMOVED*** after the workspace is created we only need ingress from regional control plane
