@@ -81,8 +81,9 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 * Enable [Private Google Access](./security/Configure-PrivateGoogleAccess.md) on your vpc
 * Double check DNS is properly configured to resolve to restricted.googleapis.com correctly (part of private google access configuration)
 * Verify that VPC has an egress path to databricks control plane and managed hive metastore, this is typically achieved by attaching a Cloud NAT to your VPC.
-* Relax your GCP organization policy so that it allows you to create Databricks workspace in your GCP Project.
-  * Allows you to create GCP resources (GKE/GCS)
+* If your Google Cloud organization policy enables domain restricted sharing, ensure that both the Google Cloud customer IDs for Databricks (C01p0oudw) and your own organization’s customer ID are in the policy’s allowed list.
+* Please make sure that you are allowed to: 
+  * Create GCP resources (GKE/GCS)
   * Enable `Workload Identity` is set to `true`
   * Enable `serial port logging` is set to `true`
 
@@ -100,7 +101,8 @@ Please follow public [documentation](https://registry.terraform.io/providers/dat
 There's also few additional script's:
   * create a [workspace and attach a custom SA](./templates/create-workspace-and-gke-sa.tf) to GKE instead of using default compute engine SA
 
-
+***REMOVED******REMOVED*** Create Workspace (using REST API)
+TODO
 ***REMOVED******REMOVED*** Validate setup
 - Create a Databricks cluster to validate n/w setup
 - Databricks Cluster comes up fine
