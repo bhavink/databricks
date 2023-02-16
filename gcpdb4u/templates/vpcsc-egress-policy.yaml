@@ -20,9 +20,9 @@
     identities:
     ***REMOVED*** Databricks owned projects(target) to which egress traffic from your project(source) is allowed to
     ***REMOVED*** E.g. For US East4 based workspace we have: 
-    ***REMOVED*** shard-sa@prod-gcp-us-central1.iam.gserviceaccount.com (Central Service Account) & 
-    ***REMOVED*** shard-sa@prod-gcp-us-east4.iam.gserviceaccount.com (Shard Service Account) &
+    ***REMOVED*** cluster-manager-k8s-sa2@prod-gcp-us-central1.iam.gserviceaccount.com (Central Service Account) & 
+    ***REMOVED*** cluster-manager-k8s-sa2@prod-gcp-us-east4.iam.gserviceaccount.com (Google Service Account managing GKE on behalf of customer) &
     ***REMOVED*** us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)
-    - serviceAccount:shard-sa@prod-gcp-us-central1.iam.gserviceaccount.com ***REMOVED***required only during workspace creation
-    - serviceAccount:shard-sa@prod-gcp-us-east4.iam.gserviceaccount.com
+    - serviceAccount:cluster-manager-k8s-sa2@prod-gcp-us-central1.iam.gserviceaccount.com ***REMOVED***required only during workspace creation
+    - serviceAccount:cluster-manager-k8s-sa2@prod-gcp-us-east4.iam.gserviceaccount.com
     - serviceAccount:us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com
