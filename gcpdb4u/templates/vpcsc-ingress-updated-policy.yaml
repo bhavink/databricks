@@ -7,11 +7,13 @@
     # Workspace ID is generated as part of the workspace creation process.
     # E.g. db-nnnnnnnnnnnnn@prod-gcp-[databricks-supported-gcp-region].iam.gserviceaccount.com
     - serviceAccount:db-3812577995730654@prod-gcp-us-central1.iam.gserviceaccount.com
+    - serviceAccount:log-delivery@databricks-prod-master.iam.gserviceaccount.com # please refer to this doc for more info https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/log-delivery.html
     sources:
     # request originating from databricks control plane shard project
     # after the workspace is created we only need ingress from regional control plane
     # so if the workspace is in us-east4 then we need databricks us-east4 control plane project number
     - resource: projects/121886670913 #us-east4 control plane project
+    - resource: projects/85638097580 #databricks control plane project responsible to deliver audit logs into your GCS bucket
   ingressTo:
     operations:
     - methodSelectors:

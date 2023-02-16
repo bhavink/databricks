@@ -22,10 +22,10 @@
     identities:
     # Databricks owned projects(target) to which egress traffic from your project(source) is allowed to
     # E.g. For US East4 based workspace we have: 
-    # shard-sa@prod-gcp-us-central1.iam.gserviceaccount.com (Central Service Account) & 
-    # shard-sa@prod-gcp-us-east4.iam.gserviceaccount.com (Shard Service Account) &
+    # cluster-manager-k8s-sa2@prod-gcp-us-central1.iam.gserviceaccount.com (Central Service Account) & 
+    # cluster-manager-k8s-sa2@prod-gcp-us-east4.iam.gserviceaccount.com (Google Service Account managing GKE on behalf of customer) &
     # us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)
     # log delivery SA remains sa irrespective of the region
-    - serviceAccount:shard-sa@prod-gcp-us-east4.iam.gserviceaccount.com
+    - serviceAccount:cluster-manager-k8s-sa2@prod-gcp-us-east4.iam.gserviceaccount.com
     - serviceAccount:us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com
     - serviceAccount:log-delivery@databricks-prod-master.iam.gserviceaccount.com
