@@ -26,6 +26,6 @@
     ***REMOVED*** cluster-manager-k8s-sa2@prod-gcp-us-east4.iam.gserviceaccount.com (Google Service Account managing GKE on behalf of customer) &
     ***REMOVED*** us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)
     ***REMOVED*** log delivery SA remains sa irrespective of the region
-    - serviceAccount:cluster-manager-k8s-sa2@prod-gcp-us-east4.iam.gserviceaccount.com
+    - serviceAccount:cluster-manager-k8s-sa@prod-gcp-us-east4.iam.gserviceaccount.com
     - serviceAccount:us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com
     - serviceAccount:log-delivery@databricks-prod-master.iam.gserviceaccount.com
