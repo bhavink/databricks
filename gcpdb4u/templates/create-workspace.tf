@@ -102,7 +102,7 @@ resource "google_project_iam_binding" "databricks_gke_node_role" {
 ***REMOVED*** Initialize provider in "accounts" mode to provision new workspace
 provider "databricks" {
   alias                  = "accounts"
-  host                   = "https://accounts.staging.gcp.databricks.com"
+  host                   = "https://accounts.gcp.databricks.com"
   google_service_account = local.terraform_service_account
   account_id             = var.databricks_account_id
 }
