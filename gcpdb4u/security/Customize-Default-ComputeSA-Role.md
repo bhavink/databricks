@@ -23,12 +23,15 @@ GCP IAM requires roles to be assigned to SA so in order to downscope the default
 
 ### Create service account
 ```
-gcloud iam service-accounts create databricks --description "Databricks SA for VMs" --display-name "databricks" --project <INSERT PROJECT NAME HERE>
+gcloud iam service-accounts create databricks --description "Databricks SA for VMs" \
+--display-name "databricks" --project <INSERT PROJECT NAME HERE>
 ```
 
 ### Grant the minimal set of permissions needed by GKE to the service account
 ```
-gcloud projects add-iam-policy-binding <INSERT PROJECT NAME HERE> --member "serviceAccount:databricks@<INSERT PROJECT NAME HERE>.iam.gserviceaccount.com" --role roles/container.nodeServiceAccount --condition None
+gcloud projects add-iam-policy-binding <INSERT PROJECT NAME HERE> --member \
+"serviceAccount:databricks@<INSERT PROJECT NAME HERE>.iam.gserviceaccount.com" \
+--role roles/container.nodeServiceAccount --condition None
 ```
 
 ### Find the name of the GKE cluster associated with the Workspace
@@ -38,7 +41,8 @@ gcloud container clusters list --filter "name: db-<INSERT WORKSPACE ID HERE>*"
 
 ### Delete the GKE cluster
 ```
-gcloud container clusters delete <INSERT GKE CLUSTER NAME HERE> --region <INSERT GCP REGION FOR WORKSPACE HERE>
+gcloud container clusters delete <INSERT GKE CLUSTER NAME HERE> \
+--region <INSERT GCP REGION FOR WORKSPACE HERE>
 ```
 
 Databricks will recreate a new GKE cluster for this workspace and all new nodes will use the scoped-down databricks service account.
