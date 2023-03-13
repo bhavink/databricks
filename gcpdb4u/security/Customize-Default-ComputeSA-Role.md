@@ -11,16 +11,40 @@ The Compute Engine default service account is created with the IAM project edito
 
 It is better to downscope the role assigned to this default account using gcp cloud shell as show below, please replace {{project-id}} with your project id which happens to be a numerical value
 
-By default when a GKE cluster is created with no service account attached to it, GCP would use the default compute engine SA. Databricks requires the following permissons on the SA used by GKE
+By default when a GKE cluster is created with no service account attached to it, GCP would use the default compute engine SA. Databricks requires the following role on the SA used by GKE
 
-- compute.disks.get
-- compute.disks.setLabels
-- compute.instances.get
-- compute.instances.setLabels
+- roles/container.nodeServiceAccount
 
 GCP IAM requires roles to be assigned to SA so in order to downscope the default compute SA role first we need to
 
-- create a custom role with these permissions
+- create a service account and name it `databricks`
+- it is a must to name service account `databricks`, this way databricks would automatically attach this sa to the GKE at workspace creation or if a GKE exists then you could restart/delete it and upon restart `databricks` SA would be automatically attached to it.
+- Deleting a GKE will terminate any running databricks workloads
+
+***REMOVED******REMOVED******REMOVED*** Create service account
+```
+gcloud iam service-accounts create databricks --description "Databricks SA for VMs" --display-name "databricks" --project <INSERT PROJECT NAME HERE>
+```
+
+***REMOVED******REMOVED******REMOVED*** Grant the minimal set of permissions needed by GKE to the service account
+```
+gcloud projects add-iam-policy-binding <INSERT PROJECT NAME HERE> --member "serviceAccount:databricks@<INSERT PROJECT NAME HERE>.iam.gserviceaccount.com" --role roles/container.nodeServiceAccount --condition None
+```
+
+***REMOVED******REMOVED******REMOVED*** Find the name of the GKE cluster associated with the Workspace
+```
+gcloud container clusters list --filter "name: db-<INSERT WORKSPACE ID HERE>*"
+```
+
+***REMOVED******REMOVED******REMOVED*** Delete the GKE cluster
+```
+gcloud container clusters delete <INSERT GKE CLUSTER NAME HERE> --region <INSERT GCP REGION FOR WORKSPACE HERE>
+```
+
+Databricks will recreate a new GKE cluster for this workspace and all new nodes will use the scoped-down databricks service account.
+
+The default compute engine SA is still required so please do not delete it, you could certainly bring down its priviledges
+
 - remove editor role from the default compute engine SA
 - assign custom role to the default compute engine SA
 
@@ -42,9 +66,9 @@ gcloud projects remove-iam-policy-binding {{project-id}} \
 --role roles/editor
 ```
 
-***REMOVED******REMOVED******REMOVED*** Create custom role
+***REMOVED******REMOVED******REMOVED*** Create custom role for default compute engine SA
 ```
-gcloud iam roles create databricksComputeSA \
+gcloud iam roles create RunDownComputeSA \
 --project {{project-id}} \
 --title "Down scoped role for default compute SA" \
 --description "This role has only the bare minimum permission's required by databricks to set labels on gke resources" \
