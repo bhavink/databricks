@@ -96,10 +96,12 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)
 
 ***REMOVED******REMOVED*** Create Workspace (using Terraform)
-Please follow public [documentation](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace). Here's a sample [TF script](./templates/create-workspace.tf) to deploy a bring your VPC based workspace using T
+Please follow public [documentation](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace). Here's a sample [TF script](./templates/terraform-scripts/create-workspace.tf) to deploy a bring your VPC based workspace using Terraform
 
 There's also few additional script's:
-  * create a [workspace and attach a custom SA](./templates/create-workspace-and-gke-sa.tf) to GKE instead of using default compute engine SA
+  * create a [workspace and attach a custom SA](./templates/terraform-scripts/create-workspace-and-gke-sa.tf) to GKE instead of using default compute engine SA
+  * create a [PSC + CMEK enabled workspace and attach a custom SA](./templates/terraform-scripts/byovpc-psc-cmek-ws). Please note that PSC is in preview, follow [instructions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html***REMOVED***step-1-enable-your-account-for-private-service-connect) to sign up for this feature
+  
 
 ***REMOVED******REMOVED*** Create Workspace (using REST API)
 TODO
