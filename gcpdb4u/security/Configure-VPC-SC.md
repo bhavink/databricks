@@ -94,7 +94,7 @@ We also need to know:
 | Databricks | SA  | [log-delivery@databricks-prod-master.iam.gserviceaccount.com](mailto:log-delivery@databricks-prod-master.iam.gserviceaccount.com) | SA used to delivery audit logs to your storage accout | Ingress |
 | Customer | UP or SA | [abc@company.com](mailto:abc@company.com) or [mysa@cust-project.iam.gserviceaccount.com](mailto:mysa@cust-project.iam.gserviceaccount.com) | Workspace Creation | Ingress |
 
-**VPC SC YAML files**
+***REMOVED******REMOVED*** **VPC SC YAML files**
 
 * [ingress.yaml](./../templates/vpcsc-policy/ingress.yaml) & [egress.yaml](./../templates/vpcsc-policy/egress.yaml)
 
