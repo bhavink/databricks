@@ -94,43 +94,11 @@ We also need to know:
 | Databricks | SA  | [log-delivery@databricks-prod-master.iam.gserviceaccount.com](mailto:log-delivery@databricks-prod-master.iam.gserviceaccount.com) | SA used to delivery audit logs to your storage accout | Ingress |
 | Customer | UP or SA | [abc@company.com](mailto:abc@company.com) or [mysa@cust-project.iam.gserviceaccount.com](mailto:mysa@cust-project.iam.gserviceaccount.com) | Workspace Creation | Ingress |
 
-## Two Step Process
+**VPC SC YAML files**
 
-Configuring VPC SC involves two step process
-*   Ingress and Egress policy at workspace creation
-*   Ingress and Egress policy after the workspace is created
-
-### Ingress Policy At  Workspace Creation:
-
-* Login User Id (Customer Owned, User Principal or SA creating Databricks workspace
-* Consumer Project ID (Customer Owned, GCP Project where Databricks workspace is created)
-* Databricks Project Numbers & Identities - see Table 1 above for your chosen GCP region
-
-Note: when deploying a workspace, irrespective of the GCP region (e.g. europe-west1 or us-east4), the ingress policy at workspace creation needs to contain ingress allowance from both the regional control plane or shard (e.g. europe-west1), as well as Databricks Central Service, this includes both the project number, as well as the service accounts.
-
-### Ingress Policy After Workspace Creation:
-
-* Consumer SA e.g. db-WORKSPACEID@databricks-project.iam.gserviceaccount.com
-* Workspace ID is available only after the workspace is created, for databricks-project please see `Table 1` Identities column > `db-WORKSPACEID@*` above for your chosen GCP region, make sure to substitute WORKSPACEID with your Databricks Workspace ID
-
-Note: As opposed to workspace provisioning (creation step discussed earlier), the rest of the operations i.e after the workspace is created, workspace only require access via the regional control plane, and access from the central service (us-central1) is no longer required.
-
-### Egress Policy
-It remains same during and after the workspace is created except for one difference i.e after the workspace is created we do not need `databricks central service` project and identity in our policy definition.
-
-Note: when deploying a workspace outside of us-central1 (e.g. europe-west1), the egress policy at workspace creation needs to contain egress allowance from both the regional control plane (e.g. europe-west1), as well as Databricks US-Central control plane (always us-central1), this includes the project numbers for both of the regional control plane.
-
-**Sample YAML files**
-
-* Used during workspace creation: [ingress.yaml](./../templates/vpcsc-ingress-policy.yaml) & [egress.yaml](./../templates/vpcsc-egress-policy.yaml)
-* Used after workspace is created: [ingress-updated.yaml](./../templates/vpcsc-ingress-updated-policy.yaml) & [egress-updated.yaml](./../templates/vpcsc-egress-updated-policy.yaml)
+* [ingress.yaml](./../templates/vpcsc-policy/ingress.yaml) & [egress.yaml](./../templates/vpcsc-policy/egress.yaml)
 
 Before you proceed `please make sure to update` policy yaml files with your relevant project numbers and identities
-
-And also update the policy after the workspace is created such that:
-
-* Update identities section to use workspace specific Service Account instead of ANY_SERVICE_ACCOUN
-* Remove calls to google.storage.buckets.create ,  we do not need this after workspace is created.
 
 ## GCLOUD commands
 
@@ -139,7 +107,7 @@ When using gcloud commands we need to use access-context-policy-id, for more det
 |     |     |
 | --- | --- |
 | **Action** | **Gcloud command** |
-| Create Dry Run | gcloud access-context-manager perimeters **dry-run** **create** **\[POLICY_NAME\]** \<br><br>--perimeter-title="svpc\_dbx\_dryrun" --perimeter-resources=projects/**\[shared-vpc-project\]**,projects/**\[workspace-project\]** \<br><br>--perimeter-restricted-services=[storage.googleapis.com](http://storage.googleapis.com),[container.googleapis.com](http://container.googleapis.com),[compute.googleapis.com](http://compute.googleapis.com),[containerregistry.googleapis.com](http://containerregistry.googleapis.com),[logging.googleapis.com](http://logging.googleapis.com),[iam.googleapis.com](http://iam.googleapis.com),[cloudresourcemanager.googleapis.com](http://cloudresourcemanager.googleapis.com) \<br><br>--perimeter-ingress-policies=ingress.yaml \<br><br>--perimeter-egress-policies=egress.yaml \<br><br>--policy=**\[**[**access-context-policy-id**](https://cloud.google.com/vpc-service-controls/docs/service-perimeters#create-access-policy)**\]** --perimeter-type=regular |
+| Create Dry Run | Please see gcloud commands sample [file](./../templates/gcloud-cmds/gcloud-run-book.txt) |
 | Enforce Policy | gcloud access-context-manager perimeters **dry-run** **enforce** **\[POLICY_NAME\]** --policy=**\[**[**access-context-policy-id**](https://cloud.google.com/vpc-service-controls/docs/service-perimeters#create-access-policy)**\]** |
 | List Policies | gcloud access-context-manager perimeters list --format=yaml --policy=**\[**[**access-context-policy-id**](https://cloud.google.com/vpc-service-controls/docs/service-perimeters#create-access-policy)**\]** |
 | Delete Policy | gcloud access-context-manager perimeters delete **\[POLICY_NAME\]** --policy=**\[**[**access-context-policy-id**](https://cloud.google.com/vpc-service-controls/docs/service-perimeters#create-access-policy)**\]** |
@@ -149,7 +117,7 @@ When using gcloud commands we need to use access-context-policy-id, for more det
 
 ## During workspace creation, Why do we need to use ANY_SERVICE_ACCOUNT in order to create databricks workspace specific buckets?
 
-At ws creation we create two storage buckets:
+At ws creation Databricks create's two storage buckets:
 
 `projects/[cust-project-id]/buckets/databricks-[workspace-id]`
 
