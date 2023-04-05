@@ -1,0 +1,19 @@
+- egressTo:
+    operations:
+    - serviceName: storage.googleapis.com
+      methodSelectors:
+      - method: 'google.storage.objects.list'
+      - method: 'google.storage.buckets.testIamPermissions'
+      - method: 'google.storage.objects.get'
+      - method: 'google.storage.objects.create'
+    - serviceName: containerregistry.googleapis.com
+      methodSelectors:
+      - method: 'containers.registry.read'
+    resources:
+    # Databricks owned projects(target) to which egress traffic from your project(source) is allowed to
+    # multiple entries could be added with additional - projects/project_number entries
+    - projects/643670579914 #databricks global runtime artifact
+    - projects/68422481410 #databricks regional control plane
+
+  egressFrom:
+    identityType: ANY_IDENTITY

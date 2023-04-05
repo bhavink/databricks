@@ -1,0 +1,63 @@
+- ingressFrom:
+    identityType: ANY_IDENTITY
+    sources:
+    # Databricks GCP projects
+    # if you are creating workspace in a region other then us-central1 then you would need to add one
+    # more project, this would be databricks regional control plane project where you plan to create the workspace
+    # please refer https://docs.gcp.databricks.com/resources/supported-regions.html#private-service-connect-psc-attachment-uris-and-project-numbers
+    # to get your regional control plane project number 
+    # following projects are required irrespective of the region you use to create workspace
+    - resource: projects/68422481410 #global - databricks control plane central project
+    - resource: projects/85638097580 #global - databricks audit-log delivery
+    # following projects are tied to your region
+    - resource: projects/121886670913 #regional - e.g. databricks us-east4 control plane project
+    - resource: projects/683414710976 #regional - e.g. databricks us-east4 unity catalog regional project
+  ingressTo:
+    operations:
+    - methodSelectors:
+      - method: 'NetworksService.Get'
+      - method: 'ProjectsService.Get'
+      - method: 'RegionsService.Get'
+      - method: 'SubnetworksService.Get'
+      - method: 'ZonesService.Get'
+      - method: 'RegionForwardingRulesService.Get'
+      - method: 'SubnetworksService.GetPolicy'
+      serviceName: compute.googleapis.com
+    - methodSelectors:
+      - method: 'google.storage.objects.list'
+      - method: 'google.storage.objects.get'
+      - method: 'google.storage.objects.delete'
+      - method: 'google.storage.objects.create'
+      # buckets.create is required for DBFS storage creation
+      - method: 'google.storage.buckets.create'
+      - method: 'google.storage.buckets.testIamPermissions'
+      - method: 'google.storage.buckets.get'
+      serviceName: storage.googleapis.com
+    - methodSelectors:
+    # at the time of writing container api does not support method level filtering
+      - method: '*'
+      serviceName: container.googleapis.com
+    - methodSelectors:
+      - method: '*'
+      serviceName: logging.googleapis.com
+    - methodSelectors:
+    # at the time of writing we were not able to find the exact syntax for adding method level filtering for resourcemanager api
+    # here's a list of methods that are used 
+    #  - method: Projects.SetIamPolicy
+    #  - method: Projects.GetIamPolicy
+    #  - method: Projects.TestIamPermissions
+    #  - method: Projects.Get
+      - method: '*' 
+      serviceName: cloudresourcemanager.googleapis.com
+    - methodSelectors:
+      - method: 'IAM.CreateRole'
+      - method: 'IAM.DeleteRole'
+      - method: 'IAM.GetIamPolicy'
+      - method: 'IAM.GetRole'
+      - method: 'IAM.SetIamPolicy'
+      - method: 'IAM.UpdateRole'
+      serviceName: iam.googleapis.com
+    resources:
+    # customer project
+    - projects/546577047680 #host aka vpc project
+    - projects/123017924230 #service
