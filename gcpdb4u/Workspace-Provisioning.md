@@ -42,7 +42,7 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 ***REMOVED******REMOVED*** Subnet CIDR ranges
 
 
-| Network resource or attribute   |      Description      |  Range |
+| Network resource or attribute   | Description      | Range |
 |----------|:-------------:|------:|
 | Primary subnet |  GKE cluster nodes | between /29 to /9 |
 | Secondary range for GKE pods |    GKE pods   |   between /21 to /9 |
