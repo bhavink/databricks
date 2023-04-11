@@ -41,37 +41,13 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 
 ## Subnet CIDR ranges
 
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Network resource or attribute</p></th>
-<th class="head"><p>Description</p></th>
-<th class="head"><p>Valid range</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Subnet</p></td>
-<td><p>Your VPC’s IP range from which to allocate your workspace’s GKE cluster nodes.</p></td>
-<td><p>The range from <code class="docutils literal notranslate"><span class="pre">/29</span></code> to <code class="docutils literal notranslate"><span class="pre">/9</span></code>.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Secondary range for GKE pods</p></td>
-<td><p>Your VPC’s IP range from which to allocate your workspace’s GKE cluster pods.</p></td>
-<td><p>The range from <code class="docutils literal notranslate"><span class="pre">/21</span></code> to <code class="docutils literal notranslate"><span class="pre">/9</span></code>.</p></td>
-</tr>
-<tr class="row-even"><td><p>Secondary range for GKE Services</p></td>
-<td><p>Your VPC’s IP range from which to allocate your workspace’s GKE cluster services.</p></td>
-<td><p>The range from <code class="docutils literal notranslate"><span class="pre">/27</span></code> to <code class="docutils literal notranslate"><span class="pre">/16</span></code>.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Region</p></td>
-<td><p>Region of the VPC.</p></td>
-<td><p>Your VPC’s region must match your workspace’s <a class="reference internal" href="regions.html"><span class="doc">supported region</span></a>.</p></td>
-</tr>
-</tbody>
-</table>
+
+| Network resource or attribute   |      Description      |  Range |
+|----------|:-------------:|------:|
+| Primary subnet |  GKE cluster nodes | between /29 to /9 |
+| Secondary range for GKE pods |    GKE pods   |   between /21 to /9 |
+| Secondary range for GKE Services | GKE services |    between /27 to /16 |
+| Region | VPC Region |    [Workspace and VPC region](https://github.com/bhavink/databricks/blob/master/gcpdb4u/regions.html) must match |
 
 ## Recommendation
 
