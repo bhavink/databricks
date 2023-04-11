@@ -1,16 +1,18 @@
-databricks_account_id = "e11exxxxxxxxxxxx21612" #prod
+# databricks_account_id     = "9fcbb245-7c44-4522-9870-e38324104cf8" #staging
+# databricks_account_console_url = "https://accounts.staging.gcp.databricks.com"
+
+databricks_account_id = "<databricks_account_id>" #prod
 databricks_account_console_url = "https://accounts.gcp.databricks.com" #prod
 
-databricks_workspace_name = "labs-byovpc-ws1"
-databricks_admin_user = "bhavin.kukadia@databricks.com" 
+databricks_workspace_name = "labs-psc-ws1"
+databricks_admin_user = "user@dcompany.com" 
 
+google_vpc_id = "databricks-vpc-xpn"
+gke_node_subnet = "node-subnet"
+gke_pod_subnet = "pod-subnet"
+gke_service_subnet = "service-subnet"
+gke_master_ip_range = "10.32.0.0/28" # fixed size of /28
 
-google_shared_vpc_project = "bk-demo-host-prj"
-google_vpc_id = "psc-vpc-svc-prj2-xpn"
-gke_node_subnet = "node-subnet4"
-gke_pod_subnet = "pod-subnet4"
-gke_service_subnet = "service-subnet4"
-gke_master_ip_range = "10.33.0.0/28" # needs to be /28
 
 
 
