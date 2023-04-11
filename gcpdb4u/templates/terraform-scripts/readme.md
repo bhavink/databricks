@@ -1,7 +1,7 @@
 # Terraform examples
 
 ### BYO VPC workspace
-[sample](../byovpc-ws/workspace.tf)
+[sample](../terraform-scripts/byovpc-ws/workspace.tf)
 ### BYO VPC + PSC workspace
 [sample](../byovpc-psc-ws/workspace.tf)
 ### BYO VPC + PSC + CMEK workspace
