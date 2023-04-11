@@ -38,7 +38,3 @@ workspace_service_attachment = "projects/prod-gcp-us-central1/regions/us-central
 ***REMOVED*** DNS Configs
 private_zone_name  = "databricks"
 dns_name = "gcp.databricks.com." ***REMOVED***trailing dot(.) is required
-
-
-***REMOVED*** Only required if you are using CMEK
-cmek_resource_id = "projects/<gcp_project>/locations/<gcp_region>/keyRings/<keyring_name>/cryptoKeys/<key_name>"

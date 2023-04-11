@@ -1,18 +1,12 @@
-databricks_account_id = "e11exxxxxxxxxxxx21612" ***REMOVED***prod
+databricks_account_id = "<databricks_account_id>" ***REMOVED***prod
 databricks_account_console_url = "https://accounts.gcp.databricks.com" ***REMOVED***prod
 
-databricks_workspace_name = "labs-byovpc-cmek-ws1"
-databricks_admin_user = "bhavin.kukadia@databricks.com" 
+databricks_workspace_name = "labs-psc-ws1"
+databricks_admin_user = "user@dcompany.com" 
 
-google_shared_vpc_project = "bk-demo-host-prj"
-google_vpc_id = "psc-vpc-svc-prj2-xpn"
-gke_node_subnet = "node-subnet5"
-gke_pod_subnet = "pod-subnet5"
-gke_service_subnet = "service-subnet5"
-gke_master_ip_range = "10.40.0.0/28" ***REMOVED*** needs to be /28
-
-cmek_resource_id = "projects/bk-demo-service-prj2/locations/us-central1/keyRings/databricks-keyring/cryptoKeys/databricks-cmek"
-
-
-
-
+google_vpc_id = "databricks-vpc-xpn"
+gke_node_subnet = "node-subnet"
+gke_pod_subnet = "pod-subnet"
+gke_service_subnet = "service-subnet"
+gke_master_ip_range = "10.32.0.0/28" ***REMOVED*** fixed size of /28
+cmek_resource_id = "projects/<gcp_project>/locations/<gcp_region>/keyRings/<keyring_name>/cryptoKeys/<key_name>"

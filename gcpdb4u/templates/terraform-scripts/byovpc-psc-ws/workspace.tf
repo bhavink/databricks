@@ -7,7 +7,6 @@ variable "gke_node_subnet" {}
 variable "gke_pod_subnet" {}
 variable "gke_service_subnet" {}
 variable "gke_master_ip_range" {}
-variable "cmek_resource_id" {}
 variable "google_pe_subnet" {}
 variable "workspace_pe" {}
 variable "relay_pe" {}
@@ -48,14 +47,6 @@ resource "google_project_iam_binding" "databricks_gke_node_role" {
   ]
 }
 
-resource "databricks_mws_customer_managed_keys" "this" {
-        provider = databricks.accounts
-				account_id   = var.databricks_account_id
-				gcp_key_info {
-					kms_key_id   = var.cmek_resource_id
-				}
-				use_cases = ["STORAGE"]
-			}
 
 ***REMOVED*** Random suffix for databricks network and workspace
 resource "random_string" "databricks_suffix" {
@@ -164,7 +155,6 @@ resource "databricks_mws_workspaces" "databricks_workspace" {
     connectivity_type = "PRIVATE_NODE_PUBLIC_MASTER"
     master_ip_range   = var.gke_master_ip_range
   }
-  storage_customer_managed_key_id = databricks_mws_customer_managed_keys.this.customer_managed_key_id
 }
 
 
