@@ -1,4 +1,4 @@
 
 gcpdb4u/templates/.DS_Store
 .DS_Store
-.tfstate
+*.tfstate
