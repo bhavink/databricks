@@ -21,9 +21,7 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
   * Yes, as long as you do not use existing subnets being used by databricks.
 * Supported IP Address Range?
   * `10.0.0.0/8`, `100.64.0.0/10`, `172.16.0.0/12`, `192.168.0.0/16`, and `240.0.0.0/4`
-* Is there a VPC/Subnet sizing guide or calculator?
-  * Yes, please try [this](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/network-sizing.html).
-* User creating the workspace is automatically added to the workspace as an admin.
+* User/Service Account creating the workspace is automatically added to the workspace as an admin.
 
 ***REMOVED******REMOVED*** Quick sizing guideline
 
@@ -37,7 +35,7 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 | Nodes subnet size   /20, Pods subnet size    /15, Services subnet size    /21 |            2000           |
 | Nodes subnet size   /19, Pods subnet size    /14, Services subnet size    /20 |            4000           |
 
-
+Total Nodes Per Workspace = Total number of concurrent nodes (compyte instances) supported by the workspace at a given point in time.
 
 ***REMOVED******REMOVED*** Subnet CIDR ranges
 
@@ -56,7 +54,9 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 * Use Customer Managed VPC
 * Enable [Private Google Access](./security/Configure-PrivateGoogleAccess.md) on your vpc
 * Double check DNS is properly configured to resolve to restricted.googleapis.com correctly (part of private google access configuration)
-* Verify that VPC has an egress path to databricks control plane and managed hive metastore, this is typically achieved by attaching a Cloud NAT to your VPC.
+* Please verify that VPC:
+  * For a non PSC workspace: has an egress path to databricks control plane and managed hive metastore, this is typically achieved by attaching a Cloud NAT to your VPC.
+  * For a PSC enabled workspace: make sure that the private DNS for Databricks is configured properly and has the required A records for fontend and backend PSC endpoints.
 * If your Google Cloud organization policy enables domain restricted sharing, ensure that both the Google Cloud customer IDs for Databricks (C01p0oudw) and your own organization’s customer ID are in the policy’s allowed list.
 * Please make sure that you are allowed to: 
   * Create GCP resources (GKE/GCS)
@@ -74,7 +74,7 @@ Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-
 ***REMOVED******REMOVED*** Create Workspace (using Terraform)
 Please follow public [documentation](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace). Here's a few sample [TF script](./templates/terraform-scripts/readme.md) to deploy a bring your VPC based workspace using Terraform
 
-* create a [PSC + CMEK enabled workspace and attach a custom SA](./templates/terraform-scripts/byovpc-psc-cmek-ws). Please note that PSC is in preview, follow [instructions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html***REMOVED***step-1-enable-your-account-for-private-service-connect) to sign up for this feature
+* create a [PSC + CMEK enabled workspace and attach a custom SA](./templates/terraform-scripts/byovpc-psc-cmek-ws). Please note that PSC and CMEK is in preview, follow [instructions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html***REMOVED***step-1-enable-your-account-for-private-service-connect) to sign up for this feature
   
 ***REMOVED******REMOVED*** Validate setup
 - Create a Databricks cluster to validate n/w setup
