@@ -8,31 +8,31 @@ grant projectEditor and IAMAdmin role on service project i.e. where the workspac
 
 ### Create Databricks custom role for ws creation
 gcloud iam roles create DatabricksCustomRole \
-    --project=bk-demo-service-prj2 \
+    --project=<GCP-Project> \
     --title="Databricks Custom Role" \
     --description="Purpose built role for workspace provisioning" \
     --permissions=iam.serviceAccounts.getIamPolicy,iam.serviceAccounts.setIamPolicy,iam.roles.create,iam.roles.delete,iam.roles.get,iam.roles.update,resourcemanager.projects.get,resourcemanager.projects.getIamPolicy,resourcemanager.projects.setIamPolicy,serviceusage.services.get,serviceusage.services.list,serviceusage.services.enable,compute.networks.get,compute.projects.get,compute.subnetworks.get
 
 ### Grant custom role to your service account
-gcloud projects add-iam-policy-binding bk-demo-service-prj2 \
-    --member="serviceAccount:automation-sa@bk-demo-service-prj2.iam.gserviceaccount.com" \
+gcloud projects add-iam-policy-binding <GCP-Project> \
+    --member="serviceAccount:automation-sa@<GCP-Project>.iam.gserviceaccount.com" \
     --role="roles/DatabricksCustomRole"
 
 ### Grant viewer role to the automation SA on the shared vpc project
 gcloud projects add-iam-policy-binding bk-demo-host-prj \
-    --member="serviceAccount:automation-sa@bk-demo-service-prj2.iam.gserviceaccount.com" \
+    --member="serviceAccount:automation-sa@<GCP-Project>.iam.gserviceaccount.com" \
     --role="roles/viewer"
 
 ### List roles assigned to automation SA on service project
-gcloud projects get-iam-policy bk-demo-service-prj2 \
+gcloud projects get-iam-policy <GCP-Project> \
     --flatten="bindings[].members" \
-    --filter="bindings.members:serviceAccount:automation-sa@bk-demo-service-prj2.iam.gserviceaccount.com" \
+    --filter="bindings.members:serviceAccount:automation-sa@<GCP-Project>.iam.gserviceaccount.com" \
     --format="table(bindings.role)"
 
 ### List roles assigned to automation SA on host project
 gcloud projects get-iam-policy bk-demo-host-prj \
     --flatten="bindings[].members" \
-    --filter="bindings.members:serviceAccount:automation-sa@bk-demo-service-prj2.iam.gserviceaccount.com" \
+    --filter="bindings.members:serviceAccount:automation-sa@<GCP-Project>.iam.gserviceaccount.com" \
     --format="table(bindings.role)"
 
 ### On your local system where you plan to run terraform
@@ -106,13 +106,13 @@ gcloud kms keys list --location=us-central1 --keyring=databricks-keyring
 gcloud kms keys add-iam-policy-binding databricks-cmek \
   --location us-central1 \
   --keyring databricks-keyring \
-  --member serviceAccount:automation-sa@bk-demo-service-prj2.iam.gserviceaccount.com \
+  --member serviceAccount:automation-sa@<GCP-Project>.iam.gserviceaccount.com \
   --role roles/cloudkms.admin
 
 gcloud kms keys add-iam-policy-binding databricks-cmek \
   --location us-central1 \
   --keyring databricks-keyring \
-  --member serviceAccount:automation-sa@bk-demo-service-prj2.iam.gserviceaccount.com \
+  --member serviceAccount:automation-sa@<GCP-Project>.iam.gserviceaccount.com \
   --role roles/cloudkms.viewer
 
 
