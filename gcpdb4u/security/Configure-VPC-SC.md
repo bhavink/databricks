@@ -16,7 +16,7 @@ With VPC Service Controls, you create perimeters that protect the resources and 
 
 * Data cannot be copied to unauthorized resources outside the perimeter using service operations such as gsutil cp or bq mk.
 
-* When enabled, internet access to resources within a perimeter is restricted using whitelisted IPv4 and IPv6 ranges.
+* When enabled, internet access to resources within a perimeter is restricted using allowlisted IPv4 and IPv6 ranges.
 
 VPC Service Controls provides an additional layer of security defense for Google Cloud services that is independent of Identity and Access Management (IAM). While IAM enables granular identity-based access control, VPC Service Controls enables broader context-based perimeter security, including controlling data egress across the perimeter. We recommend using both VPC Service Controls and IAM for defense in depth.
 
@@ -50,38 +50,36 @@ We will be using the following terms, let’s understand them a bit better befor
 * `Consumer SA` = A GCP Service Account for the new workspace is created in the Databricks regional control plane project. We use the login user’s (workspace creator) OAuth token to grant the Consumer SA with sufficient permissions to setup and operate Databricks workspaces in the customer’s consumer (GCP) project. Consumer SA follow’s `db-WORKSPACEID@databricks-project.iam.gserviceaccount.com` naming convention. Workspace ID is generated as part of the workspace creation process.
   `example: db-1030565636556919@prod-gcp-us-central1.iam.gserviceaccount.com`
 
-* `Databricks Owned GCP Projects` = There are several GCP projects involved, one each for `Databricks Regional Control Plane`, `Databricks Central Service` (required during workspace creation only), `Databricks audit log delivery` and `Databricks Artifacts` (runtime image) Repository.
+* `Databricks Owned GCP Projects` = There are several GCP projects involved, one each for `Databricks Regional Control Plane`, `Databricks Central Service` (required during workspace creation only), `Databricks audit log delivery` , `Databricks Unity Catalog` and `Databricks Artifacts` (runtime image) Repository.
 
-* `Databricks Owned GCP Projects Identities` = There are three GCP Service Accounts in use, for ex: US East4 we have: 
+* `Databricks Control Plane IP` = Source IP from where requests into your GCP projects are originating. You may want to configure [Access Context Level](https://cloud.google.com/access-context-manager/docs/create-access-level) so that only requests coming from Databricks control plane is allowed into your GCP project, please follow [this](https://docs.gcp.databricks.com/resources/supported-regions.html#ip-addresses-and-domains) document for regional Control Plane NAT IPs
+
+* `Databricks Owned GCP Projects Identities` = Following GCP Service Accounts are in use, for ex: for US East4 we have: 
   * `cluster-manager-k8s-sa@prod-gcp-us-east4.iam.gserviceaccount.com`
   * `cluster-manager-k8s-sa@prod-gcp-us-central1.iam.gserviceaccount.com` (only required during workspace creation)
   * `us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com`
   * `log-delivery@databricks-prod-master.iam.gserviceaccount.com`
+  * `db-uc-storage-UUID@uc-useast4.iam.gserviceaccount.com` (only applies if you use unity catalog, automatically created upon unity catalog initialization)
 
-## List of Databricks Regional Projects and Identities
+* Databricks owned Google Service Accounts naming pattern
+  * `cluster-manager-k8s-sa@<prod-regional-project>.iam.gserviceaccount.com`
+  * `cluster-manager-k8s-sa@<prod-regional-project>.iam.gserviceaccount.com`
+  * `us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com`
+  * `log-delivery@databricks-prod-master.iam.gserviceaccount.com`
+  * `db-uc-storage-UUID@<uc-prod-regional-project>.iam.gserviceaccount.com`
 
-**Table1**
+A list of Databricks project numbers is listed over [here](https://docs.gcp.databricks.com/resources/supported-regions.html#private-service-connect-psc-attachment-uris-and-project-numbers)
 
-|     |     |     |
-| --- | --- | --- |
-| **GCP Region** | **Project Number** | **Identities** |
-| asia-southeast1 | Shard: 163855694937 & 68422481410  Artifact: 643670579914  AuditLogDelivery: 85638097580 | <ul><li> cluster-manager-k8s-sa@prod-gcp-**asia-southeast1**.iam.gserviceaccount.com (Shard SA)  </li><li>cluster-manager-k8s-sa@prod-gcp-**us-central1**.iam.gserviceaccount.com (Backend Service SA) </li> <li> **log-delivery**@databricks-prod-master.iam.gserviceaccount.com (Audit Log Delivery Service Account)</li>  <li>**as-gcr-access-sa**@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)</li>  <li>db-**WORKSPACEID**@prod-gcp-**asia-southeast1**.iam.gserviceaccount.com (Consumer SA)</li> </ul> |
-| australia-southeast1 | Shard: 890675851652 & 68422481410  Artifact: 643670579914  AuditLogDelivery: 85638097580 | <ul><li> cluster-manager-k8s-sa@prod-gcp-**australia-southeast1**.iam.gserviceaccount.com (Shard SA) </li><li> cluster-manager-k8s-sa@prod-gcp-**us-central1**.iam.gserviceaccount.com (Backend Service SA) </li><li> **log-delivery**@databricks-prod-master.iam.gserviceaccount.com (Audit Log Delivery Service Account) </li><li> **au-gcr-access-sa**@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account) </li><li> db-**WORKSPACEID**@prod-gcp-**australia-southeast1**.iam.gserviceaccount.com (Consumer SA)</li></ul> |
-| europe-west1 | Shard: 623104702041 & 68422481410  Artifact: 643670579914  AuditLogDelivery: 85638097580 | <ul><li>cluster-manager-k8s-sa@prod-gcp-**europe-west1**.iam.gserviceaccount.com (Shard SA) </li><li> cluster-manager-k8s-sa@prod-gcp-**us-central1**.iam.gserviceaccount.com (Backend Service SA) </li><li> **log-delivery**@databricks-prod-master.iam.gserviceaccount.com (Audit Log Delivery Service Account)</li><li>  **eu-gcr-access-sa**@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account) </li><li> db-**WORKSPACEID**@prod-gcp-**europe-west1**.iam.gserviceaccount.com (Consumer SA)</li></ul> |
-| europe-west2 | Shard: 204760216014 & 68422481410  Artifact: 643670579914  AuditLogDelivery: 85638097580 | <ul><li>cluster-manager-k8s-sa@prod-gcp-**europe-west2**.iam.gserviceaccount.com (Shard SA) </li><li> cluster-manager-k8s-sa@prod-gcp-**us-central1**.iam.gserviceaccount.com (Backend Service SA) </li><li> **log-delivery**@databricks-prod-master.iam.gserviceaccount.com (Audit Log Delivery Service Account) </li><li> **eu-gcr-access-sa**@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account) </li><li> db-**WORKSPACEID**@prod-gcp-**europe-west2**.iam.gserviceaccount.com (Consumer SA)</li></ul> |
-| europe-west3 | Shard: 622303457766 & 68422481410  Artifact: 643670579914  AuditLogDelivery: 85638097580 | <ul><li>cluster-manager-k8s-sa@**prod-gcp-europe-west3**.iam.gserviceaccount.com (Shard SA) </li><li> cluster-manager-k8s-sa@prod-gcp-**us-central1**.iam.gserviceaccount.com (Backend Service SA) </li><li> **log-delivery**@databricks-prod-master.iam.gserviceaccount.com (Audit Log Delivery Service Account) </li><li> **eu-gcr-access-sa@**@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account) </li><li> db-**WORKSPACEID**@prod-gcp-**europe-west3**.iam.gserviceaccount.com (Consumer SA)</li></ul> |
-| us-central1 | Shard: 68422481410 & 68422481410  Artifact: 643670579914  AuditLogDelivery: 85638097580 | <ul><li>cluster-manager-k8s-sa@prod-gcp-**us-central1**.iam.gserviceaccount.com (Shard & Backend Service SA) </li><li> **log-delivery**@databricks-prod-master.iam.gserviceaccount.com (Audit Log Delivery Service Account) </li><li> **us-gcr-access-sa**@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account) </li><li>  db-**WORKSPACEID**@prod-gcp-**us-central1**.iam.gserviceaccount.com (Consumer SA) </li></ul> |
-| us-east1 | Shard: 51066298900 & 68422481410  Artifact: 643670579914  AuditLogDelivery: 85638097580 | <ul><li>cluster-manager-k8s-sa@prod-gcp-**us-east1**.iam.gserviceaccount.com (Shard SA) </li><li> cluster-manager-k8s-sa@prod-gcp-**us-central1**.iam.gserviceaccount.com (Backend Service SA) </li><li> **log-delivery**@databricks-prod-master.iam.gserviceaccount.com (Audit Log Delivery Service Account) </li><li> **us-gcr-access-sa**@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account) </li><li> db-**WORKSPACEID**@prod-gcp-**us-east1**.iam.gserviceaccount.com (Consumer SA) </li></ul> |
-| us-east4 | Shard: 121886670913 & 68422481410  Artifact: 643670579914  AuditLogDelivery: 85638097580 | <ul><li>cluster-manager-k8s-sa@prod-gcp-**us-east4**.iam.gserviceaccount.com (Shard SA) </li><li> cluster-manager-k8s-sa@prod-gcp-**us-central1**.iam.gserviceaccount.com (Backend Service SA) </li><li> **log-delivery**@databricks-prod-master.iam.gserviceaccount.com (Audit Log Delivery Service Account) </li><li> **us-gcr-access-sa**@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)</li><li>  db-**WORKSPACEID**@prod-gcp-**us-east4**.iam.gserviceaccount.com (Consumer SA) </li></ul> |
-| us-west1 | Shard: 646990673688 & 68422481410  Artifact: 643670579914  AuditLogDelivery: 85638097580 | <ul><li>cluster-manager-k8s-sa@prod-gcp-**us-west1**.iam.gserviceaccount.com (Shard SA) </li><li> cluster-manager-k8s-sa@prod-gcp-**us-central1**.iam.gserviceaccount.com (Backend Service SA) </li><li> **log-delivery**@databricks-prod-master.iam.gserviceaccount.com (Audit Log Delivery Service Account) </li><li> **us-gcr-access-sa**@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)</li><li> db-**WORKSPACEID**@prod-gcp-**us-west1**.iam.gserviceaccount.com (Consumer SA) </li></ul> |
-| us-west4 | Shard: 321004414578 & 68422481410  Artifact: 643670579914 | <ul><li> cluster-manager-k8s-sa@prod-gcp-**us-west4**.iam.gserviceaccount.com (Shard SA) </li><li> cluster-manager-k8s-sa@prod-gcp-**us-central1**.iam.gserviceaccount.com (Backend Service SA) </li><li> **log-delivery**@databricks-prod-master.iam.gserviceaccount.com (Audit Log Delivery Service Account) </li><li> **us-gcr-access-sa**@databricks-prod-artifacts.iam.gserviceaccount.com (GCR Service Account)</li><li>  db-**WORKSPACEID**@prod-gcp-**us-west4**.iam.gserviceaccount.com (Consumer SA) </li></ul> |
+* Steps to configure the perimeter
+  * First create access level using Access Context Manager which would allow requests originating from control plane NAT ip into your projects
+  * Create perimeter as per the yaml spec
+  * As the per workspace service account aka `Consumer SA` is created at workspace creation, I would suggest that you use access level + allow calls using ANY_IDENTITY rather than locking down your VPC SC ingress rules for specific SA.
 
+Here's a bit more info on identities being used:
 
-We also need to know:
+* Ingress & Egress (calls made into/outof customers GCP project from databricks GCP projects)
 
-* Ingress & Egress (calls made into customers GCP project from databricks GCP projects)
-
-* Databricks managed GCP identities (see Table 1 above , Service Accounts)
+* Databricks managed GCP identities (see Table above , Service Accounts)
 
 * Google API’s and Methods invoked
 
@@ -115,9 +113,9 @@ When using gcloud commands we need to use access-context-policy-id, for more det
 
 # Troubleshooting
 
-## During workspace creation, Why do we need to use ANY_SERVICE_ACCOUNT in order to create databricks workspace specific buckets?
+## Why do we need to use ANY_SERVICE_ACCOUNT in the policy?
 
-At ws creation Databricks create's two storage buckets:
+At ws creation Databricks create's two storage buckets for [DBFS](https://docs.gcp.databricks.com/dbfs/index.html):
 
 `projects/[cust-project-id]/buckets/databricks-[workspace-id]`
 
