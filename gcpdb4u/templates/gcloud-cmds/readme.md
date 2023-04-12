@@ -170,7 +170,7 @@ gcloud access-context-manager perimeters dry-run create 'accessPolicies/<YOUR PO
   --perimeter-restricted-services=cloudresourcemanager.googleapis.com,compute.googleapis.com,container.googleapis.com,containerregistry.googleapis.com,iam.googleapis.com,storage.googleapis.com \
   --perimeter-ingress-policies=ingress.yaml \
   --perimeter-egress-policies=egress.yaml \
-  --perimeter-access-levels='accessPolicies/1075567926800/accessLevels/prod_access_policy' \
+  --perimeter-access-levels='accessPolicies/<YOUR POLICY ID>/accessLevels/prod_access_policy' \
   --perimeter-vpc-allowed-services=RESTRICTED-SERVICES \
   --policy=<YOUR POLICY ID>
 ```
