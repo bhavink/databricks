@@ -87,15 +87,9 @@ data "databricks_group" "admins" {
 resource "databricks_user" "me" {
   depends_on = [ databricks_mws_workspaces.databricks_workspace ]
   provider   = databricks.workspace
-  user_name  = data.google_client_openid_userinfo.me.email
+  user_name  = var.databricks_admin_user
 }
 
-resource "databricks_group_member" "allow_me_to_login" {
-  depends_on = [ databricks_mws_workspaces.databricks_workspace ]
-  provider   = databricks.workspace
-  group_id   = data.databricks_group.admins.id
-  member_id  = databricks_user.me.id
-}
 
 output "workspace_url" {
   value = databricks_mws_workspaces.databricks_workspace.workspace_url
