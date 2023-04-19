@@ -2,7 +2,6 @@ variable "databricks_account_id" {}
 variable "databricks_account_console_url" {}
 variable "databricks_workspace_name" {}
 variable "databricks_admin_user" {}
-variable "google_shared_vpc_project" {}
 variable "google_vpc_id" {}
 variable "gke_node_subnet" {}
 variable "gke_pod_subnet" {}
