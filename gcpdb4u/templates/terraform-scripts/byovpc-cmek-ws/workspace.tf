@@ -40,7 +40,7 @@ resource "databricks_mws_customer_managed_keys" "this" {
 				gcp_key_info {
 					kms_key_id   = var.cmek_resource_id
 				}
-				use_cases = ["STORAGE"]
+				use_cases = ["STORAGE","MANAGED"]
 			}
 
 ***REMOVED*** Random suffix for databricks network and workspace
