@@ -9,4 +9,9 @@ gke_node_subnet = "node-subnet"
 gke_pod_subnet = "pod-subnet"
 gke_service_subnet = "service-subnet"
 gke_master_ip_range = "10.32.0.0/28" ***REMOVED*** fixed size of /28
-cmek_resource_id = "projects/<gcp_project>/locations/<gcp_region>/keyRings/<keyring_name>/cryptoKeys/<key_name>"
+
+***REMOVED*** if you are bringing pre-created key then uncomment the following line and update it with your key resource id
+***REMOVED*** for more details on customer managed keys please refer to https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html
+***REMOVED*** we will be using same key for managed and unmanaged services encryption.
+
+***REMOVED*** cmek_resource_id = "projects/<gcp_project>/locations/<gcp_region>/keyRings/<keyring_name>/cryptoKeys/<key_name>"

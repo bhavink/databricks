@@ -16,7 +16,6 @@ variable "workspace_pe_ip_name" {}
 variable "relay_service_attachment" {}
 variable "workspace_service_attachment" {}
 
-
 data "google_client_openid_userinfo" "me" {}
 data "google_client_config" "current" {}
 
@@ -34,10 +33,6 @@ resource "google_service_account" "databricks" {
     display_name = "Databricks SA for GKE nodes"
     project = var.google_project_name
 }
-output "service_account" {
-    value       = google_service_account.databricks.email
-    description = "Default SA for GKE nodes"
-}
 
 ***REMOVED*** ***REMOVED*** assign role to the gke default SA
 resource "google_project_iam_binding" "databricks_gke_node_role" {
@@ -54,7 +49,11 @@ resource "databricks_mws_customer_managed_keys" "this" {
 				gcp_key_info {
 					kms_key_id   = var.cmek_resource_id
 				}
-				use_cases = ["STORAGE","MANAGED_SERVICES"]
+				use_cases = ["STORAGE","MANAGED"]
+
+        lifecycle {
+          ignore_changes = all
+        }
 			}
 
 ***REMOVED*** Random suffix for databricks network and workspace
@@ -113,7 +112,7 @@ resource "databricks_mws_private_access_settings" "pas" {
 
   */
 
-  public_access_enabled        = true        ***REMOVED***false
+  public_access_enabled        = false        ***REMOVED***false
   
   /*
   Private access level: A specification to restrict access to only authorized Private Service Connect connections. 
@@ -178,8 +177,9 @@ data "databricks_group" "admins" {
 resource "databricks_user" "me" {
   depends_on = [ databricks_mws_workspaces.databricks_workspace ]
   provider   = databricks.workspace
-  user_name  = data.google_client_openid_userinfo.me.email
+  user_name  = var.databricks_admin_user //data.google_client_openid_userinfo.me.email
 }
+
 
 resource "databricks_group_member" "allow_me_to_login" {
   depends_on = [ databricks_mws_workspaces.databricks_workspace ]
@@ -202,7 +202,6 @@ resource "databricks_ip_access_list" "this" {
   label = "allow corp vpn1"
   list_type = "ALLOW"
   ip_addresses = [
-    "0.0.0.0",
     "69.174.135.244",
     "165.225.0.0/17",
     "185.46.212.0/22",
@@ -220,6 +219,9 @@ resource "databricks_ip_access_list" "this" {
     ]
 
 }
+output "service_account" {
+    value       = "Default SA attached to GKE nodes ${google_service_account.databricks.email}"
+}
 
 output "workspace_url" {
   value = databricks_mws_workspaces.databricks_workspace.workspace_url
@@ -232,4 +234,3 @@ output "ingress_firewall_enabled" {
 output "ingress_firewall_ip_allowed" {
   value = databricks_ip_access_list.this.ip_addresses
 }
-

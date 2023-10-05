@@ -8,12 +8,22 @@ variable "gke_node_subnet" {}
 variable "gke_pod_subnet" {}
 variable "gke_service_subnet" {}
 variable "gke_master_ip_range" {}
-variable "cmek_resource_id" {}
 
+***REMOVED*** if you are bringing pre-created key then uncomment the following line in the workspace.auto.tfvars file 
+***REMOVED*** and update it with your key resource id
+
+***REMOVED*** cmek_resource_id = "projects/[project-id]/locations/[region]]/keyRings/[key-ring-name]/cryptoKeys/[key-name]"
+
+***REMOVED*** for more details on customer managed keys please refer to https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html
+***REMOVED*** we will be using same key for managed and unmanaged services encryption.
+
+
+***REMOVED*** after updating the workspace.auto.tfvars file uncomment the following line
+
+***REMOVED*** variable "cmek_resource_id" {}
 
 data "google_client_openid_userinfo" "me" {}
 data "google_client_config" "current" {}
-
 
 resource "google_service_account" "databricks" {
     account_id   = "databricks" ***REMOVED***need to use "databricks"
@@ -34,14 +44,52 @@ resource "google_project_iam_binding" "databricks_gke_node_role" {
   ]
 }
 
+***REMOVED******REMOVED******REMOVED*** If you've pre created the key then please comment following blocks
+
+***REMOVED******REMOVED******REMOVED*** Create key block start
+
+***REMOVED*** create key ring
+resource "google_kms_key_ring" "databricks_key_ring" {
+  name     = "databricks-keyring"
+  location = var.google_region
+}
+
+***REMOVED*** create key used for encryption
+resource "google_kms_crypto_key" "databricks_key" {
+  name       = "databricks-key"
+  key_ring   = google_kms_key_ring.databricks_key_ring.id
+  purpose    = "ENCRYPT_DECRYPT"
+  rotation_period = "31536000s" ***REMOVED*** Set rotation period to 1 year in seconds, need to be greater than 1 day
+  
+  ***REMOVED*** same key used for databricks managed and unmanaged storage
+}
+
+
+***REMOVED*** Output the key self_link for reference
+output "key_self_link" {
+  value = google_kms_crypto_key.databricks_key.id
+}
+
+locals {
+  cmek_resource_id = google_kms_crypto_key.databricks_key.id
+}
+
+***REMOVED******REMOVED******REMOVED*** Create key block end
+
+
+
 resource "databricks_mws_customer_managed_keys" "this" {
+        depends_on = [ google_kms_crypto_key.databricks_key ]
         provider = databricks.accounts
 				account_id   = var.databricks_account_id
 				gcp_key_info {
-					kms_key_id   = var.cmek_resource_id
+					kms_key_id   = local.cmek_resource_id ***REMOVED*** change this to var.cmek_resource_id if using a pre-created key
 				}
-				use_cases = ["STORAGE","MANAGED_SERVICES"]
-			}
+				use_cases = ["STORAGE","MANAGED"]
+			      lifecycle {
+              ignore_changes = all
+        }
+}
 
 ***REMOVED*** Random suffix for databricks network and workspace
 resource "random_string" "databricks_suffix" {
@@ -84,7 +132,6 @@ resource "databricks_mws_workspaces" "databricks_workspace" {
     master_ip_range   = var.gke_master_ip_range
   }
   storage_customer_managed_key_id = databricks_mws_customer_managed_keys.this.customer_managed_key_id
-  managed_services_customer_managed_key_id = databricks_mws_customer_managed_keys.this.customer_managed_key_id
 }
 
 
