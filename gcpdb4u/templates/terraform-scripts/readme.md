@@ -19,3 +19,5 @@ export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 [sample](../terraform-scripts/byovpc-psc-cmek-ws/workspace.tf)
 ### BYO VPC + CMEK workspace
 [sample](../terraform-scripts/byovpc-cmek-ws/workspace.tf)
+### Provision Unity Catalog Metastore
+[sample](../terraform-scripts/uc/unity.tf)
