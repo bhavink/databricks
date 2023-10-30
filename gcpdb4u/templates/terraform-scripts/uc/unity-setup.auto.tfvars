@@ -1,4 +1,6 @@
 databricks_account_id = "<databricks_account_id>"
 databricks_account_console_url = "https://accounts.gcp.databricks.com"
-databricks_admin_user = "user@dcompany.com" 
+databricks_admin_user = "user@company.com" 
 uc_admin_group_name = "uc_admins_grp"
+group_name1 = "data_engineer"
+group_name2 = "data_science"
