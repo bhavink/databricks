@@ -1,6 +1,34 @@
+/*
+
+https://registry.terraform.io/providers/databricks/databricks/latest/docs
+
+Script to:
+
+https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/unity-catalog-gcp
+
+- Create GCS storage account aka default storage account
+- Create Unity metastore
+- Assign Unity service account to default storage account
+
+
+https://registry.terraform.io/providers/databricks/databricks/latest/docs/resources/mws_permission_assignment
+
+- Create group for metastore
+- Add user and service account to group
+- Assign group to metastore with admin privileges
+- Assign workspace to metastore
+- Create groups on account console
+- Add user to group
+- Assign groups to workspace with different roles
+
+*/
+
+
 variable "databricks_account_id" {}
 variable "uc_admin_group_name" {}
 variable databricks_admin_user {}
+variable group_name1{}
+variable group_name2{}
 
 data "google_client_openid_userinfo" "me" {}
 data "google_client_config" "current" {}
@@ -96,7 +124,7 @@ resource "databricks_metastore_data_access" "first" {
   provider     = databricks.accounts
   metastore_id = databricks_metastore.this.id
   databricks_gcp_service_account {}
-  name       = "the-keys" // any name
+  name       = "default-storage-creds" // storage credentials created for the default storage account
   is_default = true
 }
 
@@ -126,3 +154,47 @@ resource "databricks_metastore_assignment" "this" {
 }
 
 
+// add group to account console
+
+resource "databricks_group" "data_eng" {
+  provider     = databricks.accounts
+  display_name = var.group_name1
+}
+
+// add user
+resource "databricks_user" "member0" { 
+  provider     = databricks.accounts
+  user_name = "${random_string.databricks_suffix.result}_dev@company.com"
+}
+
+// add group to account console
+
+resource "databricks_group" "data_science" {
+  provider     = databricks.accounts
+  display_name = var.group_name2
+}
+
+// add user
+resource "databricks_user" "member1" { 
+  provider     = databricks.accounts
+  user_name = "${random_string.databricks_suffix.result}_scientist@company.com"
+}
+
+
+// assign groups to workspace
+
+resource "databricks_mws_permission_assignment" "add_admin_group" {
+  provider = databricks.accounts
+  workspace_id = local.workspace_id //databricks_mws_workspaces.this.workspace_id
+  principal_id = databricks_group.data_science.id
+  permissions  = ["ADMIN"]
+}
+
+// assign groups to workspace
+
+resource "databricks_mws_permission_assignment" "add_non_admin_group" {
+  provider = databricks.accounts
+  workspace_id = local.workspace_id //databricks_mws_workspaces.this.workspace_id
+  principal_id = databricks_group.data_eng.id
+  permissions  = ["USER"]
+}
