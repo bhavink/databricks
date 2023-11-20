@@ -95,6 +95,36 @@ resource "databricks_group_member" "ws_admin_member0" {
   member_id = databricks_user.me.id
 }
 
+
+resource "databricks_workspace_conf" "this" {
+  depends_on = [ databricks_mws_workspaces.databricks_workspace ]
+  provider   = databricks.workspace
+  custom_config = {
+    "enableIpAccessLists" = true
+  }
+}
+
+resource "databricks_ip_access_list" "this" {
+  depends_on = [ databricks_workspace_conf.this ]
+  provider   = databricks.workspace
+  label = "allow corp vpn1"
+  list_type = "ALLOW"
+  ip_addresses = [
+    "0.0.0.0/0",
+    "18.158.110.150/32"
+    ]
+
+}
+
+output "ingress_firewall_enabled" {
+  value = databricks_workspace_conf.this.custom_config["enableIpAccessLists"]
+}
+
+output "ingress_firewall_ip_allowed" {
+  value = databricks_ip_access_list.this.ip_addresses
+}
+
+
 output "workspace_url" {
   value = databricks_mws_workspaces.databricks_workspace.workspace_url
 }
@@ -103,4 +133,5 @@ output "workspace_url" {
 locals {
   workspace_id = databricks_mws_workspaces.databricks_workspace.workspace_id
 }
+
 
