@@ -1,0 +1,7 @@
+uc_admin_group_name = "uc_admins_grp"
+databricks_admin_user = "user@dcompany.com" 
+group_name1 = "data_engineer"
+group_name2 = "data_science"
+unity_default_storage = "uc-default"
+external_storage = "ext-storage"
+metastore_name = "uc-metastore"
