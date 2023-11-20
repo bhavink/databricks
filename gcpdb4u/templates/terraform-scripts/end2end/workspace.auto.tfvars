@@ -1,7 +1,4 @@
-***REMOVED*** databricks_account_id     = "9fcbb245-7c44-4522-9870-e38324104cf8" ***REMOVED***staging
-***REMOVED*** databricks_account_console_url = "https://accounts.staging.gcp.databricks.com"
-
-databricks_account_id = "e11e38c5-a449-47b9-b37f-0fa36c821612" ***REMOVED***prod
+databricks_account_id = "" ***REMOVED***prod
 databricks_account_console_url = "https://accounts.gcp.databricks.com" ***REMOVED***prod
 
 databricks_workspace_name = "labs-allinone-ws1"
