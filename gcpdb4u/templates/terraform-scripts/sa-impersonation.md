@@ -27,7 +27,7 @@ you have to create a service account with required permissions as explained belo
 ***REMOVED******REMOVED******REMOVED*** Assign roles/permissions to service accounts
 
 - **privileged-sa:** Required [permissions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/permissions.html***REMOVED***required-permissions-for-the-workspace-creator) to create a workspace on the service project. Project viewer role on the host or shared VPC project (if using shared VPC).
-- **caller-sa:** [Service Account Token Creator](https://cloud.google.com/iam/docs/understanding-roles***REMOVED***iam.serviceAccountTokenCreator) role on the automation-sa.
+- **caller-sa:** [Service Account Token Creator](https://cloud.google.com/iam/docs/understanding-roles***REMOVED***iam.serviceAccountTokenCreator) role on the caller-sa.
 
 Make sure to replace following items with actual values
 
@@ -80,7 +80,7 @@ This command initiates an interactive login process, allowing the user to authen
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/caller-sa-key.json"
 
 ***REMOVED*** Set gcloud configuration to impersonate the privileged-sa service account
-gcloud config set auth/impersonate_service_account privileged-sa@bk-demo-service-prj2.iam.gserviceaccount.com
+gcloud config set auth/impersonate_service_account privileged-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com
 
 ***REMOVED*** Set the GOOGLE_OAUTH_ACCESS_TOKEN environment variable to use the access token for creating GCP resources with gcloud
 export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
@@ -90,8 +90,8 @@ export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 Follow these steps to set up privileged-sa in the Databricks account console:
 
 - [Login](https://docs.gcp.databricks.com/administration-guide/users-groups/users.html***REMOVED***manage-users-in-your-account) into the account console.
-- [Add](https://docs.gcp.databricks.com/administration-guide/users-groups/users.html***REMOVED***add-users-to-your-account-using-the-account-console) automation-sa as an accounts user.
-- [Assign](https://docs.gcp.databricks.com/administration-guide/users-groups/users.html***REMOVED***assign-account-admin-roles-to-a-user) accounts admin role to automation-sa.
+- [Add](https://docs.gcp.databricks.com/administration-guide/users-groups/users.html***REMOVED***add-users-to-your-account-using-the-account-console) privileged-sa as an accounts user.
+- [Assign](https://docs.gcp.databricks.com/administration-guide/users-groups/users.html***REMOVED***assign-account-admin-roles-to-a-user) accounts admin role to privileged-sa.
 - Please note that you should add only **privileged-sa** as a **user** in the Databricks account console.
 
 **You are now ready to run Terraform scripts.**
