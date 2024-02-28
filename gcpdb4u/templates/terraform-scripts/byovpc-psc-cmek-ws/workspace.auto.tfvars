@@ -33,7 +33,7 @@ Databricks PSC service attachments
 https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***psc
 */
 relay_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
-workspace_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint"
+workspace_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
 
 ***REMOVED*** DNS Configs
 private_zone_name  = "databricks"
