@@ -50,6 +50,3 @@ In summary, `private.googleapis.com` is suitable for general secure access to Go
 
 - Create a Databricks cluster to validate n/w setup
 - Databricks Cluster comes up fine
-
-![](./../images/test-cluster-comesup1.png)
-![](./../images/test-cluatser-comesup2.png)
