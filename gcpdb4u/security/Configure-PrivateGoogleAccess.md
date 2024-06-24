@@ -6,135 +6,46 @@ Private Google Access can be enabled on a subnet by subnet basis and all it real
 
 By default, when a Compute Engine VM, in our case Databricks cluster nodes lacks an external IP (public ip) address assigned to its network interface, it can only send packets to other internal IP address destinations. You can allow these VMs to connect to the set of external IP addresses used by Google APIs and services by enabling Private Google Access (PGA) on the subnet used by the VM's network interface.
 
-![](./../images/GCP-BYO-VPC-NPIP-Architecture.png)
+When Private Google Access is enabled the communication from Databricks clusters running within your Project using your VPC (dataplane) to Databricks control plane services like artifact repo(Databricks runtime images) and Google cloud storage account(workspace health check logs and usage logs) stays private, using Private Google Access [PGA] we can ensure that communication between data plane and these services stays over Google’s internal network.
 
-In above diagram, GKE utilizes:
+***REMOVED******REMOVED*** `How to do it?`
+***REMOVED******REMOVED******REMOVED*** `High Level Steps`
+1. VPC and subnets used by Databricks have private Google access(PGA) enabled
+2. Configure DNS, VPC firewall rule and VPC routes as explained over [here](https://cloud.google.com/vpc/docs/configure-private-google-access)
+  - It is extremely important that you configure PGA as explained on the GCP public doc site.
+  - If you are using VPC SC then both, the private.googleapis.com as well as restricted.googleapis.com DNS records along with routes and firewall rules are required.
+3. Configure DNS private zone for *.pkg.dev (repo from where databricks runtime is downloaded) as explained over [here](https://cloud.google.com/vpc/docs/configure-private-google-access). 
 
-[4] GCR for Databricks runtime images and GCS for workspace health check logs and usage logs 
+***REMOVED******REMOVED*** Differences between `private.googleapis.com` and `restricted.googleapis.com`
 
-Communication to both of these services, outbound only from Databricks data plane, with Private Google Access [PGA] we can ensure that communication between data plane and these services stays over Google’s internal network.
+***REMOVED******REMOVED******REMOVED*** Overview
+The primary difference between `private.googleapis.com` and `restricted.googleapis.com` lies in their use cases and the network configurations they require. Here is an overview of each:
 
-***REMOVED*** How to do it?
-***REMOVED******REMOVED*** High Level Steps
+***REMOVED******REMOVED******REMOVED*** `private.googleapis.com`
+1. **Use Case**: `private.googleapis.com` is designed for users who want to access Google APIs and services from within a private network, such as a Virtual Private Cloud (VPC) in Google Cloud. It provides a secure way to access these services without traversing the public internet.
+2. **Configuration**: This endpoint requires setting up Private Google Access within a VPC. This allows resources within the VPC to access Google APIs and services using internal IP addresses, enhancing security by avoiding exposure to the public internet.
+3. **Access**: It restricts access to Google APIs to only those resources that are within the VPC, ensuring a more secure connection.
+4. **DNS Resolution**: When using `private.googleapis.com`, DNS resolution for Google API domains resolves to private IP addresses that are accessible only within the VPC.
 
-- Make sure VPC and subnets used by Databricks have private Google access enabled
+***REMOVED******REMOVED******REMOVED*** `restricted.googleapis.com`
+1. **Use Case**: `restricted.googleapis.com` is intended for environments that need to adhere to stricter egress control and security policies, often required for regulated industries. It provides an additional layer of security by limiting access to a restricted set of Google services and APIs.
+2. **Configuration**: This endpoint requires setting up VPC Service Controls, which provide security perimeters around Google Cloud resources to prevent data exfiltration. This is suitable for organizations needing to meet regulatory and compliance requirements.
+3. **Access**: It restricts access to a more limited set of Google APIs and services compared to `private.googleapis.com`. This endpoint helps to enforce security policies and compliance requirements by allowing only specific Google services.
+4. **DNS Resolution**: Similar to `private.googleapis.com`, DNS resolution for `restricted.googleapis.com` resolves to private IP addresses within the VPC. However, the scope of accessible services is more limited.
 
-- Make the following Cloud DNS changes and attach the zones to the VPC:
+***REMOVED******REMOVED******REMOVED*** Key Differences
+1. **Scope of Access**:
+   - `private.googleapis.com` provides broader access to Google APIs and services within a VPC.
+   - `restricted.googleapis.com` limits access to a narrower set of Google services, aligning with stricter security and compliance requirements.
+2. **Security and Compliance**:
+   - `private.googleapis.com` focuses on providing secure access within a VPC.
+   - `restricted.googleapis.com` enhances security by enforcing more stringent access controls and is often used in regulated environments.
+3. **Configuration Requirements**:
+   - Both require Private Google Access and appropriate DNS setup within a VPC.
+   - `restricted.googleapis.com` additionally requires VPC Service Controls for creating security perimeters.
 
-- Create:
-
-  - private DNS zone googleapis.com
-
-  - with a CNAME record to restricted.googleapis.com for *.googleapis.com and 
-
-  - A record to 199.36.153.4/30 for restricted.googleapis.com
-
-- Create:
-
-  - private DNS zone gcr.io 
-
-  - with a CNAME record to gcr.io  for *.gcr.io and
-
-  - A record to 199.36.153.4/30 for a blank gcr.io DNS name
-
-***REMOVED******REMOVED*** Enable Private Google Access
-![](./../images/enable-pga-on-subs.png)
-
-***REMOVED******REMOVED*** Create a route to send traffic to the restricted Google APIs subnet
-
-- Create a route in the VPC to send traffic to the restricted Google APIs subnet. We have to set the next hop as default-internet-gateway, as per the requirement for [accessing private Google APIs](https://cloud.google.com/vpc/docs/configure-private-google-access).
-
-- Google doesn’t actually send the traffic to the internet, even though it says “internet-gateway”. The traffic is routed to take a private internal path to the Google APIs thanks to the private Google access feature that we enabled on the subnet.
-
-![](./../images/pga-routes.png)
+In summary, `private.googleapis.com` is suitable for general secure access to Google services within a private network, while `restricted.googleapis.com` is designed for environments needing enhanced security and compliance controls.
 ```
-gcloud beta compute routes create route-to-google-apis \
---project=bk-demo-prj --description="Route to Google restricted APIs" \
---network=databricks-vpc \
---priority=1000 \
---destination-range=199.36.153.4/30 \
---next-hop-gateway=default-internet-gateway
-```
-
-***REMOVED******REMOVED*** Create DNS zone for Google APIs and GCR.io
-
-- Next step is to customize the DNS in our VPC for googleapis.com. Since googleapis.com resolves to public IP’s, we have to use restricted.googleapis.com. This url resolves to a specific range, 199.36.153.4/30, that is accessible within the GCP network (this is the same range we created a route to in the previous step). Our GKE worker nodes will need to use restricted.googleapis.com instead of googleapis.com to successfully launch.
-
-- This can be enforced using the private Cloud DNS feature within GCP. First we create a private zone for googleapis.com in Cloud DNS. After the zone is created, add a CNAME record for *.googleapis.com that points to restricted.googleapis.com. We will need one more record to make this work, an A record for restricted.googleapis.com pointing to the restricted VIP IP’s.
-
-- Example Command:
-
-    ```
-    gcloud compute firewall-rules create to-google-apis \
-    --action ALLOW \
-    --rules all \
-    --destination-ranges 199.36.153.4/30 \
-    --direction EGRESS \
-    --network databricks-vpc
-    gcloud compute firewall-rules create to-gke-master \
-    --action ALLOW \
-    --rules tcp:443,tcp:10250 \
-    --destination-ranges 10.3.0.0/28 \
-    --direction EGRESS \
-    --network databricks-vpc
-    gcloud compute routes create route-to-google-apis \
-    --destination-range 199.36.153.4/30 \
-    --description "Send traffic to the restricted Google APIs subnet" \
-    --next-hop-gateway default-internet-gateway \
-    --network databricks-vpc
-    gcloud dns managed-zones create google-apis \
-    --description "private zone for Google APIs" \
-    --dns-name googleapis.com \
-    --visibility private \
-    --networks databricks-vpc
-
-    gcloud dns record-sets transaction start --zone google-apis
-
-    gcloud dns record-sets transaction add restricted.googleapis.com. \
-    --name *.googleapis.com \
-    --ttl 300 \
-    --type CNAME \
-    --zone google-apis
-
-    gcloud dns record-sets transaction add "199.36.153.4" \
-    "199.36.153.5" "199.36.153.6" "199.36.153.7" \
-    --name restricted.googleapis.com \
-    --ttl 300 \
-    --type A \
-    --zone google-apis
-
-    gcloud dns record-sets transaction execute --zone google-apis
-
-    ```
-![](../images/pga-route-gcr.png)
-![](./../images/pga-route-gcs.png)
-
-- We will need to make similar settings for the GCR.io domain, to send traffic to restricted Google APIs subnet for reaching the container registry. Without these changes, the GKE cluster won’t stand up successfully since it won’t be able to pull down all the necessary Databricks runtime containers.
-
-    ```
-    gcloud dns managed-zones create gcr-io \
-    --description "private zone for GCR.io" \
-    --dns-name gcr.io \
-    --visibility private \
-    --networks databricks-vpc
-    gcloud dns record-sets transaction start --zone gcr-io
-    gcloud dns record-sets transaction add gcr.io. \
-    --name *.gcr.io \
-    --ttl 300 \
-    --type CNAME \
-    --zone gcr-io
-    gcloud dns record-sets transaction add "199.36.153.4" "199.36.153.5" "199.36.153.6" "199.36.153.7" \
-    --name gcr.io \
-    --ttl 300 \
-    --type A \
-    --zone gcr-io
-    gcloud dns record-sets transaction execute --zone gcr-io
-    ```
-![](./../images/pga-gcrio1.png)
-![](./../images/pga-gcrio2.png)
-
-Thats it!
-
 ***REMOVED******REMOVED*** Validate
 
 - Create a Databricks cluster to validate n/w setup
