@@ -1,7 +1,7 @@
 ***REMOVED******REMOVED*** Goal
 
 Create Databricks workspace using Terraform & Service Account based authentication and impersonation.
-This documentation outlines the steps to create and configure two Google Cloud Platform (GCP) service accounts, namely `caller-sa` and `privileged-sa`. The caller-sa service account is granted the "Service Account Token Creator" role, while the privileged-sa service account is given the required permissions(https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/permissions.html***REMOVED***required-permissions-for-the-workspace-creator) to create a Databricks workspace. Please note that databricks terraform provider only support GCP Service Account based authentication. 
+This documentation outlines the steps to create and configure two Google Cloud Platform (GCP) service accounts, namely `caller-sa` and `privileged-sa`. The caller-sa service account is granted the "Service Account Token Creator" role, while the privileged-sa service account is given the required [permissions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/permissions.html***REMOVED***required-permissions-for-the-workspace-creator) to create a Databricks workspace. Please note that databricks terraform provider only support GCP Service Account based authentication. 
 
 ***REMOVED******REMOVED*** Create two service accounts
 
