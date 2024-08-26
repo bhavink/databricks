@@ -1,63 +1,75 @@
+***REMOVED*** This block defines ingress rules for Databricks services running in us-east4 region (example)
 - ingressFrom:
-    identityType: ANY_IDENTITY
+    ***REMOVED*** Identity type is specified using group email
+    identities:
+      - group:databricks-vpc-sc-ingress-group@databricks.com
     sources:
-    ***REMOVED*** Databricks GCP projects
-    ***REMOVED*** if you are creating workspace in a region other then us-central1 then you would need to add one
-    ***REMOVED*** more project, this would be databricks regional control plane project where you plan to create the workspace
-    ***REMOVED*** please refer https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
-    ***REMOVED*** to get your regional control plane project number 
-    ***REMOVED*** following projects are required irrespective of the region you use to create workspace
-    - resource: projects/68422481410 ***REMOVED***global - databricks control plane central project
-    - resource: projects/85638097580 ***REMOVED***global - databricks audit-log delivery
-    ***REMOVED*** following projects are tied to your region
-    - resource: projects/121886670913 ***REMOVED***regional - e.g. databricks us-east4 control plane project
-    - resource: projects/683414710976 ***REMOVED***regional - e.g. databricks us-east4 unity catalog regional project
+      ***REMOVED*** Databricks central project - only required at workspace creation (us-central1)
+      - resource: projects/68422481410
+      ***REMOVED*** Databricks regional control plane project (us-east4)
+      - resource: projects/121886670913  
+      ***REMOVED*** Databricks regional control plane project where serverless SQL (us-east4) compute runs
+      - resource: projects/16098739049
   ingressTo:
     operations:
-    - methodSelectors:
-      - method: 'NetworksService.Get'
-      - method: 'ProjectsService.Get'
-      - method: 'RegionsService.Get'
-      - method: 'SubnetworksService.Get'
-      - method: 'ZonesService.Get'
-      - method: 'RegionForwardingRulesService.Get'
-      - method: 'SubnetworksService.GetPolicy'
-      serviceName: compute.googleapis.com
-    - methodSelectors:
-      - method: 'google.storage.objects.list'
-      - method: 'google.storage.objects.get'
-      - method: 'google.storage.objects.delete'
-      - method: 'google.storage.objects.create'
-      ***REMOVED*** buckets.create is required for DBFS storage creation
-      - method: 'google.storage.buckets.create'
-      - method: 'google.storage.buckets.testIamPermissions'
-      - method: 'google.storage.buckets.get'
-      serviceName: storage.googleapis.com
-    - methodSelectors:
-    ***REMOVED*** at the time of writing container api does not support method level filtering
-      - method: '*'
-      serviceName: container.googleapis.com
-    - methodSelectors:
-      - method: '*'
-      serviceName: logging.googleapis.com
-    - methodSelectors:
-    ***REMOVED*** at the time of writing we were not able to find the exact syntax for adding method level filtering for resourcemanager api
-    ***REMOVED*** here's a list of methods that are used 
-    ***REMOVED***  - method: Projects.SetIamPolicy
-    ***REMOVED***  - method: Projects.GetIamPolicy
-    ***REMOVED***  - method: Projects.TestIamPermissions
-    ***REMOVED***  - method: Projects.Get
-      - method: '*' 
-      serviceName: cloudresourcemanager.googleapis.com
-    - methodSelectors:
-      - method: 'IAM.CreateRole'
-      - method: 'IAM.DeleteRole'
-      - method: 'IAM.GetIamPolicy'
-      - method: 'IAM.GetRole'
-      - method: 'IAM.SetIamPolicy'
-      - method: 'IAM.UpdateRole'
-      serviceName: iam.googleapis.com
+      ***REMOVED*** Allows specific Google Cloud Storage operations
+      - methodSelectors:
+          - method: google.storage.objects.create
+          - method: google.storage.objects.get
+          - method: google.storage.objects.list
+          - method: google.storage.objects.delete
+          - method: google.storage.buckets.testIamPermissions
+        serviceName: storage.googleapis.com
+      ***REMOVED*** Allows specific Compute Engine operation
+      - methodSelectors:
+          - method: RegionsService.Get
+        serviceName: compute.googleapis.com
+      ***REMOVED*** Allows all Google Kubernetes Engine operations
+      - methodSelectors:
+          - method: '*'
+        serviceName: container.googleapis.com
+      ***REMOVED*** Required if you use workload identity
+      ***REMOVED*** https://docs.gcp.databricks.com/en/archive/compute/configure.html***REMOVED***google-service-account
+      - methodSelectors:
+          - method: IAM.GetIamPolicy
+          - method: IAM.SetIamPolicy
+        serviceName: iam.googleapis.com
     resources:
-    ***REMOVED*** customer project
-    - projects/546577047680 ***REMOVED***host aka vpc project
-    - projects/123017924230 ***REMOVED***service
+      - projects/488622148875
+
+***REMOVED*** This block defines ingress rules for a specific user
+- ingressFrom:
+    identities:
+      ***REMOVED*** To allow a user to access services
+      ***REMOVED*** Not doing this would lock user from accessing any of the services under VPC
+      ***REMOVED*** Helps with debugging or using GCP console or CLI
+      - user:user@example.com
+    sources:
+      - accessLevel: '*'
+  ingressTo:
+    operations:
+      ***REMOVED*** Allows all operations on all services
+      - serviceName: '*'
+    resources:
+      - projects/546577047680
+      - projects/488622148875
+***REMOVED*** Optional: Only required if you use audit logging delivery
+***REMOVED*** https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
+- ingressFrom:
+    identities:
+      - group:databricks-vpc-sc-ingress-group@databricks.com
+    sources:
+      - resource: projects/85638097580
+  ingressTo:
+    operations:
+      ***REMOVED*** Allows specific Google Cloud Storage operations for audit log delivery
+      - methodSelectors:
+          - method: google.storage.objects.create
+          - method: google.storage.objects.delete
+          - method: google.storage.objects.get
+          - method: google.storage.objects.list
+          - method: google.storage.buckets.testIamPermissions
+        serviceName: storage.googleapis.com
+    resources:
+      - projects/546577047680
+      - projects/488622148875

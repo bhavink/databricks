@@ -57,14 +57,14 @@ We will be using the following terms, let’s understand them a bit better befor
 * `Databricks Owned GCP Projects Identities` = Following GCP Service Accounts are in use, for ex: for US East4 we have: 
   * `cluster-manager-k8s-sa@prod-gcp-us-east4.iam.gserviceaccount.com`
   * `cluster-manager-k8s-sa@prod-gcp-us-central1.iam.gserviceaccount.com` (only required during workspace creation)
-  * `us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com`
+  * `us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com`
   * `log-delivery@databricks-prod-master.iam.gserviceaccount.com`
   * `db-uc-storage-UUID@uc-useast4.iam.gserviceaccount.com` (only applies if you use unity catalog, automatically created upon unity catalog initialization)
 
 * Databricks owned Google Service Accounts naming pattern
   * `cluster-manager-k8s-sa@<prod-regional-project>.iam.gserviceaccount.com`
   * `cluster-manager-k8s-sa@<prod-regional-project>.iam.gserviceaccount.com`
-  * `us-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com`
+  * `us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com`
   * `log-delivery@databricks-prod-master.iam.gserviceaccount.com`
   * `db-uc-storage-UUID@<uc-prod-regional-project>.iam.gserviceaccount.com`
 
@@ -87,16 +87,22 @@ Here's a bit more info on identities being used:
 | --- | --- | --- | --- | --- |
 | **Created and Managed By** | **Identity Type**<br><br>**Service Account (SA) or User Principal (UP)** | **Example** | **Used For** | **Ingress into / Egress from Customers Project** |
 | Databricks | SA  | cluster-manager-k8s-sa@\[databricks-supported-gcp-region\].iam.gserviceaccount.com | Accessing Databricks Control Plane | Egress |
-| Databricks | SA  | \[region\]-gcr-access-sa@databricks-prod-artifacts.iam.gserviceaccount.com | Accessing Databricks runtime images from GCR | Egress |
+| Databricks | SA  | us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com | Accessing Databricks runtime images from GAR | Egress |
 | Databricks | SA  | [db-WORKSPACEID@databricks-project.iam.gserviceaccount.com](mailto:db-WORKSPACEID@databricks-project.iam.gserviceaccount.com) | Databricks created per workspace consumer SA added to customers project | Ingress |
 | Databricks | SA  | [log-delivery@databricks-prod-master.iam.gserviceaccount.com](mailto:log-delivery@databricks-prod-master.iam.gserviceaccount.com) | SA used to delivery audit logs to your storage accout | Ingress |
 | Customer | UP or SA | [abc@company.com](mailto:abc@company.com) or [mysa@cust-project.iam.gserviceaccount.com](mailto:mysa@cust-project.iam.gserviceaccount.com) | Workspace Creation | Ingress |
 
 ***REMOVED******REMOVED*** **VPC SC YAML files**
 
+Before you proceed `please make sure to update` policy yaml files with your relevant project numbers and identities
+
+***REMOVED******REMOVED******REMOVED*** Used for Workspace Creation
+* [create-ws-ingress.yaml](./../templates/vpcsc-policy/create-ws-ingress.yaml) & [create-ws-egress.yaml](./../templates/vpcsc-policy/create-ws-egress.yaml)
+
+***REMOVED******REMOVED******REMOVED*** Used after the workspace is created
 * [ingress.yaml](./../templates/vpcsc-policy/ingress.yaml) & [egress.yaml](./../templates/vpcsc-policy/egress.yaml)
 
-Before you proceed `please make sure to update` policy yaml files with your relevant project numbers and identities
+
 
 ***REMOVED******REMOVED*** GCLOUD commands
 
