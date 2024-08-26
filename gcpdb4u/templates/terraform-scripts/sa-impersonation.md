@@ -34,6 +34,7 @@ Make sure to replace following variables with actual values while running the co
 gcloud iam roles create DatabricksAdmin --project=YOUR_PROJECT_ID --file=databricks-admin-role.yaml
 
 ***REMOVED******REMOVED******REMOVED*** Create the YAML file for the custom role
+```
 cat << EOF > databricks-admin-role.yaml
 title: "Databricks Admin"
 description: "Custom role with permissions required for Databricks workspace creation"
@@ -57,15 +58,16 @@ includedPermissions:
 - compute.forwardingRules.get
 - compute.forwardingRules.list
 EOF
-
+```
 ***REMOVED******REMOVED******REMOVED*** Verify the role creation
-gcloud iam roles describe DatabricksAdmin --project=YOUR_PROJECT_ID
+`gcloud iam roles describe DatabricksAdmin --project=YOUR_PROJECT_ID`
 
 
 ***REMOVED******REMOVED******REMOVED*** Grant the service account the "Databricks Admin" role
 `gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
     --member="serviceAccount:privileged-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/DatabricksAdmin"
+    --role="roles/DatabricksAdmin"`
+
 
 ***REMOVED******REMOVED******REMOVED*** Download the keys.json file for caller-sa
 `gcloud iam service-accounts keys create /path/to/caller-sa-key.json \
@@ -74,8 +76,8 @@ gcloud iam roles describe DatabricksAdmin --project=YOUR_PROJECT_ID
 Replace `/path/to/caller-sa-key.json` with the desired local path and filename for the downloaded key file, and replace `YOUR_PROJECT_ID` with your actual GCP project ID. This command generates and downloads a JSON key file for the specified service account. The key file contains the private key and other information needed to authenticate as the service account.
 
 ***REMOVED******REMOVED******REMOVED*** Authenticate using a service account (caller-sa) key file
-gcloud auth activate-service-account \
-    --key-file=/path/to/caller-sa-key.json
+`gcloud auth activate-service-account \
+    --key-file=/path/to/caller-sa-key.json`
 
 This command activates authentication with Google Cloud using the provided service account key file. Replace `/path/to/caller-sa-key.json` with the actual path to your `caller-sa` service account key file.
 
