@@ -8,7 +8,7 @@
       - resource: projects/68422481410
       ***REMOVED*** Databricks regional control plane project (us-east4)
       - resource: projects/121886670913  
-      ***REMOVED*** Databricks regional control plane project where serverless SQL (us-east4) compute runs
+      ***REMOVED*** Databricks regional control plane project where serverless SQL (us-east4) compute runs.
       - resource: projects/16098739049
   ingressTo:
     operations:
