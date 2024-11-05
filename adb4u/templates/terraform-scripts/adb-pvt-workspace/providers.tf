@@ -23,7 +23,7 @@ provider "databricks" {
 
 provider "databricks" {
   alias      = "accounts"
-  host       = "https://accounts.staging.azuredatabricks.net"
+  host       = "https://accounts.azuredatabricks.net"
   account_id = var.databricks_account_id
 }
 
