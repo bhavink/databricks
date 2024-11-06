@@ -32,7 +32,8 @@ resource "azurerm_databricks_workspace" "this" {
   ***REMOVED*** We need this, otherwise destroy doesn't cleanup things correctly
   depends_on = [
     azurerm_subnet_network_security_group_association.public,
-    azurerm_subnet_network_security_group_association.private
+    azurerm_subnet_network_security_group_association.private,
+    databricks_metastore.this
   ]
 }
 
