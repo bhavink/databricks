@@ -36,6 +36,9 @@ resource "azurerm_private_endpoint" "auth" {
     name                 = "private-dns-zone-auth"
     private_dns_zone_ids = [azurerm_private_dns_zone.dnsdpcp.id]
   }
+  depends_on = [
+    azurerm_private_endpoint.dpcp
+  ]
 }
 
 // dns for db workspace pvt endpoints

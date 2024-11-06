@@ -2,7 +2,7 @@
 
 spokecidr        = "10.178.0.0/20"
 no_public_ip     = true
-rglocation       = "westcentralus"
+rglocation       = "westus"
 dbfs_prefix      = "dbfs"
 workspace_prefix = "dbwbk"
 uc_root_storage = "ucrootstorage" // adls storage account name, no space or special characters

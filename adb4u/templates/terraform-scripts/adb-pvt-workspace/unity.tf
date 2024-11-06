@@ -1,5 +1,5 @@
 resource "azurerm_databricks_access_connector" "unity" {
-  name                = "${local.prefix}-ucroot-storage-mi-${random_string.naming.result}"
+  name                = "${local.prefix}-uc-rootstorage-mi"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
   identity {
@@ -66,7 +66,7 @@ resource "databricks_metastore_assignment" "this" {
 
 
 resource "azurerm_databricks_access_connector" "ext_access_connector" {
-  name                = "${local.prefix}-uc-extstorage-mi-${random_string.naming.result}"
+  name                = "${local.prefix}-uc-extstorage-mi"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
   identity {
@@ -131,15 +131,6 @@ resource "databricks_external_location" "some" {
     databricks_metastore_assignment.this
   ]
 }
-
-resource "databricks_grants" "some" {
-  external_location = databricks_external_location.some.id
-  grant {
-    principal  = "admins"
-    privileges = ["CREATE_EXTERNAL_TABLE", "READ_FILES"]
-  }
-}
-
 
 // grant permission to user on external storage and credentials
 
