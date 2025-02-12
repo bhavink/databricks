@@ -1,0 +1,294 @@
+etag: 03d0ab2de32ce066
+name: accessPolicies/733405850987/servicePerimeters/cmv1_dry_run
+spec:
+  accessLevels:
+  - accessPolicies/733405850987/accessLevels/fslakehouse_access
+  egressPolicies:
+  - egressFrom:
+      identities:
+      - serviceAccount:db-789476509202921@prod-gcp-us-central1.iam.gserviceaccount.com
+    egressTo:
+      operations:
+      - methodSelectors:
+        - method: InstancesService.BulkInsert
+        serviceName: compute.googleapis.com
+      resources:
+      - projects/323146983994
+  - egressFrom:
+      identities:
+      - serviceAccount:delegate-sa@prod-gcp-us-central1.iam.gserviceaccount.com
+    egressTo:
+      operations:
+      - methodSelectors:
+        - method: google.storage.objects.get
+        - method: google.storage.objects.create
+        - method: google.storage.buckets.testIamPermissions
+        serviceName: storage.googleapis.com
+      resources:
+      - projects/68422481410
+  - egressFrom:
+      identities:
+      - serviceAccount:cluster-manager-k8s-sa@prod-gcp-us-central1.iam.gserviceaccount.com
+    egressTo:
+      operations:
+      - methodSelectors:
+        - method: google.storage.buckets.testIamPermissions
+        - method: google.storage.objects.create
+        serviceName: storage.googleapis.com
+      resources:
+      - projects/68422481410
+  ingressPolicies:
+  - ingressFrom:
+      identities:
+      - serviceAccount:db-789476509202921@prod-gcp-us-central1.iam.gserviceaccount.com
+      sources:
+      - resource: projects/68422481410
+    ingressTo:
+      operations:
+      - methodSelectors:
+        - method: ZoneOperationsService.List
+        - method: RegionOperationsService.List
+        - method: InstancesService.Get
+        - method: InstancesService.List
+        - method: ZonesService.List
+        - method: DiskTypesService.List
+        - method: DisksService.SetLabels
+        - method: InstancesService.SetLabels
+        - method: InstancesService.Delete
+        - method: InstancesService.BulkInsert
+        - method: DisksService.Get
+        - method: DisksService.List
+        - method: RegionsService.Get
+        serviceName: compute.googleapis.com
+      - methodSelectors:
+        - method: google.storage.objects.create
+        - method: google.storage.objects.list
+        - method: google.storage.buckets.testIamPermissions
+        - method: google.storage.objects.get
+        serviceName: storage.googleapis.com
+      resources:
+      - projects/339427270505
+  - ingressFrom:
+      identities:
+      - serviceAccount:db-uc-storage-06aahtrqt4-rr2bh@uc-uscentral1.iam.gserviceaccount.com
+      sources:
+      - resource: projects/68422481410
+    ingressTo:
+      operations:
+      - methodSelectors:
+        - method: google.storage.buckets.testIamPermissions
+        - method: google.storage.objects.create
+        - method: google.storage.objects.get
+        serviceName: storage.googleapis.com
+      resources:
+      - projects/339427270505
+  - ingressFrom:
+      identities:
+      - serviceAccount:db-789476509202921@prod-gcp-us-central1.iam.gserviceaccount.com
+      - serviceAccount:db-uc-storage-06aahtrqt4-rr2bh@uc-uscentral1.iam.gserviceaccount.com
+      sources:
+      - resource: projects/16098739049
+    ingressTo:
+      operations:
+      - methodSelectors:
+        - method: google.storage.buckets.testIamPermissions
+        - method: google.storage.objects.create
+        - method: google.storage.objects.get
+        - method: google.storage.objects.list
+        serviceName: storage.googleapis.com
+      resources:
+      - projects/339427270505
+  resources:
+  - projects/339427270505
+  restrictedServices:
+  - accessapproval.googleapis.com
+  - adsdatahub.googleapis.com
+  - aiplatform.googleapis.com
+  - alloydb.googleapis.com
+  - analyticshub.googleapis.com
+  - apigee.googleapis.com
+  - apigeeconnect.googleapis.com
+  - apikeys.googleapis.com
+  - apphub.googleapis.com
+  - artifactregistry.googleapis.com
+  - assuredworkloads.googleapis.com
+  - auditmanager.googleapis.com
+  - automl.googleapis.com
+  - autoscaling.googleapis.com
+  - backupdr.googleapis.com
+  - baremetalsolution.googleapis.com
+  - batch.googleapis.com
+  - beyondcorp.googleapis.com
+  - biglake.googleapis.com
+  - bigquery.googleapis.com
+  - bigquerydatapolicy.googleapis.com
+  - bigquerydatatransfer.googleapis.com
+  - bigquerymigration.googleapis.com
+  - bigtable.googleapis.com
+  - binaryauthorization.googleapis.com
+  - blockchainnodeengine.googleapis.com
+  - certificatemanager.googleapis.com
+  - cloud.googleapis.com
+  - cloudaicompanion.googleapis.com
+  - cloudasset.googleapis.com
+  - cloudbuild.googleapis.com
+  - cloudcode.googleapis.com
+  - cloudcontrolspartner.googleapis.com
+  - clouddeploy.googleapis.com
+  - clouderrorreporting.googleapis.com
+  - cloudfunctions.googleapis.com
+  - cloudkms.googleapis.com
+  - cloudprofiler.googleapis.com
+  - cloudquotas.googleapis.com
+  - cloudresourcemanager.googleapis.com
+  - cloudscheduler.googleapis.com
+  - cloudsearch.googleapis.com
+  - cloudsupport.googleapis.com
+  - cloudtasks.googleapis.com
+  - cloudtrace.googleapis.com
+  - commerceorggovernance.googleapis.com
+  - composer.googleapis.com
+  - compute.googleapis.com
+  - confidentialcomputing.googleapis.com
+  - config.googleapis.com
+  - connectgateway.googleapis.com
+  - connectors.googleapis.com
+  - contactcenteraiplatform.googleapis.com
+  - contactcenterinsights.googleapis.com
+  - container.googleapis.com
+  - containeranalysis.googleapis.com
+  - containerfilesystem.googleapis.com
+  - containerregistry.googleapis.com
+  - containersecurity.googleapis.com
+  - containerthreatdetection.googleapis.com
+  - contentwarehouse.googleapis.com
+  - databasecenter.googleapis.com
+  - databaseinsights.googleapis.com
+  - datacatalog.googleapis.com
+  - dataflow.googleapis.com
+  - dataform.googleapis.com
+  - datafusion.googleapis.com
+  - datalineage.googleapis.com
+  - datamigration.googleapis.com
+  - datapipelines.googleapis.com
+  - dataplex.googleapis.com
+  - dataproc.googleapis.com
+  - dataprocgdc.googleapis.com
+  - datastream.googleapis.com
+  - developerconnect.googleapis.com
+  - dialogflow.googleapis.com
+  - discoveryengine.googleapis.com
+  - dlp.googleapis.com
+  - dns.googleapis.com
+  - documentai.googleapis.com
+  - domains.googleapis.com
+  - earthengine.googleapis.com
+  - edgecontainer.googleapis.com
+  - edgenetwork.googleapis.com
+  - essentialcontacts.googleapis.com
+  - eventarc.googleapis.com
+  - file.googleapis.com
+  - financialservices.googleapis.com
+  - firebaseappcheck.googleapis.com
+  - firebasecrashlytics.googleapis.com
+  - firebaserules.googleapis.com
+  - firebasevertexai.googleapis.com
+  - firestore.googleapis.com
+  - gameservices.googleapis.com
+  - gkebackup.googleapis.com
+  - gkeconnect.googleapis.com
+  - gkehub.googleapis.com
+  - gkemulticloud.googleapis.com
+  - gkeonprem.googleapis.com
+  - healthcare.googleapis.com
+  - iam.googleapis.com
+  - iamcredentials.googleapis.com
+  - iap.googleapis.com
+  - iaptunnel.googleapis.com
+  - identitytoolkit.googleapis.com
+  - ids.googleapis.com
+  - integrations.googleapis.com
+  - kmsinventory.googleapis.com
+  - krmapihosting.googleapis.com
+  - kubernetesmetadata.googleapis.com
+  - language.googleapis.com
+  - lifesciences.googleapis.com
+  - livestream.googleapis.com
+  - logging.googleapis.com
+  - looker.googleapis.com
+  - managedidentities.googleapis.com
+  - memcache.googleapis.com
+  - memorystore.googleapis.com
+  - meshca.googleapis.com
+  - meshconfig.googleapis.com
+  - metastore.googleapis.com
+  - microservices.googleapis.com
+  - migrationcenter.googleapis.com
+  - ml.googleapis.com
+  - modelarmor.googleapis.com
+  - monitoring.googleapis.com
+  - netapp.googleapis.com
+  - networkconnectivity.googleapis.com
+  - networkmanagement.googleapis.com
+  - networksecurity.googleapis.com
+  - networkservices.googleapis.com
+  - notebooks.googleapis.com
+  - ondemandscanning.googleapis.com
+  - opsconfigmonitoring.googleapis.com
+  - orgpolicy.googleapis.com
+  - osconfig.googleapis.com
+  - oslogin.googleapis.com
+  - parallelstore.googleapis.com
+  - policysimulator.googleapis.com
+  - policytroubleshooter.googleapis.com
+  - privateca.googleapis.com
+  - privilegedaccessmanager.googleapis.com
+  - publicca.googleapis.com
+  - pubsub.googleapis.com
+  - pubsublite.googleapis.com
+  - rapidmigrationassessment.googleapis.com
+  - recaptchaenterprise.googleapis.com
+  - recommender.googleapis.com
+  - redis.googleapis.com
+  - retail.googleapis.com
+  - run.googleapis.com
+  - seclm.googleapis.com
+  - secretmanager.googleapis.com
+  - securesourcemanager.googleapis.com
+  - securetoken.googleapis.com
+  - securitycenter.googleapis.com
+  - securitycentermanagement.googleapis.com
+  - servicecontrol.googleapis.com
+  - servicedirectory.googleapis.com
+  - servicehealth.googleapis.com
+  - spanner.googleapis.com
+  - speakerid.googleapis.com
+  - speech.googleapis.com
+  - sqladmin.googleapis.com
+  - ssh-serialport.googleapis.com
+  - storage.googleapis.com
+  - storageinsights.googleapis.com
+  - storagetransfer.googleapis.com
+  - sts.googleapis.com
+  - texttospeech.googleapis.com
+  - timeseriesinsights.googleapis.com
+  - tpu.googleapis.com
+  - trafficdirector.googleapis.com
+  - transcoder.googleapis.com
+  - translate.googleapis.com
+  - videointelligence.googleapis.com
+  - videostitcher.googleapis.com
+  - vision.googleapis.com
+  - visionai.googleapis.com
+  - visualinspection.googleapis.com
+  - vmmigration.googleapis.com
+  - vmwareengine.googleapis.com
+  - vpcaccess.googleapis.com
+  - webrisk.googleapis.com
+  - websecurityscanner.googleapis.com
+  - workflows.googleapis.com
+  - workloadmanager.googleapis.com
+  - workstations.googleapis.com
+  vpcAccessibleServices: {}
+title: cmv1-dry-run
+useExplicitDryRunSpec: true
