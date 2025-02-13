@@ -17,11 +17,11 @@ Databricks is a `Managed Service` and is fully hosted, managed, and supported by
 | Account  |  1:1 maps to | [Billing Account](https://cloud.google.com/billing/docs/concepts***REMOVED***overview)  |
 | Subscription | maps to | *Entitlements |
 | Workspaces | resides in | [Consumer Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) |
-| Worker Environment (dataplane) | 1:1 maps to | [**GKE cluster](https://cloud.google.com/kubernetes-engine/docs/how-to/private-clusters) |
-| Databricks Cluster | 1:1 maps to | [GKE namespace](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/) |
+| Worker Environment (**classic dataplane) | maps to | Google Compute Engine based databricks cluster |
+| Databricks Serverless | maps to | [Serverless compute resources running in the serverless compute plane, which is managed by Databricks](https://docs.gcp.databricks.com/en/security/network/serverless-network-security/index.html***REMOVED***serverless-compute-plane-networking-overview) |
 
 - *Represents purchase, pricing, and payment mechanism for an account
-- **GKE resides within your GCP Project and utilizes your own VPC
+- **Compute resources resides within your GCP Project and utilizes your own VPC
 
 ***REMOVED*** Availability Regions
 

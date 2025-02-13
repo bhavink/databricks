@@ -8,13 +8,10 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 * Can I use Terraform to create workspace
   * Yes you can, more details [here](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace).
 * How many subnets I need?
-  * In total we need 4 subnets
-    * Node Subnet (primary)
-    * Pod Subnet (secondary1)
-    * Service Subnet (secondary2)
-    * Kube Master VPC - created and managed by GCP and is of fix size /28
+  * In total we need 1 subnet
+    * Node Subnet 
 * Can I share subnets among different databricks workspace's?
-  * No, each workspace requires its own dedicated, 3 subnets.
+  * No, each workspace requires its own dedicated subnet.
 * Can I change Subnet address space after the workspace is created?
   * No
 * Can I share a VPC among different databricks workspace's?
@@ -27,24 +24,22 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 
 | Subnet Size                                                                 | Total Nodes Per Workspace |
 |-----------------------------------------------------------------------------|---------------------------|
-| Nodes subnet size   /25, Pods subnet size    /20, Services subnet size    /22 |             60            |
-| Nodes subnet size   /24, Pods subnet size    /19, Services subnet size    /22 |            120            |
-| Nodes subnet size   /23, Pods subnet size    /18, Services subnet size    /22 |            250            |
-| Nodes subnet size   /22, Pods subnet size    /17, Services subnet size    /22 |            500            |
-| Nodes subnet size   /21, Pods subnet size    /16, Services subnet size    /22 |            1000           |
-| Nodes subnet size   /20, Pods subnet size    /15, Services subnet size    /21 |            2000           |
-| Nodes subnet size   /19, Pods subnet size    /14, Services subnet size    /20 |            4000           |
+| Nodes subnet size   /25 |             60            |
+| Nodes subnet size   /24 |            120            |
+| Nodes subnet size   /23 |            250            |
+| Nodes subnet size   /22 |            500            |
+| Nodes subnet size   /21 |            1000           |
+| Nodes subnet size   /20 |            2000           |
+| Nodes subnet size   /19 |            4000           |
 
-Total Nodes Per Workspace = Total number of concurrent nodes (compyte instances) supported by the workspace at a given point in time.
+Total Nodes Per Workspace = Total number of concurrent nodes (compute instances) supported by the workspace at a given point in time.
 
 ***REMOVED******REMOVED*** Subnet CIDR ranges
 
 
 | Network resource or attribute   | Description      | Range |
 |----------|:-------------:|------:|
-| Primary subnet |  GKE cluster nodes | between /29 to /9 |
-| Secondary range for GKE pods |    GKE pods   |   between /21 to /9 |
-| Secondary range for GKE Services | GKE services |    between /27 to /16 |
+| Primary subnet |  Classic compute nodes | between /29 to /9 |
 | Region | VPC Region |    [Workspace and VPC region](https://github.com/bhavink/databricks/blob/master/gcpdb4u/regions.html) must match |
 
 ***REMOVED******REMOVED*** Recommendation
@@ -53,19 +48,17 @@ Total Nodes Per Workspace = Total number of concurrent nodes (compyte instances)
 * Review and Increase [GCP resource quota](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html) appropiately.
 * Use Customer Managed VPC
 * Enable [Private Google Access](./security/Configure-PrivateGoogleAccess.md) on your vpc
-* Double check DNS is properly configured to resolve to restricted.googleapis.com correctly (part of private google access configuration)
+* Double check DNS is properly configured to resolve to restricted or private.googleapis.com correctly (part of private google access configuration)
 * Please verify that VPC:
   * For a non PSC workspace: has an egress path to databricks control plane and managed hive metastore, this is typically achieved by attaching a Cloud NAT to your VPC.
   * For a PSC enabled workspace: make sure that the private DNS for Databricks is configured properly and has the required A records for fontend and backend PSC endpoints.
 * If your Google Cloud organization policy enables domain restricted sharing, ensure that both the Google Cloud customer IDs for Databricks (C01p0oudw) and your own organization’s customer ID are in the policy’s allowed list.
 * Please make sure that you are allowed to: 
-  * Create GCP resources (GKE/GCS)
+  * Create GCP resources (GCE/GCS)
   * Enable `Workload Identity` is set to `true`
   * Enable `serial port logging` is set to `true`
 
 * If you have VPC SC configured than please make sure you read through [this](./security/Configure-VPC-SC.md) section.
-* Optional - Post workspace creation you may want to:
-  * Change Default [Compute SA role](./security/Customize-Default-ComputeSA-Role.md)
 
 
 ***REMOVED******REMOVED*** Create Workspace (using UI)
