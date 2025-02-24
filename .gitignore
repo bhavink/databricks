@@ -1,4 +1,85 @@
 
 gcpdb4u/templates/.DS_Store
 .DS_Store
+
+# Terraform state files (contain sensitive infrastructure details)
 *.tfstate
+*.tfstate.backup
+
+# Terraform configuration files with secrets
+terraform.tfvars
+terraform.tfvars.json
+
+# Terraform working directory
+.terraform/
+.terraform.lock.hcl
+
+# Crash logs
+crash.log
+
+# Ignore any plan output files
+*.tfplan
+
+# Override files (local customizations)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore Terraform provider plugins (if manually downloaded)
+.terraform.d/
+
+# Ignore any archive files (for module packaging)
+*.zip
+
+# macOS system files
+.DS_Store
+
+# VS Code settings
+.vscode/
+.history/
+
+# GitHub Actions secrets
+.github/workflows/*.yml
+
+# AWS credentials
+.aws/
+
+# SSH keys
+.ssh/
+id_rsa
+id_rsa.pub
+
+# Compiled Java files
+*.class
+*.jar
+*.war
+*.ear
+
+# IntelliJ IDEA project files
+.idea/
+*.iml
+
+# Virtual environment
+venv/
+*.pyc
+__pycache__/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+*.env
+
+# Private keys & security credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.der
+*.cert
+*.jks
+*.pfx
+*.gpg
+
