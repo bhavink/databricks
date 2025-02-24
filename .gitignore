@@ -1,4 +1,85 @@
 
 gcpdb4u/templates/.DS_Store
 .DS_Store
+
+***REMOVED*** Terraform state files (contain sensitive infrastructure details)
 *.tfstate
+*.tfstate.backup
+
+***REMOVED*** Terraform configuration files with secrets
+terraform.tfvars
+terraform.tfvars.json
+
+***REMOVED*** Terraform working directory
+.terraform/
+.terraform.lock.hcl
+
+***REMOVED*** Crash logs
+crash.log
+
+***REMOVED*** Ignore any plan output files
+*.tfplan
+
+***REMOVED*** Override files (local customizations)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+***REMOVED*** Ignore Terraform provider plugins (if manually downloaded)
+.terraform.d/
+
+***REMOVED*** Ignore any archive files (for module packaging)
+*.zip
+
+***REMOVED*** macOS system files
+.DS_Store
+
+***REMOVED*** VS Code settings
+.vscode/
+.history/
+
+***REMOVED*** GitHub Actions secrets
+.github/workflows/*.yml
+
+***REMOVED*** AWS credentials
+.aws/
+
+***REMOVED*** SSH keys
+.ssh/
+id_rsa
+id_rsa.pub
+
+***REMOVED*** Compiled Java files
+*.class
+*.jar
+*.war
+*.ear
+
+***REMOVED*** IntelliJ IDEA project files
+.idea/
+*.iml
+
+***REMOVED*** Virtual environment
+venv/
+*.pyc
+__pycache__/
+
+***REMOVED*** Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+***REMOVED*** Environment variables
+.env
+*.env
+
+***REMOVED*** Private keys & security credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.der
+*.cert
+*.jks
+*.pfx
+*.gpg
+
