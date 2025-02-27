@@ -1,3 +1,7 @@
+# Instead of using the default compute engine GSA, databricks uses "databricks-compute@{workspace-project}.iam.gserviceaccount.com" 
+# as the default compute-engine GSA attached to every VM launched by Databricks 
+# in your GCP project. The naming pattern is required i.e "databricks-compute"
+
 resource "google_service_account" "databricks_compute" {
  # count        = try(data.google_service_account.existing_sa.email, null) != null ? 0 : 1
   account_id   = "databricks-compute"

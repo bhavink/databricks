@@ -1,14 +1,16 @@
+# For latest role requirements please refer
+# https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/permissions
 resource "google_project_iam_custom_role" "databricks_creator_role" {
   role_id     = "databricks.creator.role.project.v2"  # Unique ID for the role
   title       = "Databricks Workspace Creator Role Required For Project"  # Display name for the role
   description = "A custom role for creating workspaces and managing related resources."
 
   permissions = [
-    "iam.roles.create",
+    "iam.roles.create", 
     "iam.roles.update", #optional
     "iam.roles.delete", #optional
     "iam.roles.get",
-    "iam.serviceAccounts.create", 
+    "iam.serviceAccounts.create", #not required if you pre-create databricks-compute GSA as shown in service_accounts.tf
     "iam.serviceAccounts.get", 
     "iam.serviceAccounts.getIamPolicy",
     "iam.serviceAccounts.setIamPolicy",
@@ -17,7 +19,7 @@ resource "google_project_iam_custom_role" "databricks_creator_role" {
     "resourcemanager.projects.setIamPolicy",
     "serviceusage.services.get",
     "serviceusage.services.list",
-    "serviceusage.services.enable" #optional
+    "serviceusage.services.enable" #optional if required googleapi's are already enabled
   ]
 
   # Specify the project where the role will be created
@@ -47,7 +49,7 @@ resource "google_project_iam_custom_role" "databricks_creator_role_vpc" {
     "iam.roles.update", # optional
     "iam.roles.get",
     "iam.roles.create",
-    "iam.roles.delete"
+    "iam.roles.delete" # optional
   ]
 
   # Specify the project where the role will be created
