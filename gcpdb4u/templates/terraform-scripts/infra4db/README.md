@@ -2,8 +2,16 @@
 
 ***REMOVED******REMOVED*** Overview
 
-This Terraform configuration is designed to set up a Virtual Private Cloud (VPC) in Google Cloud Platform (GCP) for Databricks, including the creation of subnets, Private Service Connect (PSC) subnets, and necessary firewall rules. It also includes the option to create Customer Managed Keys (CMK) for encryption.
+This Terraform configuration is designed to set up Google Cloud Platform (GCP) infrastructure required to create a Databricks workspace within customers GCP project including the creation of subnets, Private Service Connect (PSC) subnets, and necessary firewall rules. It also includes the option to create Customer Managed Keys (CMK) for encryption. Please note that we are only creating pre-requistes required to provision a Databricks workspace. Depending upon your needs you could create workspaces:
 
+- [Bring Your Own(BYO) VPC](https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc)
+  - When `create_psc_resources` and `create_cmk_resources` set to `false` in `terraform.tfvars`
+- [BYOVPC + Private Service Connect(PSC)](https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect)
+  - When `create_psc_resources` set to `true` in `terraform.tfvars`
+- [BYOVPC + CMK](https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys)
+  - When `create_cmk_resources` set to `true` in `terraform.tfvars`
+- BYOVPC + PSC + Customer Managed Keys(CMK)
+  - When `create_psc_resources` and `create_cmk_resources` set to `true` in `terraform.tfvars`
 ***REMOVED******REMOVED*** Prerequisites
 
 - **Terraform**: Ensure you have Terraform installed on your local machine. You can download it from [Terraform's official website](https://www.terraform.io/downloads.html).
@@ -31,8 +39,8 @@ This file defines the variables used in the Terraform configuration. Key variabl
 - `network_name`: The name of the VPC network.
 - `subnet_configs`: Configurations for the subnets, including region and CIDR.
 - `psc_subnet_configs`: Configurations for the PSC subnets.
-- `create_psc_resources`: Flag to enable or disable the creation of PSC resources.
-- `create_cmk_resources`: Flag to enable or disable the creation of KMS resources.
+- `create_psc_resources`: Flag to enable or disable the creation of PSC resources.This allows us to create a BYOVPC + PSC workspace
+- `create_cmk_resources`: Flag to enable or disable the creation of KMS resources. This allows us to create a BYOVPC + CMK workspace
 
 ***REMOVED******REMOVED******REMOVED*** `terraform.tfvars`
 
@@ -98,10 +106,3 @@ Confirm the action when prompted.
 - Modify the `terraform.tfvars` file to customize the setup according to your needs.
 - The configuration includes commented-out sections for additional regions. Uncomment and modify as needed.
 
-***REMOVED******REMOVED*** License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-***REMOVED******REMOVED*** Support
-
-For any issues or questions, please contact the project maintainer or open an issue in the repository.
