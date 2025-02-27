@@ -1,3 +1,4 @@
+***REMOVED*** This is required if you were to use Private Google Access which I would highly recommend
 resource "google_dns_managed_zone" "private_databricks" {
   count = var.create_psc_resources ? 1 : 0  ***REMOVED*** Create only if create_psc_resources = true
 

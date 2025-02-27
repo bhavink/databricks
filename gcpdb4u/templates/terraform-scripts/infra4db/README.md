@@ -51,36 +51,26 @@ This file contains the values for the variables defined in `variables.tf`. You c
 - `subnet_configs`: Define the subnets you want to create.
 - `psc_subnet_configs`: Define the PSC subnets you want to create.
 - `psc_attachments`: Define the workspace and relay attachments for each region.
+- `create_psc_resources`: Flag to enable or disable the creation of PSC resources.
+- `create_cmk_resources`: Flag to enable or disable the creation of KMS resources.
 
 ***REMOVED******REMOVED*** Usage
 
-1. **Clone the Repository**: Clone this repository to your local machine.
+1. **Rename terraform.tfvars.remove**: Rename terraform.tfvars.remove by removing `remove` from the end of the file extension. Update variables so that it has your desired values
 
-   ```bash
-   git clone <repository-url>
-   cd <repository-directory>
-   ```
-
-2. **Set Up Your Environment**: Ensure that your Google Cloud SDK is authenticated and configured to use the correct project.
-
-   ```bash
-   gcloud auth login
-   gcloud config set project <your-project-id>
-   ```
-
-3. **Initialize Terraform**: Run the following command to initialize Terraform and download the necessary provider plugins.
+2. **Initialize Terraform**: Run the following command to initialize Terraform and download the necessary provider plugins.
 
    ```bash
    terraform init
    ```
 
-4. **Plan the Deployment**: Generate an execution plan to see what resources will be created.
+3. **Plan the Deployment**: Generate an execution plan to see what resources will be created.
 
    ```bash
    terraform plan
    ```
 
-5. **Apply the Configuration**: Apply the Terraform configuration to create the resources in GCP.
+4. **Apply the Configuration**: Apply the Terraform configuration to create the resources in GCP.
 
    ```bash
    terraform apply
@@ -88,7 +78,7 @@ This file contains the values for the variables defined in `variables.tf`. You c
 
    Confirm the action when prompted.
 
-6. **Verify Resources**: After the apply completes, you can verify the created resources in the GCP Console.
+5. **Verify Resources**: After the apply completes, you can verify the created resources in the GCP Console.
 
 ***REMOVED******REMOVED*** Cleanup
 
