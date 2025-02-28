@@ -1,4 +1,7 @@
-***REMOVED*** This is required if you were to use Private Google Access which I would highly recommend
+***REMOVED*** Make sure to NOT create a private DNS zone for a non PSC databricks workspace
+***REMOVED*** Do not use same vpc for PSC and non-PSC workspaces as the private DNS zone attached to the
+***REMOVED*** vpc used by these workpsaces would render non PSC workspace broken
+***REMOVED*** It is a good practice to keep such workspaces in a separate vpc, you could still use sme project though
 resource "google_dns_managed_zone" "private_databricks" {
   count = var.create_psc_resources ? 1 : 0  ***REMOVED*** Create only if create_psc_resources = true
 
