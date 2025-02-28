@@ -1,107 +1,68 @@
+***REMOVED*** This policy applies during workspace creation for GCE powered databricks workspaces
 ***REMOVED*** Ingress rule for Databricks services
 - ingressFrom:
-    identityType: ANY_IDENTITY
-    ***REMOVED*** Uncomment and use the following options as needed:
-    ***REMOVED*** identities:
-    ***REMOVED***   - group:group_email
-    ***REMOVED***   - user:user_email
-    ***REMOVED***   - serviceAccount:serviceAccount_email
-    ***REMOVED***   - group:databricks-vpc-sc-ingress-group@databricks.com
+    identities:
+    ***REMOVED***   - group:group@corp.com
+    ***REMOVED***   - user:user@corp.com
+      - serviceAccount:YOUR_SA@PROJECT.iam.gserviceaccount.com
     sources:
-      ***REMOVED*** Databricks central project - only required at workspace creation (us-central1)
+    ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
+    ***REMOVED*** Find your regional control plane VPC host project ***REMOVED***
+    ***REMOVED*** Do not change the Central Project number listed below, its a must have requirement
+      ***REMOVED*** Databricks Central project - only required at workspace creation
       - resource: projects/68422481410
-      ***REMOVED*** Databricks regional control plane project (us-east4)
-      - resource: projects/121886670913
-      ***REMOVED*** Databricks regional unity catalog project (us-east4)
-      - resource: projects/683414710976 
+      ***REMOVED*** Databricks regional control plane project (us-east1)
+      - resource: projects/51066298900
   ingressTo:
     operations:
-      ***REMOVED*** Google Cloud Storage operations
-      - methodSelectors:
-          - method: google.storage.objects.create
-          - method: google.storage.objects.get
-          - method: google.storage.objects.list
-          - method: google.storage.objects.delete
-          - method: google.storage.buckets.testIamPermissions
-          ***REMOVED*** The following permissions are required for DBFS storage creation
-          ***REMOVED*** Remove these permissions after workspace is created
-          - method: 'google.storage.buckets.create'
-          - method: 'google.storage.buckets.testIamPermissions'
-          - method: 'google.storage.buckets.get'
-        serviceName: storage.googleapis.com
       ***REMOVED*** Compute Engine operations
       - methodSelectors:
-          - method: RegionsService.Get
           - method: 'NetworksService.Get'
           - method: 'ProjectsService.Get'
-          - method: 'RegionsService.Get'
+          - method: 'FirewallsService.Get'
+          - method: 'FirewallsService.Insert'
           - method: 'SubnetworksService.Get'
-          - method: 'ZonesService.Get'
-          - method: 'RegionForwardingRulesService.Get'
+          - method: 'SubnetworksService.SetPolicy'
           - method: 'SubnetworksService.GetPolicy'
+          - method: 'GlobalOperationsService.Get'
         serviceName: compute.googleapis.com
-      ***REMOVED*** Google Kubernetes Engine operations
+      ***REMOVED*** There seems to be no way to specify method calls so we will be allowing all of the method calls
+      ***REMOVED*** This is the only call we need google.api.serviceusage.v1.ServiceUsage.ListServices
       - methodSelectors:
           - method: '*'
-        serviceName: container.googleapis.com
-      ***REMOVED*** Container API operations (all methods, as method-level filtering is not supported)
+        serviceName: serviceusage.googleapis.com
       - methodSelectors:
-          - method: '*'
-        serviceName: container.googleapis.com
-      ***REMOVED*** Cloud Logging operations
-      - methodSelectors:
-          - method: '*'
-        serviceName: logging.googleapis.com
-      ***REMOVED*** Cloud Resource Manager operations
-      - methodSelectors:
-          - method: '*' 
+          - method: 'Projects.SetIamPolicy' 
         serviceName: cloudresourcemanager.googleapis.com
       ***REMOVED*** IAM operations
       - methodSelectors:
-          - method: 'IAM.CreateRole'
-          - method: 'IAM.DeleteRole'
-          - method: 'IAM.GetIamPolicy'
           - method: 'IAM.GetRole'
+          - method: 'IAM.CreateRole'
+          - method: 'IAM.GetIamPolicy'
+          - method: 'IAM.GetServiceAccount'
           - method: 'IAM.SetIamPolicy'
-          - method: 'IAM.UpdateRole'
         serviceName: iam.googleapis.com
     resources:
-      - projects/488622148875
-      - projects/546577047680
+      - projects/NUMBER ***REMOVED*** vpc project
+      - projects/NUMBER  ***REMOVED*** workspace project
 
-***REMOVED*** Ingress rule for specific user access
+***REMOVED*** We have to use ANY_IDENTIY because the buckets.create call is made by the
+***REMOVED*** Workspace SA which is created dyamically at the time of workspace creation
+***REMOVED*** There is no way to know the name before hand
+***REMOVED*** After the workspace is created you could remove this call or 
+***REMOVED*** For ref please check ingress.yaml
 - ingressFrom:
-    identities:
-      ***REMOVED*** Allow a specific user to access services
-      ***REMOVED*** This helps with debugging or using GCP console or CLI
-      - user:user@example.com
+    identityType: ANY_IDENTITY
     sources:
-      - accessLevel: '*'
+      ***REMOVED*** Databricks central project - only required at workspace creation (us-central1)
+      - resource: projects/68422481410
   ingressTo:
     operations:
-      - serviceName: '*'
-    resources:
-      - projects/546577047680
-      - projects/488622148875
-
-***REMOVED*** Ingress rule for audit logging delivery (optional)
-- ingressFrom:
-    identities:
-      - group:databricks-vpc-sc-ingress-group@databricks.com
-    sources:
-      ***REMOVED*** Only required if you use audit logging delivery
-      ***REMOVED*** See: https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
-      - resource: projects/85638097580
-  ingressTo:
-    operations:
-      ***REMOVED*** Google Cloud Storage operations for audit log delivery
+***REMOVED*** Google Cloud Storage operations
       - methodSelectors:
-          - method: google.storage.objects.create
-          - method: google.storage.objects.delete
-          - method: google.storage.objects.get
-          - method: google.storage.objects.list
-          - method: google.storage.buckets.testIamPermissions
+          ***REMOVED*** The following permissions are required for DBFS storage creation
+          ***REMOVED*** Remove this permission after workspace is created
+          - method: 'google.storage.buckets.create'
         serviceName: storage.googleapis.com
     resources:
-      - projects/546577047680
-      - projects/488622148875
+      - projects/NUMBER ***REMOVED*** workspace project

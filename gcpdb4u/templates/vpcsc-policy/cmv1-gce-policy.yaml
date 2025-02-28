@@ -1,3 +1,5 @@
+***REMOVED*** This policy allows you to update permissions flows as explained over here
+***REMOVED*** https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/gce-update
 etag: 03d0ab2de32ce066
 name: accessPolicies/733405850987/servicePerimeters/cmv1_dry_run
 spec:
