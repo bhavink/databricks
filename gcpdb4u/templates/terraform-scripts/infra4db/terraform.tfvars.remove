@@ -5,14 +5,16 @@ create_cmk_resources = false
 
 
 # databricks regional control plane destination ips for egress firewall rules
-# applies to non psc workspace only
 # https://docs.databricks.com/gcp/en/resources/ip-domain-region#inbound-ips-to-databricks-control-plane
+# You would need Control Plane services, including webapp and SCC relay ip
+# Commuication to this services is over tcp:443 and 8443
 destination_ips = {
-    "us-central1" = "34.72.196.197, 34.128.32.16/28, 34.8.0.0/28"
-    "us-east1"    = "34.139.33.52, 34.138.66.176/28, 34.8.0.0/28"
-    "us-west1"    = "35.185.196.216, 34.118.194.80/28, 34.8.0.0/28"
+    "us-central1" = "34.72.196.197, 34.128.32.16/28, 34.8.0.0/28, 35.224.199.248/32"
+    "us-east1"    = "34.139.33.52, 34.138.66.176/28, 34.8.0.0/28, 34.138.156.37/32"
+    "us-west1"    = "35.185.196.216, 34.118.194.80/28, 34.8.0.0/28, 34.105.33.108/32"
   }
 
+# https://docs.databricks.com/gcp/en/resources/ip-domain-region#addresses-for-default-metastore
 databricks_hive_ips = {
     "us-central1" = "34.72.196.197"
     "us-east1"    = "34.74.134.43"
