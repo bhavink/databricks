@@ -24,6 +24,7 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 
 | Subnet Size                                                                 | Total Nodes Per Workspace |
 |-----------------------------------------------------------------------------|---------------------------|
+| Nodes subnet size   /26 |             30            |
 | Nodes subnet size   /25 |             60            |
 | Nodes subnet size   /24 |            120            |
 | Nodes subnet size   /23 |            250            |
@@ -40,7 +41,7 @@ Total Nodes Per Workspace = Total number of concurrent nodes (compute instances)
 | Network resource or attribute   | Description      | Range |
 |----------|:-------------:|------:|
 | Primary subnet |  Classic compute nodes | between /29 to /9 |
-| Region | VPC Region |    [Workspace and VPC region](https://github.com/bhavink/databricks/blob/master/gcpdb4u/regions.html) must match |
+| Region | VPC Region |    Workspace and VPC region must match |
 
 ***REMOVED******REMOVED*** Recommendation
 
@@ -48,16 +49,11 @@ Total Nodes Per Workspace = Total number of concurrent nodes (compute instances)
 * Review and Increase [GCP resource quota](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html) appropiately.
 * Use Customer Managed VPC
 * Enable [Private Google Access](./security/Configure-PrivateGoogleAccess.md) on your vpc
-* Double check DNS is properly configured to resolve to restricted or private.googleapis.com correctly (part of private google access configuration)
+* Double check DNS is properly configured to resolve to restricted or private and restrcited.googleapis.com correctly (part of private google access configuration)
 * Please verify that VPC:
-  * For a non PSC workspace: has an egress path to databricks control plane and managed hive metastore, this is typically achieved by attaching a Cloud NAT to your VPC.
+  * For a non PSC workspace: have an egress path to databricks control plane and managed hive metastore, this is typically achieved by attaching a Cloud NAT to your VPC and having an egress route using default gateway.
   * For a PSC enabled workspace: make sure that the private DNS for Databricks is configured properly and has the required A records for fontend and backend PSC endpoints.
 * If your Google Cloud organization policy enables domain restricted sharing, ensure that both the Google Cloud customer IDs for Databricks (C01p0oudw) and your own organization’s customer ID are in the policy’s allowed list.
-* Please make sure that you are allowed to: 
-  * Create GCP resources (GCE/GCS)
-  * Enable `Workload Identity` is set to `true`
-  * Enable `serial port logging` is set to `true`
-
 * If you have VPC SC configured than please make sure you read through [this](./security/Configure-VPC-SC.md) section.
 
 
@@ -97,7 +93,7 @@ Please follow public [documentation](https://registry.terraform.io/providers/dat
   ```
   {
   "reason": {
-    "code": "K8S_DBR_CLUSTER_LAUNCH_TIMEOUT",
+    "code": "DBR_CLUSTER_LAUNCH_TIMEOUT",
     "type": "SERVICE_FAULT",
     "parameters": {
       "databricks_error_message": "Cluster launch timeout."
