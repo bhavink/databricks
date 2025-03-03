@@ -1,3 +1,5 @@
+***REMOVED*** Make sure to update it as per your region and identities before using it
+
 - egressTo:
     operations:
       - serviceName: compute.googleapis.com

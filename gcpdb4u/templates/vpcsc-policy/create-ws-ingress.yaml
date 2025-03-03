@@ -1,9 +1,10 @@
 ***REMOVED*** Ingress rule for Databricks services
+***REMOVED*** Make sure to update it as per your region and identities before using it
 - ingressFrom:
     identities:
     ***REMOVED***   - group:group@corp.com
     ***REMOVED***   - user:user@corp.com
-      - serviceAccount:privileged-sa@bk-demo-service-prj2.iam.gserviceaccount.com
+      - serviceAccount:YOUR_SA@PROJECT.iam.gserviceaccount.com
     sources:
     ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
     ***REMOVED*** Find your regional control plane VPC host project ***REMOVED***
