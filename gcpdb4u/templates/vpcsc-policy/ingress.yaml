@@ -1,75 +1,90 @@
-***REMOVED*** This block defines ingress rules for Databricks services running in us-east4 region (example)
+***REMOVED*** Ingress rule for Databricks services
 - ingressFrom:
-    ***REMOVED*** Identity type is specified using group email
     identities:
-      - group:databricks-vpc-sc-ingress-group@databricks.com
+    ***REMOVED***   - group:group@corp.com
+    ***REMOVED***   - user:user@corp.com
+      - serviceAccount:db-2762908299814651@prod-gcp-us-east1.iam.gserviceaccount.com
     sources:
-      ***REMOVED*** Databricks central project - only required at workspace creation (us-central1)
-      - resource: projects/68422481410
-      ***REMOVED*** Databricks regional control plane project (us-east4)
-      - resource: projects/121886670913  
-      ***REMOVED*** Databricks regional control plane project where serverless SQL (us-east4) compute runs.
-      - resource: projects/16098739049
+    ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
+    ***REMOVED*** Find your regional control plane VPC host project ***REMOVED***
+    ***REMOVED*** Databricks regional control plane project (us-east1)
+      - resource: projects/51066298900
   ingressTo:
     operations:
-      ***REMOVED*** Allows specific Google Cloud Storage operations
+      ***REMOVED*** Compute Engine operations
       - methodSelectors:
-          - method: google.storage.objects.create
-          - method: google.storage.objects.get
-          - method: google.storage.objects.list
-          - method: google.storage.objects.delete
-          - method: google.storage.buckets.testIamPermissions
-        serviceName: storage.googleapis.com
-      ***REMOVED*** Allows specific Compute Engine operation
-      - methodSelectors:
-          - method: RegionsService.Get
+          - method: 'NetworksService.Get'
+          - method: 'ProjectsService.Get'
+          - method: 'FirewallsService.Get'
+          - method: 'FirewallsService.Insert'
+          - method: 'SubnetworksService.Get'
+          - method: 'SubnetworksService.SetPolicy'
+          - method: 'SubnetworksService.GetPolicy'
+          - method: 'GlobalOperationsService.Get'
+          - method: 'ZonesService.List'
+          - method: 'DisksService.List'
+          - method: 'InstancesService.List'
+          - method: 'RegionsService.List'
+          - method: 'RegionsService.Get'
+          - method: 'ZoneOperationsService.List'
+          - method: 'RegionOperationsService.List'
+          - method: 'InstancesService.Get'
+          - method: 'ZoneOperationsService.Get'
+          - method: 'InstancesService.BulkInsert'
+          - method: 'InstancesService.Delete'
+          - method: 'DisksService.Get'
+          - method: 'DisksService.SetLabels'
+          - method: 'InstancesService.SetLabels'
         serviceName: compute.googleapis.com
-      ***REMOVED*** Allows all Google Kubernetes Engine operations
+      ***REMOVED*** At the time of writing this, vpc sc didnt allow to filter calls by method
+      ***REMOVED*** This is the only call we need google.api.serviceusage.v1.ServiceUsage.ListServices
       - methodSelectors:
           - method: '*'
-        serviceName: container.googleapis.com
-      ***REMOVED*** Required if you use workload identity
-      ***REMOVED*** https://docs.gcp.databricks.com/en/archive/compute/configure.html***REMOVED***google-service-account
+        serviceName: serviceusage.googleapis.com
+      ***REMOVED*** This is required to attach databricks-compute GSA to the databricks clusters
+      ***REMOVED*** This is also required if you are using workload identity feature as explained here:
+      ***REMOVED*** https://docs.databricks.com/gcp/en/compute/configure***REMOVED***google-service-account
       - methodSelectors:
-          - method: IAM.GetIamPolicy
-          - method: IAM.SetIamPolicy
+          - method: 'Projects.SetIamPolicy' 
+        serviceName: cloudresourcemanager.googleapis.com
+      ***REMOVED*** IAM operations
+      - methodSelectors:
+          - method: 'IAM.GetIamPolicy'
+          - method: 'IAM.GetServiceAccount'
         serviceName: iam.googleapis.com
     resources:
-      - projects/488622148875
+      - projects/1039757121236 ***REMOVED*** customer vpc project
+      - projects/488622148875  ***REMOVED*** customer workspace project
 
-***REMOVED*** This block defines ingress rules for a specific user
+***REMOVED*** Calls could originate from several databricks regional projects:
+***REMOVED*** control plane (prod-* projects) - identity: db-workspaceId*
+***REMOVED*** unity catalog (uc-* projects) - identity: uc-*
+***REMOVED*** serverless compute plane (nw-* projects) - identity: db-workspaceId* or uc-*
+***REMOVED*** Find project numbers here:https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
+***REMOVED*** UC identities here: https://docs.databricks.com/gcp/en/sql/language-manual/sql-ref-syntax-aux-describe-credential
+***REMOVED*** Its a GCP Service Account
 - ingressFrom:
     identities:
-      ***REMOVED*** To allow a user to access services
-      ***REMOVED*** Not doing this would lock user from accessing any of the services under VPC
-      ***REMOVED*** Helps with debugging or using GCP console or CLI
-      - user:user@example.com
+    - serviceAccount:db-2762908299814651@prod-gcp-us-east1.iam.gserviceaccount.com
+    - serviceAccount:db-uc-credential-06akrlmcak-xn@uc-useast1.iam.gserviceaccount.com
+    - serviceAccount:db-uc-credential-06aldrhhj4-qe@uc-useast1.iam.gserviceaccount.com
     sources:
-      - accessLevel: '*'
+      ***REMOVED*** Databricks regional control plane project
+      - resource: projects/51066298900 ***REMOVED***prod-gcp-us-east1
+      ***REMOVED*** Databricks regional unity-catalog project
+      - resource: projects/234110679923 ***REMOVED***uc-useast1
+      ***REMOVED*** Databricks regional serverless-sql project
+      - resource: projects/126714886954 ***REMOVED***nw-prod-useast1-01
   ingressTo:
     operations:
-      ***REMOVED*** Allows all operations on all services
-      - serviceName: '*'
-    resources:
-      - projects/546577047680
-      - projects/488622148875
-***REMOVED*** Optional: Only required if you use audit logging delivery
-***REMOVED*** https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
-- ingressFrom:
-    identities:
-      - group:databricks-vpc-sc-ingress-group@databricks.com
-    sources:
-      - resource: projects/85638097580
-  ingressTo:
-    operations:
-      ***REMOVED*** Allows specific Google Cloud Storage operations for audit log delivery
+***REMOVED*** Google Cloud Storage operations
       - methodSelectors:
-          - method: google.storage.objects.create
-          - method: google.storage.objects.delete
-          - method: google.storage.objects.get
-          - method: google.storage.objects.list
-          - method: google.storage.buckets.testIamPermissions
+          - method: 'google.storage.objects.get'
+          - method: 'google.storage.objects.list'
+          - method: 'google.storage.objects.create'
+          - method: 'google.storage.objects.delete'
+          - method: 'google.storage.buckets.get'
+          - method: 'google.storage.buckets.testIamPermissions'
         serviceName: storage.googleapis.com
     resources:
-      - projects/546577047680
-      - projects/488622148875
+      - projects/488622148875 ***REMOVED*** customer workspace project

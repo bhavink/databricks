@@ -1,42 +1,52 @@
-***REMOVED*** This block defines egress rules for accessing Databricks runtime images
 - egressTo:
     operations:
-      - serviceName: artifactregistry.googleapis.com
+      - serviceName: compute.googleapis.com
         methodSelectors:
-          - method: 'artifactregistry.googleapis.com/DockerRead'
+          - method: 'InstancesService.BulkInsert'
     resources:
-      ***REMOVED*** Databricks runtime image repo
-      - projects/643670579914 ***REMOVED*** Databricks global runtime artifact
-
+      ***REMOVED*** Databricks runtime image storage
+      - projects/323146983994 ***REMOVED*** Databricks VM images hosted in the global GCP project `databricks-external-images`
+      - projects/51066298900 ***REMOVED*** Databricks regional control plane project - us-east1
   egressFrom:
     identities:
-    - group:databricks-vpc-sc-egress-group@databricks.com
+    - serviceAccount:db-2762908299814651@prod-gcp-us-east1.iam.gserviceaccount.com
 
-***REMOVED*** This block defines egress rules for Databricks workspace health and telemetry logs
+***REMOVED*** This block defines egress rules for Databricks runtime images and artifacts
 - egressTo:
     operations:
       - serviceName: storage.googleapis.com
         methodSelectors:
+          - method: google.storage.objects.get
           - method: google.storage.buckets.testIamPermissions
-          - method: google.storage.objects.create
-          - method: google.storage.objects.list
     resources:
-      ***REMOVED*** Databricks workspace health and telemetry logs
-      - projects/121886670913  ***REMOVED*** Databricks regional us-east4 control plane
-
+      ***REMOVED*** Databricks cluster boostarp artifacts
+      - projects/51066298900  ***REMOVED*** Databricks regional us-east1 control plane
   egressFrom:
     identities:
-    - group:databricks-vpc-sc-egress-group@databricks.com
+    - serviceAccount:delegate-sa@prod-gcp-us-east1.iam.gserviceaccount.com
+    - serviceAccount:db-2762908299814651@prod-gcp-us-east1.iam.gserviceaccount.com
 
-***REMOVED*** This block defines egress rules for accessing Databricks system tables
+***REMOVED*** This block defines egress rules for Databricks GCE cluster boostrapping artifacts
 - egressTo:
     operations:
       - serviceName: storage.googleapis.com
         methodSelectors:
-         - method: google.storage.objects.get
+          - method: google.storage.objects.get
     resources:
-      - projects/522339604799  ***REMOVED*** Databricks regional us-east4 control plane
-
+      ***REMOVED*** Databricks cluster boostarp artifacts
+      - projects/51066298900  ***REMOVED*** Databricks regional us-east1 control plane
   egressFrom:
-    identities:
-    - group:databricks-vpc-sc-egress-group@databricks.com
+    identityType: ANY_IDENTITY
+
+***REMOVED*** ***REMOVED*** Example of how to use groups
+***REMOVED*** ***REMOVED*** - egressTo:
+***REMOVED*** ***REMOVED***     operations:
+***REMOVED*** ***REMOVED***       - serviceName: storage.googleapis.com
+***REMOVED*** ***REMOVED***         methodSelectors:
+***REMOVED*** ***REMOVED***          - method: google.storage.objects.get
+***REMOVED*** ***REMOVED***     resources:
+***REMOVED*** ***REMOVED***       - projects/522339604799  ***REMOVED*** Databricks regional us-east4 control plane
+
+***REMOVED*** ***REMOVED***   egressFrom:
+***REMOVED*** ***REMOVED***     identities:
+***REMOVED*** ***REMOVED***     - group:databricks-group@databricks.com

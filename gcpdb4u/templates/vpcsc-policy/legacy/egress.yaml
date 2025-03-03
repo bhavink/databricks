@@ -1,0 +1,42 @@
+***REMOVED*** This block defines egress rules for accessing Databricks runtime images
+- egressTo:
+    operations:
+      - serviceName: artifactregistry.googleapis.com
+        methodSelectors:
+          - method: 'artifactregistry.googleapis.com/DockerRead'
+    resources:
+      ***REMOVED*** Databricks runtime image repo
+      - projects/643670579914 ***REMOVED*** Databricks global runtime artifact
+
+  egressFrom:
+    identities:
+    - group:databricks-vpc-sc-egress-group@databricks.com
+
+***REMOVED*** This block defines egress rules for Databricks workspace health and telemetry logs
+- egressTo:
+    operations:
+      - serviceName: storage.googleapis.com
+        methodSelectors:
+          - method: google.storage.buckets.testIamPermissions
+          - method: google.storage.objects.create
+          - method: google.storage.objects.list
+    resources:
+      ***REMOVED*** Databricks workspace health and telemetry logs
+      - projects/121886670913  ***REMOVED*** Databricks regional us-east4 control plane
+
+  egressFrom:
+    identities:
+    - group:databricks-vpc-sc-egress-group@databricks.com
+
+***REMOVED*** This block defines egress rules for accessing Databricks system tables
+- egressTo:
+    operations:
+      - serviceName: storage.googleapis.com
+        methodSelectors:
+         - method: google.storage.objects.get
+    resources:
+      - projects/522339604799  ***REMOVED*** Databricks regional us-east4 control plane
+
+  egressFrom:
+    identities:
+    - group:databricks-vpc-sc-egress-group@databricks.com
