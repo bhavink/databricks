@@ -1,10 +1,9 @@
-# This policy applies during workspace creation for GCE powered databricks workspaces
 # Ingress rule for Databricks services
 - ingressFrom:
     identities:
     #   - group:group@corp.com
     #   - user:user@corp.com
-      - serviceAccount:YOUR_SA@PROJECT.iam.gserviceaccount.com
+      - serviceAccount:privileged-sa@bk-demo-service-prj2.iam.gserviceaccount.com
     sources:
     # https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers
     # Find your regional control plane VPC host project #
@@ -43,8 +42,8 @@
           - method: 'IAM.SetIamPolicy'
         serviceName: iam.googleapis.com
     resources:
-      - projects/NUMBER # vpc project
-      - projects/NUMBER  # workspace project
+      - projects/1039757121236 # vpc project
+      - projects/488622148875  # workspace project
 
 # We have to use ANY_IDENTIY because the buckets.create call is made by the
 # Workspace SA which is created dyamically at the time of workspace creation
@@ -65,4 +64,4 @@
           - method: 'google.storage.buckets.create'
         serviceName: storage.googleapis.com
     resources:
-      - projects/NUMBER # workspace project
+      - projects/488622148875 # workspace project
