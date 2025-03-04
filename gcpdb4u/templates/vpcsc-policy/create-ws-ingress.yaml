@@ -25,6 +25,7 @@
           - method: 'SubnetworksService.SetPolicy'
           - method: 'SubnetworksService.GetPolicy'
           - method: 'GlobalOperationsService.Get'
+          - method: 'RegionForwardingRulesService.Get' ***REMOVED*** for PSC workspaces only
         serviceName: compute.googleapis.com
       ***REMOVED*** There seems to be no way to specify method calls so we will be allowing all of the method calls
       ***REMOVED*** This is the only call we need google.api.serviceusage.v1.ServiceUsage.ListServices

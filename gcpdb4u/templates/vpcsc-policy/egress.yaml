@@ -1,5 +1,8 @@
 ***REMOVED*** Make sure to update it as per your region and identities before using it
-
+***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
+***REMOVED*** Find your regional control plane VPC host project
+***REMOVED*** If your workspace url is 31171674993667.7.gcp.databricks.com
+***REMOVED*** WORKSPACEID = 311716749948597
 - egressTo:
     operations:
       - serviceName: compute.googleapis.com
@@ -11,31 +14,33 @@
       - projects/51066298900 ***REMOVED*** Databricks regional control plane project - us-east1
   egressFrom:
     identities:
-    - serviceAccount:db-2762908299814651@prod-gcp-us-east1.iam.gserviceaccount.com
-
-***REMOVED*** This block defines egress rules for Databricks runtime images and artifacts
+    ***REMOVED*** ex: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
+    - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+***REMOVED*** egress rules for Databricks runtime images and artifacts
 - egressTo:
     operations:
       - serviceName: storage.googleapis.com
         methodSelectors:
+          ***REMOVED*** access databricks runtime binaries
           - method: google.storage.objects.get
           - method: google.storage.buckets.testIamPermissions
+          ***REMOVED*** health logs
+          - method: google.storage.objects.create 
     resources:
       ***REMOVED*** Databricks cluster boostarp artifacts
       - projects/51066298900  ***REMOVED*** Databricks regional us-east1 control plane
   egressFrom:
     identities:
-    - serviceAccount:delegate-sa@prod-gcp-us-east1.iam.gserviceaccount.com
-    - serviceAccount:db-2762908299814651@prod-gcp-us-east1.iam.gserviceaccount.com
+    ***REMOVED*** per region service account delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+    - serviceAccount:delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
 
-***REMOVED*** This block defines egress rules for Databricks GCE cluster boostrapping artifacts
+***REMOVED*** Egress rules for Databricks GCE cluster boostrapping artifacts
 - egressTo:
     operations:
       - serviceName: storage.googleapis.com
         methodSelectors:
           - method: google.storage.objects.get
     resources:
-      ***REMOVED*** Databricks cluster boostarp artifacts
       - projects/51066298900  ***REMOVED*** Databricks regional us-east1 control plane
   egressFrom:
     identityType: ANY_IDENTITY

@@ -1,10 +1,13 @@
 ***REMOVED*** Make sure to update it as per your region and identities before using it
-***REMOVED*** Ingress rule for Databricks services
+***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
+***REMOVED*** Find your regional control plane VPC host project
+***REMOVED*** If your workspace url is 31171674993667.7.gcp.databricks.com
+***REMOVED*** WORKSPACEID = 311716749948597
 - ingressFrom:
     identities:
     ***REMOVED***   - group:group@corp.com
     ***REMOVED***   - user:user@corp.com
-      - serviceAccount:db-2762908299814651@prod-gcp-us-east1.iam.gserviceaccount.com
+      - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
     sources:
     ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
     ***REMOVED*** Find your regional control plane VPC host project ***REMOVED***
@@ -14,6 +17,7 @@
     operations:
       ***REMOVED*** Compute Engine operations
       - methodSelectors:
+          - methodSelectors:
           - method: 'NetworksService.Get'
           - method: 'ProjectsService.Get'
           - method: 'FirewallsService.Get'
@@ -21,21 +25,21 @@
           - method: 'SubnetworksService.Get'
           - method: 'SubnetworksService.SetPolicy'
           - method: 'SubnetworksService.GetPolicy'
-          - method: 'GlobalOperationsService.Get'
-          - method: 'ZonesService.List'
-          - method: 'DisksService.List'
           - method: 'InstancesService.List'
-          - method: 'RegionsService.List'
-          - method: 'RegionsService.Get'
-          - method: 'ZoneOperationsService.List'
-          - method: 'RegionOperationsService.List'
           - method: 'InstancesService.Get'
-          - method: 'ZoneOperationsService.Get'
           - method: 'InstancesService.BulkInsert'
           - method: 'InstancesService.Delete'
+          - method: 'InstancesService.SetLabels'
+          - method: 'DisksService.List'
           - method: 'DisksService.Get'
           - method: 'DisksService.SetLabels'
-          - method: 'InstancesService.SetLabels'
+          - method: 'ZonesService.List'
+          - method: 'RegionsService.List'
+          - method: 'RegionsService.Get'
+          - method: 'GlobalOperationsService.Get'
+          - method: 'RegionOperationsService.List'
+          - method: 'ZoneOperationsService.List'
+          - method: 'ZoneOperationsService.Get'
         serviceName: compute.googleapis.com
       ***REMOVED*** At the time of writing this, vpc sc didnt allow to filter calls by method
       ***REMOVED*** This is the only call we need google.api.serviceusage.v1.ServiceUsage.ListServices
@@ -66,15 +70,15 @@
 ***REMOVED*** Its a GCP Service Account
 - ingressFrom:
     identities:
-    - serviceAccount:db-2762908299814651@prod-gcp-us-east1.iam.gserviceaccount.com
+    - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+    ***REMOVED*** Based on your setup you may have multiple uc credentials GSA 
     - serviceAccount:db-uc-credential-06akrlmcak-xn@uc-useast1.iam.gserviceaccount.com
-    - serviceAccount:db-uc-credential-06aldrhhj4-qe@uc-useast1.iam.gserviceaccount.com
     sources:
       ***REMOVED*** Databricks regional control plane project
       - resource: projects/51066298900 ***REMOVED***prod-gcp-us-east1
       ***REMOVED*** Databricks regional unity-catalog project
       - resource: projects/234110679923 ***REMOVED***uc-useast1
-      ***REMOVED*** Databricks regional serverless-sql project
+      ***REMOVED*** Databricks regional serverless compute plane project
       - resource: projects/126714886954 ***REMOVED***nw-prod-useast1-01
   ingressTo:
     operations:
