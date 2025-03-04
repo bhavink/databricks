@@ -91,8 +91,9 @@ Here's a bit more info on identities being used:
 |     |     |     |     |     |
 | --- | --- | --- | --- | --- |
 | **Created and Managed By** | **Identity Type**<br><br>**Service Account (SA) or User Principal (UP)** | **Example** | **Used For** | **Ingress into / Egress from Customers Project** |
-| Databricks | SA  | cluster-manager-k8s-sa@\[databricks-supported-gcp-region\].iam.gserviceaccount.com | Accessing Databricks Control Plane | Egress |
-| Databricks | SA  | us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com | Accessing Databricks runtime images from GAR | Egress |
+| Databricks | SA  | cluster-manager-k8s-sa@\[databricks-supported-gcp-region\].iam.gserviceaccount.com | Legacy - used by GKE based clusters to access Databricks Control Plane | Egress |
+| Databricks | SA  | us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com | Legacy - used by GKE based clusters to access Databricks runtime images from GAR | Egress |
+| Databricks | SA  | delegate-sa@@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com | used to launch GCE based clusters | Egress |
 | Databricks | SA  | [db-WORKSPACEID@databricks-project.iam.gserviceaccount.com](mailto:db-WORKSPACEID@databricks-project.iam.gserviceaccount.com) | Databricks created per workspace consumer SA added to customers project | Ingress |
 | Databricks | SA  | [log-delivery@databricks-prod-master.iam.gserviceaccount.com](mailto:log-delivery@databricks-prod-master.iam.gserviceaccount.com) | SA used to delivery audit logs to your storage accout | Ingress |
 | Customer | UP or SA | [abc@company.com](mailto:abc@company.com) or [mysa@cust-project.iam.gserviceaccount.com](mailto:mysa@cust-project.iam.gserviceaccount.com) | Workspace Creation | Ingress |
@@ -102,7 +103,7 @@ Here's a bit more info on identities being used:
 Before you proceed `please make sure to update` policy yaml files with your relevant project numbers and identities
 
 ***REMOVED******REMOVED******REMOVED*** Used for Workspace Creation
-* [create-ws-ingress.yaml](./../templates/vpcsc-policy/create-ws-ingress.yaml) & [create-ws-egress.yaml](./../templates/vpcsc-policy/create-ws-egress.yaml)
+* [create-ws-ingress.yaml](./../templates/vpcsc-policy/create-ws-ingress.yaml) , theres no egress during workspace creation
 
 ***REMOVED******REMOVED******REMOVED*** Used after the workspace is created
 * [ingress.yaml](./../templates/vpcsc-policy/ingress.yaml) & [egress.yaml](./../templates/vpcsc-policy/egress.yaml)
