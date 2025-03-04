@@ -1,5 +1,8 @@
 # Make sure to update it as per your region and identities before using it
-
+# https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers
+# Find your regional control plane VPC host project
+# If your workspace url is 31171674993667.7.gcp.databricks.com
+# WORKSPACEID = 311716749948597
 - egressTo:
     operations:
       - serviceName: compute.googleapis.com
@@ -11,31 +14,33 @@
       - projects/51066298900 # Databricks regional control plane project - us-east1
   egressFrom:
     identities:
-    - serviceAccount:db-2762908299814651@prod-gcp-us-east1.iam.gserviceaccount.com
-
-# This block defines egress rules for Databricks runtime images and artifacts
+    # ex: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
+    - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+# egress rules for Databricks runtime images and artifacts
 - egressTo:
     operations:
       - serviceName: storage.googleapis.com
         methodSelectors:
+          # access databricks runtime binaries
           - method: google.storage.objects.get
           - method: google.storage.buckets.testIamPermissions
+          # health logs
+          - method: google.storage.objects.create 
     resources:
       # Databricks cluster boostarp artifacts
       - projects/51066298900  # Databricks regional us-east1 control plane
   egressFrom:
     identities:
-    - serviceAccount:delegate-sa@prod-gcp-us-east1.iam.gserviceaccount.com
-    - serviceAccount:db-2762908299814651@prod-gcp-us-east1.iam.gserviceaccount.com
+    # per region service account delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+    - serviceAccount:delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
 
-# This block defines egress rules for Databricks GCE cluster boostrapping artifacts
+# Egress rules for Databricks GCE cluster boostrapping artifacts
 - egressTo:
     operations:
       - serviceName: storage.googleapis.com
         methodSelectors:
           - method: google.storage.objects.get
     resources:
-      # Databricks cluster boostarp artifacts
       - projects/51066298900  # Databricks regional us-east1 control plane
   egressFrom:
     identityType: ANY_IDENTITY
