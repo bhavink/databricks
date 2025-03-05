@@ -69,7 +69,6 @@ Please follow public [documentation](https://registry.terraform.io/providers/dat
 - Create a Databricks cluster to validate n/w setup
 - Databricks Cluster comes up fine
 ![](./images/test-cluster-comesup1.png)
-![](./images/test-cluatser-comesup2.png)
 
 
 * Upon creation of workspace, immediately test it by creating a databricks cluster and run a test command in databricks notebook like:
