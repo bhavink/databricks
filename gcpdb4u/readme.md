@@ -15,7 +15,7 @@ In this guide we'll share with you architectural patterns and design guidelines 
 * [Workspace Provisioning](Workspace-Provisioning.md)
 * [Identity and Access Management](Identity-And-Access-Management.md)
 * [Observability and Monitoring](Observability-And-Monitoring.md)
-* [Cost Management, Charge backs & Analysis](gcpdb4u/Cost-Management-And-Analysis.md)
+* [Cost Management, Charge backs & Analysis](Cost-Management-And-Analysis.md)
 
 ![reading-plan](images/reading-plan.jpg)
 
