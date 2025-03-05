@@ -41,29 +41,29 @@ Following steps are applicable to:
 ***REMOVED******REMOVED*** Before you begin
 We will be using the following terms, let’s understand them a bit better before we proceed.
 
-* `Consumer Project` = Customer owned GCP Project where Databricks workspace is deployed. In case of a shared vpc we’ll have two projects, host project providing the vpc and service project where workspace i.e. GKE cluster and DBFS related GCS storage accounts  are created.
+* `Consumer Project` = Customer owned GCP Project where Databricks workspace is deployed. In case of a shared vpc we’ll have two projects, host project providing the vpc and service project where workspace i.e. GCE cluster and DBFS related GCS storage accounts  are created.
 
 * `Consumer VPC` = Customer owned GCP VPC used by Databricks workspace (shared or stand alone vpc)
 
-* `Databricks Workspace Creator` = A customer owned and managed GCP identity (User or Service Account Principal) used to create a Databricks workspace, this identity is also known as the `login user`. A login user has `Project Owner or Project Editor` and the `IAM Admin` permission on the Consumer Project (GCP project) where Databricks workspace/GKE is deployed. Please follow [this](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html***REMOVED***requirements-1) doc for more details on roles/permissions required.
+* `Databricks Workspace Creator` = A customer owned and managed GCP identity (User or Service Account Principal) used to create a Databricks workspace, this identity is also known as the `login user`. A login user has `Project Owner or Project Editor` and the `IAM Admin` permission on the Consumer Project (GCP project) where Databricks workspace is deployed. Please follow [this](https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc***REMOVED***role-requirements) doc for more details on roles/permissions required.
 
 * `Consumer SA` = A GCP Service Account for the new workspace is created in the Databricks regional control plane project. We use the login user’s (workspace creator) OAuth token to grant the Consumer SA with sufficient permissions to setup and operate Databricks workspaces in the customer’s consumer (GCP) project. There are two Consumer SA's
-  * Consumer SA to manage Databricks provisioned GKE `db-WORKSPACEID@databricks-project.iam.gserviceaccount.com`. Workspace ID is generated as part of the workspace creation process.
+  * Consumer SA to manage classic compute plane `db-WORKSPACEID@databricks-project.iam.gserviceaccount.com`. Workspace ID is generated as part of the workspace creation process.
   `example: db-1030565636556919@prod-gcp-us-central1.iam.gserviceaccount.com`
-  * Consumer SA to manage Databricks provisioned GCE instance's `delegate-sa@[databricks-supported-gcp-region].iam.gserviceaccount.com` . In an effort to speed up compute startup times, Databricks will begin deploying compute resources on Google Compute Engine (GCE) instead of GKE.
+  *  `delegate-sa@[databricks-supported-gcp-region].iam.gserviceaccount.com` helps with launching classic compute plane GCE based clusters.
   `example: delegate-sa@us-central1.iam.gserviceaccount.com`
 
-* `Databricks Owned GCP Projects` = There are several GCP projects involved, one each for `Databricks Regional Control Plane`, `Databricks Central Service` (required during workspace creation only), `Databricks audit log delivery` , `Databricks Unity Catalog` and `Databricks Artifacts` (runtime image) Repository.
+* `Databricks Owned GCP Projects` = There are several GCP projects involved, one each for `Databricks Regional Control Plane`, `Databricks Central Service` (required during workspace creation only), `Databricks audit log delivery [optional]` , `Databricks Unity Catalog` and `Databricks Artifacts` (databricks runtime image) Repository.
 
 * `Databricks Control Plane IP` = Source IP from where requests into your GCP projects are originating. You may want to configure [Access Context Level](https://cloud.google.com/access-context-manager/docs/create-access-level) so that only requests coming from Databricks control plane is allowed into your GCP project, please follow [this](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***ip-addresses-and-domains) document for regional Control Plane NAT IPs
 
 * `Databricks Owned GCP Projects Identities` = Following GCP Service Accounts are in use, for ex: for US East4 we have: 
-  * `cluster-manager-k8s-sa@prod-gcp-us-east4.iam.gserviceaccount.com`
-  * `cluster-manager-k8s-sa@prod-gcp-us-central1.iam.gserviceaccount.com` (only required during workspace creation)
-  * `us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com`
+  * `cluster-manager-k8s-sa@prod-gcp-us-east4.iam.gserviceaccount.com` **Only applies to legacy GKE based classic compute plane workspaces** 
+  * `cluster-manager-k8s-sa@prod-gcp-us-central1.iam.gserviceaccount.com` **Only applies to legacy GKE based classic compute plane workspaces**
+  * `us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com` **Only applies to legacy GKE based classic compute plane workspaces**
   * `log-delivery@databricks-prod-master.iam.gserviceaccount.com`
   *  `delegate-sa@databricks-supported-gcp-region.iam.gserviceaccount.com` [Please visit the public annoucement for more details](https://docs.gcp.databricks.com/en/admin/cloud-configurations/gcp/gce-update.html)
-  * `db-uc-storage-UUID@uc-useast4.iam.gserviceaccount.com` (only applies if you use unity catalog, automatically created upon unity catalog initialization)
+  * `db-uc-storage-UUID@uc-useast4.iam.gserviceaccount.com` (applies to unity catalog, automatically created upon unity catalog initialization)
 
 * Databricks owned Google Service Accounts naming pattern
   * `cluster-manager-k8s-sa@<prod-regional-project>.iam.gserviceaccount.com`
