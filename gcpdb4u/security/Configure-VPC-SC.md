@@ -47,11 +47,11 @@ We will be using the following terms, let’s understand them a bit better befor
 
 * `Databricks Workspace Creator` = A customer owned and managed GCP identity (User or Service Account Principal) used to create a Databricks workspace, this identity is also known as the `login user`. A login user has `Project Owner or Project Editor` and the `IAM Admin` permission on the Consumer Project (GCP project) where Databricks workspace is deployed. Please follow [this](https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc***REMOVED***role-requirements) doc for more details on roles/permissions required.
 
-* `Consumer SA` = A GCP Service Account for the new workspace is created in the Databricks regional control plane project. We use the login user’s (workspace creator) OAuth token to grant the Consumer SA with sufficient permissions to setup and operate Databricks workspaces in the customer’s consumer (GCP) project. There are two Consumer SA's
-  * Consumer SA to manage classic compute plane `db-WORKSPACEID@databricks-project.iam.gserviceaccount.com`. Workspace ID is generated as part of the workspace creation process.
+* `Consumer SA` = A GCP Service Account for the new workspace is created in the Databricks regional control plane project. We use the login user’s (workspace creator) OAuth token to grant the Consumer SA with sufficient permissions to setup and operate Databricks workspaces in the customer’s consumer (GCP) project. Consumer SA is required to manage classic compute plane `db-WORKSPACEID@databricks-project.iam.gserviceaccount.com`. Workspace ID is generated as part of the workspace creation process.
   `example: db-1030565636556919@prod-gcp-us-central1.iam.gserviceaccount.com`
-  *  `delegate-sa@[databricks-supported-gcp-region].iam.gserviceaccount.com` helps with launching classic compute plane GCE based clusters.
-  `example: delegate-sa@us-central1.iam.gserviceaccount.com`
+
+* There's also a regional GSA called `delegate-sa@@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com` which helps with launching classic compute plane GCE based clusters.
+  `example: delegate-sa@prod-gcp-us-central1.iam.gserviceaccount.com`
 
 * `Databricks Owned GCP Projects` = There are several GCP projects involved, one each for `Databricks Regional Control Plane`, `Databricks Central Service` (required during workspace creation only), `Databricks audit log delivery [optional]` , `Databricks Unity Catalog` and `Databricks Artifacts` (databricks runtime image) Repository.
 
@@ -62,7 +62,7 @@ We will be using the following terms, let’s understand them a bit better befor
   * `cluster-manager-k8s-sa@prod-gcp-us-central1.iam.gserviceaccount.com` **Only applies to legacy GKE based classic compute plane workspaces**
   * `us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com` **Only applies to legacy GKE based classic compute plane workspaces**
   * `log-delivery@databricks-prod-master.iam.gserviceaccount.com`
-  *  `delegate-sa@databricks-supported-gcp-region.iam.gserviceaccount.com` [Please visit the public annoucement for more details](https://docs.gcp.databricks.com/en/admin/cloud-configurations/gcp/gce-update.html)
+  *  `delegate-sa@@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com` [Please visit the public annoucement for more details](https://docs.gcp.databricks.com/en/admin/cloud-configurations/gcp/gce-update.html)
   * `db-uc-storage-UUID@uc-useast4.iam.gserviceaccount.com` (applies to unity catalog, automatically created upon unity catalog initialization)
 
 * Databricks owned Google Service Accounts naming pattern
@@ -71,7 +71,7 @@ We will be using the following terms, let’s understand them a bit better befor
   * `us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com`
   * `log-delivery@databricks-prod-master.iam.gserviceaccount.com`
   * `db-uc-storage-UUID@<uc-prod-regional-project>.iam.gserviceaccount.com`
-  * `delegate-sa@databricks-supported-gcp-region.iam.gserviceaccount.com`
+  * `delegate-sa@@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com`
 
 A list of Databricks project numbers is listed over [here](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers)
 
