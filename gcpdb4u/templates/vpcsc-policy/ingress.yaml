@@ -93,3 +93,28 @@
         serviceName: storage.googleapis.com
     resources:
       - projects/488622148875 ***REMOVED*** customer workspace project
+***REMOVED*** Lakehouse Federation to BigQuery
+- ingressFrom:
+    identities:
+    - serviceAccount:[YOUR-GSA-HAVING-BQ-ACCESS]@[PROJECT].iam.gserviceaccount.com
+    sources:
+      ***REMOVED*** Databricks regional serverless sql compute plane project
+      - resource: projects/126714886954 ***REMOVED***example: shown here nw-prod-useast1-01
+  ingressTo:
+    operations:
+***REMOVED*** Google Cloud Bigquery operations
+      - methodSelectors:
+          - method: 'BigQueryRead.CreateReadSession'
+          - method: 'bigquery.tables.get'
+          - method: 'bigquery.tables.getData'
+          - method: 'bigquery.tables.list'
+          - method: 'bigquery.tables.create'
+          - method: 'bigquery.tables.update'
+          - method: 'bigquery.tables.delete'
+          - method: 'bigquery.tables.updateData'
+          - method: 'bigquery.datasets.get'
+          - method: 'bigquery.datasets.create'
+          - method: 'bigquery.jobs.create'    
+        serviceName: bigquery.googleapis.com
+    resources:
+      - projects/488622148875 ***REMOVED*** customer project where BQ dataset exists
