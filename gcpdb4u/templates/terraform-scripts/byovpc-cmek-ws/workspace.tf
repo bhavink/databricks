@@ -24,16 +24,16 @@ data "google_client_config" "current" {}
 
 resource "google_service_account" "databricks" {
     account_id   = "databricks" ***REMOVED***need to use "databricks"
-    display_name = "Databricks SA for GKE nodes"
+    display_name = "Databricks SA for GCE nodes"
     project = var.google_project_name
 }
 output "service_account" {
     value       = google_service_account.databricks.email
-    description = "Default SA for GKE nodes"
+    description = "Default SA for GCE nodes"
 }
 
-***REMOVED*** ***REMOVED*** assign role to the gke default SA
-resource "google_project_iam_binding" "databricks_gke_node_role" {
+***REMOVED*** ***REMOVED*** assign role to the GCE default SA
+resource "google_project_iam_binding" "databricks_GCE_node_role" {
   project = "${var.google_project_name}"
   role = "roles/container.nodeServiceAccount"
   members = [
@@ -122,9 +122,9 @@ resource "databricks_mws_workspaces" "databricks_workspace" {
     }
   }
   network_id = databricks_mws_networks.databricks_network.network_id
-  gke_config {
+  GCE_config {
     connectivity_type = "PRIVATE_NODE_PUBLIC_MASTER"
-    master_ip_range   = var.gke_master_ip_range
+    master_ip_range   = var.GCE_master_ip_range
   }
   storage_customer_managed_key_id = databricks_mws_customer_managed_keys.this.customer_managed_key_id
 }

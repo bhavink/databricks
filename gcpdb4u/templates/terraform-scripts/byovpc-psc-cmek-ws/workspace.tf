@@ -17,8 +17,8 @@ data "google_client_openid_userinfo" "me" {}
 data "google_client_config" "current" {}
 
 /*
-Service account attached to the GKE cluster to spin up GKE nodes
-GKE node pool use this service account to call Google Cloud APIs
+Service account attached to the GCE cluster to spin up GCE nodes
+GCE node pool use this service account to call Google Cloud APIs
 instead of using the default compute engine SA, databricks will use this SA
 this is different than the workload identity aka SA that you'll use to connect to your data sources as explained here
 https://docs.gcp.databricks.com/archive/compute/configure.html***REMOVED***google-service-account
@@ -27,12 +27,12 @@ https://docs.gcp.databricks.com/archive/compute/configure.html***REMOVED***googl
 
 resource "google_service_account" "databricks" {
     account_id   = "databricks" ***REMOVED***need to use "databricks"
-    display_name = "Databricks SA for GKE nodes"
+    display_name = "Databricks SA for GCE nodes"
     project = var.google_project_name
 }
 
-***REMOVED*** ***REMOVED*** assign role to the gke default SA
-resource "google_project_iam_binding" "databricks_gke_node_role" {
+***REMOVED*** ***REMOVED*** assign role to the GCE default SA
+resource "google_project_iam_binding" "databricks_GCE_node_role" {
   project = "${var.google_project_name}"
   role = "roles/container.nodeServiceAccount"
   members = [
@@ -211,7 +211,7 @@ resource "databricks_ip_access_list" "this" {
 
 }
 output "service_account" {
-    value       = "Default SA attached to GKE nodes ${google_service_account.databricks.email}"
+    value       = "Default SA attached to GCE nodes ${google_service_account.databricks.email}"
 }
 
 output "workspace_url" {

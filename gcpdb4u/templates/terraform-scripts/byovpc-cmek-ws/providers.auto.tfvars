@@ -10,7 +10,7 @@ google_service_account_email = "automation-sa@<gcp_service_project>.iam.gservice
 
 /*
 Service or Consumer Project, it contains Databricks managed:
-Data plane (GKE)
+Data plane (GCE)
 DBFS Storage (GCS)
 */
 google_project_name          = "<gcp_service_project>"

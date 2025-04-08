@@ -13,16 +13,16 @@ data "google_client_config" "current" {}
 
 resource "google_service_account" "databricks" {
     account_id   = "databricks" ***REMOVED***need to use "databricks"
-    display_name = "Databricks SA for GKE nodes"
+    display_name = "Databricks SA for GCE nodes"
     project = var.google_project_name
 }
 output "service_account" {
     value       = google_service_account.databricks.email
-    description = "Default SA for GKE nodes"
+    description = "Default SA for GCE nodes"
 }
 
-***REMOVED*** ***REMOVED*** assign role to the gke default SA
-resource "google_project_iam_binding" "databricks_gke_node_role" {
+***REMOVED*** ***REMOVED*** assign role to the GCE default SA
+resource "google_project_iam_binding" "databricks_GCE_node_role" {
   project = "${var.google_project_name}"
   role = "roles/container.nodeServiceAccount"
   members = [
