@@ -4,10 +4,7 @@ variable "databricks_workspace_name" {}
 variable "databricks_admin_user" {}
 variable "google_shared_vpc_project" {}
 variable "google_vpc_id" {}
-variable "gke_node_subnet" {}
-variable "gke_pod_subnet" {}
-variable "gke_service_subnet" {}
-variable "gke_master_ip_range" {}
+variable "node_subnet" {}
 
 ***REMOVED*** if you are bringing pre-created key then uncomment the following line in the workspace.auto.tfvars file 
 ***REMOVED*** and update it with your key resource id
@@ -107,9 +104,7 @@ resource "databricks_mws_networks" "databricks_network" {
   gcp_network_info {
     network_project_id    = var.google_shared_vpc_project
     vpc_id                = var.google_vpc_id
-    subnet_id             = var.gke_node_subnet
-    pod_ip_range_name     = var.gke_pod_subnet
-    service_ip_range_name = var.gke_service_subnet
+    subnet_id             = var.node_subnet
     subnet_region         = var.google_region
   }
 }

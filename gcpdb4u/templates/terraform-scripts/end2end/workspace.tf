@@ -4,10 +4,7 @@ variable "databricks_workspace_name" {}
 //variable "databricks_admin_user" {}
 variable "google_shared_vpc_project" {}
 variable "google_vpc_id" {}
-variable "gke_node_subnet" {}
-variable "gke_pod_subnet" {}
-variable "gke_service_subnet" {}
-variable "gke_master_ip_range" {}
+variable "node_subnet" {}
 variable "databricks_admin_user" {}
 
 //data "google_client_openid_userinfo" "me" {}
@@ -49,9 +46,7 @@ resource "databricks_mws_networks" "databricks_network" {
   gcp_network_info {
     network_project_id    = var.google_shared_vpc_project
     vpc_id                = var.google_vpc_id
-    subnet_id             = var.gke_node_subnet
-    pod_ip_range_name     = var.gke_pod_subnet
-    service_ip_range_name = var.gke_service_subnet
+    subnet_id             = var.node_subnet
     subnet_region         = var.google_region
   }
 }
@@ -69,10 +64,7 @@ resource "databricks_mws_workspaces" "databricks_workspace" {
     }
   }
   network_id = databricks_mws_networks.databricks_network.network_id
-  gke_config {
-    connectivity_type = "PRIVATE_NODE_PUBLIC_MASTER"
-    master_ip_range   = var.gke_master_ip_range
-  }
+  
 }
 
 
@@ -108,6 +100,7 @@ resource "databricks_ip_access_list" "this" {
   depends_on = [ databricks_workspace_conf.this ]
   provider   = databricks.workspace
   label = "allow corp vpn1"
+  ***REMOVED*** example allow list
   list_type = "ALLOW"
   ip_addresses = [
     "0.0.0.0/0",
