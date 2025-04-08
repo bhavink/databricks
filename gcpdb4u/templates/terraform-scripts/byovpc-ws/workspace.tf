@@ -3,10 +3,7 @@ variable "databricks_account_console_url" {}
 variable "databricks_workspace_name" {}
 variable "databricks_admin_user" {}
 variable "google_vpc_id" {}
-variable "gke_node_subnet" {}
-variable "gke_pod_subnet" {}
-variable "gke_service_subnet" {}
-variable "gke_master_ip_range" {}
+variable "node_subnet" {}
 
 
 
@@ -50,9 +47,7 @@ resource "databricks_mws_networks" "databricks_network" {
   gcp_network_info {
     network_project_id    = var.google_shared_vpc_project
     vpc_id                = var.google_vpc_id
-    subnet_id             = var.gke_node_subnet
-    pod_ip_range_name     = var.gke_pod_subnet
-    service_ip_range_name = var.gke_service_subnet
+    subnet_id             = var.node_subnet
     subnet_region         = var.google_region
   }
 }
@@ -70,10 +65,6 @@ resource "databricks_mws_workspaces" "databricks_workspace" {
     }
   }
   network_id = databricks_mws_networks.databricks_network.network_id
-  gke_config {
-    connectivity_type = "PRIVATE_NODE_PUBLIC_MASTER"
-    master_ip_range   = var.gke_master_ip_range
-  }
 }
 
 
