@@ -4,6 +4,26 @@
 Create Databricks workspace in a **customer managed VPC**. VPC could be a shared vpc or a customer managed stand alone vpc.
 ![](./images/customer-managed-vpc.png)
 
+***REMOVED******REMOVED*** Before you begin
+***REMOVED******REMOVED******REMOVED*** Domain Restricted Sharing
+If your Google Cloud organization enables Domain Restricted Sharing Organization Policy, add Google Workspace customer ID for Databricks (C01p0oudw) to your policy’s allowed list. You may override your policy at the project level instead of modifying at the organization level.
+
+For more information, see Restricting identities by [domain](https://cloud.google.com/resource-manager/docs/organization-policy/restricting-domains)
+
+***REMOVED******REMOVED******REMOVED*** Trusted Image Policies
+Add `databricks-external-images` to the trusted image policy for the GCP Databricks workspace project
+
+
+***REMOVED******REMOVED******REMOVED*** Databricks Related Google Service Accounts(GSA's)
+
+`Workspace SA`: This is created in the Regional Control Plane that is specific to this Workspace is assigned privileges to create and manage resources 
+inside the Databricks Compute Plane.  Its email address looks like db-{workspaceid}@prod-gcp-{region}.iam.gserviceaccount.com 
+
+`Compute SA`: Databricks will use a service account in the Compute Plane named `databricks-compute@{workspace-project}.iam.gserviceaccount.com` as the SA attached to every VM launched by Databricks in the GCP project. This GSA could be precreated in the project used by Databricks workspace and in that workspace would automatically use it.
+
+`Storage SAs` (one or more Google Service Accounts) in the Control Plane are used to set up Unity Catalog (UC) Credentials that enable granting access to UC managed  storage in your Projects and in the Compute Plane.  The Storage SA generates a short-lived token and provides it to the Compute cluster process with privileges to access data. Privileges are scoped down to be specific to the requested operation.
+
+
 ***REMOVED******REMOVED*** FAQ
 * Can I use Terraform to create workspace
   * Yes you can, more details [here](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace).
@@ -53,7 +73,6 @@ Total Nodes Per Workspace = Total number of concurrent nodes (compute instances)
 * Please verify that VPC:
   * For a non PSC workspace: have an egress path to databricks control plane and managed hive metastore, this is typically achieved by attaching a Cloud NAT to your VPC and having an egress route using default gateway.
   * For a PSC enabled workspace: make sure that the private DNS for Databricks is configured properly and has the required A records for fontend and backend PSC endpoints.
-* If your Google Cloud organization policy enables domain restricted sharing, ensure that both the Google Cloud customer IDs for Databricks (C01p0oudw) and your own organization’s customer ID are in the policy’s allowed list.
 * If you have VPC SC configured than please make sure you read through [this](./security/Configure-VPC-SC.md) section.
 
 
