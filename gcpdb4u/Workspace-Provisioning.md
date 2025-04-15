@@ -5,6 +5,7 @@ Create Databricks workspace in a **customer managed VPC**. VPC could be a shared
 ![](./images/customer-managed-vpc.png)
 
 ***REMOVED******REMOVED*** Before you begin
+
 ***REMOVED******REMOVED******REMOVED*** Domain Restricted Sharing
 If your Google Cloud organization enables Domain Restricted Sharing Organization Policy, add Google Workspace customer ID for Databricks (C01p0oudw) to your policy’s allowed list. You may override your policy at the project level instead of modifying at the organization level.
 
@@ -13,6 +14,9 @@ For more information, see Restricting identities by [domain](https://cloud.googl
 ***REMOVED******REMOVED******REMOVED*** Trusted Image Policies
 Add `databricks-external-images` to the trusted image policy for the GCP Databricks workspace project
 
+***REMOVED******REMOVED******REMOVED*** Restrict Authentication Types Cloud Storage Policy
+Make sure to allow `SERVICE_ACCOUNT_HMAC_SIGNED_REQUESTS` authentication, more details [here](https://cloud.google.com/storage/docs/org-policy-constraints***REMOVED***restrict-auth-types)
+ 
 
 ***REMOVED******REMOVED******REMOVED*** Databricks Related Google Service Accounts(GSA's)
 
