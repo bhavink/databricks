@@ -65,5 +65,11 @@
           # Remove this permission after workspace is created
           - method: 'google.storage.buckets.create'
         serviceName: storage.googleapis.com
+# Cloud KMS operations (if using CMEK)
+      - methodSelectors:
+          # The following permissions are required for using the CMEK by workspace SA during workspace creation
+          # Remove this permission after workspace is created
+          - method: '*'
+        serviceName: cloudkms.googleapis.com
     resources:
       - projects/488622148875 # workspace project
