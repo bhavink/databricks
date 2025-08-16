@@ -22,24 +22,6 @@ variable "node_subnet" {}
 data "google_client_openid_userinfo" "me" {}
 data "google_client_config" "current" {}
 
-resource "google_service_account" "databricks" {
-    account_id   = "databricks" ***REMOVED***need to use "databricks"
-    display_name = "Databricks SA for GCE nodes"
-    project = var.google_project_name
-}
-output "service_account" {
-    value       = google_service_account.databricks.email
-    description = "Default SA for GCE nodes"
-}
-
-***REMOVED*** ***REMOVED*** assign role to the GCE default SA
-resource "google_project_iam_binding" "databricks_GCE_node_role" {
-  project = "${var.google_project_name}"
-  role = "roles/container.nodeServiceAccount"
-  members = [
-    "serviceAccount:${google_service_account.databricks.email}"
-  ]
-}
 
 ***REMOVED******REMOVED******REMOVED*** If you've pre created the key then please comment following blocks
 
