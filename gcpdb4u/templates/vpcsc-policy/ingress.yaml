@@ -21,7 +21,6 @@
           - method: 'NetworksService.Get'
           - method: 'ProjectsService.Get'
           - method: 'FirewallsService.Get'
-          - method: 'FirewallsService.Insert'
           - method: 'SubnetworksService.Get'
           - method: 'SubnetworksService.SetPolicy'
           - method: 'SubnetworksService.GetPolicy'
@@ -118,3 +117,19 @@
         serviceName: bigquery.googleapis.com
     resources:
       - projects/488622148875 ***REMOVED*** customer project where BQ dataset exists
+  ***REMOVED******REMOVED*** Databricks regional control plane project
+  ***REMOVED******REMOVED*** Only required if you are using CMK
+  ***REMOVED******REMOVED*** https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
+- ingressFrom:
+    sources:
+    - project: projects/68422481410 ***REMOVED*** example: shown here prod-gcp-us-central1
+    identities:
+    - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+  ingressTo:
+    resources:
+    - projects/488622148875 ***REMOVED*** customer project where workspace is deployed
+    operations:
+    - serviceName: cloudkms.googleapis.com
+      methodSelectors:
+      - method: google.cloud.kms.v1.KeyManagementService.Decrypt
+      - method: google.cloud.kms.v1.KeyManagementService.Encrypt
