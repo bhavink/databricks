@@ -1,0 +1,51 @@
+name: ingressPolicy-databricks-lpw-workspace
+ingressPolicies:
+  - ingressFrom:
+      sources:
+        - project: "projects/68422481410" # regional control plane project
+      identities:
+        #   - group:group@corp.com
+        #   - user:user@corp.com
+        - serviceAccount:YOUR_GSA@PROJECT.iam.gserviceaccount.com
+      resources:
+        - "projects/491105714337"  # your vpc project id
+      operations:
+        - serviceName: "compute.googleapis.com"
+          methodSelectors:
+            - method: "compute.v1.SubnetworksService.Get"
+            - method: "compute.v1.NetworksService.Get"
+            - method: "compute.v1.SubnetworksService.TestPermissions"
+  ## This is a must have rule
+  # required to creare storage buckets for databricks file system aka dbfs
+  - ingressFrom:
+      sources:
+        - project: "projects/68422481410" # regional control plane project
+      identities:
+        - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com # wsGSA
+    ingressTo:
+      resources:
+        - "projects/553970327688"  # your service or workspace project
+      operations:
+        - serviceName: "storage.googleapis.com"
+          methodSelectors:
+            - method: "google.storage.buckets.create"
+        - serviceName: "compute.googleapis.com"
+          methodSelectors:
+            - method: "compute.v1.ZonesService.List"
+
+  ## Only required if you are using CMK
+  ## https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
+  - ingressFrom:
+      sources:
+        - project: "projects/68422481410" # regional control plane project
+      identities:
+        - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com # wsGSA
+    ingressTo:
+      resources:
+        - "projects/553970327688"  # your service or workspace project
+      operations:
+        - serviceName: "cloudkms.googleapis.com"
+          methodSelectors:
+            - method: "google.cloud.kms.v1.KeyManagementService.Decrypt"
+            - method: "google.cloud.kms.v1.KeyManagementService.Encrypt"
+  
