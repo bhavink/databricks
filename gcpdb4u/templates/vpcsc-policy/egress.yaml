@@ -3,6 +3,7 @@
 ***REMOVED*** Find your regional control plane VPC host project
 ***REMOVED*** If your workspace url is 31171674993667.7.gcp.databricks.com
 ***REMOVED*** WORKSPACEID = 311716749948597
+***REMOVED*** egress rules for Databricks runtime images and artifacts
 - egressTo:
     operations:
       - serviceName: compute.googleapis.com
@@ -10,13 +11,14 @@
           - method: 'InstancesService.BulkInsert'
     resources:
       ***REMOVED*** Databricks runtime image storage
-      - projects/323146983994 ***REMOVED*** Databricks VM images hosted in the global GCP project `databricks-external-images`
-      - projects/51066298900 ***REMOVED*** Databricks regional control plane project - us-east1
+      - projects/323146983994 ***REMOVED*** Databricks VM images from a storage account hosted in the global GCP project `databricks-external-images`
   egressFrom:
     identities:
     ***REMOVED*** ex: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
     - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-***REMOVED*** egress rules for Databricks runtime images and artifacts
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+***REMOVED*** egress rule for workspace health logs
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
 - egressTo:
     operations:
       - serviceName: storage.googleapis.com
@@ -28,22 +30,25 @@
           - method: google.storage.objects.create 
     resources:
       ***REMOVED*** Databricks cluster boostarp artifacts
-      - projects/51066298900  ***REMOVED*** Databricks regional us-east1 control plane
+      - projects/51066298900  ***REMOVED*** Databricks regional control plane project, shown here for us-east1
   egressFrom:
     identities:
     ***REMOVED*** per region service account delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
     - serviceAccount:delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-
-***REMOVED*** Egress rules for Databricks GCE cluster boostrapping artifacts
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+***REMOVED*** egress rule for accessing system tables
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
 - egressTo:
     operations:
       - serviceName: storage.googleapis.com
         methodSelectors:
           - method: google.storage.objects.get
     resources:
-      - projects/51066298900  ***REMOVED*** Databricks regional us-east1 control plane
+      - projects/68598579867  ***REMOVED*** Databricks regional system tables project, shown here for us-east1
   egressFrom:
-    identityType: ANY_IDENTITY
+    identities:
+    ***REMOVED*** per region google service account, shown here for us-east1 system tables access
+    - serviceAccount:ddb-uc-storage-066pptsgmg-dkbon@uc-useast1.iam.gserviceaccount.com
 
 ***REMOVED*** ***REMOVED*** Example of how to use groups
 ***REMOVED*** ***REMOVED*** - egressTo:
