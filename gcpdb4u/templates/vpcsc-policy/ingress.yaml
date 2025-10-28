@@ -117,6 +117,25 @@
         serviceName: bigquery.googleapis.com
     resources:
       - projects/488622148875 ***REMOVED*** customer project where BQ dataset exists
+***REMOVED*** Optional: Only required if you use audit logging delivery
+***REMOVED*** https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
+- ingressFrom:
+    identities:
+      - serviceAccount:log-delivery@databricks-prod-master.iam.gserviceaccount.com
+    sources:
+      - resource: projects/68422481410 ***REMOVED*** central project used for audit log delivery
+  ingressTo:
+    operations:
+      ***REMOVED*** Allows specific Google Cloud Storage operations for audit log delivery
+      - methodSelectors:
+          - method: google.storage.objects.create
+          - method: google.storage.objects.delete
+          - method: google.storage.objects.get
+          - method: google.storage.objects.list
+          - method: google.storage.buckets.testIamPermissions
+        serviceName: storage.googleapis.com
+    resources:
+      - projects/546577047680 ***REMOVED*** customer audit log storage project
   ***REMOVED******REMOVED*** Databricks regional control plane project
   ***REMOVED******REMOVED*** Only required if you are using CMK
   ***REMOVED******REMOVED*** https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
