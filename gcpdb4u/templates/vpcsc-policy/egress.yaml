@@ -48,7 +48,7 @@
   egressFrom:
     identities:
     # per region google service account, shown here for us-east1 system tables access
-    - serviceAccount:ddb-uc-storage-066pptsgmg-dkbon@uc-useast1.iam.gserviceaccount.com
+    - serviceAccount:db-uc-storage-066pptsgmg-dkbon@uc-useast1.iam.gserviceaccount.com
 
 # # Example of how to use groups
 # # - egressTo:
