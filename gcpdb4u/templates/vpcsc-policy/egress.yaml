@@ -3,6 +3,7 @@
 # Find your regional control plane VPC host project
 # If your workspace url is 31171674993667.7.gcp.databricks.com
 # WORKSPACEID = 311716749948597
+# egress rules for Databricks runtime images and artifacts
 - egressTo:
     operations:
       - serviceName: compute.googleapis.com
@@ -10,13 +11,14 @@
           - method: 'InstancesService.BulkInsert'
     resources:
       # Databricks runtime image storage
-      - projects/323146983994 # Databricks VM images hosted in the global GCP project `databricks-external-images`
-      - projects/51066298900 # Databricks regional control plane project - us-east1
+      - projects/323146983994 # Databricks VM images from a storage account hosted in the global GCP project `databricks-external-images`
   egressFrom:
     identities:
     # ex: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
     - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-# egress rules for Databricks runtime images and artifacts
+##############################################################################
+# egress rule for workspace health logs
+##############################################################################
 - egressTo:
     operations:
       - serviceName: storage.googleapis.com
@@ -28,22 +30,25 @@
           - method: google.storage.objects.create 
     resources:
       # Databricks cluster boostarp artifacts
-      - projects/51066298900  # Databricks regional us-east1 control plane
+      - projects/51066298900  # Databricks regional control plane project, shown here for us-east1
   egressFrom:
     identities:
     # per region service account delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
     - serviceAccount:delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-
-# Egress rules for Databricks GCE cluster boostrapping artifacts
+##############################################################################
+# egress rule for accessing system tables
+##############################################################################
 - egressTo:
     operations:
       - serviceName: storage.googleapis.com
         methodSelectors:
           - method: google.storage.objects.get
     resources:
-      - projects/51066298900  # Databricks regional us-east1 control plane
+      - projects/68598579867  # Databricks regional system tables project, shown here for us-east1
   egressFrom:
-    identityType: ANY_IDENTITY
+    identities:
+    # per region google service account, shown here for us-east1 system tables access
+    - serviceAccount:ddb-uc-storage-066pptsgmg-dkbon@uc-useast1.iam.gserviceaccount.com
 
 # # Example of how to use groups
 # # - egressTo:
