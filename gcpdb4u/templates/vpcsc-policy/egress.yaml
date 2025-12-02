@@ -3,7 +3,11 @@
 ***REMOVED*** Find your regional control plane VPC host project
 ***REMOVED*** If your workspace url is 31171674993667.7.gcp.databricks.com
 ***REMOVED*** WORKSPACEID = 311716749948597
+
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
 ***REMOVED*** egress rules for Databricks runtime images and artifacts
+***REMOVED*** applicable to service or workspace project
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
 - egressTo:
     operations:
       - serviceName: compute.googleapis.com
@@ -17,7 +21,9 @@
     ***REMOVED*** ex: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
     - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
 ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** egress rule for workspace health logs
+***REMOVED*** egress rule to provision Databricks clusters (gce instances)
+***REMOVED*** Needed for cluster creation
+***REMOVED*** Applicable to host or vpc project
 ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
 - egressTo:
     operations:
@@ -30,7 +36,7 @@
           - method: google.storage.objects.create 
     resources:
       ***REMOVED*** Databricks cluster boostarp artifacts
-      - projects/51066298900  ***REMOVED*** Databricks regional control plane project, shown here for us-east1
+      - projects/[databricks control plane project]  ***REMOVED*** Databricks regional control plane project, shown here for us-east1
   egressFrom:
     identities:
     ***REMOVED*** per region service account delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
@@ -49,6 +55,16 @@
     identities:
     ***REMOVED*** per region google service account, shown here for us-east1 system tables access
     - serviceAccount:db-uc-storage-066pptsgmg-dkbon@uc-useast1.iam.gserviceaccount.com
+***REMOVED*** egress rules for Databricks classic cluster boostrapping artifacts
+- egressTo:
+    operations:
+      - serviceName: storage.googleapis.com
+        methodSelectors:
+          - method: google.storage.objects.get
+    resources:
+      - projects/121886670913  ***REMOVED*** Databricks regional control plane, shown here for us-east4
+  egressFrom:
+    identityType: ANY_IDENTITY ***REMOVED*** vpc sc for whatever reason does not capture the identity for these storage API calls, please note that we are making a read or a get call and nothing else
 
 ***REMOVED*** ***REMOVED*** Example of how to use groups
 ***REMOVED*** ***REMOVED*** - egressTo:

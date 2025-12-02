@@ -1,65 +1,69 @@
-***REMOVED*** Make sure to update it as per your region and identities before using it
-***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
-***REMOVED*** Find your regional control plane VPC host project
-***REMOVED*** If your workspace url is 31171674993667.7.gcp.databricks.com
-***REMOVED*** WORKSPACEID = 311716749948597
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+***REMOVED*** DATABRICKS GCP VPC SERVICE CONTROLS - INGRESS POLICIES
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+***REMOVED*** This file defines ingress policies for Databricks workspaces within VPC-SC.
+***REMOVED***
+***REMOVED*** DOCUMENTATION REFERENCES:
+***REMOVED*** - VPC Service Controls Overview: https://docs.gcp.databricks.com/en/security/network/vpc-sc.html
+***REMOVED*** - Private Service Connect (PSC): https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
+***REMOVED*** - Regional Resources & Project Numbers: https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
+***REMOVED*** - Ingress/Egress Rules: https://cloud.google.com/vpc-service-controls/docs/ingress-egress-rules
+***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+***REMOVED*** workspace operations
 - ingressFrom:
     identities:
-    ***REMOVED***   - group:group@corp.com
-    ***REMOVED***   - user:user@corp.com
+     ***REMOVED***- group:group@corp.com
+     ***REMOVED***- user:user@corp.com
       - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
     sources:
     ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
     ***REMOVED*** Find your regional control plane VPC host project ***REMOVED***
-    ***REMOVED*** Databricks regional control plane project (us-east1)
-      - resource: projects/51066298900
+    ***REMOVED*** Databricks regional control plane project
+      - resource: projects/[CONTROL-PLANE-PROJECT-NUMBER]
   ingressTo:
     operations:
-      ***REMOVED*** Compute Engine operations
-      - methodSelectors:
-          - methodSelectors:
-          - method: 'NetworksService.Get'
-          - method: 'ProjectsService.Get'
-          - method: 'FirewallsService.Get'
-          - method: 'SubnetworksService.Get'
-          - method: 'SubnetworksService.SetPolicy'
-          - method: 'SubnetworksService.GetPolicy'
-          - method: 'InstancesService.List'
-          - method: 'InstancesService.Get'
-          - method: 'InstancesService.BulkInsert'
-          - method: 'InstancesService.Delete'
-          - method: 'InstancesService.SetLabels'
-          - method: 'DisksService.List'
-          - method: 'DisksService.Get'
-          - method: 'DisksService.SetLabels'
-          - method: 'ZonesService.List'
-          - method: 'RegionsService.List'
-          - method: 'RegionsService.Get'
-          - method: 'GlobalOperationsService.Get'
-          - method: 'RegionOperationsService.List'
-          - method: 'ZoneOperationsService.List'
-          - method: 'ZoneOperationsService.Get'
-        serviceName: compute.googleapis.com
+    - methodSelectors:
+      - method: NetworksService.Get
+      - method: ProjectsService.Get
+      - method: FirewallsService.Get
+      - method: SubnetworksService.Get
+      - method: SubnetworksService.SetPolicy
+      - method: SubnetworksService.GetPolicy
+      - method: InstancesService.List
+      - method: InstancesService.Get
+      - method: InstancesService.BulkInsert
+      - method: InstancesService.Delete
+      - method: InstancesService.SetLabels
+      - method: DisksService.List
+      - method: DisksService.Get
+      - method: DisksService.SetLabels
+      - method: ZonesService.List
+      - method: RegionsService.List
+      - method: RegionsService.Get
+      - method: GlobalOperationsService.Get
+      - method: RegionOperationsService.List
+      - method: ZoneOperationsService.List
+      - method: ZoneOperationsService.Get
+      serviceName: compute.googleapis.com
+    - methodSelectors:
       ***REMOVED*** At the time of writing this, vpc sc didnt allow to filter calls by method
       ***REMOVED*** This is the only call we need google.api.serviceusage.v1.ServiceUsage.ListServices
-      - methodSelectors:
-          - method: '*'
-        serviceName: serviceusage.googleapis.com
-      ***REMOVED*** This is required to attach databricks-compute GSA to the databricks clusters
+      - method: '*'
+      serviceName: serviceusage.googleapis.com
+    - methodSelectors:
+      ***REMOVED*** This is required to attach databricks-compute GSA to the databricks clusters (classic compute)
       ***REMOVED*** This is also required if you are using workload identity feature as explained here:
       ***REMOVED*** https://docs.databricks.com/gcp/en/compute/configure***REMOVED***google-service-account
-      - methodSelectors:
-          - method: 'Projects.SetIamPolicy' 
-        serviceName: cloudresourcemanager.googleapis.com
-      ***REMOVED*** IAM operations
-      - methodSelectors:
-          - method: 'IAM.GetIamPolicy'
-          - method: 'IAM.GetServiceAccount'
-        serviceName: iam.googleapis.com
+      - method: Projects.SetIamPolicy
+      serviceName: cloudresourcemanager.googleapis.com
+    - methodSelectors:
+      - method: IAM.GetIamPolicy
+      - method: IAM.GetServiceAccount
+      serviceName: iam.googleapis.com
     resources:
-      - projects/1039757121236 ***REMOVED*** customer vpc project
-      - projects/488622148875  ***REMOVED*** customer workspace project
-
+    - projects/546577047680 ***REMOVED*** workspace service project number
+    - projects/610371902002 ***REMOVED*** workspace host or vpc project number
+***REMOVED*** storage operations
 ***REMOVED*** Calls could originate from several databricks regional projects:
 ***REMOVED*** control plane (prod-* projects) - identity: db-workspaceId*
 ***REMOVED*** unity catalog (uc-* projects) - identity: uc-*
@@ -73,36 +77,31 @@
     ***REMOVED*** Based on your setup you may have multiple uc credentials GSA 
     - serviceAccount:db-uc-credential-06akrlmcak-xn@uc-useast1.iam.gserviceaccount.com
     sources:
-      ***REMOVED*** Databricks regional control plane project
-      - resource: projects/51066298900 ***REMOVED***prod-gcp-us-east1
-      ***REMOVED*** Databricks regional unity-catalog project
-      - resource: projects/234110679923 ***REMOVED***uc-useast1
-      ***REMOVED*** Databricks regional serverless compute plane project
-      - resource: projects/126714886954 ***REMOVED***nw-prod-useast1-01
+    - resource: projects/121886670913 ***REMOVED*** Databricks regional control plane project number
+    - resource: projects/522339604799 ***REMOVED*** Unity Catalog regional control plane project number
+    - resource: projects/748623325325 ***REMOVED*** Serverless compute regional project number
   ingressTo:
     operations:
-***REMOVED*** Google Cloud Storage operations
-      - methodSelectors:
-          - method: 'google.storage.objects.get'
-          - method: 'google.storage.objects.list'
-          - method: 'google.storage.objects.create'
-          - method: 'google.storage.objects.delete'
-          - method: 'google.storage.buckets.get'
-          - method: 'google.storage.buckets.testIamPermissions'
-        serviceName: storage.googleapis.com
+    - methodSelectors:
+      - method: google.storage.objects.get
+      - method: google.storage.objects.list
+      - method: google.storage.objects.create
+      - method: google.storage.objects.delete
+      - method: google.storage.buckets.get
+      - method: google.storage.buckets.testIamPermissions
+      serviceName: storage.googleapis.com
     resources:
-      - projects/488622148875 ***REMOVED*** customer workspace project
-***REMOVED*** Lakehouse Federation to BigQuery
+    - projects/610371902002 ***REMOVED*** user project where storage account is created, typically its the orkspace service project number
+***REMOVED*** lakehouse federation to bigquery (sample rule)
 - ingressFrom:
     identities:
     - serviceAccount:[YOUR-GSA-HAVING-BQ-ACCESS]@[PROJECT].iam.gserviceaccount.com
     sources:
-      ***REMOVED*** Databricks regional serverless sql compute plane project
-      - resource: projects/126714886954 ***REMOVED***example: shown here nw-prod-useast1-01
+    - resource: projects/748623325325 ***REMOVED*** serverless compute regional project number
   ingressTo:
     operations:
-***REMOVED*** Google Cloud Bigquery operations
-      - methodSelectors:
+    - methodSelectors:
+    ***REMOVED*** make sure to add your required methods here, below is a sample rule
           - method: 'BigQueryRead.CreateReadSession'
           - method: 'bigquery.tables.get'
           - method: 'bigquery.tables.getData'
@@ -114,41 +113,41 @@
           - method: 'bigquery.datasets.get'
           - method: 'bigquery.datasets.create'
           - method: 'bigquery.jobs.create'    
-        serviceName: bigquery.googleapis.com
+      serviceName: bigquery.googleapis.com
     resources:
-      - projects/488622148875 ***REMOVED*** customer project where BQ dataset exists
+    - projects/610371902002 ***REMOVED*** workspace service project number
+***REMOVED*** audit log delivery
 ***REMOVED*** Optional: Only required if you use audit logging delivery
 ***REMOVED*** https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
 - ingressFrom:
     identities:
-      - serviceAccount:log-delivery@databricks-prod-master.iam.gserviceaccount.com
+    - serviceAccount:log-delivery@databricks-prod-master.iam.gserviceaccount.com ***REMOVED*** log delivery service account
     sources:
-      - resource: projects/68422481410 ***REMOVED*** central project used for audit log delivery
+    - resource: projects/68422481410 ***REMOVED*** Databricks audit log delivery project1
+    - resource: projects/85638097580 ***REMOVED*** Databricks audit log delivery project2
   ingressTo:
     operations:
-      ***REMOVED*** Allows specific Google Cloud Storage operations for audit log delivery
-      - methodSelectors:
-          - method: google.storage.objects.create
-          - method: google.storage.objects.delete
-          - method: google.storage.objects.get
-          - method: google.storage.objects.list
-          - method: google.storage.buckets.testIamPermissions
-        serviceName: storage.googleapis.com
+    - methodSelectors:
+      - method: google.storage.objects.create
+      - method: google.storage.objects.delete
+      - method: google.storage.objects.get
+      - method: google.storage.objects.list
+      - method: google.storage.buckets.testIamPermissions
+      serviceName: storage.googleapis.com
     resources:
-      - projects/546577047680 ***REMOVED*** customer audit log storage project
-  ***REMOVED******REMOVED*** Databricks regional control plane project
-  ***REMOVED******REMOVED*** Only required if you are using CMK
-  ***REMOVED******REMOVED*** https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
+    - projects/546577047680 ***REMOVED*** workspace service project number
+***REMOVED*** CMEK operations
+***REMOVED*** Optional: Only required if you use CMEK
+***REMOVED*** https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
 - ingressFrom:
-    sources:
-    - project: projects/68422481410 ***REMOVED*** example: shown here prod-gcp-us-central1
     identities:
     - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+    sources:
+    - resource: projects/121886670913 ***REMOVED*** Databricks regional control plane project number    
   ingressTo:
-    resources:
-    - projects/488622148875 ***REMOVED*** customer project where workspace is deployed
     operations:
-    - serviceName: cloudkms.googleapis.com
-      methodSelectors:
-      - method: google.cloud.kms.v1.KeyManagementService.Decrypt
-      - method: google.cloud.kms.v1.KeyManagementService.Encrypt
+    - methodSelectors:
+      - method: '*' ***REMOVED*** vpc sc does not support method selectors, so we are allowing all methods
+      serviceName: cloudkms.googleapis.com
+    resources:
+    - projects/610371902002 ***REMOVED*** workspace service project number
