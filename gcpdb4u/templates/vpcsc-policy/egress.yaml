@@ -3,7 +3,11 @@
 # Find your regional control plane VPC host project
 # If your workspace url is 31171674993667.7.gcp.databricks.com
 # WORKSPACEID = 311716749948597
+
+##############################################################################
 # egress rules for Databricks runtime images and artifacts
+# applicable to service or workspace project
+##############################################################################
 - egressTo:
     operations:
       - serviceName: compute.googleapis.com
@@ -17,7 +21,9 @@
     # ex: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
     - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
 ##############################################################################
-# egress rule for workspace health logs
+# egress rule to provision Databricks clusters (gce instances)
+# Needed for cluster creation
+# Applicable to host or vpc project
 ##############################################################################
 - egressTo:
     operations:
@@ -30,7 +36,7 @@
           - method: google.storage.objects.create 
     resources:
       # Databricks cluster boostarp artifacts
-      - projects/51066298900  # Databricks regional control plane project, shown here for us-east1
+      - projects/[databricks control plane project]  # Databricks regional control plane project, shown here for us-east1
   egressFrom:
     identities:
     # per region service account delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
@@ -49,6 +55,16 @@
     identities:
     # per region google service account, shown here for us-east1 system tables access
     - serviceAccount:db-uc-storage-066pptsgmg-dkbon@uc-useast1.iam.gserviceaccount.com
+# egress rules for Databricks classic cluster boostrapping artifacts
+- egressTo:
+    operations:
+      - serviceName: storage.googleapis.com
+        methodSelectors:
+          - method: google.storage.objects.get
+    resources:
+      - projects/121886670913  # Databricks regional control plane, shown here for us-east4
+  egressFrom:
+    identityType: ANY_IDENTITY # vpc sc for whatever reason does not capture the identity for these storage API calls, please note that we are making a read or a get call and nothing else
 
 # # Example of how to use groups
 # # - egressTo:
