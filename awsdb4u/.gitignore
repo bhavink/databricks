@@ -1,0 +1,125 @@
+***REMOVED*** ============================================================================
+***REMOVED*** Terraform Sensitive Files
+***REMOVED*** ============================================================================
+
+***REMOVED*** Local .terraform directories
+**/.terraform/*
+
+***REMOVED*** .tfstate files contain sensitive data about your infrastructure
+*.tfstate
+*.tfstate.*
+
+***REMOVED*** Crash log files
+crash.log
+crash.*.log
+
+***REMOVED*** Exclude all .tfvars files, which are likely to contain sensitive data
+*.tfvars
+*.tfvars.json
+
+***REMOVED*** Ignore override files as they are usually used to override resources locally
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+***REMOVED*** Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+***REMOVED*** ============================================================================
+***REMOVED*** Terraform Plans
+***REMOVED*** ============================================================================
+
+***REMOVED*** Ignore plan files which may contain sensitive data
+*.tfplan
+*tfplan*
+
+***REMOVED*** ============================================================================
+***REMOVED*** AWS and Provider Credentials
+***REMOVED*** ============================================================================
+
+***REMOVED*** AWS credentials
+.aws/
+*.pem
+*.key
+
+***REMOVED*** Service account keys
+*-key.json
+credentials.json
+
+***REMOVED*** ============================================================================
+***REMOVED*** IDE and Editor Files
+***REMOVED*** ============================================================================
+
+***REMOVED*** JetBrains IDEs
+.idea/
+*.iml
+*.iws
+
+***REMOVED*** VSCode
+.vscode/
+*.code-workspace
+
+***REMOVED*** Vim
+*.swp
+*.swo
+*~
+
+***REMOVED*** Emacs
+*~
+\***REMOVED****\***REMOVED***
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+***REMOVED*** ============================================================================
+***REMOVED*** OS Files
+***REMOVED*** ============================================================================
+
+***REMOVED*** macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+***REMOVED*** Linux
+*~
+
+***REMOVED*** Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+***REMOVED*** ============================================================================
+***REMOVED*** Backup Files
+***REMOVED*** ============================================================================
+
+*.backup
+*.bak
+*.tmp
+*.log
+
+***REMOVED*** ============================================================================
+***REMOVED*** Lock Files (Optional - some teams commit these)
+***REMOVED*** ============================================================================
+
+***REMOVED*** Uncomment the line below if you want to ignore lock files
+***REMOVED*** .terraform.lock.hcl
+
+***REMOVED*** ============================================================================
+***REMOVED*** Custom Scripts and Local Development
+***REMOVED*** ============================================================================
+
+***REMOVED*** Local scripts that might contain credentials
+*local*.sh
+*secret*.sh
+*.env
+.envrc
+
+***REMOVED*** ============================================================================
+***REMOVED*** Documentation Build Artifacts
+***REMOVED*** ============================================================================
+
+***REMOVED*** If using terraform-docs or similar tools
+.terraform-docs.yml.backup
+
