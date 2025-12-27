@@ -146,10 +146,5 @@ sequenceDiagram
     
     C3->>C1: Direct connection attempt
     C1-XC3: Connection refused<br/>(Network isolation)
-    
-    style C1 fill:#1E88E5
-    style C2 fill:#1E88E5
-    style C3 fill:#1E88E5
-    style CP fill:#43A047
 ```
   
