@@ -172,10 +172,6 @@ sequenceDiagram
     ACCT-->>API: Request Completed
     
     Note over Admin,SP: Best Practices:<br/>- Rotate tokens regularly<br/>- Use least privilege<br/>- One SP per application
-    
-    style SP fill:#FF6F00
-    style JOB fill:#1E88E5
-    style ACCT fill:#43A047
 ```
 
 ## Audit and Monitor Access
