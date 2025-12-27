@@ -2,6 +2,52 @@
 
 This guide provides a step-by-step walkthrough of monitoring and managing usage in Databricks on Google Cloud. It is based on the official Databricks documentation: [Monitor and Manage Cloud Usage](https://docs.databricks.com/gcp/en/admin/usage/).
 
+***REMOVED******REMOVED*** Cost Management Overview
+
+```mermaid
+graph TB
+    subgraph "Cost Visibility Tools"
+        UI[Databricks Console<br/>Admin UI]
+        ST[System Tables<br/>SQL Queries]
+        GCP[GCP Billing<br/>BigQuery Export]
+        DASH[Usage Dashboard<br/>Trends & Analytics]
+    end
+    
+    subgraph "Cost Control Mechanisms"
+        BUDGET[Budget Policies<br/>Alerts & Actions]
+        AUTO[Auto-Termination<br/>Idle Clusters]
+        POOL[Cluster Pools<br/>Fast Startup]
+        SPOT[Spot/Preemptible VMs<br/>Cost Savings]
+    end
+    
+    subgraph "Cost Sources"
+        DBU[DBU Consumption<br/>Databricks Cost]
+        COMPUTE[GCE Instances<br/>Compute Cost]
+        STORAGE[GCS/BigQuery<br/>Storage Cost]
+        NETWORK[Network Egress<br/>Transfer Cost]
+    end
+    
+    UI --> DBU
+    ST --> DBU
+    ST --> COMPUTE
+    GCP --> DBU
+    GCP --> COMPUTE
+    GCP --> STORAGE
+    GCP --> NETWORK
+    DASH --> DBU
+    
+    BUDGET --> AUTO
+    POOL --> COMPUTE
+    SPOT --> COMPUTE
+    
+    style UI fill:***REMOVED***1E88E5
+    style ST fill:***REMOVED***1E88E5
+    style GCP fill:***REMOVED***4285F4
+    style DASH fill:***REMOVED***43A047
+    style BUDGET fill:***REMOVED***FF6F00
+    style DBU fill:***REMOVED***FDD835
+```
+
 ***REMOVED******REMOVED*** Table of Contents
 1. [Overview](***REMOVED***overview)
 2. [Monitor Usage with the Databricks Console](***REMOVED***monitor-usage-with-the-databricks-console)
@@ -52,6 +98,39 @@ Databricks provides system tables that store metadata about usage. These tables 
 3. **Export Reports**
    - Use the **Export** option in the UI to download reports in CSV format.
 
+***REMOVED******REMOVED*** System Tables Analysis Flow
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant SQLWH as SQL Warehouse
+    participant ST as System Tables<br/>(system.billing.*)
+    participant EXPORT as Export/Download
+    participant BQ as BigQuery<br/>(Optional)
+    
+    Admin->>SQLWH: Start SQL Warehouse
+    Admin->>ST: Query system.billing.usage
+    ST-->>Admin: DBU consumption data
+    
+    Admin->>ST: Query system.billing.costs
+    ST-->>Admin: Cost breakdown by cluster
+    
+    Admin->>ST: Custom query<br/>(Filter by workspace, time, user)
+    ST-->>Admin: Filtered results
+    
+    Admin->>EXPORT: Export to CSV
+    EXPORT-->>Admin: Download report
+    
+    opt Advanced Analytics
+        Admin->>BQ: Export to BigQuery
+        BQ-->>Admin: Create dashboards<br/>& scheduled reports
+    end
+    
+    style SQLWH fill:***REMOVED***1E88E5
+    style ST fill:***REMOVED***43A047
+    style BQ fill:***REMOVED***4285F4
+```
+
 ***REMOVED******REMOVED*** Using GCP Billing Reports
 Google Cloud provides billing export features that can be leveraged to analyze Databricks costs.
 
@@ -76,6 +155,53 @@ Google Cloud provides billing export features that can be leveraged to analyze D
 4. **Set Up Alerts**
    - Configure budget alerts in GCP Billing to notify you when Databricks costs exceed a threshold.
 
+***REMOVED******REMOVED*** GCP Billing Integration Architecture
+
+```mermaid
+graph TB
+    subgraph "GCP Billing"
+        BILL[GCP Billing Account]
+        EXPORT[Billing Export<br/>Enabled]
+    end
+    
+    subgraph "BigQuery Analysis"
+        BQ[BigQuery Dataset<br/>billing_dataset]
+        TABLES[Billing Tables<br/>gcp_billing_export]
+    end
+    
+    subgraph "Cost Analysis"
+        QUERY[SQL Queries<br/>Filter Databricks costs]
+        VIZ[Data Studio/Looker<br/>Visualizations]
+        ALERT[Budget Alerts<br/>Threshold Notifications]
+    end
+    
+    subgraph "Databricks Costs"
+        DBU_COST[DBU Charges<br/>From Marketplace]
+        GCE_COST[GCE Compute<br/>Instance Costs]
+        GCS_COST[GCS Storage<br/>Costs]
+        NET_COST[Network<br/>Egress Costs]
+    end
+    
+    BILL --> EXPORT
+    EXPORT --> BQ
+    BQ --> TABLES
+    TABLES --> QUERY
+    QUERY --> VIZ
+    QUERY --> ALERT
+    
+    DBU_COST --> BILL
+    GCE_COST --> BILL
+    GCS_COST --> BILL
+    NET_COST --> BILL
+    
+    style BILL fill:***REMOVED***4285F4
+    style BQ fill:***REMOVED***4285F4
+    style QUERY fill:***REMOVED***1E88E5
+    style VIZ fill:***REMOVED***43A047
+    style ALERT fill:***REMOVED***FF6F00
+    style DBU_COST fill:***REMOVED***FDD835
+```
+
 ***REMOVED******REMOVED*** Using Budget Policies for Cost Control
 Budget policies allow administrators to set predefined limits and take automated actions to prevent overspending.
 
@@ -92,6 +218,47 @@ Budget policies allow administrators to set predefined limits and take automated
 3. **Monitor Budget Usage**
    - View real-time budget consumption through the Budgets dashboard.
    - Set up email notifications to alert administrators of budget exceedance.
+
+***REMOVED******REMOVED*** Budget Policy Workflow
+
+```mermaid
+stateDiagram-v2
+    [*] --> CreateBudget: Admin defines budget
+    CreateBudget --> Monitoring: Budget active
+    
+    Monitoring --> Under50: Usage < 50%
+    Monitoring --> Under80: Usage 50-80%
+    Monitoring --> Under100: Usage 80-100%
+    Monitoring --> Exceeded: Usage > 100%
+    
+    Under50 --> Monitoring: Continue monitoring
+    Under80 --> Alert50: Email notification
+    Alert50 --> Monitoring
+    
+    Under100 --> Alert80: Warning notification
+    Alert80 --> ActionReview: Admin reviews workloads
+    ActionReview --> Monitoring
+    
+    Exceeded --> Alert100: Critical alert
+    Alert100 --> AutoAction: Automated actions
+    AutoAction --> PauseJobs: Pause non-critical jobs
+    AutoAction --> NotifyTeam: Notify all stakeholders
+    AutoAction --> ClusterTerminate: Auto-terminate idle clusters
+    
+    PauseJobs --> [*]
+    NotifyTeam --> [*]
+    ClusterTerminate --> [*]
+    
+    note right of Under50
+        Normal operations
+        No action required
+    end note
+    
+    note right of Exceeded
+        Budget exceeded
+        Immediate action taken
+    end note
+```
 
 ***REMOVED******REMOVED*** Using the Databricks Usage Dashboard
 Databricks provides a built-in **Usage Dashboard** that gives a graphical representation of costs and consumption trends.
@@ -120,6 +287,56 @@ Databricks provides a built-in **Usage Dashboard** that gives a graphical repres
 - **Leverage Databricks Pools**: Reduce cluster startup time and cost by using cluster pools.
 - **Set Up Budget Policies**: Define budgets with automated alerts to prevent cost overruns.
 - **Utilize the Usage Dashboard**: Monitor resource consumption trends for proactive cost management.
+
+***REMOVED******REMOVED*** Cost Optimization Strategy
+
+```mermaid
+graph TB
+    subgraph "Immediate Actions"
+        AUTO_TERM[Enable Auto-Termination<br/>Idle timeout: 15-30 min]
+        SPOT[Use Preemptible VMs<br/>60-91% cost savings]
+        RIGHT_SIZE[Right-size Clusters<br/>Match workload needs]
+    end
+    
+    subgraph "Ongoing Monitoring"
+        DASH_MON[Daily Dashboard Review<br/>Identify cost spikes]
+        JOB_OPT[Optimize Long Jobs<br/>Reduce runtime]
+        POOL[Cluster Pools<br/>Reduce cold start time]
+    end
+    
+    subgraph "Governance"
+        BUDGET[Budget Policies<br/>Alert at 80% usage]
+        QUOTA[Resource Quotas<br/>Limit max clusters]
+        TAG[Cost Tagging<br/>Track by team/project]
+    end
+    
+    subgraph "Advanced Optimization"
+        SPOT_FALL[Spot + On-Demand Mix<br/>Balance cost & reliability]
+        SCHEDULE[Scheduled Job Consolidation<br/>Reduce cluster churn]
+        CACHE[Data Caching<br/>Delta Cache enabled]
+    end
+    
+    AUTO_TERM --> DASH_MON
+    SPOT --> DASH_MON
+    RIGHT_SIZE --> DASH_MON
+    
+    DASH_MON --> BUDGET
+    JOB_OPT --> BUDGET
+    POOL --> BUDGET
+    
+    BUDGET --> SPOT_FALL
+    QUOTA --> SCHEDULE
+    TAG --> CACHE
+    
+    style AUTO_TERM fill:***REMOVED***43A047
+    style SPOT fill:***REMOVED***43A047
+    style RIGHT_SIZE fill:***REMOVED***43A047
+    style BUDGET fill:***REMOVED***FF6F00
+    style QUOTA fill:***REMOVED***FF6F00
+    style TAG fill:***REMOVED***FF6F00
+    style SPOT_FALL fill:***REMOVED***1E88E5
+    style CACHE fill:***REMOVED***1E88E5
+```
 
 For more details, refer to the official documentation:
 - [Databricks Usage on GCP](https://docs.databricks.com/gcp/en/admin/usage/)

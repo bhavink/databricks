@@ -2,7 +2,61 @@
 
 ***REMOVED******REMOVED*** Objective
 Create Databricks workspace in a **customer managed VPC**. VPC could be a shared vpc or a customer managed stand alone vpc.
-![](./images/customer-managed-vpc.png)
+
+***REMOVED******REMOVED*** Customer Managed VPC Architecture
+
+```mermaid
+graph TB
+    subgraph "Databricks Account"
+        ACCT[Account Console]
+        NC[Network Configuration]
+    end
+    
+    subgraph "Customer GCP Project"
+        VPC[Customer Managed VPC]
+        
+        subgraph "VPC Configuration"
+            SUBNET[Primary Subnet<br/>/29 to /9]
+            FW[Firewall Rules]
+            PGA[Private Google Access<br/>Enabled]
+            NAT[Cloud NAT<br/>Egress]
+        end
+        
+        subgraph "Databricks Workspace"
+            WS[Workspace]
+            SA[Compute Service Account<br/>databricks-compute@project]
+            CLUSTER[Clusters<br/>GCE Instances]
+        end
+        
+        subgraph "IAM & Policies"
+            ORGPOL[Organization Policies]
+            IMGPOL[Trusted Image Policy<br/>databricks-external-images]
+            AUTHPOL[Storage Auth Policy<br/>SERVICE_ACCOUNT_HMAC]
+        end
+    end
+    
+    ACCT --> NC
+    NC --> VPC
+    VPC --> SUBNET
+    VPC --> FW
+    VPC --> PGA
+    VPC --> NAT
+    
+    NC --> WS
+    WS --> SA
+    WS --> CLUSTER
+    CLUSTER --> SUBNET
+    
+    ORGPOL -.validates.-> WS
+    IMGPOL -.validates.-> CLUSTER
+    AUTHPOL -.validates.-> SA
+    
+    style ACCT fill:***REMOVED***1E88E5
+    style VPC fill:***REMOVED***4285F4
+    style WS fill:***REMOVED***1E88E5
+    style CLUSTER fill:***REMOVED***43A047
+    style ORGPOL fill:***REMOVED***FF6F00
+```
 
 ***REMOVED******REMOVED*** Before you begin
 
@@ -26,6 +80,43 @@ inside the Databricks Compute Plane.  Its email address looks like db-{workspace
 `Compute SA`: Databricks will use a service account in the Compute Plane named `databricks-compute@{workspace-project}.iam.gserviceaccount.com` as the SA attached to every VM launched by Databricks in the GCP project. This GSA could be precreated in the project used by Databricks workspace and in that workspace would automatically use it.
 
 `Storage SAs` (one or more Google Service Accounts) in the Control Plane are used to set up Unity Catalog (UC) Credentials that enable granting access to UC managed  storage in your Projects and in the Compute Plane.  The Storage SA generates a short-lived token and provides it to the Compute cluster process with privileges to access data. Privileges are scoped down to be specific to the requested operation.
+
+***REMOVED******REMOVED*** Service Account Interaction Flow
+
+```mermaid
+sequenceDiagram
+    participant DCP as Databricks<br/>Control Plane
+    participant WSA as Workspace SA<br/>db-{workspaceid}@prod-gcp-{region}
+    participant CSA as Compute SA<br/>databricks-compute@project
+    participant GCE as GCE Instances
+    participant GCS as GCS Buckets
+    participant UC as Unity Catalog
+    participant SSA as Storage SA<br/>(UC Credential)
+    
+    Note over DCP,WSA: Workspace Creation
+    DCP->>WSA: Create Workspace SA<br/>in Control Plane
+    WSA->>CSA: Validate/Create<br/>Compute SA in Project
+    
+    Note over DCP,GCE: Cluster Launch
+    DCP->>WSA: Launch Cluster Request
+    WSA->>GCE: Create GCE Instances
+    GCE->>CSA: Attach Compute SA<br/>to VMs
+    
+    Note over CSA,GCS: Data Access (Non-UC)
+    CSA->>GCS: Access Data<br/>(Using Compute SA permissions)
+    
+    Note over UC,SSA: Unity Catalog Data Access
+    DCP->>UC: Request Data Access
+    UC->>SSA: Generate Short-lived Token<br/>(Scoped Permissions)
+    SSA->>GCE: Provide Token to Cluster
+    GCE->>GCS: Access UC Managed Data<br/>(Using Storage SA token)
+    
+    style DCP fill:***REMOVED***1E88E5
+    style WSA fill:***REMOVED***43A047
+    style CSA fill:***REMOVED***43A047
+    style SSA fill:***REMOVED***43A047
+    style UC fill:***REMOVED***8E24AA
+```
 
 
 ***REMOVED******REMOVED*** FAQ
@@ -59,6 +150,34 @@ inside the Databricks Compute Plane.  Its email address looks like db-{workspace
 
 Total Nodes Per Workspace = Total number of concurrent nodes (compute instances) supported by the workspace at a given point in time.
 
+***REMOVED******REMOVED*** Subnet Sizing Visualization
+
+```mermaid
+graph LR
+    subgraph "Subnet Size Selection"
+        S26["/26 CIDR<br/>30 Nodes<br/>Small Dev/Test"]
+        S24["/24 CIDR<br/>120 Nodes<br/>Medium Workloads"]
+        S22["/22 CIDR<br/>500 Nodes<br/>Large Production"]
+        S20["/20 CIDR<br/>2000 Nodes<br/>Enterprise Scale"]
+        S19["/19 CIDR<br/>4000 Nodes<br/>Very Large Scale"]
+    end
+    
+    S26 -->|Scale Up| S24
+    S24 -->|Scale Up| S22
+    S22 -->|Scale Up| S20
+    S20 -->|Scale Up| S19
+    
+    S26 -.cannot resize.-> S26
+    
+    style S26 fill:***REMOVED***90CAF9
+    style S24 fill:***REMOVED***64B5F6
+    style S22 fill:***REMOVED***42A5F5
+    style S20 fill:***REMOVED***1E88E5
+    style S19 fill:***REMOVED***1565C0
+```
+
+**Important Note:** Subnet CIDR ranges cannot be changed after workspace creation. Choose carefully based on your expected growth!
+
 ***REMOVED******REMOVED*** Subnet CIDR ranges
 
 
@@ -91,7 +210,44 @@ Please follow public [documentation](https://registry.terraform.io/providers/dat
 ***REMOVED******REMOVED*** Validate setup
 - Create a Databricks cluster to validate n/w setup
 - Databricks Cluster comes up fine
-![](./images/test-cluster-comesup1.png)
+
+***REMOVED******REMOVED*** Cluster Validation Flow
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant WS as Workspace
+    participant CP as Control Plane
+    participant VPC as Customer VPC
+    participant GCE as GCE Instances
+    participant NB as Notebook
+    
+    Admin->>WS: Create Test Cluster
+    WS->>CP: Request Cluster Creation
+    
+    CP->>VPC: Validate Network Config
+    VPC-->>CP: Network OK
+    
+    CP->>GCE: Launch Instances
+    activate GCE
+    GCE->>VPC: Attach to Subnet
+    GCE->>CP: Connect via SCC Relay
+    CP-->>WS: Cluster Ready
+    WS-->>Admin: Cluster Running ✓
+    
+    Admin->>NB: Create Notebook
+    Admin->>NB: Run Test Command<br/>%sql show tables
+    NB->>GCE: Execute Command
+    GCE->>NB: Return Results
+    NB-->>Admin: Command Success ✓
+    deactivate GCE
+    
+    Note over Admin,NB: Workspace Validated!
+    
+    style WS fill:***REMOVED***1E88E5
+    style GCE fill:***REMOVED***43A047
+    style Admin fill:***REMOVED***FDD835
+```
 
 
 * Upon creation of workspace, immediately test it by creating a databricks cluster and run a test command in databricks notebook like:
@@ -123,13 +279,42 @@ Please follow public [documentation](https://registry.terraform.io/providers/dat
   }
   }
   ```
-  or you see ![cluster-launch-failure](./images/cluster-launch-failure1.png)
   Verify that you have egress/outbound network connectivity from your VPC to Databricks Control plane.
     - Most likely VPC firewall is blocking egress communication
     - You do not have a n/w route set for vpc to communicate with Databricks control plane
     - Make sure an egress appliance like Cloud NAT is attached to subnets used by Databricks
 
-* Databricks Cluster Creation fails with:
-![cluster-launch-failure2](./images/cluster-launch-failure2.png)
+* Databricks Cluster Creation fails with quota errors:
   - Verify that you have adequate GCP resource quota limit set, follow steps mentioned over [here](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html).
+
+***REMOVED******REMOVED*** Common Failure Scenarios
+
+```mermaid
+graph TB
+    START[Cluster Launch Initiated]
+    
+    START --> CHECK1{Network<br/>Configuration<br/>Valid?}
+    CHECK1 -->|No| FAIL1[Network Config Error<br/>Fix: Verify subnet,<br/>firewall rules]
+    CHECK1 -->|Yes| CHECK2{VPC Firewall<br/>Allows Egress?}
+    
+    CHECK2 -->|No| FAIL2[DBR_CLUSTER_LAUNCH_TIMEOUT<br/>Fix: Allow egress to<br/>Control Plane]
+    CHECK2 -->|Yes| CHECK3{Cloud NAT<br/>Attached?}
+    
+    CHECK3 -->|No| FAIL3[No Internet Access<br/>Fix: Attach Cloud NAT<br/>to VPC subnets]
+    CHECK3 -->|Yes| CHECK4{GCP Resource<br/>Quota Available?}
+    
+    CHECK4 -->|No| FAIL4[Quota Exceeded Error<br/>Fix: Request quota<br/>increase]
+    CHECK4 -->|Yes| CHECK5{Organization<br/>Policies OK?}
+    
+    CHECK5 -->|No| FAIL5[Policy Violation<br/>Fix: Update org policies<br/>or project settings]
+    CHECK5 -->|Yes| SUCCESS[Cluster Running ✓]
+    
+    style START fill:***REMOVED***1E88E5
+    style SUCCESS fill:***REMOVED***43A047
+    style FAIL1 fill:***REMOVED***E53935
+    style FAIL2 fill:***REMOVED***E53935
+    style FAIL3 fill:***REMOVED***E53935
+    style FAIL4 fill:***REMOVED***E53935
+    style FAIL5 fill:***REMOVED***E53935
+```
 

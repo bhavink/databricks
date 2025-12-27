@@ -3,7 +3,69 @@ _The best practice guide that you've been looking for_
 
 ***REMOVED*** Introduction
 
-[Databricks](https://www.databricks.com) provides a data lakehouse platform unifying the best of data warehouses and data lakes in one simple platform to handle all your data, analytics and AI use cases. It’s built on an open and reliable data foundation that efficiently handles all data types and applies one common security and governance approach across all of your data and cloud platforms.
+[Databricks](https://www.databricks.com) provides a data lakehouse platform unifying the best of data warehouses and data lakes in one simple platform to handle all your data, analytics and AI use cases. It's built on an open and reliable data foundation that efficiently handles all data types and applies one common security and governance approach across all of your data and cloud platforms.
+
+***REMOVED******REMOVED*** Databricks Lakehouse Platform Components
+
+```mermaid
+graph TB
+    subgraph "Databricks Lakehouse Platform"
+        UI[Web UI & APIs]
+        WS[Workspaces]
+        
+        subgraph "Data Processing"
+            NB[Notebooks]
+            JOBS[Jobs & Workflows]
+            SQL[SQL Analytics]
+            ML[ML & MLflow]
+        end
+        
+        subgraph "Compute Options"
+            CLASSIC[Classic Compute<br/>Customer VPC]
+            SERVERLESS[Serverless Compute<br/>Databricks Managed]
+        end
+        
+        subgraph "Data Governance"
+            UC[Unity Catalog]
+            SEC[Security & Access Control]
+            AUDIT[Audit Logs]
+        end
+        
+        subgraph "Storage Layer"
+            DL[Data Lake<br/>GCS Buckets]
+            DW[Data Warehouse<br/>BigQuery]
+            EXT[External Sources]
+        end
+    end
+    
+    UI --> WS
+    WS --> NB
+    WS --> JOBS
+    WS --> SQL
+    WS --> ML
+    
+    NB --> CLASSIC
+    NB --> SERVERLESS
+    JOBS --> CLASSIC
+    JOBS --> SERVERLESS
+    SQL --> SERVERLESS
+    ML --> CLASSIC
+    
+    UC --> SEC
+    UC --> AUDIT
+    
+    CLASSIC --> DL
+    SERVERLESS --> DL
+    SQL --> DW
+    CLASSIC --> EXT
+    
+    style UI fill:***REMOVED***1E88E5
+    style WS fill:***REMOVED***1E88E5
+    style CLASSIC fill:***REMOVED***43A047
+    style SERVERLESS fill:***REMOVED***7CB342
+    style UC fill:***REMOVED***8E24AA
+    style DL fill:***REMOVED***FF6F00
+```
 
 ***REMOVED*** Objective
 In this guide we'll share with you architectural patterns and design guidelines to help you with:
@@ -17,7 +79,40 @@ In this guide we'll share with you architectural patterns and design guidelines 
 * [Observability and Monitoring](Observability-And-Monitoring.md)
 * [Cost Management, Charge backs & Analysis](Cost-Management-And-Analysis.md)
 
-![reading-plan](images/reading-plan.jpg)
+***REMOVED******REMOVED*** Documentation Journey
+
+```mermaid
+graph TB
+    Start([Start Here])
+    GS[Getting Started<br/>Trial, Subscriptions,<br/>Basic Concepts]
+    WA[Workspace Architecture<br/>Control & Compute Planes,<br/>Network Design]
+    WP[Workspace Provisioning<br/>VPC, Subnets,<br/>Terraform Scripts]
+    WS[Workspace Security<br/>VPC SC, Firewall Rules,<br/>Private Access]
+    IAM[Identity & Access<br/>Users, Groups,<br/>Service Principals]
+    OBS[Observability<br/>Job Monitoring,<br/>Performance Metrics]
+    COST[Cost Management<br/>Budgets, Analysis,<br/>Optimization]
+    
+    Start --> GS
+    GS --> WA
+    WA --> WP
+    WP --> WS
+    GS --> IAM
+    WP --> OBS
+    WP --> COST
+    WS -.enhances.-> WP
+    IAM -.applies to.-> WP
+    OBS -.monitors.-> WP
+    COST -.optimizes.-> WP
+    
+    style Start fill:***REMOVED***FF6F00
+    style GS fill:***REMOVED***1E88E5
+    style WA fill:***REMOVED***43A047
+    style WP fill:***REMOVED***E53935
+    style WS fill:***REMOVED***8E24AA
+    style IAM fill:***REMOVED***FB8C00
+    style OBS fill:***REMOVED***00ACC1
+    style COST fill:***REMOVED***FDD835
+```
 
 Most of the content is derived from [public docs](https://docs.gcp.databricks.com)
 
