@@ -125,10 +125,6 @@ sequenceDiagram
         Admin->>BQ: Export to BigQuery
         BQ-->>Admin: Create dashboards<br/>& scheduled reports
     end
-    
-    style SQLWH fill:***REMOVED***1E88E5
-    style ST fill:***REMOVED***43A047
-    style BQ fill:***REMOVED***4285F4
 ```
 
 ***REMOVED******REMOVED*** Using GCP Billing Reports
