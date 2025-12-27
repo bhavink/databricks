@@ -1,28 +1,26 @@
-***REMOVED*** VPC Service Controls for a Databricks Workspace
+***REMOVED*** VPC Service Controls (VPC SC) for Databricks on GCP 🔒
 
-[VPC Service Controls](https://cloud.google.com/vpc-service-controls) enables you to isolate your production GCP resources from the internet, unauthorized VPC networks and unauthorized GCP resources.
+VPC Service Controls (VPC SC) lets you create security perimeters around Google Cloud resources to reduce the risk of data exfiltration and to restrict access to only authorized networks and identities. Databricks supports VPC SC for both Customer-Managed VPCs (Shared VPC or standalone) and Databricks-managed VPCs.
 
-VPC SC is fully supported by databricks. It works with Shared VPC as well a stand alone VPC.
+---
 
-It improves your ability to mitigate the risk of data exfiltration from Google Cloud services such as Cloud Storage and BigQuery. It also allows you to restrict access to production GCP resources from only clients on authorized networks or devices.
+***REMOVED******REMOVED*** Why use VPC SC for Databricks
+- Adds an extra layer of perimeter security independent of IAM (defense-in-depth).
+- Helps mitigate data exfiltration from services such as Cloud Storage and BigQuery.
+- Restricts access so that resources can be accessed only from authorized networks, devices, or identities.
 
-With VPC Service Controls, you create perimeters that protect the resources and data of services that you explicitly specify.
-
-* For all Google Cloud services secured with VPC Service Controls, you can ensure that:
-
-* Resources within a perimeter accessed only from clients within authorized VPC networks using Private Google Access with either Google Cloud or on-premises.
-
-* Clients within a perimeter that have private access to resources do not have access to unauthorized (potentially public) resources outside the perimeter.
-
-* Data cannot be copied to unauthorized resources outside the perimeter using service operations such as gsutil cp or bq mk.
-
-* When enabled, internet access to resources within a perimeter is restricted using allowlisted IPv4 and IPv6 ranges.
-
-VPC Service Controls provides an additional layer of security defense for Google Cloud services that is independent of Identity and Access Management (IAM). While IAM enables granular identity-based access control, VPC Service Controls enables broader context-based perimeter security, including controlling data egress across the perimeter. We recommend using both VPC Service Controls and IAM for defense in depth.
-
-See the image below for an example of what this might look like:
+> Note: Use VPC SC together with IAM and Private Google Access (PGA) for a robust security posture.
 
 ![](./../images/vpc-sc1.png)
+
+---
+
+***REMOVED******REMOVED*** Quick checklist ✅
+- [ ] Define Access Levels (Access Context Manager) to allow Databricks control plane NAT IPs
+- [ ] Create and test a perimeter (dry-run) before enforcement
+- [ ] Configure Private Google Access or `restricted.googleapis.com` where required
+- [ ] Update DNS, routes and firewall rules as per the perimeter requirements
+- [ ] Validate workspace creation and runtime access patterns
 
 ***REMOVED******REMOVED*** Supported Services
 For a list of services supported by VPC SC, please see [Services](https://cloud.google.com/vpc-service-controls/docs/restricted-vip-services) supported by the restricted VIP

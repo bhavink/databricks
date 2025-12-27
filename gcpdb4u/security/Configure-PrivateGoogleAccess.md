@@ -1,12 +1,25 @@
-***REMOVED*** What is it?
+***REMOVED*** Private Google Access (PGA) for Databricks on GCP 🌐🔒
 
-Private Google Access can be enabled on a subnet by subnet basis and all it really means is that VM instances will communicate with Google APIs via their internal IP addresses rather than using external IPs to communicate via the internet. The diagram below shows how this works:
+Private Google Access (PGA) allows VM instances that do **not** have external IP addresses to reach Google APIs and services using Google's internal network instead of the public internet. For Databricks, enabling PGA ensures cluster nodes can access Cloud Storage, Artifact Registry (pkg.dev), and other Google services privately.
 
 ![](./../images/pvt-goog-access.png)
 
-By default, when a Compute Engine VM, in our case Databricks cluster nodes lacks an external IP (public ip) address assigned to its network interface, it can only send packets to other internal IP address destinations. You can allow these VMs to connect to the set of external IP addresses used by Google APIs and services by enabling Private Google Access (PGA) on the subnet used by the VM's network interface.
+**Why enable PGA for Databricks?**
+- Keeps dataplane traffic on Google’s internal network (reduces public egress and attack surface).
+- Works together with Private DNS and VPC Service Controls (`restricted.googleapis.com`) when tighter egress controls are required.
+- Allows controlled access for runtime image downloads and storage access without public IPs on cluster nodes.
 
-When Private Google Access is enabled the communication from Databricks clusters running within your Project using your VPC (dataplane) to Databricks control plane services like artifact repo(Databricks runtime images) and Google cloud storage account(workspace health check logs and usage logs) stays private, using Private Google Access [PGA] we can ensure that communication between data plane and these services stays over Google’s internal network.
+---
+
+***REMOVED******REMOVED*** Quick steps to enable PGA ✅
+1. Enable Private Google Access on the subnet(s) used by Databricks clusters:
+```bash
+***REMOVED*** replace SUBNET_NAME and REGION
+gcloud compute networks subnets update SUBNET_NAME --region=REGION --enable-private-ip-google-access
+```
+2. Configure DNS and private zones for required domains (e.g., `*.pkg.dev`, `restricted.googleapis.com`).
+3. Add required firewall rules and routes for restricted.googleapis.com (if using VPC SC) and other permitted destinations.
+4. Test DNS resolution and HTTP access from a node without an external IP (see Validation below).
 
 ***REMOVED******REMOVED*** `How to do it?`
 ***REMOVED******REMOVED******REMOVED*** `High Level Steps`
