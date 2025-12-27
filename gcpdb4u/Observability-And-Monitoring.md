@@ -126,11 +126,6 @@ sequenceDiagram
     MONITOR-->>Admin: CPU, Memory, Cost Metrics
     
     Note over Admin,MONITOR: Identify optimization opportunities
-    
-    style JOB fill:***REMOVED***1E88E5
-    style CLUSTER fill:***REMOVED***43A047
-    style ALERT fill:***REMOVED***FF6F00
-    style SPARK fill:***REMOVED***FDD835
 ```
 
 ***REMOVED******REMOVED*** Analyze Job Performance
