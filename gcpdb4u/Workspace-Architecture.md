@@ -177,20 +177,20 @@ graph TB
     
     SUBNET --> NAT
     
-    NAT -->|[3] TLS 1.3<br/>Egress to Control Plane| DCP
-    NAT -->|[4] Hive Metastore<br/>Access| HMS
+    NAT -->|3: TLS 1.3<br/>Egress to Control Plane| DCP
+    NAT -->|4: Hive Metastore<br/>Access| HMS
     
-    SUBNET -->|[5] Private Google Access<br/>No NAT Required| GAR
-    SUBNET -->|[6] Private Google Access| GCS_WS
+    SUBNET -->|5: Private Google Access<br/>No NAT Required| GAR
+    SUBNET -->|6: Private Google Access| GCS_WS
     
-    SUBNET -->|[7] Private Google Access<br/>Serverless Compute| SCP
+    SUBNET -->|7: Private Google Access<br/>Serverless Compute| SCP
     
-    SUBNET -->|[8] Public Repos<br/>PyPI, CRAN, Maven| NAT
+    SUBNET -->|8: Public Repos<br/>PyPI, CRAN, Maven| NAT
     
-    DRIVER -->|[9] Data Access| GCS_DATA
-    WORKER1 -->|[9] Data Access| GCS_DATA
-    DRIVER -->|[9] Query| BQ
-    DRIVER -->|[9] External Access| EXT
+    DRIVER -->|9: Data Access| GCS_DATA
+    WORKER1 -->|9: Data Access| GCS_DATA
+    DRIVER -->|9: Query| BQ
+    DRIVER -->|9: External Access| EXT
     
     style DCP fill:***REMOVED***1E88E5
     style SUBNET fill:***REMOVED***4285F4
@@ -204,14 +204,14 @@ graph TB
 
 **Network Flow Descriptions:**
 
-1. **[1]** Classic compute plane resides within your project and it utilizes your vpc
+1. **Flow 1:** Classic compute plane resides within your project and it utilizes your vpc
    * Per databricks workspace we need [1 subnet](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/network-sizing.html):
      * Node Subnet
-2. **[3]** Outbound or Egress communication from your vpc to databricks control plane is required. Typically this is achieved by attaching an egress appliance like Cloud NAT to your VPC. In transit traffic is encrypted using TLS 1.3. *`Having an egress path to Databricks control plane is a must have requirement`*
-3. **[5,6]** Outbound communication from your vpc to databricks managed Google Artifact Registry (for runtime images) and GCS (for workspace diagnostic logs). When [Private Google Access](https://cloud.google.com/vpc/docs/configure-private-google-access) is enabled on the VPC, traffic stays on Google network/backbone and requires no egress appliance like Cloud NAT.
-4. **[7]** Serverless compute plane access using [Private Google Access](https://cloud.google.com/vpc/docs/configure-private-google-access). On Serverless compute VPC's PGA is enabled, traffic stays on Google network/backbone and doesnt travel thru internet.
-5. **[4]** Outbound communication from your vpc to databricks managed HIVE Metastore
+2. **Flow 3:** Outbound or Egress communication from your vpc to databricks control plane is required. Typically this is achieved by attaching an egress appliance like Cloud NAT to your VPC. In transit traffic is encrypted using TLS 1.3. *`Having an egress path to Databricks control plane is a must have requirement`*
+3. **Flow 5,6:** Outbound communication from your vpc to databricks managed Google Artifact Registry (for runtime images) and GCS (for workspace diagnostic logs). When [Private Google Access](https://cloud.google.com/vpc/docs/configure-private-google-access) is enabled on the VPC, traffic stays on Google network/backbone and requires no egress appliance like Cloud NAT.
+4. **Flow 7:** Serverless compute plane access using [Private Google Access](https://cloud.google.com/vpc/docs/configure-private-google-access). On Serverless compute VPC's PGA is enabled, traffic stays on Google network/backbone and doesnt travel thru internet.
+5. **Flow 4:** Outbound communication from your vpc to databricks managed HIVE Metastore
    * optionally you could also bring your [own hive metastore](https://docs.gcp.databricks.com/data/metastores/external-hive-metastore.html)
-6. **[8]** Outbound communication to public repositories to download python, r and java libraries
+6. **Flow 8:** Outbound communication to public repositories to download python, r and java libraries
    * optionally you could have a local mirror of these public repos and avoid downloading it from public sites.
-7. **[9]** Accessing your data sources (GCS/BQ/PubSub/Any External source) 
+7. **Flow 9:** Accessing your data sources (GCS/BQ/PubSub/Any External source) 
