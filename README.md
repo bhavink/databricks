@@ -1,27 +1,49 @@
-Repo for All things Databricks
-==============
-Highlighting some of the unique capabilities of Databricks platform, these are ready to use code samples & how-to guide's along with detailed deployment architectures to feed your curiosity and learn this wonderful platform we call `lakehouse`. 
+# Repo for All things Databricks ✅
 
-### adb4u: Azure Databricks Security Best Practices
--  Documenting and sharing security best practices related to platform deployment and configurations
-    -  *Preventing Data Exfiltration* - Secure Deployments
-    -  *IP Access List* - Connect to Azure Databricks only through existing corporate networks with a secure perimeter
-    -  *Users and Groups Management* - Automate users/groups onboarding and management
-    -  *Authenticating API calls* - Securely accessing Azure Databricks REST API using AAD tokens
-    -  *Platform tokens* - Manage Azure Databricks platform tokens
-    -  *Securely and Efficiently connect to ADF, ADLS gen2 and Power BI*
-    -  *Working with Secrets*
-    -  *Bring Your Own Keys* (Customer Managed Keys) for DBFS and Notebooks
-    -  - Azure Databricks ARM templates
+Highlighting the capabilities of the Databricks platform, this repo contains ready-to-use code samples, how-to guides, and deployment architectures to help you learn and operate the Databricks Lakehouse on Azure, AWS, and GCP.
 
-### databricks-rest-api-collection: 
-- Cloud agnostic, common databricks REST API Postman collections
+---
 
-### databricks-jump-start: 
-- Curated list of code samples based on Databricks public documention
+## Quick Links 🔗
+- **Azure**: [adb4u](./adb4u/) — Azure Databricks security & deployment guides
+- **AWS**: [awsdb4u](./awsdb4u/) — AWS Databricks deployment & best practices
+- **GCP**: [gcpdb4u](./gcpdb4u/) — GCP Databricks best practices and architecture
+- **REST API**: [databricks-rest-api-collection](./databricks-rest-api-collection/) — Postman collections for Databricks REST APIs
+- **Jump Start**: [databricks-jump-start](./databricks-jump-start/) — Curated code samples and tutorials
 
-### gcpdb4u: 
-- Databricks on GCP best practice guide
-- Preventing Data Exfiltration
-- Data Plane Security
+---
+
+## Databricks Deployment Guides by Cloud 🌩️
+
+### Azure (adb4u) 🔷
+- Focus: **Security**, governance, and production-ready deployment patterns for Azure Databricks.
+- Topics: ADLS Gen2 integration, AAD authentication for REST APIs, platform tokens and secrets management, IP access policies, BYOK (customer-managed keys), ARM templates, and Secure Deployments.
+- Folder: `adb4u` — see the folder for example templates, notebooks, and step-by-step guides.
+
+### AWS (awsdb4u) ☁️
+- Focus: Deploying and operating Databricks on AWS with best practices for networking, identity, and storage.
+- Topics: VPC design, S3 data access patterns, IAM roles and policies, cross-account setups, and automation templates.
+- Folder: `awsdb4u` — repository of AWS-specific deployment references and example configurations.
+
+### GCP (gcpdb4u) 🟢
+- Focus: GCP-specific guidance for Databricks, with emphasis on data plane security and Google Cloud integrations.
+- Topics: VPC and subnet design, GCS connectors, IAM & service accounts, KMS integration, and data exfiltration prevention patterns.
+- Folder: `gcpdb4u` — explore guides and architecture notes for GCP deployments.
+
+---
+
+## How to use this repo 🔧
+1. Pick the cloud folder that matches your target environment: `adb4u`, `awsdb4u`, or `gcpdb4u`.
+2. Follow the README in that folder for deployment steps, architecture diagrams, and sample templates.
+3. Use the `databricks-rest-api-collection` and `databricks-jump-start` for API tooling and hands-on examples.
+
+---
+
+## Contributing ✨
+Contributions are welcome. Please open issues or pull requests for documentation improvements, additional cloud scenarios, or new templates.
+
+---
+
+## License
+This repository follows the licensing described in the project; please see the `LICENSE` file (if present) or reach out for clarification.
 
