@@ -83,3 +83,216 @@ __pycache__/
 *.pfx
 *.gpg
 
+# ========================================
+# DATABRICKS CREDENTIALS & CONFIG
+# ========================================
+# Databricks CLI configuration (contains PAT tokens)
+.databrickscfg
+.databricks.cfg
+databricks.cfg
+
+# Databricks notebooks with embedded tokens/credentials
+**/Workspace/**/*.py
+**/Workspace/**/*.scala
+**/Workspace/**/*.sql
+**/Workspace/**/*.r
+
+# Databricks tokens and profiles
+*.dbc
+.databricks/
+databricks-token.txt
+pat-token*.txt
+
+# ========================================
+# GCP CREDENTIALS (CRITICAL!)
+# ========================================
+# GCP service account keys - NEVER commit these!
+*-key.json
+*-credentials.json
+*-service-account.json
+service-account*.json
+gcp-key*.json
+sa-key*.json
+
+# GCP application default credentials
+application_default_credentials.json
+gcloud-credentials.json
+
+# GCP configuration directory
+.config/gcloud/
+
+# Google Cloud SDK
+google-cloud-sdk/
+.gcloud/
+
+# ========================================
+# AZURE CREDENTIALS
+# ========================================
+# Azure CLI credentials
+.azure/
+azure.conf
+azureProfile.json
+azureTokens.json
+
+# Azure service principal files
+sp-credentials.json
+client-secret*.txt
+azure-credentials*.json
+
+# Azure Databricks specific
+.azuredatabricks/
+azuredatabricks.cfg
+
+# ========================================
+# AWS CREDENTIALS (Enhanced)
+# ========================================
+.aws/
+credentials
+.aws_credentials
+aws_credentials
+aws-config.json
+*.pem
+
+# AWS specific key files
+*-aws-key.json
+awscliv2.zip
+
+# ========================================
+# CONFIGURATION FILES WITH SECRETS
+# ========================================
+# Multiple environment file patterns
+.env.*
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.test
+*.env.backup
+
+# Configuration files that might contain secrets
+config.json
+config.yaml
+config.yml
+secrets.json
+secrets.yaml
+secrets.yml
+settings.json
+appsettings.json
+appsettings.*.json
+
+# Connection strings
+connection*.json
+connection-string*.txt
+conn-string*.txt
+database.ini
+db-config*.json
+
+# ========================================
+# API KEYS & TOKENS
+# ========================================
+# Various API key formats
+api-key*.txt
+api_key*.txt
+apikey*.txt
+*-api-key.json
+token*.txt
+access-token*.txt
+refresh-token*.txt
+bearer-token*.txt
+
+# OAuth credentials
+oauth*.json
+client-secret*.json
+
+# ========================================
+# BACKUP & TEMPORARY FILES
+# ========================================
+# Backup files that might contain sensitive data
+*.backup
+*.bak
+*.old
+*.orig
+*.tmp
+*.swp
+*~
+.#*
+\#*\#
+
+# Temporary directories
+tmp/
+temp/
+.tmp/
+
+# ========================================
+# LOGS (may contain sensitive information)
+# ========================================
+# Log files
+*.log
+logs/
+log/
+*.log.*
+
+# Databricks cluster logs
+driver-logs/
+executor-logs/
+eventlog/
+
+# ========================================
+# DOCKER & KUBERNETES SECRETS
+# ========================================
+# Docker configs that might have credentials
+docker-compose.override.yml
+.dockercfg
+
+# Kubernetes secrets
+kubeconfig
+*.kubeconfig
+.kube/config
+
+# Helm values with secrets
+values-secrets.yaml
+secrets-*.yaml
+
+# ========================================
+# DATABASE FILES
+# ========================================
+# Local database files
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+
+# Database dumps
+*.sql.gz
+*.dump
+*.dmp
+
+# ========================================
+# MISCELLANEOUS SENSITIVE FILES
+# ========================================
+# Password files
+password*.txt
+passwd*.txt
+credentials.txt
+
+# Private data directories
+private/
+.private/
+confidential/
+.secrets/
+
+# Notebook outputs that might contain sensitive data
+*.ipynb
+.ipynb_checkpoints/
+
+# Archives that might contain credentials
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# macOS extended attributes (can leak info)
+._*
+.Spotlight-V100
+.Trashes
+
