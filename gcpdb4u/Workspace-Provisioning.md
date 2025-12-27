@@ -110,12 +110,6 @@ sequenceDiagram
     UC->>SSA: Generate Short-lived Token<br/>(Scoped Permissions)
     SSA->>GCE: Provide Token to Cluster
     GCE->>GCS: Access UC Managed Data<br/>(Using Storage SA token)
-    
-    style DCP fill:#1E88E5
-    style WSA fill:#43A047
-    style CSA fill:#43A047
-    style SSA fill:#43A047
-    style UC fill:#8E24AA
 ```
 
 
@@ -243,10 +237,6 @@ sequenceDiagram
     deactivate GCE
     
     Note over Admin,NB: Workspace Validated!
-    
-    style WS fill:#1E88E5
-    style GCE fill:#43A047
-    style Admin fill:#FDD835
 ```
 
 
