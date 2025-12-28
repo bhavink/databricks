@@ -5,8 +5,6 @@
 > **Least Privilege Workspaces (LPW)** is a specialized Databricks deployment configuration with enhanced security controls. This configuration:
 > - **Requires explicit allowlisting** by Databricks support team
 > - **Is NOT available to all accounts** - requires Databricks approval and coordination
-> - **Needs special setup** with VPC Service Controls and restrictive network policies
-> - **Demands ongoing support engagement** for configuration and maintenance
 >
 > **Before using this module:**
 > 1. Contact your Databricks Account Team or Databricks Support
