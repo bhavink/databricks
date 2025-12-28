@@ -4,62 +4,464 @@ Private Google Access (PGA) allows VM instances that do **not** have external IP
 
 ![](./../images/pvt-goog-access.png)
 
-**Why enable PGA for Databricks?**
-- Keeps dataplane traffic on Google’s internal network (reduces public egress and attack surface).
-- Works together with Private DNS and VPC Service Controls (`restricted.googleapis.com`) when tighter egress controls are required.
-- Allows controlled access for runtime image downloads and storage access without public IPs on cluster nodes.
+***REMOVED******REMOVED*** Why Enable PGA for Databricks?
+
+| Benefit | Description |
+|---------|-------------|
+| **Private Network Traffic** | Keeps dataplane traffic on Google's internal network, reducing public egress costs and attack surface |
+| **Security Integration** | Works seamlessly with Private DNS and VPC Service Controls (`restricted.googleapis.com`) for tighter egress controls |
+| **No Public IPs Required** | Allows controlled access for runtime image downloads and storage access without external IPs on cluster nodes |
+| **Compliance Ready** | Helps meet regulatory requirements by keeping all Google API traffic within private networks |
 
 ---
 
-***REMOVED******REMOVED*** Quick steps to enable PGA ✅
-1. Enable Private Google Access on the subnet(s) used by Databricks clusters:
+***REMOVED******REMOVED*** 🎯 Recommended Approach: Use `restricted.googleapis.com`
+
+**For Databricks on GCP with Private Google Access, the recommended best practice is to use `restricted.googleapis.com` instead of `private.googleapis.com`.**
+
+***REMOVED******REMOVED******REMOVED*** Why `restricted.googleapis.com` is Recommended
+
+| Aspect | Benefit |
+|--------|---------|
+| **Enhanced Security** | Provides an additional layer of security by limiting access to VPC Service Controls supported APIs only |
+| **Data Exfiltration Prevention** | Reduces risk of data exfiltration by enforcing security perimeters around resources |
+| **Compliance** | Aligns with stricter security and compliance requirements for regulated industries |
+| **Explicit Allow-listing** | Forces explicit configuration of allowed services, following principle of least privilege |
+| **VPC SC Integration** | Required when using VPC Service Controls for Databricks workspaces |
+
+---
+
+***REMOVED******REMOVED*** Quick Setup Steps ✅
+
+***REMOVED******REMOVED******REMOVED*** Step 1: Enable Private Google Access on Subnets
+
 ```bash
-***REMOVED*** replace SUBNET_NAME and REGION
-gcloud compute networks subnets update SUBNET_NAME --region=REGION --enable-private-ip-google-access
+***REMOVED*** Enable PGA on the subnet used by Databricks clusters
+gcloud compute networks subnets update SUBNET_NAME \
+  --region=REGION \
+  --enable-private-ip-google-access
 ```
-2. Configure DNS and private zones for required domains (e.g., `*.pkg.dev`, `restricted.googleapis.com`).
-3. Add required firewall rules and routes for restricted.googleapis.com (if using VPC SC) and other permitted destinations.
-4. Test DNS resolution and HTTP access from a node without an external IP (see Validation below).
 
-***REMOVED******REMOVED*** `How to do it?`
-***REMOVED******REMOVED******REMOVED*** `High Level Steps`
-1. VPC and subnets used by Databricks have private Google access(PGA) enabled
-2. Configure DNS, VPC firewall rule and VPC routes as explained over [here](https://cloud.google.com/vpc/docs/configure-private-google-access)
-  - It is extremely important that you configure PGA as explained on the GCP public doc site.
-  - If you are using VPC SC then both, the private.googleapis.com as well as restricted.googleapis.com DNS records along with routes and firewall rules are required.
-3. Configure DNS private zone for *.pkg.dev (repo from where databricks runtime is downloaded) as explained over [here](https://cloud.google.com/vpc/docs/configure-private-google-access). 
+***REMOVED******REMOVED******REMOVED*** Step 2: Configure DNS for `restricted.googleapis.com`
 
-***REMOVED******REMOVED*** Differences between `private.googleapis.com` and `restricted.googleapis.com`
+**Required DNS Configuration:**
 
-***REMOVED******REMOVED******REMOVED*** Overview
-The primary difference between `private.googleapis.com` and `restricted.googleapis.com` lies in their use cases and the network configurations they require. Here is an overview of each:
+| Domain | Purpose | Record Type | Target IP Range |
+|--------|---------|-------------|-----------------|
+| `restricted.googleapis.com` | Main endpoint for VPC SC supported services | A | 199.36.153.4/30 |
+| `*.googleapis.com` | CNAME alias to restricted endpoint | CNAME | restricted.googleapis.com |
+| `*.pkg.dev` | Databricks runtime image repository | A | 199.36.153.4/30 |
 
-***REMOVED******REMOVED******REMOVED*** `private.googleapis.com`
-1. **Use Case**: `private.googleapis.com` is designed for users who want to access Google APIs and services from within a private network, such as a Virtual Private Cloud (VPC) in Google Cloud. It provides a secure way to access these services without traversing the public internet.
-2. **Configuration**: This endpoint requires setting up Private Google Access within a VPC. This allows resources within the VPC to access Google APIs and services using internal IP addresses, enhancing security by avoiding exposure to the public internet.
-3. **Access**: It restricts access to Google APIs to only those resources that are within the VPC, ensuring a more secure connection.
-4. **DNS Resolution**: When using `private.googleapis.com`, DNS resolution for Google API domains resolves to private IP addresses that are accessible only within the VPC.
+***REMOVED******REMOVED******REMOVED*** Step 3: Configure VPC Firewall Rules
 
-***REMOVED******REMOVED******REMOVED*** `restricted.googleapis.com`
-1. **Use Case**: `restricted.googleapis.com` is intended for environments that need to adhere to stricter egress control and security policies, often required for regulated industries. It provides an additional layer of security by limiting access to a restricted set of Google services and APIs.
-2. **Configuration**: This endpoint requires setting up VPC Service Controls, which provide security perimeters around Google Cloud resources to prevent data exfiltration. This is suitable for organizations needing to meet regulatory and compliance requirements.
-3. **Access**: It restricts access to a more limited set of Google APIs and services compared to `private.googleapis.com`. This endpoint helps to enforce security policies and compliance requirements by allowing only specific Google services.
-4. **DNS Resolution**: Similar to `private.googleapis.com`, DNS resolution for `restricted.googleapis.com` resolves to private IP addresses within the VPC. However, the scope of accessible services is more limited.
-
-***REMOVED******REMOVED******REMOVED*** Key Differences
-1. **Scope of Access**:
-   - `private.googleapis.com` provides broader access to Google APIs and services within a VPC.
-   - `restricted.googleapis.com` limits access to a narrower set of Google services, aligning with stricter security and compliance requirements.
-2. **Security and Compliance**:
-   - `private.googleapis.com` focuses on providing secure access within a VPC.
-   - `restricted.googleapis.com` enhances security by enforcing more stringent access controls and is often used in regulated environments.
-3. **Configuration Requirements**:
-   - Both require Private Google Access and appropriate DNS setup within a VPC.
-   - `restricted.googleapis.com` additionally requires VPC Service Controls for creating security perimeters.
-
-In summary, `private.googleapis.com` is suitable for general secure access to Google services within a private network, while `restricted.googleapis.com` is designed for environments needing enhanced security and compliance controls.
+Allow egress to `restricted.googleapis.com` IP range:
+```bash
+gcloud compute firewall-rules create allow-restricted-googleapis \
+  --direction=EGRESS \
+  --network=VPC_NAME \
+  --action=ALLOW \
+  --rules=tcp:443 \
+  --destination-ranges=199.36.153.4/30 \
+  --priority=1000
 ```
-***REMOVED******REMOVED*** Validate
 
-- Create a Databricks cluster to validate n/w setup
-- Databricks Cluster comes up fine
+***REMOVED******REMOVED******REMOVED*** Step 4: Configure VPC Routes
+
+Add route for `restricted.googleapis.com`:
+```bash
+gcloud compute routes create restricted-googleapis-route \
+  --network=VPC_NAME \
+  --destination-range=199.36.153.4/30 \
+  --next-hop-gateway=default-internet-gateway
+```
+
+---
+
+***REMOVED******REMOVED*** Detailed Configuration Guide
+
+***REMOVED******REMOVED******REMOVED*** Prerequisites
+
+- [ ] VPC network configured for Databricks
+- [ ] Subnets created without external IP addresses
+- [ ] Appropriate IAM permissions to configure DNS, firewall rules, and routes
+- [ ] VPC Service Controls perimeter created (if using VPC SC)
+
+***REMOVED******REMOVED******REMOVED*** Configuration Steps
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Enable Private Google Access
+
+Enable PGA on all subnets that will host Databricks clusters:
+
+```bash
+***REMOVED*** For each subnet
+for SUBNET in subnet-1 subnet-2 subnet-3; do
+  gcloud compute networks subnets update $SUBNET \
+    --region=us-central1 \
+    --enable-private-ip-google-access
+done
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Create Private DNS Zones
+
+**For `restricted.googleapis.com`:**
+
+```bash
+***REMOVED*** Create private DNS zone
+gcloud dns managed-zones create restricted-googleapis \
+  --dns-name=googleapis.com. \
+  --description="Private DNS zone for restricted Google APIs" \
+  --visibility=private \
+  --networks=VPC_NAME
+
+***REMOVED*** Add A record for restricted.googleapis.com
+gcloud dns record-sets create restricted.googleapis.com. \
+  --zone=restricted-googleapis \
+  --type=A \
+  --ttl=300 \
+  --rrdatas=199.36.153.8,199.36.153.9,199.36.153.10,199.36.153.11
+
+***REMOVED*** Add CNAME record for *.googleapis.com
+gcloud dns record-sets create '*.googleapis.com.' \
+  --zone=restricted-googleapis \
+  --type=CNAME \
+  --ttl=300 \
+  --rrdatas=restricted.googleapis.com.
+```
+
+**For Databricks Artifact Registry (`*.pkg.dev`):**
+
+```bash
+***REMOVED*** Create private DNS zone for pkg.dev
+gcloud dns managed-zones create pkg-dev \
+  --dns-name=pkg.dev. \
+  --description="Private DNS zone for Databricks runtime images" \
+  --visibility=private \
+  --networks=VPC_NAME
+
+***REMOVED*** Add A record for *.pkg.dev
+gcloud dns record-sets create '*.pkg.dev.' \
+  --zone=pkg-dev \
+  --type=A \
+  --ttl=300 \
+  --rrdatas=199.36.153.8,199.36.153.9,199.36.153.10,199.36.153.11
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Configure Firewall Rules
+
+**Required Egress Rules:**
+
+| Rule Name | Direction | Priority | Action | Protocol/Port | Destination | Purpose |
+|-----------|-----------|----------|--------|---------------|-------------|---------|
+| `allow-restricted-googleapis` | EGRESS | 1000 | ALLOW | tcp:443 | 199.36.153.4/30 | Access to restricted Google APIs |
+| `allow-dns` | EGRESS | 1000 | ALLOW | udp:53, tcp:53 | 0.0.0.0/0 | DNS resolution |
+| `allow-ntp` | EGRESS | 1000 | ALLOW | udp:123 | 0.0.0.0/0 | Time synchronization |
+
+```bash
+***REMOVED*** Allow restricted.googleapis.com
+gcloud compute firewall-rules create allow-restricted-googleapis \
+  --direction=EGRESS \
+  --network=VPC_NAME \
+  --action=ALLOW \
+  --rules=tcp:443 \
+  --destination-ranges=199.36.153.4/30 \
+  --priority=1000
+
+***REMOVED*** Allow DNS
+gcloud compute firewall-rules create allow-dns \
+  --direction=EGRESS \
+  --network=VPC_NAME \
+  --action=ALLOW \
+  --rules=udp:53,tcp:53 \
+  --destination-ranges=0.0.0.0/0 \
+  --priority=1000
+
+***REMOVED*** Allow NTP
+gcloud compute firewall-rules create allow-ntp \
+  --direction=EGRESS \
+  --network=VPC_NAME \
+  --action=ALLOW \
+  --rules=udp:123 \
+  --destination-ranges=0.0.0.0/0 \
+  --priority=1000
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 4. Configure VPC Routes
+
+```bash
+***REMOVED*** Route for restricted.googleapis.com IP range
+gcloud compute routes create restricted-googleapis-route \
+  --network=VPC_NAME \
+  --destination-range=199.36.153.4/30 \
+  --next-hop-gateway=default-internet-gateway \
+  --priority=1000
+```
+
+---
+
+***REMOVED******REMOVED*** Understanding: `private.googleapis.com` vs `restricted.googleapis.com`
+
+***REMOVED******REMOVED******REMOVED*** Comparison Table
+
+| Feature | `private.googleapis.com` | `restricted.googleapis.com` ⭐ |
+|---------|-------------------------|-------------------------------|
+| **Primary Use Case** | General secure access to Google APIs within VPC | Strict security and compliance requirements |
+| **Scope of Access** | Broader access to all Google APIs and services | Limited to VPC Service Controls supported APIs only |
+| **Configuration** | Requires Private Google Access + DNS setup | Requires PGA + DNS + VPC Service Controls perimeter |
+| **Security Level** | Good - traffic stays within private network | Excellent - enforces security perimeters and explicit allow-lists |
+| **Compliance** | Suitable for general security requirements | Designed for regulated industries (HIPAA, PCI-DSS, etc.) |
+| **IP Range** | 199.36.153.8/30 | 199.36.153.4/30 |
+| **Data Exfiltration Risk** | Lower (private network) | Lowest (security perimeters + limited API access) |
+| **Recommended for Databricks** | ❌ Not recommended | ✅ **Recommended** |
+
+***REMOVED******REMOVED******REMOVED*** When to Use Each
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Use `restricted.googleapis.com` (Recommended) When:
+- ✅ Deploying Databricks in production environments
+- ✅ Subject to compliance regulations (HIPAA, PCI-DSS, SOC 2)
+- ✅ Implementing VPC Service Controls
+- ✅ Requiring explicit service allow-listing
+- ✅ Need to prevent data exfiltration
+- ✅ Want defense-in-depth security architecture
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Use `private.googleapis.com` Only When:
+- ⚠️ Running development/testing environments
+- ⚠️ No compliance requirements
+- ⚠️ VPC SC not available in your organization
+- ⚠️ Need broader API access without perimeter controls
+
+---
+
+***REMOVED******REMOVED*** DNS Resolution Flow
+
+***REMOVED******REMOVED******REMOVED*** With `restricted.googleapis.com` (Recommended)
+
+```mermaid
+sequenceDiagram
+    participant Cluster as Databricks Cluster<br/>(No External IP)
+    participant DNS as Private DNS Zone
+    participant VIP as Restricted VIP<br/>199.36.153.4/30
+    participant API as Google APIs<br/>(VPC SC Protected)
+
+    Cluster->>DNS: Query: storage.googleapis.com
+    DNS-->>Cluster: CNAME: restricted.googleapis.com<br/>A: 199.36.153.8
+    Cluster->>VIP: HTTPS Request to 199.36.153.8
+    VIP->>API: Forward to Google API (within perimeter)
+    API-->>VIP: Response
+    VIP-->>Cluster: Response
+
+    Note over Cluster,API: All traffic stays on Google's internal network<br/>VPC SC enforces security perimeter
+```
+
+***REMOVED******REMOVED******REMOVED*** Legacy: With `private.googleapis.com` (Not Recommended)
+
+```mermaid
+sequenceDiagram
+    participant Cluster as Databricks Cluster<br/>(No External IP)
+    participant DNS as Private DNS Zone
+    participant VIP as Private VIP<br/>199.36.153.8/30
+    participant API as Google APIs<br/>(No Perimeter)
+
+    Cluster->>DNS: Query: storage.googleapis.com
+    DNS-->>Cluster: CNAME: private.googleapis.com<br/>A: 199.36.153.8
+    Cluster->>VIP: HTTPS Request to 199.36.153.8
+    VIP->>API: Forward to any Google API
+    API-->>VIP: Response
+    VIP-->>Cluster: Response
+
+    Note over Cluster,API: No security perimeter enforcement<br/>Broader API access
+```
+
+---
+
+***REMOVED******REMOVED*** Validation and Testing
+
+***REMOVED******REMOVED******REMOVED*** Pre-Flight Checklist
+
+Before launching Databricks clusters:
+
+- [ ] Private Google Access enabled on all Databricks subnets
+- [ ] DNS zones created for `restricted.googleapis.com` and `*.pkg.dev`
+- [ ] DNS records resolving correctly from test VMs
+- [ ] Firewall rules allowing egress to 199.36.153.4/30
+- [ ] VPC routes configured for restricted Google APIs
+- [ ] VPC Service Controls perimeter configured (if applicable)
+
+***REMOVED******REMOVED******REMOVED*** Validation Steps
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Test DNS Resolution
+
+From a VM without external IP in the same VPC:
+
+```bash
+***REMOVED*** Test restricted.googleapis.com resolution
+dig restricted.googleapis.com
+
+***REMOVED*** Expected output: Should resolve to 199.36.153.8-11
+***REMOVED*** restricted.googleapis.com. 300 IN A 199.36.153.8
+***REMOVED*** restricted.googleapis.com. 300 IN A 199.36.153.9
+***REMOVED*** restricted.googleapis.com. 300 IN A 199.36.153.10
+***REMOVED*** restricted.googleapis.com. 300 IN A 199.36.153.11
+
+***REMOVED*** Test *.googleapis.com CNAME
+dig storage.googleapis.com
+
+***REMOVED*** Expected output: Should CNAME to restricted.googleapis.com
+***REMOVED*** storage.googleapis.com. 300 IN CNAME restricted.googleapis.com.
+***REMOVED*** restricted.googleapis.com. 300 IN A 199.36.153.8
+
+***REMOVED*** Test pkg.dev resolution
+dig us-central1-docker.pkg.dev
+
+***REMOVED*** Expected output: Should resolve to restricted VIP
+***REMOVED*** us-central1-docker.pkg.dev. 300 IN A 199.36.153.8
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Test HTTP Access
+
+```bash
+***REMOVED*** Test Cloud Storage access via restricted endpoint
+curl -I https://storage.googleapis.com
+
+***REMOVED*** Expected output:
+***REMOVED*** HTTP/2 200
+***REMOVED*** content-type: text/html; charset=UTF-8
+***REMOVED*** (Connection successful via restricted endpoint)
+
+***REMOVED*** Test Artifact Registry access
+curl -I https://us-central1-docker.pkg.dev
+
+***REMOVED*** Expected output: HTTP/2 200 or appropriate auth response
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Verify Private Access (No External IP)
+
+```bash
+***REMOVED*** This should fail if PGA is working correctly
+curl -I https://www.google.com
+
+***REMOVED*** Expected output: Connection timeout or failure
+***REMOVED*** (Confirms no public internet access)
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 4. Launch Test Databricks Cluster
+
+1. Create a small cluster in a non-production workspace
+2. Monitor cluster launch logs for any connectivity issues
+3. Run a simple notebook cell:
+   ```python
+   ***REMOVED*** Test Cloud Storage access
+   dbutils.fs.ls("gs://your-bucket/")
+
+   ***REMOVED*** Test package installation (uses pkg.dev)
+   %pip install pandas
+   ```
+4. Verify cluster comes up successfully and can access required services
+
+---
+
+***REMOVED******REMOVED*** Troubleshooting
+
+***REMOVED******REMOVED******REMOVED*** Common Issues and Solutions
+
+| Issue | Symptom | Solution |
+|-------|---------|----------|
+| **DNS not resolving** | `nslookup` fails for googleapis.com | Verify private DNS zones are associated with correct VPC network |
+| **Connection timeouts** | Cluster launch fails with timeout errors | Check firewall rules allow egress to 199.36.153.4/30 on tcp:443 |
+| **Route not found** | DNS resolves but connection fails | Verify VPC route exists for 199.36.153.4/30 destination |
+| **VPC SC violations** | Cluster fails with VPC SC error | Ensure perimeter includes all required projects and service accounts |
+| **pkg.dev access fails** | Runtime image download fails | Verify DNS zone for *.pkg.dev resolves to restricted VIP |
+| **Permission denied** | 403 errors when accessing storage | Check IAM permissions and VPC SC ingress/egress rules |
+
+***REMOVED******REMOVED******REMOVED*** Debug Commands
+
+```bash
+***REMOVED*** Check if PGA is enabled on subnet
+gcloud compute networks subnets describe SUBNET_NAME \
+  --region=REGION \
+  --format="value(privateIpGoogleAccess)"
+
+***REMOVED*** List DNS zones
+gcloud dns managed-zones list
+
+***REMOVED*** Check DNS records
+gcloud dns record-sets list --zone=restricted-googleapis
+
+***REMOVED*** Verify firewall rules
+gcloud compute firewall-rules list --filter="network:VPC_NAME AND direction:EGRESS"
+
+***REMOVED*** Check VPC routes
+gcloud compute routes list --filter="network:VPC_NAME AND destRange:199.36.153.4/30"
+
+***REMOVED*** Test from compute instance
+gcloud compute ssh INSTANCE_NAME --command="dig restricted.googleapis.com"
+```
+
+---
+
+***REMOVED******REMOVED*** Configuration Checklist
+
+***REMOVED******REMOVED******REMOVED*** For New Databricks Deployments
+
+| Step | Task | Status |
+|------|------|--------|
+| 1 | Enable Private Google Access on all Databricks subnets | ☐ |
+| 2 | Create private DNS zone for `googleapis.com` | ☐ |
+| 3 | Add A records for `restricted.googleapis.com` → 199.36.153.8-11 | ☐ |
+| 4 | Add CNAME for `*.googleapis.com` → `restricted.googleapis.com` | ☐ |
+| 5 | Create private DNS zone for `pkg.dev` | ☐ |
+| 6 | Add A records for `*.pkg.dev` → 199.36.153.8-11 | ☐ |
+| 7 | Create firewall rule allowing egress to 199.36.153.4/30:443 | ☐ |
+| 8 | Create firewall rules for DNS (53) and NTP (123) | ☐ |
+| 9 | Create VPC route for 199.36.153.4/30 | ☐ |
+| 10 | Configure VPC Service Controls perimeter | ☐ |
+| 11 | Test DNS resolution from test VM | ☐ |
+| 12 | Test HTTPS connectivity to googleapis.com | ☐ |
+| 13 | Launch test Databricks cluster | ☐ |
+| 14 | Verify cluster can access Cloud Storage | ☐ |
+| 15 | Verify cluster can download runtime images | ☐ |
+
+---
+
+***REMOVED******REMOVED*** Best Practices
+
+***REMOVED******REMOVED******REMOVED*** Security Best Practices
+
+1. **Always use `restricted.googleapis.com`** for Databricks production workspaces
+2. **Implement VPC Service Controls** to create security perimeters
+3. **Use Private DNS zones** for all Google API domains
+4. **Disable external IPs** on all cluster nodes
+5. **Apply least privilege** firewall rules (only allow required destinations)
+6. **Monitor VPC Flow Logs** for unusual traffic patterns
+7. **Regular audits** of DNS, firewall, and route configurations
+
+***REMOVED******REMOVED******REMOVED*** Operational Best Practices
+
+1. **Document all configurations** in version control
+2. **Test in non-production** before applying to production
+3. **Use Infrastructure as Code** (Terraform) for reproducible deployments
+4. **Set up alerting** for VPC SC violations and connectivity failures
+5. **Maintain runbook** for troubleshooting common issues
+6. **Regular reviews** of allowed API services in VPC SC perimeter
+
+---
+
+***REMOVED******REMOVED*** References
+
+- [GCP Private Google Access Documentation](https://cloud.google.com/vpc/docs/configure-private-google-access)
+- [VPC Service Controls Overview](https://cloud.google.com/vpc-service-controls/docs/overview)
+- [Databricks GCP Network Architecture](https://docs.gcp.databricks.com/security/network/classic/index.html)
+- [Restricted VIP Services](https://cloud.google.com/vpc-service-controls/docs/supported-products)
+- [Private Google Access Setup](https://cloud.google.com/vpc-service-controls/docs/set-up-private-connectivity)
+
+---
+
+***REMOVED******REMOVED*** Summary
+
+✅ **Recommended Configuration for Databricks on GCP:**
+- Use `restricted.googleapis.com` instead of `private.googleapis.com`
+- Configure Private DNS zones for googleapis.com and pkg.dev domains
+- Set up VPC Service Controls security perimeters
+- Apply explicit firewall rules allowing only required egress
+- Test thoroughly in non-production before deploying to production
+
+This configuration provides the highest level of security while maintaining full Databricks functionality.
