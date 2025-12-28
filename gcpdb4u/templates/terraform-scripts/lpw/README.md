@@ -1,5 +1,25 @@
 ***REMOVED*** Databricks Workspace with Unity Catalog on GCP
 
+> **⚠️ IMPORTANT - SPECIAL CONFIGURATION NOTICE**
+>
+> **Least Privilege Workspaces (LPW)** is a specialized Databricks deployment configuration with enhanced security controls. This configuration:
+> - **Requires explicit allowlisting** by Databricks support team
+> - **Is NOT available to all accounts** - requires Databricks approval and coordination
+> - **Needs special setup** with VPC Service Controls and restrictive network policies
+> - **Demands ongoing support engagement** for configuration and maintenance
+>
+> **Before using this module:**
+> 1. Contact your Databricks Account Team or Databricks Support
+> 2. Request approval for Least Privilege Workspace deployment
+> 3. Review the VPC-SC policies in [`/templates/vpcsc-policy/least-privilege-workspaces/`](../../vpcsc-policy/least-privilege-workspaces/)
+> 4. Coordinate with Databricks for your specific security requirements
+>
+> **For standard workspace deployments**, use one of the other configurations in `/templates/terraform-scripts/` (byovpc-ws, byovpc-psc-ws, byovpc-cmek-ws, byovpc-psc-cmek-ws, or end2end).
+>
+> This module is intended for **highly regulated environments** (financial services, healthcare, government) where maximum security posture and explicit access allowlisting are mandatory requirements.
+
+---
+
 A production-ready Terraform module for deploying Databricks workspaces on Google Cloud Platform (GCP) with complete Unity Catalog governance, compute policies, and SQL warehouses.
 
 ***REMOVED******REMOVED*** Overview
