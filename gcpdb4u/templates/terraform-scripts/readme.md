@@ -122,6 +122,7 @@ graph TB
 | **[byovpc-psc-ws/](byovpc-psc-ws/)** | Workspace + Private Service Connect | Need private connectivity |
 | **[byovpc-psc-cmek-ws/](byovpc-psc-cmek-ws/)** | Workspace + PSC + CMEK | Maximum security (private + encrypted) |
 | **[end2end/](end2end/)** | Workspace + Unity Catalog + Policies | Complete production deployment |
+| **[lpw/](lpw/)** | **2-Phase Workspace + Unity Catalog** | Advanced: Production workspace with 2-phase deployment, UC, compute policies, SQL warehouses |
 | **[uc/](uc/)** | Unity Catalog only | Add UC to existing workspace |
 
 ***REMOVED******REMOVED******REMOVED*** 2. Prerequisites
