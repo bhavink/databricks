@@ -75,6 +75,7 @@ In this guide we'll share with you architectural patterns and design guidelines 
   * Configure [VPC Service Control](./security/Configure-VPC-SC.md) to prevent data exfiltration
   * Lock down [VPC firewall rules](./security/LockDown-VPC-Firewall-Rules.md)
 * [Workspace Provisioning](Workspace-Provisioning.md)
+* [Workspace DNS Configuration](DNS-Setup-Guide.md)
 * [Identity and Access Management](Identity-And-Access-Management.md)
 * [Observability and Monitoring](Observability-And-Monitoring.md)
 * [Cost Management, Charge backs & Analysis](Cost-Management-And-Analysis.md)

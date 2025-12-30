@@ -296,3 +296,6 @@ confidential/
 .Spotlight-V100
 .Trashes
 
+# Claude Code generated documentation
+CLAUDE.md
+
