@@ -1,19 +1,29 @@
 ***REMOVED*** Databricks IP Range Extractor
 
+***REMOVED******REMOVED*** Prerequisites
+
+- Python 3.7 or higher
+- No external dependencies (uses standard library only)
+
+```bash
+***REMOVED*** Verify Python version
+python --version
+```
+
+---
+
 ***REMOVED******REMOVED*** Quick Start
 
 ```bash
 ***REMOVED*** Extract all AWS IPs
-python3 extract-databricks-ips.py --cloud aws
+python extract-databricks-ips.py --cloud aws
 
 ***REMOVED*** Extract AWS us-east-1 only
-python3 extract-databricks-ips.py --cloud aws --region us-east-1
+python extract-databricks-ips.py --cloud aws --region us-east-1
 
 ***REMOVED*** Save to file
-python3 extract-databricks-ips.py --cloud aws --output aws-ips.json
+python extract-databricks-ips.py --cloud aws --output aws-ips.json
 ```
-
-**No dependencies required** - uses Python standard library only.
 
 ---
 
@@ -23,52 +33,52 @@ python3 extract-databricks-ips.py --cloud aws --output aws-ips.json
 
 ```bash
 ***REMOVED*** All clouds, all regions
-python3 extract-databricks-ips.py
+python extract-databricks-ips.py
 
 ***REMOVED*** Filter by cloud provider
-python3 extract-databricks-ips.py --cloud aws
-python3 extract-databricks-ips.py --cloud azure
-python3 extract-databricks-ips.py --cloud gcp
+python extract-databricks-ips.py --cloud aws
+python extract-databricks-ips.py --cloud azure
+python extract-databricks-ips.py --cloud gcp
 
 ***REMOVED*** Filter by region
-python3 extract-databricks-ips.py --cloud aws --region us-east-1
-python3 extract-databricks-ips.py --cloud azure --region eastus
+python extract-databricks-ips.py --cloud aws --region us-east-1
+python extract-databricks-ips.py --cloud azure --region eastus
 
 ***REMOVED*** IPv4 only (for firewalls that don't support IPv6)
-python3 extract-databricks-ips.py --cloud aws --ipv4-only
+python extract-databricks-ips.py --cloud aws --ipv4-only
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Output Formats
 
 ```bash
 ***REMOVED*** JSON (default) - array of objects
-python3 extract-databricks-ips.py --cloud aws --format json
+python extract-databricks-ips.py --cloud aws --format json
 
 ***REMOVED*** CSV - header + rows
-python3 extract-databricks-ips.py --cloud aws --format csv
+python extract-databricks-ips.py --cloud aws --format csv
 
 ***REMOVED*** Simple - one CIDR per line
-python3 extract-databricks-ips.py --cloud aws --format simple
+python extract-databricks-ips.py --cloud aws --format simple
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Discovery Commands
 
 ```bash
 ***REMOVED*** List available regions
-python3 extract-databricks-ips.py --list-regions
+python extract-databricks-ips.py --list-regions
 
 ***REMOVED*** List regions for specific cloud
-python3 extract-databricks-ips.py --list-regions --cloud aws
+python extract-databricks-ips.py --list-regions --cloud aws
 
 ***REMOVED*** List available services
-python3 extract-databricks-ips.py --list-services
+python extract-databricks-ips.py --list-services
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Using the Public JSON Endpoint
 
 ```bash
 ***REMOVED*** Fetch directly from Databricks (when URL is available)
-python3 extract-databricks-ips.py --source https://<insert-url-here>/databricks-ip-ranges.json --cloud aws
+python extract-databricks-ips.py --source https://<insert-url-here>/databricks-ip-ranges.json --cloud aws
 ```
 
 ---
@@ -112,7 +122,7 @@ cidr,ipVersion,cloudProvider,region,service
 
 ```bash
 ***REMOVED*** Add to crontab (runs every Monday at 6 AM)
-0 6 * * 1 /usr/bin/python3 /path/to/extract-databricks-ips.py --source https://<insert-url-here>/databricks-ip-ranges.json --cloud aws --output /etc/firewall/databricks-ips.json
+0 6 * * 1 python /path/to/extract-databricks-ips.py --source https://<insert-url-here>/databricks-ip-ranges.json --cloud aws --output /etc/firewall/databricks-ips.json
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Simple Bash Script
@@ -126,7 +136,7 @@ OUTPUT_DIR="/etc/firewall/allowlists"
 SOURCE_URL="https://<insert-url-here>/databricks-ip-ranges.json"
 
 ***REMOVED*** Extract IPs for each cloud
-python3 ${SCRIPT_DIR}/extract-databricks-ips.py \
+python ${SCRIPT_DIR}/extract-databricks-ips.py \
   --source ${SOURCE_URL} \
   --cloud aws \
   --format simple \
