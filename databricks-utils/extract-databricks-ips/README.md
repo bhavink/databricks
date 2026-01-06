@@ -1,19 +1,29 @@
 # Databricks IP Range Extractor
 
+## Prerequisites
+
+- Python 3.7 or higher
+- No external dependencies (uses standard library only)
+
+```bash
+# Verify Python version
+python --version
+```
+
+---
+
 ## Quick Start
 
 ```bash
 # Extract all AWS IPs
-python3 extract-databricks-ips.py --cloud aws
+python extract-databricks-ips.py --cloud aws
 
 # Extract AWS us-east-1 only
-python3 extract-databricks-ips.py --cloud aws --region us-east-1
+python extract-databricks-ips.py --cloud aws --region us-east-1
 
 # Save to file
-python3 extract-databricks-ips.py --cloud aws --output aws-ips.json
+python extract-databricks-ips.py --cloud aws --output aws-ips.json
 ```
-
-**No dependencies required** - uses Python standard library only.
 
 ---
 
@@ -23,52 +33,52 @@ python3 extract-databricks-ips.py --cloud aws --output aws-ips.json
 
 ```bash
 # All clouds, all regions
-python3 extract-databricks-ips.py
+python extract-databricks-ips.py
 
 # Filter by cloud provider
-python3 extract-databricks-ips.py --cloud aws
-python3 extract-databricks-ips.py --cloud azure
-python3 extract-databricks-ips.py --cloud gcp
+python extract-databricks-ips.py --cloud aws
+python extract-databricks-ips.py --cloud azure
+python extract-databricks-ips.py --cloud gcp
 
 # Filter by region
-python3 extract-databricks-ips.py --cloud aws --region us-east-1
-python3 extract-databricks-ips.py --cloud azure --region eastus
+python extract-databricks-ips.py --cloud aws --region us-east-1
+python extract-databricks-ips.py --cloud azure --region eastus
 
 # IPv4 only (for firewalls that don't support IPv6)
-python3 extract-databricks-ips.py --cloud aws --ipv4-only
+python extract-databricks-ips.py --cloud aws --ipv4-only
 ```
 
 ### Output Formats
 
 ```bash
 # JSON (default) - array of objects
-python3 extract-databricks-ips.py --cloud aws --format json
+python extract-databricks-ips.py --cloud aws --format json
 
 # CSV - header + rows
-python3 extract-databricks-ips.py --cloud aws --format csv
+python extract-databricks-ips.py --cloud aws --format csv
 
 # Simple - one CIDR per line
-python3 extract-databricks-ips.py --cloud aws --format simple
+python extract-databricks-ips.py --cloud aws --format simple
 ```
 
 ### Discovery Commands
 
 ```bash
 # List available regions
-python3 extract-databricks-ips.py --list-regions
+python extract-databricks-ips.py --list-regions
 
 # List regions for specific cloud
-python3 extract-databricks-ips.py --list-regions --cloud aws
+python extract-databricks-ips.py --list-regions --cloud aws
 
 # List available services
-python3 extract-databricks-ips.py --list-services
+python extract-databricks-ips.py --list-services
 ```
 
 ### Using the Public JSON Endpoint
 
 ```bash
 # Fetch directly from Databricks (when URL is available)
-python3 extract-databricks-ips.py --source https://<insert-url-here>/databricks-ip-ranges.json --cloud aws
+python extract-databricks-ips.py --source https://<insert-url-here>/databricks-ip-ranges.json --cloud aws
 ```
 
 ---
@@ -112,7 +122,7 @@ cidr,ipVersion,cloudProvider,region,service
 
 ```bash
 # Add to crontab (runs every Monday at 6 AM)
-0 6 * * 1 /usr/bin/python3 /path/to/extract-databricks-ips.py --source https://<insert-url-here>/databricks-ip-ranges.json --cloud aws --output /etc/firewall/databricks-ips.json
+0 6 * * 1 python /path/to/extract-databricks-ips.py --source https://<insert-url-here>/databricks-ip-ranges.json --cloud aws --output /etc/firewall/databricks-ips.json
 ```
 
 ### Simple Bash Script
@@ -126,7 +136,7 @@ OUTPUT_DIR="/etc/firewall/allowlists"
 SOURCE_URL="https://<insert-url-here>/databricks-ip-ranges.json"
 
 # Extract IPs for each cloud
-python3 ${SCRIPT_DIR}/extract-databricks-ips.py \
+python ${SCRIPT_DIR}/extract-databricks-ips.py \
   --source ${SOURCE_URL} \
   --cloud aws \
   --format simple \
