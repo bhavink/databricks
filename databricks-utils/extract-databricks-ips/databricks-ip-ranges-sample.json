@@ -1,0 +1,52 @@
+{
+  "updateTimestampSeconds": "1753926804",
+  "updateTimestamp": "2025-07-31T01:53:24Z",
+  "publisher": "Databricks",
+  "schemaVersion": "1.0",
+  "prefixes": [
+    {
+      "cidr": "3.15.8.0/24",
+      "ipVersion": "ipv4",
+      "cloudProvider": "aws",
+      "region": "us-east-1",
+      "service": "serverless-egress",
+      "activeAfter": "2026-10-30T14:30:00Z",
+      "deprecatedAfter": null
+    },
+    {
+      "cidr": "4.15.8.0/24",
+      "ipVersion": "ipv4",
+      "cloudProvider": "aws",
+      "region": "eu-west-2",
+      "service": "serverless-egress",
+      "activeAfter": "2025-09-30T14:30:00Z"
+    },
+    {
+      "cidr": "2600:1f70:4000::/40",
+      "ipVersion": "ipv6",
+      "cloudProvider": "aws",
+      "region": "us-east-1",
+      "service": "control-plane-egress",
+      "activeAfter": "2025-11-15T08:00:00Z",
+      "deprecatedAfter": null
+    },
+    {
+      "cidr": "20.150.0.0/16",
+      "ipVersion": "ipv4",
+      "cloudProvider": "azure",
+      "region": "eastus",
+      "service": "serverless-egress",
+      "activeAfter": "2025-10-15T10:00:00Z",
+      "deprecatedAfter": null
+    },
+    {
+      "cidr": "2600:1900:4000::/44",
+      "ipVersion": "ipv6",
+      "cloudProvider": "gcp",
+      "region": "us-central1",
+      "service": "serverless-egress",
+      "activeAfter": "2024-10-01T00:00:00Z",
+      "deprecatedAfter": "2025-09-05T00:00:00Z"
+    }
+  ]
+}

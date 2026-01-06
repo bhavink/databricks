@@ -26,8 +26,8 @@ from pathlib import Path
 # Public URL for Databricks IP ranges (update when available)
 DEFAULT_URL = "https://docs.databricks.com/resources/databricks-ip-ranges.json"
 
-# For local development/testing, use local file
-LOCAL_FILE = Path(__file__).parent / "databricks-ip-ranges.json"
+# For local development/testing, use sample file
+LOCAL_FILE = Path(__file__).parent / "databricks-ip-ranges-sample.json"
 
 
 def load_ip_ranges(source=None):
