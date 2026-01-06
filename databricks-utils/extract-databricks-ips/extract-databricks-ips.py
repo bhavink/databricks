@@ -23,8 +23,8 @@ import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 
-***REMOVED*** Public URL for Databricks IP ranges (update when available)
-DEFAULT_URL = "https://docs.databricks.com/resources/databricks-ip-ranges.json"
+***REMOVED*** Public URL for Databricks IP ranges
+DEFAULT_URL = "https://<insert-url-here>"
 
 ***REMOVED*** For local development/testing, use sample file
 LOCAL_FILE = Path(__file__).parent / "databricks-ip-ranges-sample.json"

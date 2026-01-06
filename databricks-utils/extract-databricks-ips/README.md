@@ -78,7 +78,7 @@ python extract-databricks-ips.py --list-services
 
 ```bash
 ***REMOVED*** Fetch directly from Databricks (when URL is available)
-python extract-databricks-ips.py --source https://<insert-url-here>/databricks-ip-ranges.json --cloud aws
+python extract-databricks-ips.py --source https://<insert-url-here> --cloud aws
 ```
 
 ---
@@ -122,7 +122,7 @@ cidr,ipVersion,cloudProvider,region,service
 
 ```bash
 ***REMOVED*** Add to crontab (runs every Monday at 6 AM)
-0 6 * * 1 python /path/to/extract-databricks-ips.py --source https://<insert-url-here>/databricks-ip-ranges.json --cloud aws --output /etc/firewall/databricks-ips.json
+0 6 * * 1 python /path/to/extract-databricks-ips.py --source https://<insert-url-here> --cloud aws --output /etc/firewall/databricks-ips.json
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Simple Bash Script
@@ -133,7 +133,7 @@ cidr,ipVersion,cloudProvider,region,service
 
 SCRIPT_DIR="/path/to/databricks-utils/extract-databricks-ips"
 OUTPUT_DIR="/etc/firewall/allowlists"
-SOURCE_URL="https://<insert-url-here>/databricks-ip-ranges.json"
+SOURCE_URL="https://<insert-url-here>"
 
 ***REMOVED*** Extract IPs for each cloud
 python ${SCRIPT_DIR}/extract-databricks-ips.py \
@@ -172,4 +172,4 @@ python ${SCRIPT_DIR}/extract-databricks-ips.py \
 ***REMOVED******REMOVED*** Support
 
 - **Documentation**: [Databricks Network Connectivity](https://docs.databricks.com)
-- **JSON Endpoint**: `https://<insert-url-here>/databricks-ip-ranges.json`
+- **JSON Endpoint**: `https://<insert-url-here>`
