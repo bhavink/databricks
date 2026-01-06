@@ -121,7 +121,7 @@ cidr,ipVersion,cloudProvider,region,service
 ***REMOVED***!/bin/bash
 ***REMOVED*** update-databricks-ips.sh
 
-SCRIPT_DIR="/path/to/databricks-utils/update-ips"
+SCRIPT_DIR="/path/to/databricks-utils/extract-databricks-ips"
 OUTPUT_DIR="/etc/firewall/allowlists"
 SOURCE_URL="https://<insert-url-here>/databricks-ip-ranges.json"
 
