@@ -1,33 +1,108 @@
-# Databricks Workspace Deployment with Private Link and Unity Catalog
+# Databricks on AWS - Terraform Deployments
 
-A modular Terraform configuration for deploying secure Databricks workspaces on AWS with Private Link, Unity Catalog, and optional customer-managed encryption keys.
-
-## Table of Contents
-
-- [Architecture Overview](#architecture-overview)
-- [Prerequisites](#prerequisites)
-- [Provider Configuration](#provider-configuration)
-- [AWS Infrastructure Components](#aws-infrastructure-components)
-  - [Networking](#1-networking-modulesnetworking)
-  - [VPC Endpoints](#2-vpc-endpoints-modulesnetworkingvpc_endpointstf)
-  - [Security Groups](#3-security-groups-modulesnetworkingsecurity_groupstf)
-  - [Storage](#4-storage-modulesstorage)
-  - [IAM Roles](#5-iam-roles-and-policies-modulesiam)
-  - [Customer-Managed Keys](#6-customer-managed-keys-optional-moduleskms)
-- [Databricks Resources](#databricks-resources)
-  - [Workspace Configuration](#1-workspace-configuration-modulesdatabricks_workspace)
-  - [Unity Catalog](#2-unity-catalog-modulesunity_catalog)
-  - [User Assignment](#3-user-assignment-modulesuser_assignment)
-- [Deployment Flow](#deployment-flow)
-- [Configuration](#configuration)
-- [Deployment](#deployment)
-- [Troubleshooting](#troubleshooting)
+Production-ready Terraform configurations for deploying secure Databricks workspaces on AWS with Private Link, Unity Catalog, and customer-managed encryption.
 
 ---
 
-## Architecture Overview
+## 📁 Repository Structure
 
-This deployment creates a **secure, production-ready Databricks workspace** with:
+```
+awsdb4u/
+├── aws-pl-ws/                          # Databricks Private Link workspace deployments
+│   ├── databricks-aws-production/      # ✨ Production-ready deployment (Recommended)
+│   │   ├── modules/                    # 7 modular Terraform modules
+│   │   ├── docs/                       # Visual-first documentation
+│   │   ├── terraform.tfvars.example    # Configuration template
+│   │   └── quick-destroy.sh            # Safe cleanup script
+│   └── modular-version/                # Legacy version (deprecated)
+└── README.md                           # This file
+```
+
+---
+
+## 🚀 Available Deployments
+
+### **databricks-aws-production** (Recommended)
+
+**Production-ready**, fully modularized Terraform deployment with comprehensive documentation and enterprise features.
+
+**Key Features:**
+- ✅ **AWS PrivateLink** - Secure private connectivity (VPC endpoints)
+- ✅ **Unity Catalog** - Data governance and management
+- ✅ **Customer-Managed Keys (CMK)** - Full encryption control (S3 + Workspace)
+- ✅ **3-Tier VPC Architecture** - Public, Private, PrivateLink subnets
+- ✅ **High Availability** - Multi-AZ deployment with NAT gateways
+- ✅ **Visual Documentation** - Mermaid diagrams, architecture flows
+- ✅ **Quick Start Guide** - Deploy in 5 minutes
+- ✅ **Comprehensive Troubleshooting** - Common issues & solutions
+
+**Documentation:**
+- 📖 [Complete Documentation](aws-pl-ws/databricks-aws-production/docs/)
+- ⚡ [Quick Start Guide](aws-pl-ws/databricks-aws-production/docs/04-QUICK-START.md)
+- 📐 [Architecture Overview](aws-pl-ws/databricks-aws-production/docs/01-ARCHITECTURE.md)
+- 🔐 [IAM & Security](aws-pl-ws/databricks-aws-production/docs/02-IAM-SECURITY.md)
+- 🛡️ [Network & Encryption](aws-pl-ws/databricks-aws-production/docs/03-NETWORK-ENCRYPTION.md)
+
+**Quick Deploy:**
+```bash
+cd aws-pl-ws/databricks-aws-production
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your values
+terraform init
+terraform apply
+```
+
+---
+
+### **modular-version** (Legacy)
+
+Original modular version - **deprecated in favor of databricks-aws-production**.
+
+**Migration:** Users of `modular-version` should migrate to `databricks-aws-production` for:
+- Better documentation
+- Improved module structure
+- Enhanced security features
+- Active maintenance
+
+---
+
+## 📋 Comparison
+
+## 📋 Comparison
+
+| Feature | databricks-aws-production | modular-version (legacy) |
+|---------|---------------------------|--------------------------|
+| **Status** | ✅ Active | ⚠️ Deprecated |
+| **Documentation** | Visual-first, comprehensive | Basic README |
+| **Quick Start** | 5-minute guide | Manual configuration |
+| **Architecture Diagrams** | ✅ Mermaid diagrams | ❌ None |
+| **Troubleshooting** | ✅ Detailed guide | ❌ Limited |
+| **CMK Support** | ✅ Dual-layer (S3 + Workspace) | ✅ Basic |
+| **BYOR Support** | ❌ Removed (CREATE only) | ❌ N/A |
+| **Module Count** | 7 modules | 7 modules |
+| **Configuration** | `.tfvars.example` template | Manual setup |
+
+---
+
+## 🎯 Which Deployment Should I Use?
+
+### Choose `databricks-aws-production` if you want:
+- ✅ Production-ready deployment with best practices
+- ✅ Visual documentation and architecture diagrams
+- ✅ Quick start with guided configuration
+- ✅ Comprehensive troubleshooting guide
+- ✅ Active maintenance and updates
+- ✅ Clean, modular codebase
+
+### Use `modular-version` if you:
+- ⚠️ Have an existing deployment to maintain
+- ⚠️ Need backward compatibility (consider migrating)
+
+---
+
+## 🏗️ Architecture Overview
+
+Both deployments create a **secure, production-ready Databricks workspace** with:
 
 - ✅ **Backend Private Link** (VPC endpoints for control plane and data plane)
 - ✅ **Unity Catalog** for data governance
@@ -92,7 +167,17 @@ graph TB
 
 ---
 
-## Prerequisites
+## 📚 Detailed Documentation
+
+For detailed technical documentation, architecture, and configuration guides, see:
+
+👉 **[databricks-aws-production Documentation](aws-pl-ws/databricks-aws-production/docs/)**
+
+---
+
+## 🚦 Getting Started
+
+### Prerequisites (5 minutes)
 
 ### 1. Databricks Account Requirements
 
@@ -127,9 +212,314 @@ graph TB
 
 ---
 
-## Provider Configuration
+## 🚀 Quick Deployment
 
-This deployment uses three Terraform providers:
+### 1. Choose Your Deployment
+
+```bash
+cd aws-pl-ws/databricks-aws-production
+```
+
+### 2. Configure
+
+```bash
+# Copy example configuration
+cp terraform.tfvars.example terraform.tfvars
+
+# Edit with your values
+nano terraform.tfvars
+```
+
+### 3. Set Environment Variables
+
+Add to `~/.zshrc` or `~/.bashrc`:
+
+```bash
+export TF_VAR_databricks_account_id="your-account-id"
+export TF_VAR_databricks_client_id="your-service-principal-client-id"
+export TF_VAR_databricks_client_secret="your-service-principal-secret"
+```
+
+### 4. Deploy
+
+```bash
+terraform init
+terraform plan
+terraform apply
+```
+
+⏱️ **Deployment Time:** ~15-20 minutes
+
+**Full Guide:** [Quick Start Documentation](aws-pl-ws/databricks-aws-production/docs/04-QUICK-START.md)
+
+---
+
+## 📖 Documentation Index
+
+### databricks-aws-production
+
+| Document | Description |
+|----------|-------------|
+| [00-PREREQUISITES](aws-pl-ws/databricks-aws-production/docs/00-PREREQUISITES.md) | System setup & credentials |
+| [01-ARCHITECTURE](aws-pl-ws/databricks-aws-production/docs/01-ARCHITECTURE.md) | Architecture & deployment flow |
+| [02-IAM-SECURITY](aws-pl-ws/databricks-aws-production/docs/02-IAM-SECURITY.md) | IAM roles & policies |
+| [03-NETWORK-ENCRYPTION](aws-pl-ws/databricks-aws-production/docs/03-NETWORK-ENCRYPTION.md) | Network security & encryption |
+| [04-QUICK-START](aws-pl-ws/databricks-aws-production/docs/04-QUICK-START.md) | 5-minute deployment guide |
+| [05-TROUBLESHOOTING](aws-pl-ws/databricks-aws-production/docs/05-TROUBLESHOOTING.md) | Common issues & solutions |
+
+---
+
+## 🔧 Configuration Examples
+
+### Minimal Configuration (Default Security)
+
+```hcl
+workspace_name = "my-databricks-workspace"
+region         = "us-west-1"
+prefix         = "dbx"
+
+# S3 Buckets (globally unique)
+root_storage_bucket_name                = "mycompany-dbx-root-storage"
+unity_catalog_bucket_name               = "mycompany-dbx-uc-metastore"
+unity_catalog_root_storage_bucket_name  = "mycompany-dbx-uc-root-storage"
+unity_catalog_external_bucket_name      = "mycompany-dbx-uc-external"
+
+# Security (defaults)
+enable_private_link  = true   # Private Link enabled
+enable_encryption    = true   # S3 KMS encryption
+enable_workspace_cmk = false  # Workspace CMK disabled
+```
+
+### Maximum Security Configuration
+
+```hcl
+workspace_name = "my-secure-workspace"
+region         = "us-west-1"
+
+# Full encryption
+enable_private_link  = true   # Private Link
+enable_encryption    = true   # S3 KMS encryption
+enable_workspace_cmk = true   # Workspace CMK (DBFS + EBS + Managed Services)
+
+# Public access control
+public_access_enabled = false  # Block public internet access
+
+# S3 Buckets
+root_storage_bucket_name                = "mycompany-dbx-root-storage"
+unity_catalog_bucket_name               = "mycompany-dbx-uc-metastore"
+unity_catalog_root_storage_bucket_name  = "mycompany-dbx-uc-root-storage"
+unity_catalog_external_bucket_name      = "mycompany-dbx-uc-external"
+```
+
+---
+
+## 🛠️ What Gets Deployed?
+
+### AWS Resources (65-70 resources)
+
+```
+├── VPC + 3 subnet tiers (public/private/privatelink)
+├── NAT Gateways (2 for HA)
+├── Internet Gateway
+├── Security Groups (2)
+├── VPC Endpoints (5):
+│   ├── Databricks Workspace (Interface)
+│   ├── Databricks Relay (Interface)
+│   ├── S3 (Gateway - FREE)
+│   ├── STS (Interface)
+│   └── Kinesis (Interface)
+├── S3 Buckets (4):
+│   ├── DBFS root storage
+│   ├── Unity Catalog metastore
+│   ├── Unity Catalog root storage
+│   └── Unity Catalog external
+├── IAM Roles (4):
+│   ├── Cross-account role
+│   ├── Instance profile role
+│   ├── UC metastore role
+│   └── UC external role
+└── KMS Keys (2 - optional):
+    ├── S3 encryption key
+    └── Workspace CMK
+```
+
+### Databricks Resources
+
+```
+├── Workspace (with Private Link)
+├── Unity Catalog Metastore
+├── Unity Catalog Assignment
+├── Storage Credentials
+├── External Locations
+└── Workspace Catalog (optional)
+```
+
+---
+
+## 🔍 Key Features Explained
+
+### Private Link Architecture
+
+**Traffic Flow:**
+```
+Databricks Clusters (Private Subnets)
+    ↓ (Private)
+VPC Endpoints (PrivateLink Subnets)
+    ↓ (AWS PrivateLink)
+Databricks Control Plane
+```
+
+**Benefits:**
+- ✅ No data traverses public internet
+- ✅ Reduced attack surface
+- ✅ Compliance-friendly (HIPAA, PCI-DSS)
+- ✅ Lower latency
+
+### Dual-Layer Encryption
+
+**Layer 1: S3 Bucket Encryption** (`enable_encryption = true`)
+- Encrypts Unity Catalog metastore buckets
+- Encrypts DBFS root storage
+- Uses AWS KMS
+
+**Layer 2: Workspace CMK** (`enable_workspace_cmk = true`)
+- Encrypts DBFS (root storage)
+- Encrypts EBS volumes on clusters
+- Encrypts managed services (notebooks)
+- Independent from Layer 1
+
+**Note:** Both layers can be enabled simultaneously for maximum security.
+
+### Unity Catalog Integration
+
+**Data Governance:**
+- Centralized metadata management
+- Fine-grained access control
+- Data lineage tracking
+- Audit logging
+
+**Multi-Workspace Pattern:**
+```
+Single Unity Catalog Metastore
+    ├── Workspace 1 (Production)
+    ├── Workspace 2 (Development)
+    └── Workspace 3 (Staging)
+```
+
+---
+
+## ⚙️ Advanced Configuration
+
+### Reuse Existing Resources
+
+#### Reuse Unity Catalog Metastore
+
+```hcl
+# Skip metastore creation, use existing
+metastore_id = "existing-metastore-id"
+```
+
+#### Reuse Private Access Settings
+
+```hcl
+# Share PAS across multiple workspaces in same region
+existing_private_access_settings_id = "existing-pas-id"
+```
+
+#### Use Existing KMS Key for Workspace CMK
+
+```hcl
+enable_workspace_cmk = true
+existing_workspace_cmk_key_arn   = "arn:aws:kms:us-west-1:123456789012:key/12345678-..."
+existing_workspace_cmk_key_alias = "alias/databricks-workspace-cmk"
+```
+
+### Custom Network Configuration
+
+```hcl
+vpc_cidr                 = "10.0.0.0/22"
+private_subnet_cidrs     = ["10.0.1.0/24", "10.0.2.0/24"]
+privatelink_subnet_cidrs = ["10.0.3.0/26", "10.0.3.64/26"]
+public_subnet_cidrs      = ["10.0.0.0/26", "10.0.0.64/26"]
+
+# Manual AZ selection (or leave empty for auto-detect)
+availability_zones = ["us-west-1a", "us-west-1c"]
+```
+
+---
+
+## 🧹 Cleanup
+
+### Safe Destroy
+
+```bash
+cd aws-pl-ws/databricks-aws-production
+terraform destroy
+```
+
+**Issues?** See [Destroy Troubleshooting](aws-pl-ws/databricks-aws-production/docs/05-TROUBLESHOOTING.md#destroy-issues)
+
+---
+
+## 🆘 Troubleshooting
+
+Common issues and solutions:
+
+| Issue | Quick Fix |
+|-------|-----------|
+| Bucket already exists | Change bucket names in `terraform.tfvars` |
+| AWS auth error | `aws sso login --profile your-profile` |
+| Can't access workspace | Wait 20 minutes after deployment |
+| EIP limit exceeded | Release unused Elastic IPs |
+| Provider errors | Run `terraform init -upgrade` |
+
+**Full Guide:** [Troubleshooting Documentation](aws-pl-ws/databricks-aws-production/docs/05-TROUBLESHOOTING.md)
+
+---
+
+## 📞 Support & Resources
+
+### Documentation
+- 📖 [Databricks AWS Docs](https://docs.databricks.com/aws/en/)
+- 🔒 [Private Link Guide](https://docs.databricks.com/aws/en/security/network/classic/privatelink.html)
+- 🏛️ [Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/)
+- 🔑 [Customer-Managed Keys](https://docs.databricks.com/aws/en/security/keys/)
+- 🏗️ [Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
+
+### Getting Help
+1. Check [Troubleshooting Guide](aws-pl-ws/databricks-aws-production/docs/05-TROUBLESHOOTING.md)
+2. Review [Architecture Documentation](aws-pl-ws/databricks-aws-production/docs/01-ARCHITECTURE.md)
+3. Enable Terraform debug logs: `export TF_LOG=DEBUG`
+4. Contact Databricks support for account-specific issues
+
+---
+
+## 📝 Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| `databricks-aws-production` | ✅ Active | Production-ready, recommended |
+| `modular-version` | ⚠️ Deprecated | Legacy version, migrate to production |
+
+---
+
+## 🤝 Contributing
+
+Improvements and bug fixes are welcome:
+1. Follow visual-first documentation pattern
+2. Test changes thoroughly
+3. Update relevant documentation
+4. Submit issues for questions
+
+---
+
+## 📄 License
+
+This configuration is provided as-is for reference purposes.
+
+---
+
+**Ready to Deploy?** → [Quick Start Guide](aws-pl-ws/databricks-aws-production/docs/04-QUICK-START.md) ⚡
 
 ### 1. AWS Provider
 
