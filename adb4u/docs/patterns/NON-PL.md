@@ -97,7 +97,7 @@ The Non-Private Link (Non-PL) pattern provides a **secure, cost-effective** Azur
 graph TB
     subgraph Internet
         User[User Browser]
-        PyPI[PyPI/Maven/Docker Hub]
+        PyPI[PyPI/Maven<br/>Custom Repos]
     end
     
     subgraph Azure["Azure Cloud"]
@@ -125,6 +125,7 @@ graph TB
             DBFS[DBFS Root<br/>Databricks-Managed]
             UCMetastore[UC Metastore<br/>Customer-Owned]
             ExtLocation[External Location<br/>Customer-Owned]
+            DBRImages[DBR Runtime Images<br/>Databricks-Managed<br/>dbartifactsprod*]
         end
         
         EventHub[Event Hub<br/>Logs & Metrics]
@@ -148,9 +149,12 @@ graph TB
     Driver -->|NSG: Storage<br/>Service Endpoint| DBFS
     Driver -->|NSG: Storage<br/>Service Endpoint| UCMetastore
     Driver -->|NSG: Storage<br/>Service Endpoint| ExtLocation
+    Driver -->|NSG: Storage<br/>Service Endpoint| DBRImages
     
     Worker1 -->|NSG: Storage<br/>Service Endpoint| ExtLocation
+    Worker1 -->|NSG: Storage<br/>Service Endpoint| DBRImages
     Worker2 -->|NSG: Storage<br/>Service Endpoint| ExtLocation
+    Worker2 -->|NSG: Storage<br/>Service Endpoint| DBRImages
     
     Driver -->|NSG: EventHub| EventHub
     Worker1 -->|NSG: EventHub| EventHub
@@ -205,89 +209,161 @@ graph LR
 
 ***REMOVED******REMOVED*** Traffic Flow: Cluster Startup Sequence
 
-***REMOVED******REMOVED******REMOVED*** Sequence Diagram (Mermaid)
+***REMOVED******REMOVED******REMOVED*** Sequence Diagram (Mermaid - UML Compliant)
 
 ```mermaid
 sequenceDiagram
     actor User
     participant UI as Databricks UI/API
-    participant CP as Control Plane
-    participant ARM as Azure Resource Manager
-    participant Driver as Driver VM<br/>(No Public IP)
-    participant Worker as Worker VMs<br/>(No Public IP)
-    participant NSG as NSG Service Tags
-    participant NAT as NAT Gateway
-    participant Internet as Internet<br/>(PyPI/Maven/Docker)
-    participant Storage as Azure Storage<br/>(Service Endpoints)
+    participant CP as Control Plane<br/>(Microsoft-Managed)
+    participant ARM as Azure Resource<br/>Manager
+    box rgba(255, 244, 225, 0.5) Customer VNet (10.100.0.0/16)
+    participant Driver as Driver VM<br/>(Public Subnet)<br/>No Public IP
+    participant Worker as Worker VMs<br/>(Private Subnet)<br/>No Public IP
+    participant NSG as NSG<br/>Service Tags
+    end
+    participant NAT as NAT Gateway<br/>203.0.113.45
+    participant Internet as Internet<br/>(PyPI/Maven)
+    box rgba(232, 245, 233, 0.5) Azure Storage (Service Endpoints)
+    participant DBRStorage as DBR Images<br/>dbartifactsprod*
+    participant DBFS as DBFS Root
+    participant UC as UC Metastore
+    participant ExtLoc as External Location
+    end
     participant EventHub as Event Hub
 
-    Note over User,EventHub: Phase 1: Cluster Creation (T+0s)
-    User->>UI: Create Cluster<br/>(HTTPS)
-    UI->>CP: Validate & Queue
-    CP-->>User: Cluster ID
-
-    Note over User,EventHub: Phase 2: VM Provisioning (T+0s to T+2min)
-    CP->>ARM: Provision VMs<br/>(Customer VNet)
-    ARM->>Driver: Create Driver VM<br/>(Public Subnet, No Public IP)
-    ARM->>Worker: Create Worker VMs<br/>(Private Subnet, No Public IP)
-
-    Note over User,EventHub: Phase 3: Control Plane Registration (T+2min to T+3min)
-    Driver->>NSG: Outbound HTTPS (443)<br/>to Control Plane
-    NSG->>CP: Route via AzureDatabricks<br/>service tag
-    activate CP
-    CP-->>Driver: Tunnel Established
-    deactivate CP
-    
-    Worker->>NSG: Outbound HTTPS (443)<br/>to Control Plane
-    NSG->>CP: Route via AzureDatabricks<br/>service tag
-    activate CP
-    CP-->>Worker: Tunnel Established
-    deactivate CP
-
-    Note over User,EventHub: Phase 4a: Ongoing Control Plane Communication
-    loop Heartbeat (every 30s)
-        Driver->>NSG: Heartbeat
-        NSG->>CP: Via AzureDatabricks tag
-        CP-->>Driver: Commands/Metrics
-        
-        Worker->>NSG: Heartbeat
-        NSG->>CP: Via AzureDatabricks tag
-        CP-->>Worker: Commands/Metrics
+    rect rgb(225, 241, 255)
+    Note over User,EventHub: Phase 1: Cluster Creation Request (T+0s)
+    User->>+UI: POST /api/2.0/clusters/create
+    UI->>+CP: Validate cluster config
+    CP-->>-UI: Cluster ID: 0123-456789-abcd
+    UI-->>-User: Cluster ID + Status: PENDING
     end
 
-    Note over User,EventHub: Phase 4b: Package Downloads (T+2min to T+4min)
-    Driver->>NSG: Download PyPI/Maven
-    NSG->>NAT: Default Route
-    NAT->>Internet: SNAT to 203.0.113.45
-    Internet-->>NAT: Packages
-    NAT-->>Driver: Packages
-    
-    Worker->>NSG: Download PyPI/Maven
-    NSG->>NAT: Default Route
-    NAT->>Internet: SNAT to 203.0.113.45
-    Internet-->>NAT: Packages
-    NAT-->>Worker: Packages
+    rect rgb(255, 243, 224)
+    Note over User,EventHub: Phase 2: VM Provisioning (T+0s to T+2min)
+    CP->>+ARM: Create VMs in customer VNet
+    ARM->>+Driver: Provision Driver VM<br/>(Standard_DS3_v2, No Public IP)
+    Driver-->>-ARM: VM Created
+    ARM->>+Worker: Provision Worker VMs (2-8 nodes)<br/>(Standard_DS3_v2, No Public IP)
+    Worker-->>-ARM: VMs Created
+    ARM-->>-CP: All VMs Ready
+    end
 
-    Note over User,EventHub: Phase 4c: Storage Access (T+3min to T+5min)
-    Driver->>NSG: Access DBFS/UC Storage
-    NSG->>Storage: Via Storage service tag<br/>+Service Endpoint
-    Storage-->>Driver: Data
+    rect rgb(232, 245, 233)
+    Note over User,EventHub: Phase 3: Control Plane Tunnel (T+2min to T+3min)
+    Driver->>+NSG: Outbound HTTPS:443<br/>to tunnel.eastus2.azuredatabricks.net
+    NSG->>+CP: Route via AzureDatabricks service tag
+    CP-->>-NSG: Tunnel Established (WebSocket)
+    NSG-->>-Driver: Connected
     
-    Worker->>NSG: Access Data
-    NSG->>Storage: Via Storage service tag<br/>+Service Endpoint
-    Storage-->>Worker: Data
+    Worker->>+NSG: Outbound HTTPS:443<br/>to tunnel.eastus2.azuredatabricks.net
+    NSG->>+CP: Route via AzureDatabricks service tag
+    CP-->>-NSG: Tunnel Established (WebSocket)
+    NSG-->>-Worker: Connected
+    end
 
-    Note over User,EventHub: Phase 4d: Logging
-    Driver->>NSG: Send Logs
-    NSG->>EventHub: Via EventHub service tag
+    rect rgb(255, 249, 196)
+    Note over User,EventHub: Phase 4a: Heartbeat (Every 30s, Ongoing)
+    loop Every 30 seconds
+        Driver->>+NSG: Heartbeat + Metrics
+        NSG->>+CP: Via AzureDatabricks tag
+        CP-->>-NSG: Commands
+        NSG-->>-Driver: Execute commands
+    end
+    end
+
+    rect rgb(255, 235, 238)
+    Note over User,EventHub: Phase 4b: DBR Image Download (T+2min to T+3min)
+    Driver->>+NSG: GET DBR image<br/>(dbr-13.3-scala2.12)
+    NSG->>+DBRStorage: Via Storage service tag<br/>(Azure backbone)
+    DBRStorage-->>-NSG: DBR Runtime Image (2-5 GB)
+    NSG-->>-Driver: Image Downloaded ($0 egress)
     
-    Worker->>NSG: Send Logs
-    NSG->>EventHub: Via EventHub service tag
+    Worker->>+NSG: GET DBR image<br/>(dbr-13.3-scala2.12)
+    NSG->>+DBRStorage: Via Storage service tag<br/>(Azure backbone)
+    DBRStorage-->>-NSG: DBR Runtime Image (2-5 GB)
+    NSG-->>-Worker: Image Downloaded ($0 egress)
+    end
 
-    Note over User,EventHub: Phase 5: Worker-to-Worker (During Execution)
-    Driver<->>Worker: Shuffle/RPC<br/>(Within VNet)
-    Worker<->>Worker: Data Exchange<br/>(Within VNet)
+    rect rgb(255, 235, 238)
+    Note over User,EventHub: Phase 4c: User Library Downloads (T+3min to T+4min)
+    Driver->>+NSG: pip install pandas numpy
+    NSG->>+NAT: Default route (0.0.0.0/0)
+    NAT->>+Internet: SNAT 203.0.113.45 → pypi.org
+    Internet-->>-NAT: Python packages (.whl files)
+    NAT-->>-NSG: Packages
+    NSG-->>-Driver: Installed
+    
+    Worker->>+NSG: pip install pandas numpy
+    NSG->>+NAT: Default route (0.0.0.0/0)
+    NAT->>+Internet: SNAT 203.0.113.45 → pypi.org
+    Internet-->>-NAT: Python packages (.whl files)
+    NAT-->>-NSG: Packages
+    NSG-->>-Worker: Installed
+    end
+
+    rect rgb(232, 245, 233)
+    Note over User,EventHub: Phase 4d: Storage Access (T+3min to T+5min)
+    Driver->>+NSG: Read init scripts (dbfs:/init/)
+    NSG->>+DBFS: Via Storage service tag<br/>+Service Endpoint
+    DBFS-->>-NSG: Init scripts
+    NSG-->>-Driver: Executed ($0 egress)
+    
+    Driver->>+NSG: Query UC metadata<br/>(catalog.schema.table)
+    NSG->>+UC: Via Storage service tag<br/>+Service Endpoint
+    UC-->>-NSG: Table definition
+    NSG-->>-Driver: Metadata cached ($0 egress)
+    
+    Worker->>+NSG: Read Delta table<br/>(abfss://external@...)
+    NSG->>+ExtLoc: Via Storage service tag<br/>+Service Endpoint
+    ExtLoc-->>-NSG: Data partitions
+    NSG-->>-Worker: Processing ($0 egress)
+    end
+
+    rect rgb(255, 249, 196)
+    Note over User,EventHub: Phase 4e: Logging (Continuous)
+    Driver->>+NSG: Send driver logs
+    NSG->>+EventHub: Via EventHub service tag
+    EventHub-->>-NSG: Acknowledged
+    NSG-->>-Driver: Logged ($0 egress)
+    
+    Worker->>+NSG: Send executor logs
+    NSG->>+EventHub: Via EventHub service tag
+    EventHub-->>-NSG: Acknowledged
+    NSG-->>-Worker: Logged ($0 egress)
+    end
+
+    rect rgb(240, 240, 255)
+    Note over User,EventHub: Phase 5: Shuffle Operations (During Execution)
+    Driver->>+Worker: Broadcast variable (10 MB)
+    Worker-->>-Driver: Acknowledged
+    
+    Worker->>+Worker: Shuffle exchange<br/>(partition redistribution)
+    Worker-->>-Worker: Complete
+    
+    Worker->>+Driver: Task results (aggregated)
+    Driver-->>-Worker: Next stage
+    Note over Driver,Worker: All traffic within VNet<br/>$0 egress, < 1ms latency
+    end
+
+    rect rgb(225, 241, 255)
+    Note over User,EventHub: Phase 6: Results Return
+    Driver->>+CP: Job completed
+    CP->>+UI: Update job status
+    UI-->>-User: Results available
+    CP-->>-Driver: Acknowledged
+    end
 ```
+
+**Key UML Elements** (per [Wikipedia Sequence Diagram](https://en.wikipedia.org/wiki/Sequence_diagram)):
+- **Lifelines**: Vertical dashed lines for each participant
+- **Activation Boxes**: Solid rectangles showing when objects are active (+/- syntax)
+- **Synchronous Messages**: Solid arrows (->>)
+- **Reply Messages**: Dashed arrows (-->>)
+- **Boxes**: Grouped participants (Customer VNet, Azure Storage)
+- **Notes**: Phase descriptions with timing information
+- **Loops**: Repeating interactions (heartbeats)
 
 ***REMOVED******REMOVED******REMOVED*** ASCII Diagram (for documentation/markdown viewers without Mermaid support)
 
@@ -342,22 +418,22 @@ This diagram shows the detailed traffic flow when a Databricks cluster starts wi
          ┌───────────────────┼───────────────────┐
          │                   │                   │
          │ 4a. Heartbeat     │ 4b. Download      │ 4c. Access Storage
-         │    to Control     │     Docker images │     (Service Endpoints)
-         │    Plane          │     & packages    │     NSG: Storage tag
-         │    (NSG: AzureDB) │     (NAT Gateway) │
+         │    to Control     │     User Libs     │     DBFS/UC/External
+         │    Plane          │     (PyPI/Maven)  │     + DBR Images
+         │    (NSG: AzureDB) │     (NAT Gateway) │     (NSG: Storage)
          ↓                   ↓                   ↓
 ┌──────────────────┐  ┌──────────────┐  ┌────────────────────────┐
 │ Databricks       │  │ Internet     │  │ Azure Storage          │
-│ Control Plane    │  │ - Docker Hub │  │ (via Service Endpoint) │
-│ (NSG Service Tag)│  │ - PyPI       │  │ (NSG: Storage tag)     │
-│ - Receives       │  │ - Maven      │  │                        │
-│   heartbeats     │  │ - Custom     │  │ ┌────────────────────┐ │
-│ - Sends commands │  │   repos      │  │ │ DBFS Root Storage  │ │
-│ - Monitors state │  │              │  │ │ - Init scripts     │ │
-│ - NO NAT used!   │  │ NAT Gateway  │  │ │ - Cluster logs     │ │
-└──────────────────┘  │ ONLY for     │  │ │ - Libraries        │ │
-                      │ this traffic!│  │ └────────────────────┘ │
-                      └──────────────┘  │                        │
+│ Control Plane    │  │ - PyPI       │  │ (via Service Endpoint) │
+│ (NSG Service Tag)│  │ - Maven      │  │ (NSG: Storage tag)     │
+│ - Receives       │  │ - Custom     │  │                        │
+│   heartbeats     │  │   repos      │  │ ┌────────────────────┐ │
+│ - Sends commands │  │              │  │ │ DBFS Root Storage  │ │
+│ - Monitors state │  │ NAT Gateway  │  │ │ - Init scripts     │ │
+│ - NO NAT used!   │  │ ONLY for     │  │ │ - Cluster logs     │ │
+└──────────────────┘  │ user libs!   │  │ │ - Libraries        │ │
+                      └──────────────┘  │ └────────────────────┘ │
+                                        │                        │
                                         │ ┌────────────────────┐ │
                                         │ │ UC Metastore       │ │
          ┌──────────────────────────────┤ │ - Table metadata   │ │
@@ -369,10 +445,13 @@ This diagram shows the detailed traffic flow when a Databricks cluster starts wi
 │ Inter-Worker Traffic     │            │ │ - User data        │ │
 │ - Shuffle operations     │            │ │ - Delta tables     │ │
 │ - Data redistribution    │            │ └────────────────────┘ │
-│ - RPC communication      │            └────────────────────────┘
-│ - Stays within VNet      │
-│ - No egress charges      │
-└──────────────────────────┘
+│ - RPC communication      │            │                        │
+│ - Stays within VNet      │            │ ┌────────────────────┐ │
+│ - No egress charges      │            │ │ DBR Images         │ │
+└──────────────────────────┘            │ │ (Databricks-managed│ │
+                                        │ │  dbartifactsprod*) │ │
+                                        │ └────────────────────┘ │
+                                        └────────────────────────┘
 
 Time: T+0s to T+5min (typical cluster startup)
 
@@ -424,13 +503,20 @@ Cluster VMs ←→ Control Plane (via NSG Service Tag: AzureDatabricks)
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 4b: Package Downloads (T+2min to T+4min)
 ```
-Cluster VMs → NAT Gateway → Internet
-- Docker images: Docker Hub (for DBR runtime)
+Cluster VMs → NAT Gateway → Internet (user libraries ONLY)
 - Python packages: PyPI (pip install)
 - Java/Scala: Maven Central (library dependencies)
 - Custom repos: Customer-configured repositories
 - Source IP: NAT Gateway public IP (stable for whitelisting)
-**Important**: NAT Gateway is ONLY for this phase (user-initiated downloads)
+
+Cluster VMs → Azure Storage (DBR images via NSG Storage tag)
+- DBR Runtime Images: From Databricks-managed storage (dbartifactsprod*, dblogprod*)
+- Protocol: HTTPS via NSG Storage service tag
+- Size: ~2-5 GB per cluster
+- Cost: $0 egress (Azure backbone)
+- Reference: Data Exfiltration blog
+
+**Important**: NAT Gateway is ONLY for user libraries (PyPI/Maven), NOT for DBR images!
 ```
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 4c: Storage Access (T+3min to T+5min)

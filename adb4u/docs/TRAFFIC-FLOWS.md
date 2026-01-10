@@ -77,22 +77,22 @@ This document provides comprehensive traffic flow diagrams showing how Databrick
          ┌───────────────────┼───────────────────┐
          │                   │                   │
          │ 4a. Heartbeat     │ 4b. Download      │ 4c. Access Storage
-         │    to Control     │     Docker images │     (Service Endpoints)
-         │    Plane          │     & packages    │     NSG: Storage tag
-         │    (NSG: AzureDB) │     (NAT Gateway) │
+         │    to Control     │     User Libs     │     DBFS/UC/External
+         │    Plane          │     (PyPI/Maven)  │     + DBR Images
+         │    (NSG: AzureDB) │     (NAT Gateway) │     (NSG: Storage)
          ↓                   ↓                   ↓
 ┌──────────────────┐  ┌──────────────┐  ┌────────────────────────┐
 │ Databricks       │  │ Internet     │  │ Azure Storage          │
-│ Control Plane    │  │ - Docker Hub │  │ (via Service Endpoint) │
-│ (NSG Service Tag)│  │ - PyPI       │  │ (NSG: Storage tag)     │
-│ - Receives       │  │ - Maven      │  │                        │
-│   heartbeats     │  │ - Custom     │  │ ┌────────────────────┐ │
-│ - Sends commands │  │   repos      │  │ │ DBFS Root Storage  │ │
-│ - Monitors state │  │              │  │ │ - Init scripts     │ │
-│ - NO NAT used!   │  │ NAT Gateway  │  │ │ - Cluster logs     │ │
-└──────────────────┘  │ ONLY for     │  │ │ - Libraries        │ │
-                      │ this traffic!│  │ └────────────────────┘ │
-                      └──────────────┘  │                        │
+│ Control Plane    │  │ - PyPI       │  │ (via Service Endpoint) │
+│ (NSG Service Tag)│  │ - Maven      │  │ (NSG: Storage tag)     │
+│ - Receives       │  │ - Custom     │  │                        │
+│   heartbeats     │  │   repos      │  │ ┌────────────────────┐ │
+│ - Sends commands │  │              │  │ │ DBFS Root Storage  │ │
+│ - Monitors state │  │ NAT Gateway  │  │ │ - Init scripts     │ │
+│ - NO NAT used!   │  │ ONLY for     │  │ │ - Cluster logs     │ │
+└──────────────────┘  │ user libs!   │  │ │ - Libraries        │ │
+                      └──────────────┘  │ └────────────────────┘ │
+                                        │                        │
                                         │ ┌────────────────────┐ │
                                         │ │ UC Metastore       │ │
          ┌──────────────────────────────┤ │ - Table metadata   │ │
@@ -104,10 +104,13 @@ This document provides comprehensive traffic flow diagrams showing how Databrick
 │ Inter-Worker Traffic     │            │ │ - User data        │ │
 │ - Shuffle operations     │            │ │ - Delta tables     │ │
 │ - Data redistribution    │            │ └────────────────────┘ │
-│ - RPC communication      │            └────────────────────────┘
-│ - Stays within VNet      │
-│ - No egress charges      │
-└──────────────────────────┘
+│ - RPC communication      │            │                        │
+│ - Stays within VNet      │            │ ┌────────────────────┐ │
+│ - No egress charges      │            │ │ DBR Images         │ │
+└──────────────────────────┘            │ │ (Databricks-managed│ │
+                                        │ │  dbartifactsprod*) │ │
+                                        │ └────────────────────┘ │
+                                        └────────────────────────┘
 
 Time: T+0s to T+5min (typical cluster startup)
 
@@ -255,22 +258,14 @@ Logs:
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 4b: Package Downloads (T+2min to T+4min)
+***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 4b: User Library Downloads (T+2min to T+4min)
 
 **Flow**: Cluster VMs → NAT Gateway → Internet
 
-**Important**: This is the PRIMARY use case for NAT Gateway!
+**Important**: This is the PRIMARY and ONLY use case for NAT Gateway!
 
 **Details**:
 ```
-Docker Images:
-- Source:       Docker Hub (docker.io)
-- Purpose:      Databricks Runtime (DBR) base images
-- Size:         ~2-5 GB per cluster
-- Frequency:    Once per cluster startup
-- Caching:      Cached on local disk
-- Routing:      NAT Gateway (stable IP for whitelisting)
-
 Python Packages (PyPI):
 - Source:       pypi.org
 - Protocol:     HTTPS
@@ -293,13 +288,31 @@ Custom Repositories:
 - Authentication: If required
 - Whitelisting: NAT Gateway IP (203.0.113.45)
 - Routing:      NAT Gateway
+
+Databricks Runtime (DBR) Image:
+- Source:       Databricks-managed storage accounts (NOT Docker Hub!)
+- Protocol:     HTTPS
+- Routing:      NSG Service Tag "Storage" (Azure backbone)
+- Size:         ~2-5 GB per cluster
+- Frequency:    Once per cluster startup
+- Caching:      Cached on local disk
+- Cost:         $0 egress (uses Storage service tag)
+- Reference:    See Data Exfiltration blog for details
+
+Important Notes:
+- DBR images come from Microsoft-managed storage (dbartifactsprod*, dblogprod*)
+- DBR download uses Storage service tag, NOT NAT Gateway
+- NSG allows outbound to Storage service tag for DBR access
+- See: https://learn.microsoft.com/en-us/azure/databricks/security/network/data-exfiltration-protection
 ```
 
-**Traffic Volume**: 2-10 GB per cluster startup (one-time)
+**Traffic Volume**: 500 MB - 2 GB per cluster startup (user libraries only)
 
 **Cost Consideration**: Data egress charges apply (first 100 GB free/month)
 
-**Key Point**: NAT Gateway is ONLY for user-initiated internet downloads, NOT for Databricks or Azure service communication!
+**Critical Distinction**:
+- **DBR Image**: Databricks-managed storage → NSG Storage tag → $0 egress ✅
+- **User Libraries**: PyPI/Maven/Custom → NAT Gateway → Internet → Egress charges ✅
 
 ---
 
@@ -497,16 +510,18 @@ Performance:
 | Traffic Type | Volume/Month | Routing | Cost/Month |
 |--------------|-------------|---------|------------|
 | Control Plane (heartbeats, commands) | ~5 GB | **NSG: AzureDatabricks tag** | **$0 (Azure backbone)** |
-| Package downloads (PyPI, Maven, Docker) | ~50 GB | **NAT Gateway → Internet** | $0 (< 100 GB free) |
-| Storage access (Service Endpoints) | 1000+ GB | **NSG: Storage tag** | **$0 (Azure backbone)** |
+| DBR image downloads | ~50 GB | **NSG: Storage tag** | **$0 (Azure backbone)** |
+| User library downloads (PyPI/Maven) | ~10 GB | **NAT Gateway → Internet** | $0 (< 100 GB free) |
+| Storage access (DBFS/UC/External) | 1000+ GB | **NSG: Storage tag** | **$0 (Azure backbone)** |
 | Event Hub (logs) | ~10 GB | **NSG: EventHub tag** | **$0 (Azure backbone)** |
 | Worker-to-worker | 1000+ GB | **Within VNet** | **$0 (intra-VNet)** |
-| **TOTAL EGRESS** | **~55 GB internet** | | **$0** |
+| **TOTAL INTERNET EGRESS** | **~10 GB** | | **$0** (< 100 GB free) |
 
 **Key Takeaway**: 
-- **NSG Service Tags** (AzureDatabricks, Storage, EventHub) eliminate control plane egress charges!
-- **NAT Gateway** is only for user-initiated internet downloads (< 100 GB free tier)
-- **Service Endpoints** + **NSG tags** = **$0 egress for all Azure services**!
+- **NSG Service Tags** (AzureDatabricks, Storage, EventHub) = $0 egress for ALL Azure services!
+- **DBR images** come from Databricks-managed storage via **Storage service tag** = $0 egress!
+- **NAT Gateway** only for user libraries (PyPI/Maven) = ~10 GB/month (< 100 GB free tier)
+- **Result**: Typical deployment has **$0 egress costs**!
 
 ---
 
