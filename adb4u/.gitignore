@@ -1,0 +1,76 @@
+***REMOVED*** Terraform
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+*.auto.tfvars
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+tfplan
+
+***REMOVED*** Environment files
+.env
+.env.*
+.env.local
+*.local
+
+***REMOVED*** Cloud credentials
+*-key.json
+*-credentials.json
+*-policy.json
+*-boundary.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+***REMOVED*** Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+***REMOVED*** IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+***REMOVED*** Databricks
+.dbx/
+*.dbc
+
+***REMOVED*** Checkpoint documents (development tracking, not for version control)
+**/checkpoint/
+
+***REMOVED*** Logs
+*.log
+logs/
+
+***REMOVED*** Temporary files
+tmp/
+temp/
+*.tmp
