@@ -1,0 +1,165 @@
+***REMOVED*** ==============================================
+***REMOVED*** Non-PL Deployment Configuration Example
+***REMOVED*** ==============================================
+***REMOVED*** This file provides example values for deploying an Azure Databricks workspace
+***REMOVED*** using the Non-PL pattern (Public Control Plane + NPIP Data Plane).
+***REMOVED***
+***REMOVED*** Copy this file to terraform.tfvars and customize for your environment.
+***REMOVED*** ==============================================
+
+***REMOVED*** ==============================================
+***REMOVED*** Authentication Configuration
+***REMOVED*** ==============================================
+***REMOVED*** Terraform providers support multiple authentication methods.
+***REMOVED*** Choose the method that best fits your environment.
+
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ OPTION 1: Environment Variables (RECOMMENDED)                            │
+***REMOVED*** │ Best for: Development, CI/CD pipelines, credential security              │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+***REMOVED***
+***REMOVED*** Add to ~/.zshrc or ~/.bashrc:
+***REMOVED***
+***REMOVED*** ***REMOVED*** Azure Authentication
+***REMOVED*** export ARM_CLIENT_ID="<service-principal-app-id>"
+***REMOVED*** export ARM_CLIENT_SECRET="<service-principal-secret>"
+***REMOVED*** export ARM_TENANT_ID="<azure-ad-tenant-id>"
+***REMOVED*** export ARM_SUBSCRIPTION_ID="<azure-subscription-id>"
+***REMOVED***
+***REMOVED*** ***REMOVED*** Databricks Account Authentication
+***REMOVED*** export TF_VAR_databricks_account_id="<databricks-account-id>"
+***REMOVED***
+***REMOVED*** Then run: source ~/.zshrc
+
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ OPTION 2: Azure CLI (DEVELOPMENT ONLY)                                   │
+***REMOVED*** │ Best for: Local development, testing                                     │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+***REMOVED***
+***REMOVED*** Prerequisites:
+***REMOVED*** 1. Install Azure CLI: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
+***REMOVED*** 2. Login: az login
+***REMOVED*** 3. Set subscription: az account set --subscription <subscription-id>
+***REMOVED*** 4. Verify: az account show
+***REMOVED***
+***REMOVED*** Terraform will automatically use your az cli credentials.
+***REMOVED*** You only need to set databricks_account_id below.
+
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ OPTION 3: Service Principal (PRODUCTION)                                 │
+***REMOVED*** │ Best for: Production, CI/CD, automated deployments                       │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+***REMOVED***
+***REMOVED*** Create Service Principal:
+***REMOVED*** az ad sp create-for-rbac \
+***REMOVED***   --name "terraform-databricks-sp" \
+***REMOVED***   --role "Contributor" \
+***REMOVED***   --scopes /subscriptions/<subscription-id>
+***REMOVED***
+***REMOVED*** Add User Access Administrator role (needed for RBAC):
+***REMOVED*** az role assignment create \
+***REMOVED***   --assignee "<app-id>" \
+***REMOVED***   --role "User Access Administrator" \
+***REMOVED***   --scope /subscriptions/<subscription-id>
+***REMOVED***
+***REMOVED*** Then set environment variables (see OPTION 1)
+
+***REMOVED*** ==============================================
+***REMOVED*** Core Configuration (REQUIRED)
+***REMOVED*** ==============================================
+
+workspace_prefix = "proddb"  ***REMOVED*** Lowercase alphanumeric, max 12 chars
+location         = "eastus2"
+resource_group_name = "rg-databricks-prod-eastus2"
+
+***REMOVED*** Databricks Account ID (REQUIRED for Unity Catalog)
+***REMOVED*** Get from: https://accounts.azuredatabricks.net (top-right corner)
+***REMOVED*** Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+databricks_account_id = "12345678-1234-1234-1234-123456789012"
+
+***REMOVED*** ==============================================
+***REMOVED*** Network Configuration
+***REMOVED*** ==============================================
+
+***REMOVED*** Option 1: Create New Network (Default)
+use_existing_network         = false
+vnet_address_space           = ["10.100.0.0/16"]
+public_subnet_address_prefix = ["10.100.1.0/26"]
+private_subnet_address_prefix = ["10.100.2.0/26"]
+
+***REMOVED*** Option 2: Bring Your Own VNet (BYOV)
+***REMOVED*** Uncomment and configure if using existing network:
+***REMOVED*** use_existing_network          = true
+***REMOVED*** existing_vnet_name            = "my-existing-vnet"
+***REMOVED*** existing_resource_group_name  = "my-existing-rg"
+***REMOVED*** existing_public_subnet_name   = "databricks-public"
+***REMOVED*** existing_private_subnet_name  = "databricks-private"
+***REMOVED*** existing_nsg_name             = "databricks-nsg"
+***REMOVED***
+***REMOVED*** ⚠️ IMPORTANT: Existing subnets MUST have:
+***REMOVED***    - Databricks delegation (Microsoft.Databricks/workspaces)
+***REMOVED***    - Service Endpoints (Microsoft.Storage, Microsoft.KeyVault)
+
+***REMOVED*** NAT Gateway (Recommended for Non-PL)
+enable_nat_gateway = true  ***REMOVED*** Required for downloading packages (PyPI, Maven, etc.)
+
+***REMOVED*** ==============================================
+***REMOVED*** Service Endpoint Policy (Security)
+***REMOVED*** ==============================================
+
+enable_service_endpoint_policy = true  ***REMOVED*** Restricts storage access to approved accounts (Recommended)
+
+***REMOVED*** ==============================================
+***REMOVED*** Customer-Managed Keys (Optional)
+***REMOVED*** ==============================================
+
+enable_cmk_managed_services = false
+enable_cmk_managed_disks    = false
+enable_cmk_dbfs_root        = false
+***REMOVED*** cmk_key_vault_key_id = "https://my-keyvault.vault.azure.net/keys/my-cmk-key/version"
+
+***REMOVED*** ==============================================
+***REMOVED*** IP Access Lists (Optional)
+***REMOVED*** ==============================================
+
+enable_ip_access_lists = false
+***REMOVED*** allowed_ip_ranges = [
+***REMOVED***   "203.0.113.0/24",    ***REMOVED*** Corporate network
+***REMOVED***   "198.51.100.0/24"    ***REMOVED*** VPN range
+***REMOVED*** ]
+
+***REMOVED*** ==============================================
+***REMOVED*** Unity Catalog Configuration
+***REMOVED*** ==============================================
+
+***REMOVED*** First-time deployment: Create new metastore
+create_metastore = true
+metastore_name   = "prod-eastus2-metastore"
+
+***REMOVED*** Subsequent workspaces in same region: Reuse existing metastore
+***REMOVED*** create_metastore      = false
+***REMOVED*** existing_metastore_id = "abc123-def456-ghi789"
+
+***REMOVED*** Access Connector (Managed Identity)
+***REMOVED*** Option 1: Create per-workspace (Default - Recommended)
+create_access_connector = true
+
+***REMOVED*** Option 2: Share existing Access Connector across workspaces
+***REMOVED*** create_access_connector               = false
+***REMOVED*** existing_access_connector_id          = "/subscriptions/.../resourceGroups/.../providers/Microsoft.Databricks/accessConnectors/shared-connector"
+***REMOVED*** existing_access_connector_principal_id = "abcd1234-ef56-7890-ghij-klmnopqrstuv"
+
+***REMOVED*** ==============================================
+***REMOVED*** Tags
+***REMOVED*** ==============================================
+
+tag_owner     = "your.email@company.com"
+tag_keepuntil = "12/31/2025"
+
+tags = {
+  Environment = "Production"
+  ManagedBy   = "Terraform"
+  Pattern     = "Non-PL"
+  CostCenter  = "Engineering"
+  Owner       = "data-platform-team@company.com"
+}
