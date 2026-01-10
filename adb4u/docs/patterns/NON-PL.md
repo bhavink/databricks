@@ -89,7 +89,207 @@ The Non-Private Link (Non-PL) pattern provides a **secure, cost-effective** Azur
 
 ---
 
+***REMOVED******REMOVED*** Architecture Diagrams
+
+***REMOVED******REMOVED******REMOVED*** High-Level Architecture (Mermaid)
+
+```mermaid
+graph TB
+    subgraph Internet
+        User[User Browser]
+        PyPI[PyPI/Maven/Docker Hub]
+    end
+    
+    subgraph Azure["Azure Cloud"]
+        subgraph ControlPlane["Databricks Control Plane<br/>(Microsoft-Managed)"]
+            UI[Web UI/API]
+            ClusterMgr[Cluster Manager]
+            MetaService[Metadata Service]
+        end
+        
+        subgraph CustomerVNet["Customer VNet (10.100.0.0/16)"]
+            subgraph PublicSubnet["Public/Host Subnet<br/>(10.100.1.0/26)"]
+                Driver[Driver Node<br/>No Public IP]
+            end
+            
+            subgraph PrivateSubnet["Private/Container Subnet<br/>(10.100.2.0/26)"]
+                Worker1[Worker Node 1<br/>No Public IP]
+                Worker2[Worker Node 2<br/>No Public IP]
+            end
+            
+            NSG[Network Security Group<br/>Service Tags:<br/>AzureDatabricks, Storage, EventHub]
+            NAT[NAT Gateway<br/>203.0.113.45]
+        end
+        
+        subgraph Storage["Azure Storage"]
+            DBFS[DBFS Root<br/>Databricks-Managed]
+            UCMetastore[UC Metastore<br/>Customer-Owned]
+            ExtLocation[External Location<br/>Customer-Owned]
+        end
+        
+        EventHub[Event Hub<br/>Logs & Metrics]
+    end
+    
+    User -->|HTTPS| UI
+    UI -->|Commands| ClusterMgr
+    
+    ClusterMgr -.->|Provisions| Driver
+    ClusterMgr -.->|Provisions| Worker1
+    ClusterMgr -.->|Provisions| Worker2
+    
+    Driver -->|NSG: AzureDatabricks| ControlPlane
+    Worker1 -->|NSG: AzureDatabricks| ControlPlane
+    Worker2 -->|NSG: AzureDatabricks| ControlPlane
+    
+    Driver -->|NAT Gateway| PyPI
+    Worker1 -->|NAT Gateway| PyPI
+    Worker2 -->|NAT Gateway| PyPI
+    
+    Driver -->|NSG: Storage<br/>Service Endpoint| DBFS
+    Driver -->|NSG: Storage<br/>Service Endpoint| UCMetastore
+    Driver -->|NSG: Storage<br/>Service Endpoint| ExtLocation
+    
+    Worker1 -->|NSG: Storage<br/>Service Endpoint| ExtLocation
+    Worker2 -->|NSG: Storage<br/>Service Endpoint| ExtLocation
+    
+    Driver -->|NSG: EventHub| EventHub
+    Worker1 -->|NSG: EventHub| EventHub
+    Worker2 -->|NSG: EventHub| EventHub
+    
+    Driver <-->|Within VNet| Worker1
+    Driver <-->|Within VNet| Worker2
+    Worker1 <-->|Within VNet| Worker2
+    
+    style ControlPlane fill:***REMOVED***e1f5ff
+    style CustomerVNet fill:***REMOVED***fff4e1
+    style Storage fill:***REMOVED***e8f5e9
+    style NAT fill:***REMOVED***ffebee
+    style NSG fill:***REMOVED***f3e5f5
+```
+
+***REMOVED******REMOVED******REMOVED*** Traffic Flow Routing
+
+```mermaid
+graph LR
+    subgraph VNet["Customer VNet"]
+        VM[Cluster VMs<br/>No Public IPs]
+        NSG[NSG Outbound Rules]
+    end
+    
+    subgraph Destinations
+        DB[Databricks Control Plane]
+        ST[Azure Storage]
+        EH[Event Hub]
+        INT[Internet<br/>PyPI/Maven/Docker]
+    end
+    
+    NAT[NAT Gateway<br/>Public IP]
+    
+    VM --> NSG
+    
+    NSG -->|Service Tag:<br/>AzureDatabricks| DB
+    NSG -->|Service Tag:<br/>Storage<br/>+Service Endpoint| ST
+    NSG -->|Service Tag:<br/>EventHub| EH
+    NSG -->|Default Route| NAT
+    NAT -->|SNAT| INT
+    
+    style NSG fill:***REMOVED***f3e5f5
+    style NAT fill:***REMOVED***ffebee
+    style DB fill:***REMOVED***e1f5ff
+    style ST fill:***REMOVED***e8f5e9
+    style EH fill:***REMOVED***fff9c4
+    style INT fill:***REMOVED***ffebee
+```
+
+---
+
 ***REMOVED******REMOVED*** Traffic Flow: Cluster Startup Sequence
+
+***REMOVED******REMOVED******REMOVED*** Sequence Diagram (Mermaid)
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Databricks UI/API
+    participant CP as Control Plane
+    participant ARM as Azure Resource Manager
+    participant Driver as Driver VM<br/>(No Public IP)
+    participant Worker as Worker VMs<br/>(No Public IP)
+    participant NSG as NSG Service Tags
+    participant NAT as NAT Gateway
+    participant Internet as Internet<br/>(PyPI/Maven/Docker)
+    participant Storage as Azure Storage<br/>(Service Endpoints)
+    participant EventHub as Event Hub
+
+    Note over User,EventHub: Phase 1: Cluster Creation (T+0s)
+    User->>UI: Create Cluster<br/>(HTTPS)
+    UI->>CP: Validate & Queue
+    CP-->>User: Cluster ID
+
+    Note over User,EventHub: Phase 2: VM Provisioning (T+0s to T+2min)
+    CP->>ARM: Provision VMs<br/>(Customer VNet)
+    ARM->>Driver: Create Driver VM<br/>(Public Subnet, No Public IP)
+    ARM->>Worker: Create Worker VMs<br/>(Private Subnet, No Public IP)
+
+    Note over User,EventHub: Phase 3: Control Plane Registration (T+2min to T+3min)
+    Driver->>NSG: Outbound HTTPS (443)<br/>to Control Plane
+    NSG->>CP: Route via AzureDatabricks<br/>service tag
+    activate CP
+    CP-->>Driver: Tunnel Established
+    deactivate CP
+    
+    Worker->>NSG: Outbound HTTPS (443)<br/>to Control Plane
+    NSG->>CP: Route via AzureDatabricks<br/>service tag
+    activate CP
+    CP-->>Worker: Tunnel Established
+    deactivate CP
+
+    Note over User,EventHub: Phase 4a: Ongoing Control Plane Communication
+    loop Heartbeat (every 30s)
+        Driver->>NSG: Heartbeat
+        NSG->>CP: Via AzureDatabricks tag
+        CP-->>Driver: Commands/Metrics
+        
+        Worker->>NSG: Heartbeat
+        NSG->>CP: Via AzureDatabricks tag
+        CP-->>Worker: Commands/Metrics
+    end
+
+    Note over User,EventHub: Phase 4b: Package Downloads (T+2min to T+4min)
+    Driver->>NSG: Download PyPI/Maven
+    NSG->>NAT: Default Route
+    NAT->>Internet: SNAT to 203.0.113.45
+    Internet-->>NAT: Packages
+    NAT-->>Driver: Packages
+    
+    Worker->>NSG: Download PyPI/Maven
+    NSG->>NAT: Default Route
+    NAT->>Internet: SNAT to 203.0.113.45
+    Internet-->>NAT: Packages
+    NAT-->>Worker: Packages
+
+    Note over User,EventHub: Phase 4c: Storage Access (T+3min to T+5min)
+    Driver->>NSG: Access DBFS/UC Storage
+    NSG->>Storage: Via Storage service tag<br/>+Service Endpoint
+    Storage-->>Driver: Data
+    
+    Worker->>NSG: Access Data
+    NSG->>Storage: Via Storage service tag<br/>+Service Endpoint
+    Storage-->>Worker: Data
+
+    Note over User,EventHub: Phase 4d: Logging
+    Driver->>NSG: Send Logs
+    NSG->>EventHub: Via EventHub service tag
+    
+    Worker->>NSG: Send Logs
+    NSG->>EventHub: Via EventHub service tag
+
+    Note over User,EventHub: Phase 5: Worker-to-Worker (During Execution)
+    Driver<->>Worker: Shuffle/RPC<br/>(Within VNet)
+    Worker<->>Worker: Data Exchange<br/>(Within VNet)
+```
+
+***REMOVED******REMOVED******REMOVED*** ASCII Diagram (for documentation/markdown viewers without Mermaid support)
 
 This diagram shows the detailed traffic flow when a Databricks cluster starts within the VNet.
 
@@ -127,15 +327,16 @@ This diagram shows the detailed traffic flow when a Databricks cluster starts wi
 │            │    to Control Plane        │                       │
 │            │    (Outbound HTTPS)        │                       │
 │            │    NSG: AzureDatabricks    │                       │
-│            │    (NO NAT Gateway!)       │                       │
+│            │    (Direct via NSG tag)    │                       │
 │            └────────────────────────────┘                       │
 │                            │                                    │
-│                            │ Via NAT Gateway                    │
-│                            ↓                                    │
-│                  ┌─────────────────────┐                       │
-│                  │ NAT Gateway          │                       │
-│                  │ IP: 203.0.113.45     │                       │
-│                  └─────────┬────────────┘                       │
+│              ┌─────────────┴─────────────┐                      │
+│              │ NSG Outbound Rules:       │                      │
+│              │ - AzureDatabricks (allow) │                      │
+│              │ - Storage (allow)         │                      │
+│              │ - EventHub (allow)        │                      │
+│              │ - Internet via NAT        │                      │
+│              └─────────────┬─────────────┘                      │
 └────────────────────────────┼────────────────────────────────────┘
                              │
          ┌───────────────────┼───────────────────┐
