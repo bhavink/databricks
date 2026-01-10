@@ -1,11 +1,14 @@
 Azure Databricks Security Best Practices
 ==============
-- Documenting and sharing security best practices related to platform deployment and configuration.
-- [Security Guide](https://bit.ly/adbsecurityguide)
+**Production-ready, modular Terraform templates** for secure Azure Databricks deployments.
 
-***REMOVED******REMOVED*** 🚀 New Modular Terraform Structure
+📚 **[Complete Documentation →](./docs/)**
 
-This repository provides **production-ready, modular Terraform templates** for Azure Databricks deployments.
+---
+
+***REMOVED******REMOVED*** 🚀 Modular Terraform Structure
+
+This repository provides **production-ready, modular Terraform templates** for Azure Databricks deployments with comprehensive documentation, UML diagrams, and troubleshooting guides.
 
 ***REMOVED******REMOVED******REMOVED*** 📁 Repository Structure
 
