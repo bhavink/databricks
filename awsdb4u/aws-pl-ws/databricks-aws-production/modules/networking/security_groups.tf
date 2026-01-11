@@ -126,6 +126,19 @@ resource "aws_security_group_rule" "workspace_egress_control_plane" {
   description       = "Allow control plane API (8443), Unity Catalog (8444), and future extendibility (8445-8451)"
 }
 
+***REMOVED*** FIPS encryption support (optional - only if compliance security profile enabled)
+resource "aws_security_group_rule" "workspace_egress_fips" {
+  type              = "egress"
+  from_port         = 2443
+  to_port           = 2443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.workspace_sg.id
+  description       = "Allow FIPS encryption for compliance security profile (optional)"
+}
+
+***REMOVED*** Hive metastore connectivity (LEGACY - NOT USED with Unity Catalog)
+***REMOVED*** Unity Catalog workspaces do not require port 3306
 resource "aws_security_group_rule" "workspace_egress_mysql" {
   type              = "egress"
   from_port         = 3306
@@ -133,7 +146,7 @@ resource "aws_security_group_rule" "workspace_egress_mysql" {
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.workspace_sg.id
-  description       = "Allow MySQL for external metastore connectivity"
+  description       = "Allow MySQL for external metastore connectivity (LEGACY - not used with Unity Catalog)"
 }
 
 ***REMOVED*** DNS resolution

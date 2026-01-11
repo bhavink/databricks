@@ -12,6 +12,11 @@
 🛡️ 2 Security Groups:
 ├── Workspace SG (cluster nodes)
 └── VPCE SG (VPC endpoints)
+
+🌐 Regional VPC Endpoints (Cost Optimized):
+├── S3 Gateway Endpoint (FREE)
+├── STS Interface Endpoint
+└── Kinesis Interface Endpoint
 ```
 
 ---
@@ -103,9 +108,15 @@ Rule 4: Secure Cluster Connectivity (Private Link)
 ├── Destination: vpce_sg
 └── Purpose: Relay/SCC via VPCE
 
-Rule 5: Public Internet (if needed)
+Rule 5: FIPS Encryption (Optional)
 ├── Protocol: TCP
-├── Port Range: 443, 3306, 53
+├── Port Range: 2443
+├── Destination: 0.0.0.0/0
+└── Purpose: FIPS encryption for compliance security profile
+
+Rule 6: Public Internet (if needed)
+├── Protocol: TCP
+├── Port Range: 443, 53
 ├── Destination: 0.0.0.0/0
 └── Purpose: Maven, PyPI, DNS
 ```
@@ -268,15 +279,16 @@ flowchart TD
 
 ```
 Databricks Control Plane:
-├── 8443-8451: REST API (Workspace VPCE)
-└── 6666: Secure Cluster Connectivity (Relay VPCE)
+├── 8443-8451: REST API, Unity Catalog, WebSockets
+├── 6666: Secure Cluster Connectivity (ONLY with Private Link)
+└── 2443: FIPS encryption (ONLY if compliance security profile enabled)
 
 AWS Services:
-├── 443: S3 Gateway, STS, Kinesis
-└── 3306: MySQL metastore (optional)
+├── 443: S3 Gateway, STS, Kinesis (via regional VPC endpoints)
+└── 3306: MySQL metastore (LEGACY - NOT USED with Unity Catalog)
 
-Public Internet:
-├── 443: Maven Central, PyPI
+Public Internet (via NAT Gateway):
+├── 443: Maven Central, PyPI, Docker registries
 └── 53: DNS resolution
 ```
 
@@ -323,6 +335,138 @@ sequenceDiagram
 - DNS returns public IP
 - Traffic goes via NAT/IGW even with VPC endpoint
 - Defeats purpose of Private Link
+
+---
+
+***REMOVED******REMOVED*** 7. Regional Endpoint Configuration (Recommended)
+
+***REMOVED******REMOVED******REMOVED*** 7.1 Why Use Regional Endpoints?
+
+✅ **Already Configured**: This deployment uses regional VPC endpoints for all AWS services:
+- **S3**: `com.amazonaws.${region}.s3` (Gateway endpoint - FREE)
+- **STS**: `com.amazonaws.${region}.sts` (Interface endpoint)
+- **Kinesis**: `com.amazonaws.${region}.kinesis-streams` (Interface endpoint)
+
+✅ **Benefits**:
+- **Lower latency**: Direct regional connections to AWS services
+- **Reduced cost**: No cross-region data transfer charges
+- **Better security**: Traffic stays within your region
+- **No internet exposure**: All AWS service traffic via VPC endpoints
+
+**Docs**: [Configure Regional Endpoints](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc***REMOVED***recommended-configure-regional-endpoints)
+
+***REMOVED******REMOVED******REMOVED*** 7.2 Spark Configuration for Regional Endpoints (Optional)
+
+While VPC endpoints handle AWS service traffic automatically, you may optionally configure Spark to use regional S3/STS endpoints explicitly. This is useful for enforcing data residency requirements.
+
+⚠️ **Important**: This configuration prevents cross-region S3 access. Only apply if all your S3 buckets are in the same region.
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Option A: Notebook-Level Configuration
+
+Add to the beginning of your notebook:
+
+**Scala:**
+```scala
+%scala
+spark.conf.set("fs.s3a.stsAssumeRole.stsEndpoint", "https://sts.<region>.amazonaws.com")
+spark.conf.set("fs.s3a.endpoint", "https://s3.<region>.amazonaws.com")
+```
+
+**Python:**
+```python
+%python
+spark.conf.set("fs.s3a.stsAssumeRole.stsEndpoint", "https://sts.<region>.amazonaws.com")
+spark.conf.set("fs.s3a.endpoint", "https://s3.<region>.amazonaws.com")
+```
+
+Replace `<region>` with your AWS region (e.g., `us-west-2`).
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Option B: Cluster-Level Configuration
+
+Add to cluster **Spark config** (Cluster → Edit → Advanced Options → Spark):
+
+```
+spark.hadoop.fs.s3a.endpoint https://s3.<region>.amazonaws.com
+spark.hadoop.fs.s3a.stsAssumeRole.stsEndpoint https://sts.<region>.amazonaws.com
+```
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Option C: Cluster Policy (Recommended for All Clusters)
+
+Create or update your cluster policy to enforce regional endpoints for all clusters:
+
+```json
+{
+  "spark_conf.fs.s3a.endpoint": {
+    "type": "fixed",
+    "value": "https://s3.<region>.amazonaws.com"
+  },
+  "spark_conf.fs.s3a.stsAssumeRole.stsEndpoint": {
+    "type": "fixed",
+    "value": "https://sts.<region>.amazonaws.com"
+  }
+}
+```
+
+***REMOVED******REMOVED******REMOVED*** 7.3 When to Apply Spark Regional Configuration
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** ✅ Apply When:
+- All your S3 buckets are in the **same region** as the workspace
+- You want to explicitly **prevent cross-region** S3 access
+- You're following **strict data residency** requirements (e.g., GDPR, compliance)
+- You want to **enforce** regional-only access via cluster policies
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** ❌ Do NOT Apply When:
+- You access S3 buckets in **multiple regions** (most common)
+- You need **cross-region data replication** or disaster recovery
+- You use **global S3 URLs** or multi-region applications
+- You're **uncertain** about your S3 bucket locations
+
+***REMOVED******REMOVED******REMOVED*** 7.4 How Regional Endpoints Work
+
+```mermaid
+%%{init: {'theme': 'base'}}%%
+sequenceDiagram
+    participant Cluster as Cluster Node
+    participant DNS as VPC DNS
+    participant VPCE as VPC Endpoint<br/>(Regional)
+    participant S3 as S3 Service<br/>(Regional)
+    
+    Note over Cluster,S3: Without Spark Config (Default)
+    Cluster->>DNS: Resolve s3.amazonaws.com (global)
+    DNS-->>Cluster: Private IP (VPC endpoint)
+    Cluster->>VPCE: Request via VPC endpoint
+    VPCE->>S3: Regional service
+    S3-->>VPCE: Response
+    VPCE-->>Cluster: Response
+    
+    Note over Cluster,S3: With Spark Regional Config
+    Cluster->>DNS: Resolve s3.<region>.amazonaws.com
+    DNS-->>Cluster: Private IP (VPC endpoint)
+    Cluster->>VPCE: Request via VPC endpoint
+    VPCE->>S3: Regional service (enforced)
+    S3-->>VPCE: Response (same region only)
+    VPCE-->>Cluster: Response
+```
+
+**Key Differences:**
+- **Without Spark config**: VPC endpoint routes to regional service automatically, but allows cross-region access via global URL
+- **With Spark config**: Explicitly enforces regional-only access by using regional URLs
+
+***REMOVED******REMOVED******REMOVED*** 7.5 Troubleshooting Regional Endpoints
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: "Access Denied" after applying Spark config
+**Cause**: S3 bucket is in a different region than the workspace  
+**Solution**: Either move bucket to workspace region, or remove Spark regional config
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: Cross-region replication stopped working
+**Cause**: Regional endpoint config blocks cross-region S3 access  
+**Solution**: Remove `fs.s3a.endpoint` and `fs.s3a.stsAssumeRole.stsEndpoint` from Spark config
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: Can't access buckets with global S3 URLs
+**Cause**: Regional config enforces regional URLs only  
+**Solution**: Update S3 paths to use regional format: `s3://bucket/path` (Spark handles conversion)
+
+**Docs**: [Troubleshoot Regional Endpoints](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc***REMOVED***troubleshoot-regional-endpoints)
 
 ---
 

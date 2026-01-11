@@ -286,11 +286,17 @@ Routing (7):
 └── 6 Route table associations
 
 VPC Endpoints (6):
-├── Databricks Workspace VPCE (8443-8451) [Optional]
-├── Databricks Relay VPCE (6666) [Optional]
-├── S3 Gateway Endpoint (FREE) [Always]
-├── STS Interface Endpoint [Always]
-└── Kinesis Interface Endpoint [Always]
+├── Databricks Workspace VPCE (8443-8451) [Conditional: Private Link]
+├── Databricks Relay VPCE (6666) [Conditional: Private Link]
+├── S3 Gateway Endpoint (FREE, regional) [Always]
+├── STS Interface Endpoint (regional) [Always]
+├── Kinesis Interface Endpoint (regional) [Always]
+└── RDS Endpoint: NOT CONFIGURED (Unity Catalog deployment)
+
+Regional Endpoint Benefits:
+├── Lower latency (direct regional connections)
+├── Reduced cost (no cross-region data transfer)
+└── Better security (traffic stays in region) ✅
 
 Security Groups (8):
 ├── Workspace SG + 6 rules
