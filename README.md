@@ -1,7 +1,3 @@
-***REMOVED*** Hi there 👋 I'm Bhavin Kukadia
-
-***REMOVED******REMOVED*** 🔐 Cloud Data Platform Architect & Security Specialist
-
 I design and implement secure, production-grade Data and AI platforms across **Azure**, **AWS**, and **GCP**. Specializing in **Databricks architecture**, **zero-trust security**, and **infrastructure automation**.
 
 ***REMOVED******REMOVED******REMOVED*** 🎯 What I Do
