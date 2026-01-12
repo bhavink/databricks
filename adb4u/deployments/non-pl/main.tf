@@ -144,3 +144,27 @@ module "unity_catalog" {
 
   depends_on = [module.workspace]
 }
+
+***REMOVED*** ==============================================
+***REMOVED*** Network Connectivity Configuration (NCC) Module
+***REMOVED*** Mandatory for serverless compute (SQL Warehouses, Serverless Notebooks)
+***REMOVED*** ==============================================
+
+module "ncc" {
+  source = "../../modules/ncc"
+
+  providers = {
+    databricks.account = databricks.account
+  }
+
+  ***REMOVED*** Workspace identification
+  workspace_id_numeric = module.workspace.workspace_id_numeric
+  workspace_prefix     = var.workspace_prefix
+  location             = var.location
+
+  ***REMOVED*** NCC configuration (empty - no PE rules)
+  ***REMOVED*** PE rules for serverless storage access are created manually by customer
+  ***REMOVED*** See docs/SERVERLESS-SETUP.md for setup instructions
+
+  depends_on = [module.unity_catalog]
+}

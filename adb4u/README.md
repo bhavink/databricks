@@ -31,7 +31,8 @@ adb4u/
 ├── modules/                   ***REMOVED*** Reusable Terraform modules
 │   ├── networking/            ***REMOVED*** VNet, subnets, NSG, NAT
 │   ├── workspace/             ***REMOVED*** Databricks workspace
-│   └── unity-catalog/         ***REMOVED*** Metastore, storage, credentials
+│   ├── unity-catalog/         ***REMOVED*** Metastore, storage, credentials
+│   └── ncc/                   ***REMOVED*** Network Connectivity Config (serverless)
 │
 └── templates/                 ***REMOVED*** Legacy templates (reference only)
 ```
@@ -43,9 +44,10 @@ adb4u/
 - **Data Plane**: Private (NPIP)
 - **Egress**: NAT Gateway
 - **Storage**: Service Endpoints
-- **Cost**: ~$58/month
+- **Serverless**: NCC attached (Service Endpoints or Private Link)
 
 👉 **[Quick Start Guide →](./docs/01-QUICKSTART.md)**  
+🚀 **[Serverless Setup →](./deployments/non-pl/docs/SERVERLESS-SETUP.md)**  
 ⚠️ **[Troubleshooting Guide →](./docs/TROUBLESHOOTING.md)** - Review before deploying!
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** 2. **Full Private (Air-gapped)** ✅ Production Ready
@@ -53,9 +55,10 @@ adb4u/
 - **Data Plane**: Private (NPIP)
 - **Egress**: None (isolated)
 - **Storage**: Private Link
-- **Cost**: ~$120-150/month (without compute)
+- **Serverless**: NCC attached (Private Link required)
 
 👉 **[Full Documentation →](./deployments/full-private/docs/README.md)**  
+🚀 **[Serverless Setup →](./deployments/full-private/docs/04-SERVERLESS-SETUP.md)**  
 ⚠️ **[Troubleshooting Guide →](./deployments/full-private/docs/06-TROUBLESHOOTING.md)** - Common issues & solutions!
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** 3. **Hub-Spoke with Firewall** 🚧 Future
@@ -65,6 +68,7 @@ adb4u/
 
 - ✅ **Secure Cluster Connectivity (NPIP)**: Always enabled
 - ✅ **Unity Catalog**: Mandatory, regional metastore
+- ✅ **Network Connectivity Config (NCC)**: Mandatory for serverless compute
 - ✅ **Flexible Networking**: Create new or BYOV
 - ✅ **Service Endpoint Policies**: Enhanced storage security
 - ✅ **Modular Design**: Reusable, composable components
@@ -89,12 +93,33 @@ terraform apply
 
 **Full guide:** See [docs/01-QUICKSTART.md](./docs/01-QUICKSTART.md)
 
+***REMOVED******REMOVED******REMOVED*** 🚀 Serverless Compute
+
+**All deployments include Network Connectivity Configuration (NCC)** for serverless SQL Warehouses and Serverless Notebooks.
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Serverless Connectivity Options**:
+
+| Pattern | Classic Clusters | Serverless Compute |
+|---------|------------------|-------------------|
+| **Non-PL** | Service Endpoints (VNet) | Service Endpoints or Private Link (via NCC) |
+| **Full Private** | Private Endpoints (VNet) | Private Link (via NCC) |
+
+**Post-Deployment Setup**:
+- 📖 **Non-PL**: See [deployments/non-pl/docs/SERVERLESS-SETUP.md](./deployments/non-pl/docs/SERVERLESS-SETUP.md)
+- 📖 **Full Private**: See [deployments/full-private/docs/04-SERVERLESS-SETUP.md](./deployments/full-private/docs/04-SERVERLESS-SETUP.md)
+
+**Key Points**:
+- ✅ NCC is **mandatory** (created automatically like Unity Catalog)
+- ✅ Classic clusters work immediately after deployment
+- ⏸️ Serverless requires additional configuration (manual approval for Private Link)
+
 ***REMOVED******REMOVED******REMOVED*** 📚 Documentation
 
 All documentation is centralized in the **[docs/](./docs/)** folder:
 
 **Non-PL Pattern (Production Ready)**:
 - **[Quick Start Guide](./docs/01-QUICKSTART.md)** - Deploy your first workspace
+- **[Serverless Setup](./deployments/non-pl/docs/SERVERLESS-SETUP.md)** - Enable SQL Warehouses & Notebooks
 - **[Troubleshooting Guide](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Traffic Flows](./docs/TRAFFIC-FLOWS.md)** - Network traffic patterns and sequences
 - **[Deployment Checklist](./docs/DEPLOYMENT-CHECKLIST.md)** - Pre-flight validation
@@ -111,6 +136,7 @@ All documentation is centralized in the **[docs/](./docs/)** folder:
   - [Networking Module](./docs/modules/NETWORKING.md)
   - [Workspace Module](./docs/modules/WORKSPACE.md)
   - [Unity Catalog Module](./docs/modules/UNITY-CATALOG.md)
+  - [NCC Module](./docs/modules/NCC.md) - Network Connectivity Configuration
 
 **Pattern Guides**:
 - **[Pattern Guides](./docs/patterns/)** - Pattern-specific documentation

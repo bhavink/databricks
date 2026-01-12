@@ -338,19 +338,36 @@ terraform destroy -auto-approve
 
 ***REMOVED******REMOVED******REMOVED*** Deployment Success
 
-✅ All resources created without errors
-✅ Workspace accessible at returned URL
-✅ Unity Catalog metastore assigned
-✅ External location created and accessible
-✅ Tags applied to all resources
+✅ All resources created without errors  
+✅ Workspace accessible at returned URL  
+✅ Unity Catalog metastore assigned  
+✅ External location created and accessible  
+✅ **NCC attached to workspace** (serverless-ready)  
+✅ Tags applied to all resources  
 ✅ Random suffixes prevent naming conflicts
+
+**Verify NCC**:
+```bash
+terraform output ncc_id
+***REMOVED*** Expected: ncc-<id>
+
+terraform output ncc_name
+***REMOVED*** Expected: <workspace-prefix>-ncc
+```
+
+***REMOVED******REMOVED******REMOVED*** Post-Deployment (Optional)
+
+⏸️ **Enable Serverless Compute**:
+- **Non-PL**: See [deployments/non-pl/docs/SERVERLESS-SETUP.md](../deployments/non-pl/docs/SERVERLESS-SETUP.md)
+- **Full-Private**: See [deployments/full-private/docs/04-SERVERLESS-SETUP.md](../deployments/full-private/docs/04-SERVERLESS-SETUP.md)
 
 ***REMOVED******REMOVED******REMOVED*** Destroy Success
 
-✅ All Azure resources deleted
-✅ No orphaned resources remain
-✅ Terraform state is clean
-✅ (Optional) Metastore deleted if intended
+✅ All Azure resources deleted  
+✅ No orphaned resources remain  
+✅ Terraform state is clean  
+✅ (Optional) Metastore deleted if intended  
+✅ NCC binding removed (or kept for reuse)
 
 ---
 
@@ -370,6 +387,6 @@ If you encounter issues:
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2026-01-10  
+**Document Version**: 1.1  
+**Last Updated**: 2026-01-12  
 **Next Review**: Before each major deployment

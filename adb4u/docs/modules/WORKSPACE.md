@@ -71,6 +71,10 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 - Network security group (if Non-PL)
 - Cluster VMs and managed disks
 
+**Dependent Modules** (created after workspace):
+- Unity Catalog (mandatory) - Requires workspace ID
+- NCC (mandatory) - Requires workspace numeric ID for serverless compute
+
 ---
 
 ***REMOVED******REMOVED*** Variables
@@ -266,6 +270,40 @@ resource "databricks_workspace_conf" "dbfs_cmk" {
 3. **Permissions**:
    - Databricks service principal: `Get`, `WrapKey`, `UnwrapKey`
    - Disk Encryption Set: `Get`, `WrapKey`, `UnwrapKey`
+
+---
+
+***REMOVED******REMOVED*** Deployment Flow
+
+***REMOVED******REMOVED******REMOVED*** Module Dependencies
+
+```
+Resource Group
+      ↓
+Networking Module (VNet, Subnets, NSG)
+      ↓
+Workspace Module ← (this module)
+      ↓
+   ┌──┴──┐
+   ↓     ↓
+Unity  NCC (serverless)
+Catalog
+```
+
+**Key Points**:
+- ✅ Workspace creates VNet-injected compute plane
+- ✅ Workspace ID required for Unity Catalog assignment
+- ✅ Workspace numeric ID required for NCC binding
+- ✅ Classic clusters work immediately after workspace creation
+- ⏸️ Serverless requires NCC + manual setup
+
+***REMOVED******REMOVED******REMOVED*** Integration with Other Modules
+
+| Module | Relationship | Data Passed |
+|--------|-------------|-------------|
+| **Networking** | Dependency | VNet ID, Subnet names |
+| **Unity Catalog** | Dependent | Workspace ID (numeric) |
+| **NCC** | Dependent | Workspace ID (numeric) |
 
 ---
 

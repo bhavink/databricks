@@ -13,6 +13,7 @@ The Non-Private Link (Non-PL) pattern provides a **secure, cost-effective** Azur
 - **NAT Gateway** for managed internet egress
 - **Unity Catalog** for data governance
 - **Service Endpoints** for storage connectivity
+- **Network Connectivity Configuration (NCC)** for serverless compute
 
 ***REMOVED******REMOVED******REMOVED*** Use Cases
 
@@ -26,6 +27,8 @@ The Non-Private Link (Non-PL) pattern provides a **secure, cost-effective** Azur
 
 ***REMOVED******REMOVED*** Architecture
 
+***REMOVED******REMOVED******REMOVED*** **High-Level Design**
+
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │ Internet                                                          │
@@ -34,14 +37,23 @@ The Non-Private Link (Non-PL) pattern provides a **secure, cost-effective** Azur
     │ (HTTPS)                              │ (Egress via NAT)
     ↓                                      │
 ┌──────────────────────────────────────────────────────────────────┐
-│ Databricks Control Plane (Public)                                │
-│ - Web UI: https://adb-123.azuredatabricks.net                    │
-│ - REST API                                                        │
-│ - Cluster Management                                              │
+│ Databricks SaaS (Microsoft Managed)                              │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ Workspace Services                                          │  │
+│  │ - Web UI: https://adb-123.azuredatabricks.net              │  │
+│  │ - REST API                                                  │  │
+│  │ - SCC Relay (cluster connectivity)                         │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ Serverless Compute Plane (Optional)                        │  │
+│  │ - SQL Warehouses                                            │  │
+│  │ - Serverless Notebooks                                      │  │
+│  │ - Connects to customer storage via NCC                     │  │
+│  └────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
-    │
-    │ (Secure tunnel over Azure backbone)
-    ↓
+    │                                      │
+    │ (SCC over Azure backbone)            │ (NCC - Service EP or PL)
+    ↓                                      ↓
 ┌──────────────────────────────────────────────────────────────────┐
 │ Customer VNet (VNet Injection)                                    │
 │  ┌────────────────────────────┐  ┌──────────────────────────┐   │
@@ -67,17 +79,36 @@ The Non-Private Link (Non-PL) pattern provides a **secure, cost-effective** Azur
 │  │ - PyPI, Maven, custom repos                                │  │
 │  └────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
-    │
-    │ (Service Endpoints - Azure backbone)
-    ↓
+    │                                      │
+    │ (Service Endpoints)                  │ (Service EP or PL via NCC)
+    ↓                                      ↓
 ┌──────────────────────────────────────────────────────────────────┐
 │ Azure Storage (ADLS Gen2)                                         │
 │  ┌────────────────────────────────────────────────────────────┐  │
 │  │ Unity Catalog Metastore Storage                             │  │
-│  │ - Metadata, schemas, tables                                │  │
+│  │ - Classic: Service Endpoints                                │  │
+│  │ - Serverless: Service Endpoints or PL via NCC               │  │
 │  └────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────┐  │
 │  │ External Location Storage (Per-Workspace)                  │  │
+│  │ - Classic: Service Endpoints                                │  │
+│  │ - Serverless: Service Endpoints or PL via NCC               │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────┐
+│ Network Connectivity Configuration (NCC)                           │
+│ - Created automatically (mandatory)                                │
+│ - Enables serverless → customer storage connectivity             │
+│ - Configuration: Empty (no PE rules in Terraform)                 │
+│ - Setup: Manual (see SERVERLESS-SETUP.md)                         │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+**Legend**:
+- 🟢 **Green**: Classic clusters (immediate)
+- 🔵 **Blue**: Serverless compute (requires setup)
+- ⚡ **NCC**: Network Connectivity Configuration (automatic + manual setup)
 │  │ - User data, Delta tables                                  │  │
 │  └────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────┐  │
@@ -204,6 +235,116 @@ graph LR
     style EH fill:***REMOVED***fff9c4
     style INT fill:***REMOVED***ffebee
 ```
+
+---
+
+***REMOVED******REMOVED*** Serverless Compute Connectivity
+
+***REMOVED******REMOVED******REMOVED*** **Overview**
+
+This deployment includes Network Connectivity Configuration (NCC) for serverless compute (SQL Warehouses, Serverless Notebooks).
+
+| Component | Classic Clusters | Serverless Compute |
+|-----------|------------------|-------------------|
+| **Runs In** | Customer VNet | Databricks-managed VNet |
+| **Storage Access** | Service Endpoints (VNet) | Service Endpoints or Private Link (NCC) |
+| **Setup** | ✅ Immediate | ⏸️ Manual configuration required |
+| **Use Cases** | ETL, ML, batch jobs | SQL queries, ad-hoc analysis |
+
+***REMOVED******REMOVED******REMOVED*** **Serverless Connectivity Options**
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Option A: Service Endpoints** (Recommended)
+
+**How It Works**:
+```
+Serverless Compute → NCC → Service Endpoint → Storage
+(Databricks VNet)          (Azure backbone)    (Your subscription)
+```
+
+**Benefits**:
+- ✅ **Setup**: Simple firewall configuration
+- ✅ **Performance**: Low latency via Azure backbone
+- ✅ **Security**: Traffic stays on Azure network (never touches internet)
+
+**Setup Steps** (Manual):
+1. Enable serverless in Databricks UI
+2. Get serverless subnet IDs from Databricks
+3. Add subnet IDs to storage account firewall
+
+**Documentation**: See [../deployments/non-pl/docs/SERVERLESS-SETUP.md](../../deployments/non-pl/docs/SERVERLESS-SETUP.md)
+
+---
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Option B: Private Link via NCC**
+
+**How It Works**:
+```
+Serverless Compute → NCC → Private Endpoint → Storage
+(Databricks VNet)          (Private Link)      (Your subscription)
+```
+
+**Benefits**:
+- ✅ **Security**: Fully isolated (zero public routing)
+- ✅ **Performance**: Best latency
+- ✅ **Compliance**: Meets strict network isolation requirements
+
+**Setup Steps** (Manual):
+1. Enable serverless with Private Link in Databricks UI
+2. Approve Private Endpoint connections in Azure Portal
+3. Verify connection status
+4. (Optional) Lock down storage public access
+
+**Documentation**: See [../deployments/non-pl/docs/SERVERLESS-SETUP.md](../../deployments/non-pl/docs/SERVERLESS-SETUP.md)
+
+---
+
+***REMOVED******REMOVED******REMOVED*** **NCC Configuration**
+
+**What's Created by Terraform**:
+```hcl
+module "ncc" {
+  source = "../../modules/ncc"
+  
+  workspace_id_numeric = module.workspace.workspace_id_numeric
+  workspace_prefix     = var.workspace_prefix
+  location             = var.location
+}
+```
+
+**Resources**:
+- ✅ `databricks_mws_network_connectivity_config` - NCC configuration
+- ✅ `databricks_mws_ncc_binding` - Binds NCC to workspace
+- ❌ NO Private Endpoint rules (manual setup required)
+
+**Why Manual Setup?**:
+- Private Endpoint connections from Databricks to customer storage require **manual approval** in Azure Portal
+- Service Endpoint option requires **firewall configuration** with serverless subnet IDs
+- Both approaches need customer decision on which option to use
+
+**After Deployment**:
+```bash
+***REMOVED*** Check NCC is attached
+terraform output ncc_id
+***REMOVED*** Output: ncc-abc123
+
+terraform output ncc_name
+***REMOVED*** Output: proddb-ncc
+```
+
+---
+
+***REMOVED******REMOVED******REMOVED*** **Recommendation**
+
+| Scenario | Recommended Option |
+|----------|-------------------|
+| **Cost-sensitive** | Service Endpoints |
+| **Development/Testing** | Service Endpoints |
+| **Standard production** | Service Endpoints |
+| **Highly regulated** | Private Link |
+| **Zero-trust networks** | Private Link |
+| **Air-gapped requirements** | Private Link |
+
+**Default Choice**: Start with **Service Endpoints** (simpler, no cost). Upgrade to Private Link later if needed.
 
 ---
 
@@ -648,9 +789,11 @@ Worker VMs ←→ Worker VMs (Within VNet)
 
 | Feature | Status | Alternative |
 |---------|--------|-------------|
-| **Private Link** | ❌ Not included | Use `full-private` pattern |
+| **Private Link** (Classic) | ❌ Not included | Use `full-private` pattern |
 | **Hub-Spoke Topology** | ❌ Not included | Use `hub-spoke` pattern (future) |
 | **Azure Firewall** | ❌ Not included | Use `hub-spoke` pattern (future) |
+
+**Note**: Private Link for **serverless compute** is available via NCC (see [Serverless Compute Connectivity](***REMOVED***serverless-compute-connectivity)).
 
 ---
 

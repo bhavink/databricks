@@ -71,6 +71,20 @@ output "external_storage_account_name" {
 }
 
 ***REMOVED*** ==============================================
+***REMOVED*** NCC Outputs (Serverless Compute)
+***REMOVED*** ==============================================
+
+output "ncc_id" {
+  description = "Network Connectivity Configuration ID (for serverless compute)"
+  value       = module.ncc.ncc_id
+}
+
+output "ncc_name" {
+  description = "Network Connectivity Configuration Name"
+  value       = module.ncc.ncc_name
+}
+
+***REMOVED*** ==============================================
 ***REMOVED*** Configuration Summary
 ***REMOVED*** ==============================================
 
@@ -87,6 +101,8 @@ output "deployment_summary" {
     ip_access_lists      = var.enable_ip_access_lists
     unity_catalog        = module.unity_catalog.unity_catalog_configuration
     storage_connectivity = "Service Endpoints (Cost-Efficient)"
+    ncc_enabled          = true
+    ncc_id               = module.ncc.ncc_id
   }
 }
 
@@ -121,12 +137,18 @@ output "next_steps" {
        - CMK: ${var.enable_cmk_managed_services || var.enable_cmk_managed_disks ? "✅ Enabled" : "⚠️  Disabled (optional)"}
        - IP Access Lists: ${var.enable_ip_access_lists ? "✅ Enabled" : "⚠️  Disabled (optional)"}
     
+    🚀 Serverless Compute:
+       - NCC Attached: ✅ Enabled (serverless-ready)
+       - NCC ID: ${module.ncc.ncc_id}
+       - Setup Required: See docs/SERVERLESS-SETUP.md for configuration
+    
     📚 Next Steps:
        1. Access workspace: ${module.workspace.workspace_url}
        2. Configure Unity Catalog catalogs and schemas
        3. Create compute policies and clusters
        4. Set up workspace users/groups
        5. Configure data access permissions
+       6. (Optional) Enable serverless compute - see docs/SERVERLESS-SETUP.md
     
     📖 Documentation: See README.md for detailed configuration options
   EOT

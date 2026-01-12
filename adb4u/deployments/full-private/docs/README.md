@@ -184,6 +184,19 @@ enable_ip_access_lists = true          ***REMOVED*** OR use IP restrictions
 
 **Recommendation**: Deploy with classic clusters first, enable serverless when needed.
 
+***REMOVED******REMOVED******REMOVED*** **Serverless Connectivity: Non-PL vs. Full-Private**
+
+| Aspect | Non-PL Pattern | Full-Private Pattern |
+|--------|---------------|---------------------|
+| **Classic Clusters** | Service Endpoints (VNet) | Private Endpoints (VNet) |
+| **Serverless Compute** | Service Endpoints OR Private Link (NCC) | Private Link (NCC) - Required |
+| **Serverless Options** | 2 options (Service EP or PL) | 1 option (PL only) |
+| **Setup Complexity** | Simple (Service EP) or Manual (PL) | Manual (PL approval required) |
+
+**Key Difference**: 
+- **Non-PL**: Flexibility to use Service Endpoints (simpler, free) or Private Link (more secure) for serverless
+- **Full-Private**: Must use Private Link for serverless (consistent with air-gapped design)
+
 ---
 
 ***REMOVED******REMOVED*** 💡 Key Design Decisions
