@@ -25,7 +25,7 @@ adb4u/
 │
 ├── deployments/               ***REMOVED*** Pre-built deployment patterns
 │   ├── non-pl/                ***REMOVED*** ✅ Non-Private Link (Ready)
-│   ├── full-private/          ***REMOVED*** 🚧 Full Private (Coming soon)
+│   ├── full-private/          ***REMOVED*** ✅ Full Private (Ready)
 │   └── hub-spoke/             ***REMOVED*** 🚧 Hub-Spoke (Future)
 │
 ├── modules/                   ***REMOVED*** Reusable Terraform modules
@@ -48,12 +48,15 @@ adb4u/
 👉 **[Quick Start Guide →](./docs/01-QUICKSTART.md)**  
 ⚠️ **[Troubleshooting Guide →](./docs/TROUBLESHOOTING.md)** - Review before deploying!
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. **Full Private (Air-gapped)** 🚧 Coming Soon
+***REMOVED******REMOVED******REMOVED******REMOVED*** 2. **Full Private (Air-gapped)** ✅ Production Ready
 - **Control Plane**: Private Link
 - **Data Plane**: Private (NPIP)
 - **Egress**: None (isolated)
 - **Storage**: Private Link
-- **Cost**: ~$100/month
+- **Cost**: ~$120-150/month (without compute)
+
+👉 **[Full Documentation →](./deployments/full-private/docs/README.md)**  
+⚠️ **[Troubleshooting Guide →](./deployments/full-private/docs/06-TROUBLESHOOTING.md)** - Common issues & solutions!
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** 3. **Hub-Spoke with Firewall** 🚧 Future
 - Enterprise-scale multi-workspace deployments
@@ -90,15 +93,26 @@ terraform apply
 
 All documentation is centralized in the **[docs/](./docs/)** folder:
 
+**Non-PL Pattern (Production Ready)**:
 - **[Quick Start Guide](./docs/01-QUICKSTART.md)** - Deploy your first workspace
 - **[Troubleshooting Guide](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Traffic Flows](./docs/TRAFFIC-FLOWS.md)** - Network traffic patterns and sequences
 - **[Deployment Checklist](./docs/DEPLOYMENT-CHECKLIST.md)** - Pre-flight validation
 - **[Authentication Guide](./docs/03-AUTHENTICATION.md)** - Configure credentials
+
+**Full Private Pattern (Production Ready)**:
+- **[Complete Documentation Index](./deployments/full-private/docs/README.md)** - Start here
+- **[Architecture Overview](./deployments/full-private/docs/01-ARCHITECTURE.md)** - Visual diagrams
+- **[Serverless Setup Guide](./deployments/full-private/docs/04-SERVERLESS-SETUP.md)** - Enable serverless compute
+- **[Troubleshooting Guide](./deployments/full-private/docs/06-TROUBLESHOOTING.md)** - Errors & solutions
+
+**Module Documentation**:
 - **[Module Documentation](./docs/modules/)** - Detailed module reference
   - [Networking Module](./docs/modules/NETWORKING.md)
   - [Workspace Module](./docs/modules/WORKSPACE.md)
   - [Unity Catalog Module](./docs/modules/UNITY-CATALOG.md)
+
+**Pattern Guides**:
 - **[Pattern Guides](./docs/patterns/)** - Pattern-specific documentation
   - [Non-PL Pattern](./docs/patterns/NON-PL.md)
 
@@ -113,5 +127,5 @@ Historical content and diagrams have been archived. See **[archive/LEGACY-CONTEN
 ---
 
 **Repository Version**: 2.0  
-**Last Updated**: 2026-01-10  
+**Last Updated**: 2026-01-12  
 **Security Guide**: [https://bit.ly/adbsecurityguide](https://bit.ly/adbsecurityguide)
