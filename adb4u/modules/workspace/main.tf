@@ -10,9 +10,9 @@ resource "azurerm_databricks_workspace" "this" {
   managed_resource_group_name = "${var.workspace_prefix}-managed-rg"
 
   ***REMOVED*** Public network access control
-  ***REMOVED*** Non-PL: public_network_access_enabled = true (default)
-  ***REMOVED*** Full Private: public_network_access_enabled = false (forces Private Link)
-  public_network_access_enabled = !var.enable_private_link
+  ***REMOVED*** - true: Allows public internet access (needed for initial deployment from outside VNet)
+  ***REMOVED*** - false: Forces Private Link only (air-gapped, requires VPN/Bastion/Jump Box access)
+  public_network_access_enabled = var.enable_public_network_access
   
   ***REMOVED*** Network Security Policy: Full Private requires Private Link
   network_security_group_rules_required = var.enable_private_link ? "NoAzureDatabricksRules" : "AllRules"
@@ -34,6 +34,9 @@ resource "azurerm_databricks_workspace" "this" {
     ***REMOVED*** NSG associations
     public_subnet_network_security_group_association_id  = var.public_subnet_nsg_association_id
     private_subnet_network_security_group_association_id = var.private_subnet_nsg_association_id
+    
+    ***REMOVED*** Custom DBFS storage name (Full Private pattern only)
+    storage_account_name = var.dbfs_storage_name != "" ? var.dbfs_storage_name : null
   }
 
   tags = var.tags

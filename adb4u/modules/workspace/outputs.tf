@@ -32,6 +32,11 @@ output "workspace_id_numeric" {
   value       = azurerm_databricks_workspace.this.workspace_id
 }
 
+output "dbfs_storage_name" {
+  description = "DBFS storage account name (from custom_parameters if set, otherwise Databricks-generated)"
+  value       = try(azurerm_databricks_workspace.this.custom_parameters[0].storage_account_name, "databricks-managed")
+}
+
 ***REMOVED*** ==============================================
 ***REMOVED*** Configuration Outputs
 ***REMOVED*** ==============================================

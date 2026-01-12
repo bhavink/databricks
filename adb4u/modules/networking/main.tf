@@ -103,6 +103,30 @@ resource "azurerm_subnet" "private" {
 }
 
 ***REMOVED*** ==============================================
+***REMOVED*** Private Link Subnet (Full Private Pattern Only)
+***REMOVED*** ==============================================
+
+resource "azurerm_subnet" "privatelink" {
+  count                = var.enable_private_link && !var.use_existing_network ? 1 : 0
+  name                 = "${var.workspace_prefix}-privatelink-subnet-${random_string.suffix.result}"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.this[0].name
+  address_prefixes     = var.privatelink_subnet_address_prefix
+
+  ***REMOVED*** NO Databricks delegation for Private Link subnet
+  ***REMOVED*** NO NAT Gateway for Private Link subnet (air-gapped)
+  ***REMOVED*** NO Service Endpoints (using Private Link for storage)
+}
+
+***REMOVED*** Existing Private Link Subnet (BYOV)
+data "azurerm_subnet" "existing_privatelink" {
+  count                = var.use_existing_network && var.enable_private_link && var.existing_privatelink_subnet_name != "" ? 1 : 0
+  name                 = var.existing_privatelink_subnet_name
+  virtual_network_name = var.existing_vnet_name
+  resource_group_name  = var.existing_resource_group_name
+}
+
+***REMOVED*** ==============================================
 ***REMOVED*** Network Security Group
 ***REMOVED*** ==============================================
 

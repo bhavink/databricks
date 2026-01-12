@@ -18,6 +18,13 @@ resource "azurerm_databricks_access_connector" "this" {
 ***REMOVED*** ==============================================
 ***REMOVED*** Metastore Root Storage Account
 ***REMOVED*** ==============================================
+***REMOVED*** Unity Catalog Metastore Storage Account
+***REMOVED*** ==============================================
+***REMOVED*** ⚠️ IMPORTANT: Storage accounts containing Unity Catalog schemas/tables
+***REMOVED*** may require manual cleanup before destroy. Consider:
+***REMOVED*** - DROP SCHEMA cascade operations before terraform destroy
+***REMOVED*** - Backup critical data before destruction
+***REMOVED*** - Storage accounts will be destroyed even with data (no force_destroy needed)
 
 resource "azurerm_storage_account" "metastore" {
   count                     = var.create_metastore_storage ? 1 : 0

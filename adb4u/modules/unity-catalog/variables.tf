@@ -31,6 +31,22 @@ variable "databricks_account_id" {
 }
 
 ***REMOVED*** ==============================================
+***REMOVED*** Storage Account Naming (Optional)
+***REMOVED*** ==============================================
+
+variable "metastore_storage_name_prefix" {
+  description = "Custom name prefix for metastore storage account (lowercase alphanumeric, max 18 chars). If empty, uses '{workspace_prefix}metastore'. Random suffix will be appended."
+  type        = string
+  default     = ""
+}
+
+variable "external_storage_name_prefix" {
+  description = "Custom name prefix for external location storage account (lowercase alphanumeric, max 18 chars). If empty, uses '{workspace_prefix}external'. Random suffix will be appended."
+  type        = string
+  default     = ""
+}
+
+***REMOVED*** ==============================================
 ***REMOVED*** Workspace Configuration
 ***REMOVED*** ==============================================
 

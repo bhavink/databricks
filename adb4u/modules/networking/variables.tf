@@ -85,6 +85,29 @@ variable "enable_private_link" {
   default     = false
 }
 
+variable "enable_public_network_access" {
+  description = "Whether public network access is enabled on the workspace. Custom NSG rules are only created when Private Link is enabled AND public access is disabled."
+  type        = bool
+  default     = true
+}
+
+variable "privatelink_subnet_address_prefix" {
+  description = "Address prefix for Private Link subnet (CIDR at least /27). Required when enable_private_link=true for hosting private endpoints."
+  type        = list(string)
+  default     = ["10.0.3.0/27"]
+
+  validation {
+    condition     = can([for cidr in var.privatelink_subnet_address_prefix : cidrhost(cidr, 0)])
+    error_message = "Must be valid CIDR notation"
+  }
+}
+
+variable "existing_privatelink_subnet_name" {
+  description = "Name of existing Private Link subnet (optional if use_existing_network=true and enable_private_link=true)"
+  type        = string
+  default     = ""
+}
+
 ***REMOVED*** ==============================================
 ***REMOVED*** NAT Gateway Configuration
 ***REMOVED*** ==============================================

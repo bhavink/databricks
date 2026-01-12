@@ -4,9 +4,16 @@
 ***REMOVED***
 ***REMOVED*** Reference: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject***REMOVED***network-security-group-rules-for-workspaces
 ***REMOVED***
-***REMOVED*** IMPORTANT: NSG rules are only created for PRIVATE LINK deployments.
-***REMOVED*** - For Non-PL: Azure Databricks automatically creates these rules (with "Microsoft.Databricks-workspaces_UseOnly_" prefix)
-***REMOVED*** - For Private Link: We must create these rules explicitly because public network access is disabled
+***REMOVED*** IMPORTANT: NSG rules are only created when BOTH conditions are met:
+***REMOVED*** 1. Private Link is enabled (enable_private_link = true)
+***REMOVED*** 2. Public network access is disabled (enable_public_network_access = false)
+***REMOVED***
+***REMOVED*** Why? When public network access is enabled, Azure Databricks automatically creates 
+***REMOVED*** these rules (with "Microsoft.Databricks-workspaces_UseOnly_" prefix). We must NOT
+***REMOVED*** create duplicate rules as they will conflict.
+***REMOVED***
+***REMOVED*** When fully locked down (Private Link + no public access), Databricks doesn't auto-create
+***REMOVED*** rules, so we must create them explicitly.
 ***REMOVED***
 ***REMOVED*** NOTE: When SCC/NPIP is enabled, inbound rules on ports 22 and 5557 from 
 ***REMOVED*** AzureDatabricks service tag are NOT required (and would be security risk).
@@ -16,6 +23,9 @@
 ***REMOVED*** Get the NSG ID (works for both new and existing)
 locals {
   nsg_id_for_rules = local.nsg_id
+  
+  ***REMOVED*** Only create custom NSG rules when workspace is fully locked down
+  create_custom_nsg_rules = var.enable_private_link && !var.enable_public_network_access
 }
 
 ***REMOVED*** ==============================================
@@ -26,7 +36,7 @@ locals {
 ***REMOVED*** This enables internal cluster communication
 ***REMOVED*** Only create for Private Link deployments
 resource "azurerm_network_security_rule" "inbound_vnet_to_vnet" {
-  count = var.enable_private_link ? 1 : 0
+  count = local.create_custom_nsg_rules ? 1 : 0
 
   name                        = "AllowVnetInBound"
   priority                    = 100
@@ -53,7 +63,7 @@ resource "azurerm_network_security_rule" "inbound_vnet_to_vnet" {
 ***REMOVED*** Required ports: 443 (HTTPS), 3306 (MySQL), 8443-8451 (internal)
 ***REMOVED*** Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_to_databricks" {
-  count = var.enable_private_link ? 1 : 0
+  count = local.create_custom_nsg_rules ? 1 : 0
 
   name                        = "AllowDatabricksOutBound"
   priority                    = 100
@@ -76,7 +86,7 @@ resource "azurerm_network_security_rule" "outbound_to_databricks" {
 ***REMOVED*** Required for metadata operations
 ***REMOVED*** Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_to_sql" {
-  count = var.enable_private_link ? 1 : 0
+  count = local.create_custom_nsg_rules ? 1 : 0
 
   name                        = "AllowSqlOutBound"
   priority                    = 101
@@ -99,7 +109,7 @@ resource "azurerm_network_security_rule" "outbound_to_sql" {
 ***REMOVED*** Required for Unity Catalog and workspace storage
 ***REMOVED*** Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_to_storage" {
-  count = var.enable_private_link ? 1 : 0
+  count = local.create_custom_nsg_rules ? 1 : 0
 
   name                        = "AllowStorageOutBound"
   priority                    = 102
@@ -122,7 +132,7 @@ resource "azurerm_network_security_rule" "outbound_to_storage" {
 ***REMOVED*** Required for internal cluster communication
 ***REMOVED*** Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_vnet_to_vnet" {
-  count = var.enable_private_link ? 1 : 0
+  count = local.create_custom_nsg_rules ? 1 : 0
 
   name                        = "AllowVnetOutBound"
   priority                    = 103
@@ -145,7 +155,7 @@ resource "azurerm_network_security_rule" "outbound_vnet_to_vnet" {
 ***REMOVED*** Required for log delivery and diagnostics
 ***REMOVED*** Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_to_eventhub" {
-  count = var.enable_private_link ? 1 : 0
+  count = local.create_custom_nsg_rules ? 1 : 0
 
   name                        = "AllowEventHubOutBound"
   priority                    = 104
@@ -168,7 +178,7 @@ resource "azurerm_network_security_rule" "outbound_to_eventhub" {
 ***REMOVED*** Recommended by Databricks to enable certain library installations
 ***REMOVED*** Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_for_library_installs" {
-  count = var.enable_private_link ? 1 : 0
+  count = local.create_custom_nsg_rules ? 1 : 0
 
   name                        = "AllowLibraryInstallsOutBound"
   priority                    = 105

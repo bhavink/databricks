@@ -15,16 +15,18 @@ output "vnet_name" {
 output "subnet_ids" {
   description = "Subnet IDs for Databricks workspace"
   value = {
-    public  = local.public_subnet_id
-    private = local.private_subnet_id
+    public      = local.public_subnet_id
+    private     = local.private_subnet_id
+    privatelink = var.enable_private_link ? (var.use_existing_network && var.existing_privatelink_subnet_name != "" ? data.azurerm_subnet.existing_privatelink[0].id : azurerm_subnet.privatelink[0].id) : null
   }
 }
 
 output "subnet_names" {
   description = "Subnet names for Databricks workspace"
   value = {
-    public  = local.public_subnet_name
-    private = local.private_subnet_name
+    public      = local.public_subnet_name
+    private     = local.private_subnet_name
+    privatelink = var.enable_private_link ? (var.use_existing_network && var.existing_privatelink_subnet_name != "" ? var.existing_privatelink_subnet_name : azurerm_subnet.privatelink[0].name) : null
   }
 }
 
@@ -85,9 +87,11 @@ output "network_configuration" {
     vnet_name                   = local.vnet_name
     public_subnet_name          = local.public_subnet_name
     private_subnet_name         = local.private_subnet_name
+    privatelink_subnet_name     = var.enable_private_link ? (var.use_existing_network && var.existing_privatelink_subnet_name != "" ? var.existing_privatelink_subnet_name : azurerm_subnet.privatelink[0].name) : "Not configured"
     nsg_name                   = local.using_existing ? var.existing_nsg_name : azurerm_network_security_group.this[0].name
     nat_gateway_enabled        = var.enable_nat_gateway
     nat_gateway_ip             = var.enable_nat_gateway ? azurerm_public_ip.nat[0].ip_address : "Not configured"
+    private_link_enabled       = var.enable_private_link
     service_endpoints          = ["Microsoft.Storage", "Microsoft.KeyVault"]
   }
 }
@@ -104,8 +108,9 @@ output "vnet" {
 output "subnets" {
   description = "Complete subnet objects (for advanced use)"
   value = {
-    public  = local.public_subnet
-    private = local.private_subnet
+    public      = local.public_subnet
+    private     = local.private_subnet
+    privatelink = var.enable_private_link ? (var.use_existing_network && var.existing_privatelink_subnet_name != "" ? data.azurerm_subnet.existing_privatelink[0] : azurerm_subnet.privatelink[0]) : null
   }
 }
 

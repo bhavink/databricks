@@ -51,6 +51,12 @@ variable "private_subnet_nsg_association_id" {
   type        = string
 }
 
+variable "dbfs_storage_name" {
+  description = "Custom DBFS storage account name (optional, used in Full Private pattern for Private Endpoint configuration). Leave empty for Databricks-generated name."
+  type        = string
+  default     = ""
+}
+
 variable "enable_private_link" {
   description = "Enable Private Link for workspace (front-end UI/API + back-end data plane). When true, public_network_access_enabled is set to false."
   type        = bool
@@ -95,6 +101,16 @@ variable "databricks_account_id" {
   description = "Databricks account ID (required for CMK)"
   type        = string
   default     = ""
+}
+
+***REMOVED*** ==============================================
+***REMOVED*** Network Access Control
+***REMOVED*** ==============================================
+
+variable "enable_public_network_access" {
+  description = "Enable public network access to the workspace. For Full Private deployments, set to 'true' initially for deployment, then 'false' to lock down."
+  type        = bool
+  default     = true
 }
 
 ***REMOVED*** ==============================================

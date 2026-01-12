@@ -1,0 +1,251 @@
+***REMOVED*** ==============================================
+***REMOVED*** Full Private Deployment Configuration Example
+***REMOVED*** ==============================================
+***REMOVED*** This file provides example values for deploying an Azure Databricks workspace
+***REMOVED*** using the Full Private pattern (Private Link Control Plane + NPIP Data Plane).
+***REMOVED***
+***REMOVED*** This is an AIR-GAPPED deployment with NO internet egress.
+***REMOVED*** Customer must provide their own package repositories (PyPI, Maven, etc.).
+***REMOVED***
+***REMOVED*** Copy this file to terraform.tfvars and customize for your environment.
+***REMOVED*** ==============================================
+
+***REMOVED*** ==============================================
+***REMOVED*** Authentication Configuration
+***REMOVED*** ==============================================
+***REMOVED*** Terraform providers support multiple authentication methods.
+***REMOVED*** Choose the method that best fits your environment.
+
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ OPTION 1: Environment Variables (RECOMMENDED)                            │
+***REMOVED*** │ Best for: Development, CI/CD pipelines, credential security              │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+***REMOVED***
+***REMOVED*** Add to ~/.zshrc or ~/.bashrc:
+***REMOVED***
+***REMOVED*** ***REMOVED*** Azure Authentication
+***REMOVED*** export ARM_CLIENT_ID="<service-principal-app-id>"
+***REMOVED*** export ARM_CLIENT_SECRET="<service-principal-secret>"
+***REMOVED*** export ARM_TENANT_ID="<azure-ad-tenant-id>"
+***REMOVED*** export ARM_SUBSCRIPTION_ID="<azure-subscription-id>"
+***REMOVED***
+***REMOVED*** ***REMOVED*** Databricks Account Authentication
+***REMOVED*** export DATABRICKS_AZURE_TENANT_ID="$ARM_TENANT_ID"
+***REMOVED*** export TF_VAR_databricks_account_id="<databricks-account-id>"
+***REMOVED***
+***REMOVED*** Then run: source ~/.zshrc
+
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ OPTION 2: Azure CLI (DEVELOPMENT ONLY)                                   │
+***REMOVED*** │ Best for: Local development, testing                                     │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+***REMOVED***
+***REMOVED*** Prerequisites:
+***REMOVED*** 1. Install Azure CLI: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
+***REMOVED*** 2. Login: az login
+***REMOVED*** 3. Set subscription: az account set --subscription <subscription-id>
+***REMOVED*** 4. Verify: az account show
+***REMOVED***
+***REMOVED*** ⚠️ IMPORTANT for Full Private: You MUST have network connectivity to the VNet
+***REMOVED***    (via VPN, ExpressRoute, or jump box) to access the workspace after deployment.
+
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ OPTION 3: Service Principal (PRODUCTION)                                 │
+***REMOVED*** │ Best for: Production, CI/CD, automated deployments                       │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+***REMOVED***
+***REMOVED*** Create Service Principal:
+***REMOVED*** az ad sp create-for-rbac \
+***REMOVED***   --name "terraform-databricks-sp" \
+***REMOVED***   --role "Contributor" \
+***REMOVED***   --scopes /subscriptions/<subscription-id>
+***REMOVED***
+***REMOVED*** Add User Access Administrator role (needed for RBAC):
+***REMOVED*** az role assignment create \
+***REMOVED***   --assignee "<app-id>" \
+***REMOVED***   --role "User Access Administrator" \
+***REMOVED***   --scope /subscriptions/<subscription-id>
+***REMOVED***
+***REMOVED*** Then set environment variables (see OPTION 1)
+
+***REMOVED*** ==============================================
+***REMOVED*** Core Configuration (REQUIRED)
+***REMOVED*** ==============================================
+
+workspace_prefix = "prodpl"  ***REMOVED*** Lowercase alphanumeric, max 12 chars
+location         = "eastus2"
+resource_group_name = "rg-databricks-prod-pl-eastus2"
+
+***REMOVED*** Databricks Account ID (REQUIRED for Unity Catalog)
+***REMOVED*** Get from: https://accounts.azuredatabricks.net (top-right corner)
+***REMOVED*** Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+databricks_account_id = "12345678-1234-1234-1234-123456789012"
+
+***REMOVED*** ==============================================
+***REMOVED*** Network Configuration
+***REMOVED*** ==============================================
+
+***REMOVED*** Option 1: Create New Network (Default)
+use_existing_network          = false
+vnet_address_space            = ["10.178.0.0/20"]
+public_subnet_address_prefix  = ["10.178.0.0/26"]
+private_subnet_address_prefix = ["10.178.1.0/26"]
+privatelink_subnet_address_prefix = ["10.178.2.0/27"]  ***REMOVED*** For Private Endpoints
+
+***REMOVED*** Option 2: Bring Your Own VNet (BYOV)
+***REMOVED*** Uncomment and configure if using existing network:
+***REMOVED*** use_existing_network             = true
+***REMOVED*** existing_vnet_name               = "my-existing-vnet"
+***REMOVED*** existing_resource_group_name     = "my-existing-rg"
+***REMOVED*** existing_public_subnet_name      = "databricks-public"
+***REMOVED*** existing_private_subnet_name     = "databricks-private"
+***REMOVED*** existing_privatelink_subnet_name = "databricks-privatelink"
+***REMOVED*** existing_nsg_name                = "databricks-nsg"
+***REMOVED***
+***REMOVED*** ⚠️ IMPORTANT: Existing subnets MUST have:
+***REMOVED***    - Public & Private: Databricks delegation (Microsoft.Databricks/workspaces)
+***REMOVED***    - Private Link subnet: NO delegation, NO NAT Gateway
+***REMOVED***    - NSG attached (for Private Link deployments, custom rules are required)
+
+***REMOVED*** ==============================================
+***REMOVED*** Customer-Managed Keys (RECOMMENDED for Full Private)
+***REMOVED*** ==============================================
+
+***REMOVED*** CMK is enabled by default for Full Private pattern
+enable_cmk_managed_services = true
+enable_cmk_managed_disks    = true
+enable_cmk_dbfs_root        = true
+
+***REMOVED*** Provide your Key Vault and Key IDs
+cmk_key_vault_key_id = "https://my-keyvault.vault.azure.net/keys/databricks-cmk/abc123"
+cmk_key_vault_id     = "/subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.KeyVault/vaults/my-keyvault"
+
+***REMOVED*** ⚠️ IMPORTANT: Your Key Vault MUST be accessible from your deployment machine
+***REMOVED***    and have appropriate access policies for Databricks service principal.
+
+***REMOVED*** ==============================================
+***REMOVED*** Network Access Control
+***REMOVED*** ==============================================
+
+***REMOVED*** Public Network Access (CRITICAL FOR DEPLOYMENT)
+***REMOVED*** - true:  Allows public internet access (DEFAULT - needed for initial deployment from outside VNet)
+***REMOVED*** - false: Forces Private Link only (air-gapped - requires VPN/Bastion/Jump Box access)
+***REMOVED***
+***REMOVED*** ⚠️ RECOMMENDED WORKFLOW:
+***REMOVED***   1. Initial deployment: enable_public_network_access = true (deploy from your laptop)
+***REMOVED***   2. After deployment completes: Set to false and re-apply to lock down workspace
+***REMOVED***   3. All future operations must be done from inside VNet (via VPN/Bastion/Jump Box)
+enable_public_network_access = true
+
+***REMOVED*** ==============================================
+***REMOVED*** IP Access Lists (Optional - RECOMMENDED for Security)
+***REMOVED*** ==============================================
+
+***REMOVED*** RECOMMENDED: Use IP Access Lists with enable_public_network_access = true
+***REMOVED*** This provides security while maintaining deployment convenience.
+***REMOVED***
+***REMOVED*** Add your network's public IP ranges:
+enable_ip_access_lists = true
+allowed_ip_ranges = [
+  "203.0.113.0/24",        ***REMOVED*** Example: Corporate office network
+  "198.51.100.45/32",      ***REMOVED*** Example: VPN endpoint
+  ***REMOVED*** "YOUR_PUBLIC_IP/32",   ***REMOVED*** ⚠️ REPLACE: Add your IP address
+  ***REMOVED*** "YOUR_CORP_NETWORK/24" ***REMOVED*** ⚠️ REPLACE: Add your corporate network CIDR
+]
+
+***REMOVED*** To find your public IP: curl ifconfig.me
+***REMOVED*** Azure Portal users: Add Azure Portal IP ranges for your region
+***REMOVED*** See: https://www.microsoft.com/en-us/download/details.aspx?id=56519
+
+***REMOVED*** ==============================================
+***REMOVED*** Network Connectivity Configuration (NCC)
+***REMOVED*** ==============================================
+
+***REMOVED*** NCC enables Databricks Serverless compute (SQL Warehouses, Serverless Notebooks)
+***REMOVED*** to access storage via Private Link from Databricks Control Plane.
+***REMOVED***
+***REMOVED*** ⚠️  IMPORTANT: Requires manual approval in Azure Portal
+***REMOVED*** 
+***REMOVED*** Workflow:
+***REMOVED*** 1. Initial deployment: enable_ncc = false (deploy workspace + classic compute)
+***REMOVED*** 2. Test with classic clusters (clusters run in your VNet, use your Private Endpoints)
+***REMOVED*** 3. When ready for serverless: Set enable_ncc = true
+***REMOVED*** 4. Run terraform apply (will timeout - EXPECTED)
+***REMOVED*** 5. Azure Portal > each Storage Account > Networking > Private Endpoint Connections
+***REMOVED*** 6. Approve all pending connections from Databricks
+***REMOVED*** 7. Run terraform apply again - completes successfully
+***REMOVED***
+***REMOVED*** NOTE: Classic clusters work without NCC. Only needed for serverless compute.
+enable_ncc = false
+
+***REMOVED*** ==============================================
+***REMOVED*** Unity Catalog Configuration
+***REMOVED*** ==============================================
+
+***REMOVED*** First-time deployment: Create new metastore
+create_metastore = true
+metastore_name   = "prod-pl-eastus2-metastore"
+
+***REMOVED*** Optional: Custom storage account name prefixes (lowercase, alphanumeric, max 18 chars)
+***REMOVED*** If not specified, defaults to: {workspace_prefix}metastore and {workspace_prefix}external
+***REMOVED*** Random suffix (6 chars) will be added automatically
+metastore_storage_name_prefix = "ucrootstorage"    ***REMOVED*** Results in: ucrootstorage{random}
+external_storage_name_prefix  = "ucextstorage"     ***REMOVED*** Results in: ucextstorage{random}
+
+***REMOVED*** Subsequent workspaces in same region: Reuse existing metastore
+***REMOVED*** create_metastore      = false
+***REMOVED*** existing_metastore_id = "abc123-def456-ghi789"
+
+***REMOVED*** Access Connector (Managed Identity)
+***REMOVED*** Option 1: Create per-workspace (Default - Recommended)
+create_access_connector = true
+
+***REMOVED*** Option 2: Share existing Access Connector across workspaces
+***REMOVED*** create_access_connector               = false
+***REMOVED*** existing_access_connector_id          = "/subscriptions/.../resourceGroups/.../providers/Microsoft.Databricks/accessConnectors/shared-connector"
+***REMOVED*** existing_access_connector_principal_id = "abcd1234-ef56-7890-ghij-klmnopqrstuv"
+
+***REMOVED*** ==============================================
+***REMOVED*** Tags
+***REMOVED*** ==============================================
+
+tag_owner     = "your.email@company.com"
+tag_keepuntil = "12/31/2026"
+
+tags = {
+  Environment = "Production"
+  ManagedBy   = "Terraform"
+  Pattern     = "Full-Private"
+  CostCenter  = "Engineering"
+  Owner       = "data-platform-team@company.com"
+  Security    = "Air-Gapped"
+}
+
+***REMOVED*** ==============================================
+***REMOVED*** IMPORTANT NOTES FOR AIR-GAPPED DEPLOYMENT
+***REMOVED*** ==============================================
+***REMOVED***
+***REMOVED*** ✅ What Works:
+***REMOVED*** - Workspace UI/API access (via Private Link from within VNet)
+***REMOVED*** - Cluster creation and execution
+***REMOVED*** - Unity Catalog and data access
+***REMOVED*** - All storage access via Private Link
+***REMOVED***
+***REMOVED*** ❌ What Doesn't Work (No Internet Egress):
+***REMOVED*** - Downloading packages from PyPI (pip install)
+***REMOVED*** - Downloading libraries from Maven Central
+***REMOVED*** - Pulling Docker images from Docker Hub
+***REMOVED*** - External API calls from clusters
+***REMOVED***
+***REMOVED*** 🔧 Solutions:
+***REMOVED*** 1. Set up internal package mirrors (PyPI, Maven, Docker registry)
+***REMOVED*** 2. Pre-install libraries via init scripts from internal storage
+***REMOVED*** 3. Use workspace libraries (uploaded to workspace)
+***REMOVED*** 4. Configure custom repositories in cluster configuration
+***REMOVED***
+***REMOVED*** 📚 References:
+***REMOVED*** - Private Link setup: https://learn.microsoft.com/en-us/azure/databricks/security/network/private-link
+***REMOVED*** - Air-gapped deployments: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/customer-managed-vpc
+***REMOVED*** - Library management: https://learn.microsoft.com/en-us/azure/databricks/libraries/
+***REMOVED***
+***REMOVED*** ==============================================

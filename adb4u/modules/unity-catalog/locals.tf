@@ -13,9 +13,15 @@ locals {
   ***REMOVED*** Metastore configuration
   metastore_id = var.create_metastore ? databricks_metastore.this[0].id : var.existing_metastore_id
 
-  ***REMOVED*** Resource naming
-  metastore_storage_name     = replace("${var.workspace_prefix}metastore${random_string.suffix.result}", "-", "")
-  external_storage_name      = replace("${var.workspace_prefix}external${random_string.suffix.result}", "-", "")
+  ***REMOVED*** Resource naming with optional custom prefixes
+  metastore_storage_name = replace(
+    var.metastore_storage_name_prefix != "" ? "${var.metastore_storage_name_prefix}${random_string.suffix.result}" : "${var.workspace_prefix}metastore${random_string.suffix.result}",
+    "-", ""
+  )
+  external_storage_name = replace(
+    var.external_storage_name_prefix != "" ? "${var.external_storage_name_prefix}${random_string.suffix.result}" : "${var.workspace_prefix}external${random_string.suffix.result}",
+    "-", ""
+  )
   access_connector_name      = "${var.workspace_prefix}-uc-connector-${random_string.suffix.result}"
   metastore_container_name   = "metastore"
   external_container_name    = "data"
