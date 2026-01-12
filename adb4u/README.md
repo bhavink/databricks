@@ -49,7 +49,7 @@ adb4u/
 ⚠️ **[Troubleshooting Guide →](./docs/TROUBLESHOOTING.md)** - Review before deploying!
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** 2. **Full Private (Air-gapped)** ✅ Production Ready
-- **Control Plane**: Private Link
+- **Workspace Access**: Private Link (SCC relay + API)
 - **Data Plane**: Private (NPIP)
 - **Egress**: None (isolated)
 - **Storage**: Private Link

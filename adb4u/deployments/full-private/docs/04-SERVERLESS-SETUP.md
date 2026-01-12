@@ -86,7 +86,7 @@ graph TB
 
 | Aspect | Classic Clusters | Serverless Compute |
 |--------|------------------|-------------------|
-| **Where Runs** | Customer VNet | Databricks VNet (Control Plane) |
+| **Where Runs** | Customer VNet | Databricks SaaS VNet |
 | **Storage Access** | VNet Private Endpoints | NCC Private Endpoints |
 | **Approval** | Auto-approved (same tenant) | Manual (cross-account) |
 | **Setup** | Terraform | Azure Portal + Databricks |
@@ -111,7 +111,7 @@ graph TB
 7. Click **Save**
 
 **What Happens**:
-- Databricks creates Private Endpoint connections from its Control Plane to your storage accounts
+- Databricks creates Private Endpoint connections from its SaaS environment to your storage accounts
 - Connections appear as "Pending" in Azure Portal
 - **You must approve them manually**
 

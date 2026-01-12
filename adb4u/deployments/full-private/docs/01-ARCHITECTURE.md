@@ -57,8 +57,9 @@ graph TB
         end
     end
     
-    subgraph "Databricks Control Plane"
-        DPCP["Databricks SaaS<br/>accounts.azuredatabricks.net<br/>Workspace Management"]
+    subgraph "Databricks SaaS (Microsoft Managed)"
+        DPCP["Control Plane<br/>SCC Relay + API Service<br/>Workspace Management"]
+        ACCT["Account Console<br/>accounts.azuredatabricks.net<br/>Estate Visibility Only"]
     end
     
     PUB -->|Private Link| PE
@@ -70,16 +71,18 @@ graph TB
     NCC -.->|For Serverless<br/>Manual Setup| DPCP
     
     style DPCP fill:***REMOVED***FF3621,color:***REMOVED***fff
+    style ACCT fill:***REMOVED***999,color:***REMOVED***fff
     style PE fill:***REMOVED***FF9900,color:***REMOVED***000
     style NCC fill:***REMOVED***1B72E8,color:***REMOVED***fff
 ```
 
 **Key Characteristics**:
-- ✅ **Control Plane**: Private Link (no public internet)
+- ✅ **Private Link**: SCC (Secure Cluster Connectivity) relay + API service
 - ✅ **Data Plane**: NPIP (no public IPs on VMs)
 - ✅ **Storage**: Private Endpoints (classic) + NCC (serverless)
 - ❌ **NAT Gateway**: Not used (air-gapped)
 - ❌ **Internet Egress**: None (requires custom repos)
+- ℹ️  **Account Console**: Management layer only (no VNet connectivity required)
 
 ---
 
@@ -166,9 +169,9 @@ graph TB
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
 graph TB
     subgraph "Private Link Subnet"
-        subgraph "Databricks Control Plane PE"
-            PE_DPCP["PE: UI/API<br/>databricks_ui_api<br/>Port: 443"]
-            PE_AUTH["PE: Browser Auth<br/>browser_authentication<br/>SSO/Login"]
+        subgraph "Databricks SCC + API PE"
+            PE_DPCP["PE: UI/API<br/>databricks_ui_api<br/>Port: 443<br/>SCC Relay + REST API"]
+            PE_AUTH["PE: Browser Auth<br/>browser_authentication<br/>SSO/Login Flow"]
         end
         
         subgraph "Storage PE - Auto-Approved"
@@ -201,7 +204,7 @@ graph TB
 ```
 
 **Total Private Endpoints**: 10
-- **Databricks**: 2 (control plane access)
+- **Databricks SCC + API**: 2 (workspace UI/API + browser auth)
 - **Storage**: 8 (classic cluster access)
 
 **Approval Status**:
@@ -210,7 +213,7 @@ graph TB
 
 **For Serverless** (Not Created by Terraform):
 - Customer manually enables in Databricks UI
-- Databricks creates additional PE from its Control Plane
+- Databricks creates additional PE from its SaaS environment
 - Customer approves in Azure Portal
 - See: [04-SERVERLESS-SETUP.md](04-SERVERLESS-SETUP.md)
 

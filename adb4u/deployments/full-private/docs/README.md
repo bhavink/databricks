@@ -77,12 +77,13 @@ Coming Soon (Lower Priority):
 
 ***REMOVED******REMOVED******REMOVED*** **What Gets Deployed**
 
-**Control Plane Access**: Private Link  
+**Workspace Access**: Private Link (SCC relay + API service)  
 **Data Plane**: NPIP (no public IPs) + VNet injection  
 **Egress**: None (air-gapped) or controlled via firewall  
 **Storage**: Private Endpoints  
 **Unity Catalog**: Enabled with private storage  
-**NCC**: Attached (serverless-ready)
+**NCC**: Attached (serverless-ready)  
+**Account Console**: Management layer (no VNet connectivity required)
 
 ***REMOVED******REMOVED******REMOVED*** **Resource Count**: ~35-40 Resources
 
@@ -150,11 +151,12 @@ enable_ip_access_lists = true          ***REMOVED*** OR use IP restrictions
 ***REMOVED******REMOVED*** 🔐 Security Posture
 
 ***REMOVED******REMOVED******REMOVED*** **Network Isolation**
-- ✅ **Private Link** for Databricks Control Plane
+- ✅ **Private Link** for Databricks workspace (SCC relay + API service)
 - ✅ **NPIP/SCC** (no public IPs on cluster nodes)
 - ✅ **Private Endpoints** for all storage (classic clusters)
 - ✅ **VNet Injection** (clusters run in customer VNet)
 - ⏸️ **No NAT Gateway** (air-gapped, no internet egress)
+- ℹ️  **Account Console** (`accounts.azuredatabricks.net`) - Management layer only
 
 ***REMOVED******REMOVED******REMOVED*** **Access Control**
 - ✅ **Public access** (default, for deployment convenience)
@@ -219,7 +221,7 @@ enable_public_network_access = false  ***REMOVED*** Requires VPN/Bastion
 ***REMOVED******REMOVED******REMOVED*** **3. Private Endpoints for Classic, Manual for Serverless**
 
 **Terraform Creates** (Auto-Approved):
-- Databricks Control Plane PE (2)
+- Databricks Workspace PE (2: UI/API + Browser Auth for SCC relay)
 - Storage PE for classic clusters (8)
 
 **Customer Creates** (Manual Approval):
