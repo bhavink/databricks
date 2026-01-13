@@ -28,6 +28,11 @@ resource "databricks_mws_network_connectivity_config" "this" {
   provider = databricks.account
   name     = "${var.workspace_prefix}-ncc"
   region   = var.location
+
+  ***REMOVED*** Ensure binding is destroyed before NCC config
+  lifecycle {
+    create_before_destroy = false
+  }
 }
 
 ***REMOVED*** Binds the NCC configuration to the Databricks workspace
@@ -36,4 +41,9 @@ resource "databricks_mws_ncc_binding" "this" {
   provider                       = databricks.account
   network_connectivity_config_id = databricks_mws_network_connectivity_config.this.network_connectivity_config_id
   workspace_id                   = var.workspace_id_numeric
+
+  ***REMOVED*** Ensure binding is destroyed before NCC config
+  lifecycle {
+    create_before_destroy = false
+  }
 }

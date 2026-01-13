@@ -89,7 +89,6 @@ If you need to reference the legacy templates:
 
 **Legacy Documentation**:
 - [Legacy Content](./LEGACY-CONTENT.md) - Original README diagrams
-- [Security Guide](https://bit.ly/adbsecurityguide) - Still relevant
 
 ---
 

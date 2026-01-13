@@ -37,6 +37,11 @@ output "dbfs_storage_name" {
   value       = try(azurerm_databricks_workspace.this.custom_parameters[0].storage_account_name, "databricks-managed")
 }
 
+output "dbfs_storage_account_id" {
+  description = "DBFS storage account resource ID (required for Service Endpoint Policy)"
+  value       = try(data.azurerm_resources.dbfs_storage.resources[0].id, null)
+}
+
 ***REMOVED*** ==============================================
 ***REMOVED*** Configuration Outputs
 ***REMOVED*** ==============================================
@@ -52,7 +57,6 @@ output "workspace_configuration" {
     cmk_managed_services_enabled  = var.enable_cmk_managed_services
     cmk_managed_disks_enabled     = var.enable_cmk_managed_disks
     cmk_dbfs_root_enabled         = var.enable_cmk_dbfs_root
-    disk_encryption_set_id        = var.enable_cmk_managed_disks && var.cmk_key_vault_key_id != "" ? azurerm_disk_encryption_set.this[0].id : null
     ip_access_lists_enabled       = var.enable_ip_access_lists
     allowed_ip_count              = var.enable_ip_access_lists ? length(var.allowed_ip_ranges) : 0
   }

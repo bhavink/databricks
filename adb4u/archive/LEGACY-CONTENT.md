@@ -288,6 +288,5 @@ sequenceDiagram
 
 ---
 
-**Last Updated**: 2024 (Original content)  
 **Archived**: 2026-01-10  
 **Replacement**: See [main README](../README.md) and [docs/](../docs/) for current documentation

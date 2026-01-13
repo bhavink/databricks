@@ -114,11 +114,11 @@ resource "azurerm_key_vault_access_policy" "terraform" {
 ***REMOVED*** ==============================================
 
 resource "azurerm_key_vault_access_policy" "databricks" {
-  count = var.create_key_vault && local.databricks_principal_id != "" ? 1 : 0
+  count = var.create_key_vault ? 1 : 0
   
   key_vault_id = azurerm_key_vault.this[0].id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = local.databricks_principal_id
+  object_id    = var.databricks_principal_id != "" ? var.databricks_principal_id : data.azuread_service_principal.databricks[0].object_id
   
   ***REMOVED*** Permissions required for Databricks CMK
   key_permissions = [

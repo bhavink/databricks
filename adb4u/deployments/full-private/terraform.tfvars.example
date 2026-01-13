@@ -158,11 +158,28 @@ allowed_ip_ranges = [
 ***REMOVED*** See: https://www.microsoft.com/en-us/download/details.aspx?id=56519
 
 ***REMOVED*** ==============================================
+***REMOVED*** Service Endpoint Policy (SEP) - Optional
+***REMOVED*** ==============================================
+
+enable_service_endpoint_policy = true  ***REMOVED*** Set to true to enforce storage egress control for classic compute
+
+***REMOVED*** Important Note on Databricks System Storage Alias:
+***REMOVED*** For workspaces created ON or AFTER July 14, 2025, the '/services/Azure/Databricks' alias
+***REMOVED*** for Databricks-managed system storage (artifacts, logs, system tables) is supported by default.
+***REMOVED*** If your workspace was created BEFORE this date, you must contact your Databricks account team
+***REMOVED*** to enable this feature for your workspace. Otherwise, the deployment will fail.
+
+***REMOVED*** Optional: Additional customer storage accounts to allow
+***REMOVED*** additional_allowed_storage_ids = [
+***REMOVED***   "/subscriptions/.../resourceGroups/.../providers/Microsoft.Storage/storageAccounts/mydatalake"
+***REMOVED*** ]
+
+***REMOVED*** ==============================================
 ***REMOVED*** Network Connectivity Configuration (NCC)
 ***REMOVED*** ==============================================
 
 ***REMOVED*** NCC enables Databricks Serverless compute (SQL Warehouses, Serverless Notebooks)
-***REMOVED*** to access storage via Private Link from Databricks Control Plane.
+***REMOVED*** to access storage via Private Link from Control Plane.
 ***REMOVED***
 ***REMOVED*** ⚠️  IMPORTANT: Requires manual approval in Azure Portal
 ***REMOVED*** 

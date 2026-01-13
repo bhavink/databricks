@@ -109,6 +109,16 @@ variable "existing_privatelink_subnet_name" {
 }
 
 ***REMOVED*** ==============================================
+***REMOVED*** Service Endpoint Policy Configuration
+***REMOVED*** ==============================================
+
+variable "service_endpoint_policy_ids" {
+  description = "List of Service Endpoint Policy IDs to associate with Databricks subnets (for storage egress control)"
+  type        = list(string)
+  default     = []
+}
+
+***REMOVED*** ==============================================
 ***REMOVED*** NAT Gateway Configuration
 ***REMOVED*** ==============================================
 

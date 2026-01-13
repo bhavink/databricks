@@ -113,7 +113,7 @@ variable "existing_access_connector_principal_id" {
 ***REMOVED*** ==============================================
 
 variable "enable_private_link_storage" {
-  description = "Enable Private Link for Unity Catalog storage accounts. Default is Service Endpoints (cost-efficient)."
+  description = "Enable Private Link for Unity Catalog storage accounts. Default is Service Endpoints."
   type        = bool
   default     = false
 }

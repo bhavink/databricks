@@ -122,8 +122,27 @@ variable "enable_cmk_dbfs_root" {
   default     = false
 }
 
+***REMOVED*** Key Vault Configuration (Create or Bring)
+variable "create_key_vault" {
+  description = "Create new Key Vault (true) or use existing (false)"
+  type        = bool
+  default     = true
+}
+
+variable "existing_key_vault_id" {
+  description = "ID of existing Key Vault (required if create_key_vault=false)"
+  type        = string
+  default     = ""
+}
+
+variable "existing_key_id" {
+  description = "ID of existing CMK key in Key Vault (optional, will create if not provided)"
+  type        = string
+  default     = ""
+}
+
 variable "cmk_key_vault_key_id" {
-  description = "Azure Key Vault key ID for CMK (required if any CMK enabled)"
+  description = "Azure Key Vault key ID for CMK (auto-populated from Key Vault module or use existing_key_id)"
   type        = string
   default     = ""
 }
@@ -182,6 +201,22 @@ variable "existing_access_connector_principal_id" {
   description = "Principal ID of existing Access Connector (required if create_access_connector=false)"
   type        = string
   default     = ""
+}
+
+***REMOVED*** ==============================================
+***REMOVED*** Service Endpoint Policy (Optional)
+***REMOVED*** ==============================================
+
+variable "enable_service_endpoint_policy" {
+  description = "Enable Service Endpoint Policy for storage egress control (classic compute only). Restricts VNet storage access to allow-listed accounts only."
+  type        = bool
+  default     = false
+}
+
+variable "additional_allowed_storage_ids" {
+  description = "Additional customer storage account resource IDs to allow in SEP (e.g., existing data lakes, backup storage)"
+  type        = list(string)
+  default     = []
 }
 
 ***REMOVED*** ==============================================

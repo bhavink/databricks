@@ -1,155 +1,115 @@
 ***REMOVED*** ==============================================
-***REMOVED*** Workspace Outputs
+***REMOVED*** Primary Outputs (Most Commonly Used)
 ***REMOVED*** ==============================================
-
-output "workspace_id" {
-  description = "Databricks workspace ID"
-  value       = module.workspace.workspace_id
-}
 
 output "workspace_url" {
   description = "Databricks workspace URL"
   value       = module.workspace.workspace_url
 }
 
-output "workspace_name" {
-  description = "Databricks workspace name"
-  value       = module.workspace.workspace_name
+output "workspace_id" {
+  description = "Azure resource ID of the workspace"
+  value       = module.workspace.workspace_id
 }
-
-***REMOVED*** ==============================================
-***REMOVED*** Network Outputs
-***REMOVED*** ==============================================
-
-output "vnet_id" {
-  description = "Virtual Network ID"
-  value       = module.networking.vnet_id
-}
-
-output "vnet_name" {
-  description = "Virtual Network name"
-  value       = module.networking.vnet_name
-}
-
-output "subnet_ids" {
-  description = "Subnet IDs (public, private)"
-  value       = module.networking.subnet_ids
-}
-
-output "nat_gateway_public_ip" {
-  description = "NAT Gateway public IP address"
-  value       = module.networking.nat_gateway_public_ip
-}
-
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Outputs
-***REMOVED*** ==============================================
 
 output "metastore_id" {
   description = "Unity Catalog metastore ID"
   value       = module.unity_catalog.metastore_id
 }
 
-output "metastore_name" {
-  description = "Unity Catalog metastore name"
-  value       = module.unity_catalog.metastore_name
-}
-
-output "external_location_name" {
-  description = "External location name"
-  value       = module.unity_catalog.external_location_name
-}
-
-output "external_location_url" {
-  description = "External location URL (ABFSS path)"
-  value       = module.unity_catalog.external_location_url
-}
-
-output "external_storage_account_name" {
-  description = "External location storage account name"
-  value       = module.unity_catalog.external_storage_account_name
+output "nat_gateway_ip" {
+  description = "Public IP for NAT Gateway (for firewall allowlisting)"
+  value       = module.networking.nat_gateway_public_ip
 }
 
 ***REMOVED*** ==============================================
-***REMOVED*** NCC Outputs (Serverless Compute)
+***REMOVED*** Detailed Resource Outputs (Hidden by Default)
 ***REMOVED*** ==============================================
 
-output "ncc_id" {
-  description = "Network Connectivity Configuration ID (for serverless compute)"
-  value       = module.ncc.ncc_id
-}
-
-output "ncc_name" {
-  description = "Network Connectivity Configuration Name"
-  value       = module.ncc.ncc_name
-}
-
-***REMOVED*** ==============================================
-***REMOVED*** Configuration Summary
-***REMOVED*** ==============================================
-
-output "deployment_summary" {
-  description = "Summary of deployment configuration"
+output "resources" {
+  description = "Detailed resource information (workspace, network, Unity Catalog, NCC, SEP)"
   value = {
-    pattern              = "Non-PL (Public Control Plane + NPIP Data Plane)"
-    workspace_id         = module.workspace.workspace_id
-    workspace_url        = module.workspace.workspace_url
-    region               = var.location
-    nat_gateway_enabled  = var.enable_nat_gateway
-    nat_gateway_ip       = module.networking.nat_gateway_public_ip
-    cmk_enabled          = var.enable_cmk_managed_services || var.enable_cmk_managed_disks
-    ip_access_lists      = var.enable_ip_access_lists
-    unity_catalog        = module.unity_catalog.unity_catalog_configuration
-    storage_connectivity = "Service Endpoints (Cost-Efficient)"
-    ncc_enabled          = true
-    ncc_id               = module.ncc.ncc_id
+    workspace = {
+      name   = module.workspace.workspace_name
+      url    = module.workspace.workspace_url
+      id     = module.workspace.workspace_id
+      region = var.location
+    }
+    network = {
+      vnet_id    = module.networking.vnet_id
+      vnet_name  = module.networking.vnet_name
+      subnet_ids = module.networking.subnet_ids
+      nat_ip     = module.networking.nat_gateway_public_ip
+    }
+    unity_catalog = {
+      metastore_id       = module.unity_catalog.metastore_id
+      metastore_name     = module.unity_catalog.metastore_name
+      external_location  = module.unity_catalog.external_location_name
+      external_storage   = module.unity_catalog.external_storage_account_name
+    }
+    ncc = {
+      id   = module.ncc.ncc_id
+      name = module.ncc.ncc_name
+    }
+    service_endpoint_policy = var.enable_service_endpoint_policy ? {
+      id                  = module.service_endpoint_policy[0].service_endpoint_policy_id
+      name                = module.service_endpoint_policy[0].service_endpoint_policy_name
+      allowed_storage_ids = module.service_endpoint_policy[0].allowed_storage_accounts
+    } : null
+    customer_managed_keys = local.cmk_enabled ? {
+      key_vault_id          = var.create_key_vault ? module.key_vault[0].key_vault_id : var.existing_key_vault_id
+      key_vault_name        = var.create_key_vault ? module.key_vault[0].key_vault_name : "existing"
+      key_id                = var.create_key_vault ? module.key_vault[0].key_id : var.existing_key_id
+      managed_services      = var.enable_cmk_managed_services
+      managed_disks         = var.enable_cmk_managed_disks
+      dbfs_root             = var.enable_cmk_dbfs_root
+      auto_rotation_enabled = var.create_key_vault ? true : null
+    } : null
   }
 }
 
 ***REMOVED*** ==============================================
-***REMOVED*** Next Steps Output
+***REMOVED*** Deployment Summary
 ***REMOVED*** ==============================================
 
-output "next_steps" {
-  description = "Next steps for post-deployment configuration"
+output "deployment_summary" {
+  description = "Quick status overview of deployed resources"
   value = <<-EOT
-    
-    ✅ Deployment Complete - Non-PL Pattern
-    
-    📋 Workspace Details:
-       - Workspace URL: ${module.workspace.workspace_url}
-       - Workspace ID: ${module.workspace.workspace_id}
-       - Region: ${var.location}
-    
-    🌐 Network Configuration:
-       - Pattern: Public Control Plane + NPIP Data Plane
-       - NAT Gateway IP: ${module.networking.nat_gateway_public_ip != null ? module.networking.nat_gateway_public_ip : "Not enabled"}
-       - Egress: Internet access via NAT Gateway (for PyPI, Maven, CRAN)
-    
-    🗄️ Unity Catalog:
-       - Metastore ID: ${module.unity_catalog.metastore_id}
-       - External Location: ${module.unity_catalog.external_location_name}
-       - Storage: ${module.unity_catalog.external_storage_account_name}
-    
-    🔒 Security:
-       - Secure Cluster Connectivity (NPIP): ✅ Enabled
-       - Storage Connectivity: Service Endpoints
-       - CMK: ${var.enable_cmk_managed_services || var.enable_cmk_managed_disks ? "✅ Enabled" : "⚠️  Disabled (optional)"}
-       - IP Access Lists: ${var.enable_ip_access_lists ? "✅ Enabled" : "⚠️  Disabled (optional)"}
-    
-    🚀 Serverless Compute:
-       - NCC Attached: ✅ Enabled (serverless-ready)
-       - NCC ID: ${module.ncc.ncc_id}
-       - Setup Required: See docs/SERVERLESS-SETUP.md for configuration
-    
-    📚 Next Steps:
-       1. Access workspace: ${module.workspace.workspace_url}
-       2. Configure Unity Catalog catalogs and schemas
-       3. Create compute policies and clusters
-       4. Set up workspace users/groups
-       5. Configure data access permissions
-       6. (Optional) Enable serverless compute - see docs/SERVERLESS-SETUP.md
-    
-    📖 Documentation: See README.md for detailed configuration options
+  
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✅ Databricks Non-PL Workspace Deployed
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  🌐 Workspace URL:  ${module.workspace.workspace_url}
+  📍 Region:         ${var.location}
+  🔒 Pattern:        Non-PL (NPIP enabled workspace)
+  
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🛡️  Security & Connectivity Status
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  ✅ Secure Cluster Connectivity (NPIP)
+  ✅ Unity Catalog: ${module.unity_catalog.metastore_id}
+  ✅ NCC (Serverless-Ready): ${module.ncc.ncc_id}
+  ${var.enable_service_endpoint_policy ? "✅ Service Endpoint Policy: Enabled" : "⚠️  Service Endpoint Policy: Disabled"}
+  ${var.enable_nat_gateway ? "✅ NAT Gateway: ${module.networking.nat_gateway_public_ip}" : "⚠️  NAT Gateway: Disabled"}
+  ${local.cmk_enabled ? "✅ Customer-Managed Keys: Enabled (${var.enable_cmk_managed_services ? "Managed Services" : ""}${var.enable_cmk_managed_services && var.enable_cmk_managed_disks ? " + " : ""}${var.enable_cmk_managed_disks ? "Managed Disks" : ""}${(var.enable_cmk_managed_services || var.enable_cmk_managed_disks) && var.enable_cmk_dbfs_root ? " + " : ""}${var.enable_cmk_dbfs_root ? "DBFS Root" : ""})" : "⚠️  Customer-Managed Keys: Disabled"}
+  ${var.enable_cmk_managed_services || var.enable_cmk_managed_disks ? "✅ Customer-Managed Keys: Enabled" : "⚠️  Customer-Managed Keys: Disabled (optional)"}
+  ${var.enable_ip_access_lists ? "✅ IP Access Lists: Enabled" : "⚠️  IP Access Lists: Disabled (optional)"}
+  
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  📚 Next Steps
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  1. Access workspace → ${module.workspace.workspace_url}
+  2. Configure Unity Catalog (catalogs, schemas)
+  3. Set up users, groups, and permissions
+  4. Create compute policies and clusters
+  5. (Optional) Enable serverless → See docs/SERVERLESS-SETUP.md
+  
+  💡 For detailed resource IDs, run: terraform output resources
+  
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
   EOT
 }

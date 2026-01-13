@@ -129,8 +129,6 @@ The networking module provides flexible network infrastructure for Azure Databri
 - ✅ **Non-PL Pattern**: Enable for internet access (PyPI, Maven, etc.)
 - ❌ **Private Link Pattern**: Disable (air-gapped, no internet)
 
-**Cost**: ~$33/month (NAT Gateway) + ~$3.65/month (Public IP)
-
 ***REMOVED******REMOVED******REMOVED*** Required Configuration
 
 | Variable | Type | Description |
@@ -242,7 +240,6 @@ Automatically enabled on both public and private subnets:
 
 **Benefits**:
 - Direct Azure backbone routing
-- No additional cost
 - Improved performance
 - Required for Service Endpoint Policies
 
@@ -380,24 +377,11 @@ module "networking" {
    - ❌ Don't manually add rules to Databricks NSG
 
 2. **Service Endpoints**
-   - Always enabled (no cost, better performance)
+   - Always enabled for better performance
    - Required for Service Endpoint Policies
    - Provides backbone routing
 
-***REMOVED******REMOVED******REMOVED*** Cost Optimization
-
-1. **NAT Gateway**
-   - Enable for Non-PL (needed for package downloads)
-   - Disable for Private Link (no internet access)
-   - Cost: ~$37/month
-
-2. **Public IPs**
-   - Not used with NPIP/SCC
-   - Only NAT Gateway public IP (if enabled)
-
----
-
-***REMOVED******REMOVED*** Troubleshooting
+***REMOVED******REMOVED*** Best Practices
 
 ***REMOVED******REMOVED******REMOVED*** Issue: NSG Rule Conflicts
 
@@ -438,5 +422,4 @@ Subnet is already delegated to Microsoft.Databricks/workspaces
 ---
 
 **Module Version**: 1.0  
-**Last Updated**: 2026-01-10  
 **Terraform Version**: >= 1.5

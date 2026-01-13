@@ -213,7 +213,7 @@ terraform destroy
 ***REMOVED******REMOVED*** 📚 More Information
 
 - **Authentication Options:** See `docs/02-AUTHENTICATION.md`
-- **Architecture Details:** See `docs/patterns/NON-PL.md`
+- **Architecture Details:** See [Non-PL Pattern](patterns/01-NON-PL.md)
 - **Troubleshooting:** See `docs/04-TROUBLESHOOTING.md`
 - **Module Details:** See `docs/modules/` folder
 

@@ -1,6 +1,8 @@
-***REMOVED*** Serverless Compute Setup - Non-PL Pattern
+***REMOVED*** Serverless Compute Setup Guide
 
 > **Enable Serverless SQL Warehouses and Serverless Notebooks** with private connectivity to customer storage and Azure services.
+>
+> **Applies to**: Non-PL and Full-Private deployment patterns
 
 ---
 
@@ -472,6 +474,5 @@ Error: Permission denied
 
 ---
 
-**Pattern**: Non-PL (Public + NPIP + Service Endpoints)  
-**Status**: ✅ Serverless Ready (requires setup)  
-**Last Updated**: 2026-01-12
+**Applies to**: Non-PL and Full-Private patterns  
+**Status**: ✅ Serverless Ready (requires post-deployment setup)

@@ -156,7 +156,7 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 | Strategy | `create_access_connector` | `existing_*` | Use Case |
 |----------|--------------------------|--------------|----------|
 | **Per-Workspace** | `true` | `""` | Default, workspace isolation |
-| **Shared (Regional)** | `false` | Provide IDs | Cost optimization, shared governance |
+| **Shared (Regional)** | `false` | Provide IDs | Shared governance across workspaces |
 
 ***REMOVED******REMOVED******REMOVED*** Storage Connectivity
 
@@ -168,10 +168,10 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 
 **Connectivity Options**:
 
-| Pattern | `enable_private_link_storage` | `service_endpoints_enabled` | Cost | Performance |
-|---------|-------------------------------|----------------------------|------|-------------|
-| **Service Endpoints** (default) | `false` | `true` | $0/month | Excellent |
-| **Private Link** (optional) | `true` | Any | ~$15/month | Excellent |
+| Pattern | `enable_private_link_storage` | `service_endpoints_enabled` | Performance |
+|---------|-------------------------------|----------------------------|-------------|
+| **Service Endpoints** (default) | `false` | `true` | Excellent |
+| **Private Link** (optional) | `true` | Any | Excellent |
 
 ---
 
@@ -460,8 +460,8 @@ module "unity_catalog_ws2" {
    - Clear separation for security and billing
 
 2. **Storage Connectivity**
-   - Default: Service Endpoints (cost-efficient)
-   - Compliance: Private Link (additional cost)
+   - Default: Service Endpoints
+   - Compliance: Private Link
    - Test connectivity before production
 
 3. **Storage Lifecycle**
@@ -474,16 +474,7 @@ module "unity_catalog_ws2" {
 | Approach | When to Use | Benefits | Drawbacks |
 |----------|------------|----------|-----------|
 | **Per-Workspace** | Default | Isolation, clear RBAC | More resources |
-| **Shared (Regional)** | Cost optimization | Fewer resources, centralized | Shared permissions |
-
-***REMOVED******REMOVED******REMOVED*** Cost Optimization
-
-| Resource | Monthly Cost | Optimization |
-|----------|-------------|--------------|
-| Storage (metastore) | ~$0.50 | Lifecycle policies |
-| Storage (external) | Varies | Monitor usage |
-| Access Connector | $0 | Share across workspaces |
-| Private Endpoints | ~$15 | Use Service Endpoints |
+| **Shared (Regional)** | Multi-workspace | Fewer resources, centralized | Shared permissions |
 
 ---
 
@@ -538,5 +529,4 @@ See [Troubleshooting Guide](../TROUBLESHOOTING.md) for more details.
 ---
 
 **Module Version**: 1.0  
-**Last Updated**: 2026-01-10  
 **Terraform Version**: >= 1.5

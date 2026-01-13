@@ -23,12 +23,47 @@ locals {
   
   ***REMOVED*** Add suffix to metastore name for uniqueness
   metastore_name_with_suffix = var.metastore_name != "" ? "${var.metastore_name}-${random_string.deployment_suffix.result}" : ""
+  
+  ***REMOVED*** Determine if any CMK feature is enabled
+  cmk_enabled = var.enable_cmk_managed_services || var.enable_cmk_managed_disks || var.enable_cmk_dbfs_root
 }
 
 resource "azurerm_resource_group" "this" {
   name     = var.resource_group_name
   location = var.location
   tags     = local.all_tags
+}
+
+***REMOVED*** ==============================================
+***REMOVED*** Key Vault Module (Optional - for CMK)
+***REMOVED*** ==============================================
+
+module "key_vault" {
+  count  = local.cmk_enabled ? 1 : 0
+  source = "../../modules/key-vault"
+
+  ***REMOVED*** Create or use existing Key Vault
+  create_key_vault      = var.create_key_vault
+  existing_key_vault_id = var.existing_key_vault_id
+  existing_key_id       = var.existing_key_id
+
+  ***REMOVED*** Resource configuration
+  workspace_prefix    = var.workspace_prefix
+  resource_group_name = azurerm_resource_group.this.name
+  location            = var.location
+
+  ***REMOVED*** Key configuration (auto-rotation enabled)
+  key_name              = "databricks-cmk"
+  enable_auto_rotation  = true
+  rotation_policy_days  = 90
+
+  ***REMOVED*** Security configuration
+  enable_purge_protection = true
+  soft_delete_retention_days = 90
+
+  tags = local.all_tags
+
+  depends_on = [azurerm_resource_group.this]
 }
 
 ***REMOVED*** ==============================================
@@ -74,7 +109,7 @@ module "workspace" {
   source = "../../modules/workspace"
 
   ***REMOVED*** Workspace configuration
-  workspace_name   = "${var.workspace_prefix}-workspace"
+  workspace_name   = "${var.workspace_prefix}-workspace-${random_string.deployment_suffix.result}"
   workspace_prefix = var.workspace_prefix
 
   ***REMOVED*** Networking
@@ -89,7 +124,9 @@ module "workspace" {
   enable_cmk_managed_services = var.enable_cmk_managed_services
   enable_cmk_managed_disks    = var.enable_cmk_managed_disks
   enable_cmk_dbfs_root        = var.enable_cmk_dbfs_root
-  cmk_key_vault_key_id        = var.cmk_key_vault_key_id
+  cmk_key_vault_key_id        = local.cmk_enabled ? (var.create_key_vault ? module.key_vault[0].key_id : var.existing_key_id) : ""
+  cmk_key_vault_id            = local.cmk_enabled ? (var.create_key_vault ? module.key_vault[0].key_vault_id : var.existing_key_vault_id) : ""
+  databricks_account_id       = var.databricks_account_id
 
   ***REMOVED*** IP Access Lists (optional)
   enable_ip_access_lists = var.enable_ip_access_lists
@@ -128,7 +165,7 @@ module "unity_catalog" {
   ***REMOVED*** Storage configuration (Non-PL: Service Endpoints)
   create_metastore_storage        = var.create_metastore
   create_external_location_storage = true
-  enable_private_link_storage      = false  ***REMOVED*** Use Service Endpoints (cost-efficient)
+  enable_private_link_storage      = false  ***REMOVED*** Use Service Endpoints
   service_endpoints_enabled        = true
   enable_service_endpoint_policies = true
 
@@ -143,6 +180,110 @@ module "unity_catalog" {
   tags                = local.all_tags
 
   depends_on = [module.workspace]
+}
+
+***REMOVED*** ==============================================
+***REMOVED*** Service Endpoint Policy Module (Optional)
+***REMOVED*** Restricts VNet egress to only allow-listed storage accounts
+***REMOVED*** Applies to: Classic compute only (not serverless)
+***REMOVED*** ==============================================
+
+module "service_endpoint_policy" {
+  count  = var.enable_service_endpoint_policy ? 1 : 0
+  source = "../../modules/service-endpoint-policy"
+
+  workspace_prefix   = var.workspace_prefix
+  random_suffix      = random_string.deployment_suffix.result
+  location           = var.location
+  resource_group_name = azurerm_resource_group.this.name
+
+  ***REMOVED*** Storage accounts to allow-list
+  dbfs_storage_resource_id          = module.workspace.dbfs_storage_account_id
+  uc_metastore_storage_resource_id  = var.create_metastore ? module.unity_catalog.metastore_storage_account_id : ""
+  uc_external_storage_resource_id   = module.unity_catalog.external_storage_account_id
+  additional_storage_ids            = var.additional_allowed_storage_ids
+
+  tags = local.all_tags
+
+  depends_on = [module.workspace, module.unity_catalog]
+}
+
+***REMOVED*** ==============================================
+***REMOVED*** Apply SEP to Subnets (Post-Deployment Step)
+***REMOVED*** ==============================================
+***REMOVED*** Note: This uses null_resource with Azure CLI to apply SEP to subnets
+***REMOVED*** after all resources are created to avoid circular dependencies
+
+resource "null_resource" "apply_sep_to_public_subnet" {
+  count = var.enable_service_endpoint_policy && !var.use_existing_network ? 1 : 0
+
+  triggers = {
+    sep_id          = module.service_endpoint_policy[0].service_endpoint_policy_id
+    subnet_id       = module.networking.subnet_ids["public"]
+    storage_count   = module.service_endpoint_policy[0].allowed_storage_count
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Applying Service Endpoint Policy to public subnet..."
+      az network vnet subnet update \
+        --ids ${module.networking.subnet_ids["public"]} \
+        --service-endpoint-policy ${module.service_endpoint_policy[0].service_endpoint_policy_id} \
+        --output none
+      echo "✅ SEP applied to public subnet"
+    EOT
+  }
+
+  ***REMOVED*** Destroy-time provisioner: Remove SEP from subnet before policy deletion
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "Removing Service Endpoint Policy from public subnet..."
+      az network vnet subnet update \
+        --ids ${self.triggers.subnet_id} \
+        --remove serviceEndpointPolicies \
+        --output none 2>/dev/null || echo "⚠️  Subnet or policy already removed"
+      echo "✅ SEP removed from public subnet"
+    EOT
+  }
+
+  depends_on = [module.service_endpoint_policy, module.networking, module.workspace, module.unity_catalog]
+}
+
+resource "null_resource" "apply_sep_to_private_subnet" {
+  count = var.enable_service_endpoint_policy && !var.use_existing_network ? 1 : 0
+
+  triggers = {
+    sep_id          = module.service_endpoint_policy[0].service_endpoint_policy_id
+    subnet_id       = module.networking.subnet_ids["private"]
+    storage_count   = module.service_endpoint_policy[0].allowed_storage_count
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Applying Service Endpoint Policy to private subnet..."
+      az network vnet subnet update \
+        --ids ${module.networking.subnet_ids["private"]} \
+        --service-endpoint-policy ${module.service_endpoint_policy[0].service_endpoint_policy_id} \
+        --output none
+      echo "✅ SEP applied to private subnet"
+    EOT
+  }
+
+  ***REMOVED*** Destroy-time provisioner: Remove SEP from subnet before policy deletion
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "Removing Service Endpoint Policy from private subnet..."
+      az network vnet subnet update \
+        --ids ${self.triggers.subnet_id} \
+        --remove serviceEndpointPolicies \
+        --output none 2>/dev/null || echo "⚠️  Subnet or policy already removed"
+      echo "✅ SEP removed from private subnet"
+    EOT
+  }
+
+  depends_on = [module.service_endpoint_policy, module.networking, module.workspace, module.unity_catalog]
 }
 
 ***REMOVED*** ==============================================

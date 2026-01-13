@@ -119,6 +119,22 @@ variable "enable_ncc" {
 }
 
 ***REMOVED*** ==============================================
+***REMOVED*** Service Endpoint Policy (SEP) - Optional
+***REMOVED*** ==============================================
+
+variable "enable_service_endpoint_policy" {
+  description = "Enable Service Endpoint Policy for storage egress control (classic compute only). Restricts VNet storage access to allow-listed accounts only."
+  type        = bool
+  default     = true  ***REMOVED*** Enabled by default
+}
+
+variable "additional_allowed_storage_ids" {
+  description = "Additional customer storage account resource IDs to allow in SEP (e.g., existing data lakes, backup storage)"
+  type        = list(string)
+  default     = []
+}
+
+***REMOVED*** ==============================================
 ***REMOVED*** Unity Catalog Configuration
 ***REMOVED*** ==============================================
 

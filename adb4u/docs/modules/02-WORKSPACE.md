@@ -525,5 +525,4 @@ Error: Key Vault Key not found
 ---
 
 **Module Version**: 1.0  
-**Last Updated**: 2026-01-10  
 **Terraform Version**: >= 1.5

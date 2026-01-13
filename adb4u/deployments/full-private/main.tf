@@ -104,7 +104,7 @@ module "workspace" {
   source = "../../modules/workspace"
 
   ***REMOVED*** Workspace configuration
-  workspace_name   = "${var.workspace_prefix}-workspace"
+  workspace_name   = "${var.workspace_prefix}-workspace-${random_string.deployment_suffix.result}"
   workspace_prefix = var.workspace_prefix
 
   ***REMOVED*** Networking
@@ -242,3 +242,105 @@ module "ncc" {
 
   depends_on = [module.workspace]
 }
+
+***REMOVED*** ==============================================
+***REMOVED*** Service Endpoint Policy (SEP) Module
+***REMOVED*** ==============================================
+
+module "service_endpoint_policy" {
+  count  = var.enable_service_endpoint_policy ? 1 : 0
+  source = "../../modules/service-endpoint-policy"
+
+  workspace_prefix                  = var.workspace_prefix
+  location                          = var.location
+  resource_group_name               = azurerm_resource_group.this.name
+
+  dbfs_storage_resource_id          = module.workspace.dbfs_storage_account_id
+  uc_metastore_storage_resource_id  = var.create_metastore ? module.unity_catalog.metastore_storage_account_id : ""
+  uc_external_storage_resource_id   = module.unity_catalog.external_storage_account_id
+  additional_storage_ids            = var.additional_allowed_storage_ids
+  random_suffix                     = random_string.deployment_suffix.result
+
+  tags = local.all_tags
+
+  depends_on = [module.workspace, module.unity_catalog]
+}
+
+***REMOVED*** Apply Service Endpoint Policy to public subnet via Azure CLI
+resource "null_resource" "apply_sep_to_public_subnet" {
+  count = var.enable_service_endpoint_policy ? 1 : 0
+
+  triggers = {
+    subnet_id     = module.networking.subnet_ids["public"]
+    sep_id        = module.service_endpoint_policy[0].service_endpoint_policy_id
+    storage_count = length(module.service_endpoint_policy[0].allowed_storage_accounts)
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      az network vnet subnet update \
+        --resource-group ${azurerm_resource_group.this.name} \
+        --vnet-name ${module.networking.vnet_name} \
+        --name ${module.networking.subnet_names["public"]} \
+        --service-endpoint-policy "${module.service_endpoint_policy[0].service_endpoint_policy_id}"
+    EOT
+  }
+
+  ***REMOVED*** Destroy-time provisioner: Remove SEP from subnet before policy deletion
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "Removing Service Endpoint Policy from public subnet..."
+      az network vnet subnet update \
+        --ids ${self.triggers.subnet_id} \
+        --remove serviceEndpointPolicies \
+        --output none 2>/dev/null || echo "⚠️  Subnet or policy already removed"
+      echo "✅ SEP removed from public subnet"
+    EOT
+  }
+
+  depends_on = [
+    module.networking,
+    module.service_endpoint_policy
+  ]
+}
+
+***REMOVED*** Apply Service Endpoint Policy to private subnet via Azure CLI
+resource "null_resource" "apply_sep_to_private_subnet" {
+  count = var.enable_service_endpoint_policy ? 1 : 0
+
+  triggers = {
+    subnet_id     = module.networking.subnet_ids["private"]
+    sep_id        = module.service_endpoint_policy[0].service_endpoint_policy_id
+    storage_count = length(module.service_endpoint_policy[0].allowed_storage_accounts)
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      az network vnet subnet update \
+        --resource-group ${azurerm_resource_group.this.name} \
+        --vnet-name ${module.networking.vnet_name} \
+        --name ${module.networking.subnet_names["private"]} \
+        --service-endpoint-policy "${module.service_endpoint_policy[0].service_endpoint_policy_id}"
+    EOT
+  }
+
+  ***REMOVED*** Destroy-time provisioner: Remove SEP from subnet before policy deletion
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "Removing Service Endpoint Policy from private subnet..."
+      az network vnet subnet update \
+        --ids ${self.triggers.subnet_id} \
+        --remove serviceEndpointPolicies \
+        --output none 2>/dev/null || echo "⚠️  Subnet or policy already removed"
+      echo "✅ SEP removed from private subnet"
+    EOT
+  }
+
+  depends_on = [
+    module.networking,
+    module.service_endpoint_policy
+  ]
+}
+

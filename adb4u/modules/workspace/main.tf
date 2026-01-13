@@ -17,9 +17,21 @@ resource "azurerm_databricks_workspace" "this" {
   ***REMOVED*** Network Security Policy: Full Private requires Private Link
   network_security_group_rules_required = var.enable_private_link ? "NoAzureDatabricksRules" : "AllRules"
 
+  ***REMOVED*** Customer-Managed Keys (CMK) - Enable flag required for storage_account_identity
+  ***REMOVED*** This flag must be enabled if ANY CMK feature is used (Managed Services or DBFS Root)
+  ***REMOVED*** See: https://github.com/hashicorp/terraform-provider-azurerm/blob/main/examples/databricks/customer-managed-key/dbfs/main.tf
+  customer_managed_key_enabled = var.enable_cmk_managed_services || var.enable_cmk_dbfs_root ? true : false
+  
   ***REMOVED*** Customer-Managed Keys (CMK) for Managed Services
   ***REMOVED*** Encrypts notebooks, secrets, queries stored in control plane
-  customer_managed_key_enabled = var.enable_cmk_managed_services
+  ***REMOVED*** See: https://github.com/hashicorp/terraform-provider-azurerm/blob/main/examples/databricks/customer-managed-key/managed-services/main.tf
+  managed_services_cmk_key_vault_key_id = var.enable_cmk_managed_services ? var.cmk_key_vault_key_id : null
+  
+  ***REMOVED*** Customer-Managed Keys (CMK) for Managed Disks
+  ***REMOVED*** Encrypts cluster VM managed disks (data disks only, not OS disks)
+  ***REMOVED*** See: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/databricks_workspace
+  managed_disk_cmk_key_vault_key_id = var.enable_cmk_managed_disks ? var.cmk_key_vault_key_id : null
+  managed_disk_cmk_rotation_to_latest_version_enabled = var.enable_cmk_managed_disks ? true : null
   
   ***REMOVED*** VNet injection with Secure Cluster Connectivity (NPIP)
   custom_parameters {
@@ -39,46 +51,69 @@ resource "azurerm_databricks_workspace" "this" {
     storage_account_name = var.dbfs_storage_name != "" ? var.dbfs_storage_name : null
   }
 
+  ***REMOVED*** Dependency: Key Vault access must be configured before workspace creation
+  ***REMOVED*** This is handled by the deployment layer with depends_on
+  
   tags = var.tags
-}
-
-***REMOVED*** ==============================================
-***REMOVED*** Customer-Managed Keys for Managed Disks
-***REMOVED*** ==============================================
-
-***REMOVED*** Disk Encryption Set for cluster VM managed disks
-***REMOVED*** This is required for CMK encryption of compute resources
-resource "azurerm_disk_encryption_set" "this" {
-  count = var.enable_cmk_managed_disks && var.cmk_key_vault_key_id != "" ? 1 : 0
   
-  name                = "${var.workspace_prefix}-des"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  key_vault_key_id    = var.cmk_key_vault_key_id
-  
-  identity {
-    type = "SystemAssigned"
+  lifecycle {
+    ignore_changes = [
+      ***REMOVED*** Databricks manages these automatically in certain scenarios
+      custom_parameters[0].storage_account_name
+    ]
   }
-  
-  tags = var.tags
 }
 
-***REMOVED*** Grant Disk Encryption Set access to Key Vault
-resource "azurerm_key_vault_access_policy" "des" {
-  count = var.enable_cmk_managed_disks && var.cmk_key_vault_key_id != "" ? 1 : 0
-  
+***REMOVED*** ==============================================
+***REMOVED*** Data Source: DBFS Storage Account
+***REMOVED*** ==============================================
+
+***REMOVED*** Retrieve DBFS storage account created by Databricks in the managed resource group
+***REMOVED*** Note: This data source will be read during apply, after workspace creation
+data "azurerm_resources" "dbfs_storage" {
+  type                = "Microsoft.Storage/storageAccounts"
+  resource_group_name = azurerm_databricks_workspace.this.managed_resource_group_name
+
+  depends_on = [azurerm_databricks_workspace.this]
+}
+
+***REMOVED*** ==============================================
+***REMOVED*** DBFS Root Storage CMK Encryption
+***REMOVED*** ==============================================
+
+***REMOVED*** Key Vault Access Policy for DBFS Storage Account Identity
+***REMOVED*** This is required for DBFS CMK to work - the storage account's managed identity needs access to the Key Vault
+***REMOVED*** Note: storage_account_identity is created when customer_managed_key_enabled = true on the workspace
+***REMOVED*** See: https://github.com/hashicorp/terraform-provider-azurerm/blob/main/examples/databricks/customer-managed-key/dbfs/main.tf
+resource "azurerm_key_vault_access_policy" "dbfs_storage" {
+  count = var.enable_cmk_dbfs_root ? 1 : 0
+
   key_vault_id = var.cmk_key_vault_id
-  tenant_id    = azurerm_disk_encryption_set.this[0].identity[0].tenant_id
-  object_id    = azurerm_disk_encryption_set.this[0].identity[0].principal_id
-  
+  tenant_id    = azurerm_databricks_workspace.this.storage_account_identity[0].tenant_id
+  object_id    = azurerm_databricks_workspace.this.storage_account_identity[0].principal_id
+
   key_permissions = [
     "Get",
+    "UnwrapKey",
     "WrapKey",
-    "UnwrapKey"
   ]
-  
+
   depends_on = [
-    azurerm_disk_encryption_set.this
+    azurerm_databricks_workspace.this
+  ]
+}
+
+***REMOVED*** Customer-Managed Key for DBFS root storage account
+***REMOVED*** This resource applies CMK encryption to the workspace DBFS root storage
+***REMOVED*** See: https://github.com/hashicorp/terraform-provider-azurerm/blob/main/examples/databricks/customer-managed-key/dbfs/main.tf
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "this" {
+  count = var.enable_cmk_dbfs_root ? 1 : 0
+
+  workspace_id     = azurerm_databricks_workspace.this.id
+  key_vault_key_id = var.cmk_key_vault_key_id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.dbfs_storage
   ]
 }
 

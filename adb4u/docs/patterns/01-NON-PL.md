@@ -7,7 +7,7 @@
 
 ***REMOVED******REMOVED*** Overview
 
-The Non-Private Link (Non-PL) pattern provides a **secure, cost-effective** Azure Databricks deployment with:
+The Non-Private Link (Non-PL) pattern provides a **secure** Azure Databricks deployment with:
 - **Public control plane** (UI/API accessible from internet)
 - **Private data plane** (NPIP - no public IPs on clusters)
 - **NAT Gateway** for managed internet egress
@@ -18,7 +18,6 @@ The Non-Private Link (Non-PL) pattern provides a **secure, cost-effective** Azur
 ***REMOVED******REMOVED******REMOVED*** Use Cases
 
 ✅ **Standard production workloads**  
-✅ **Cost-sensitive deployments**  
 ✅ **Teams needing internet access** (PyPI, Maven, etc.)  
 ✅ **Development and testing environments**  
 ✅ **Proof of concepts and demos**
@@ -337,378 +336,240 @@ terraform output ncc_name
 
 | Scenario | Recommended Option |
 |----------|-------------------|
-| **Cost-sensitive** | Service Endpoints |
 | **Development/Testing** | Service Endpoints |
 | **Standard production** | Service Endpoints |
 | **Highly regulated** | Private Link |
 | **Zero-trust networks** | Private Link |
 | **Air-gapped requirements** | Private Link |
 
-**Default Choice**: Start with **Service Endpoints** (simpler, no cost). Upgrade to Private Link later if needed.
+**Default Choice**: Start with **Service Endpoints** (simpler). Upgrade to Private Link later if needed.
 
 ---
 
 ***REMOVED******REMOVED*** Traffic Flow: Cluster Startup Sequence
 
-***REMOVED******REMOVED******REMOVED*** Sequence Diagram (Mermaid - UML Compliant)
+This section documents the network traffic flow when a Databricks cluster starts.
+
+**Contents**:
+- [High-Level Flow](***REMOVED***high-level-cluster-startup) - Quick overview (30 seconds)
+- [Detailed Phase Breakdown](***REMOVED***detailed-phase-breakdown) - Per-phase traffic analysis
+- [Network Routing Table](***REMOVED***network-routing-summary) - Where each traffic type goes
+
+---
+
+***REMOVED******REMOVED******REMOVED*** High-Level Cluster Startup
+
+**Simplified 5-Phase Flow**:
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant UI as Databricks UI/API
-    participant CP as Control Plane<br/>(Microsoft-Managed)
-    participant ARM as Azure Resource<br/>Manager
-    box rgba(255, 244, 225, 0.5) Customer VNet (10.100.0.0/16)
-    participant Driver as Driver VM<br/>(Public Subnet)<br/>No Public IP
-    participant Worker as Worker VMs<br/>(Private Subnet)<br/>No Public IP
-    participant NSG as NSG<br/>Service Tags
-    end
-    participant NAT as NAT Gateway<br/>203.0.113.45
-    participant Internet as Internet<br/>(PyPI/Maven)
-    box rgba(232, 245, 233, 0.5) Azure Storage (Service Endpoints)
-    participant DBRStorage as DBR Images<br/>dbartifactsprod*
-    participant DBFS as DBFS Root
-    participant UC as UC Metastore
-    participant ExtLoc as External Location
-    end
-    participant EventHub as Event Hub
+    participant UI as Databricks UI
+    participant CP as Control Plane
+    participant Azure as Azure ARM
+    participant Cluster as Cluster VMs<br/>(VNet)
+    participant Storage as Azure Storage
 
-    rect rgb(225, 241, 255)
-    Note over User,EventHub: Phase 1: Cluster Creation Request (T+0s)
-    User->>+UI: POST /api/2.0/clusters/create
-    UI->>+CP: Validate cluster config
-    CP-->>-UI: Cluster ID: 0123-456789-abcd
-    UI-->>-User: Cluster ID + Status: PENDING
-    end
-
-    rect rgb(255, 243, 224)
-    Note over User,EventHub: Phase 2: VM Provisioning (T+0s to T+2min)
-    CP->>+ARM: Create VMs in customer VNet
-    ARM->>+Driver: Provision Driver VM<br/>(Standard_DS3_v2, No Public IP)
-    Driver-->>-ARM: VM Created
-    ARM->>+Worker: Provision Worker VMs (2-8 nodes)<br/>(Standard_DS3_v2, No Public IP)
-    Worker-->>-ARM: VMs Created
-    ARM-->>-CP: All VMs Ready
-    end
-
-    rect rgb(232, 245, 233)
-    Note over User,EventHub: Phase 3: Control Plane Tunnel (T+2min to T+3min)
-    Driver->>+NSG: Outbound HTTPS:443<br/>to tunnel.eastus2.azuredatabricks.net
-    NSG->>+CP: Route via AzureDatabricks service tag
-    CP-->>-NSG: Tunnel Established (WebSocket)
-    NSG-->>-Driver: Connected
-    
-    Worker->>+NSG: Outbound HTTPS:443<br/>to tunnel.eastus2.azuredatabricks.net
-    NSG->>+CP: Route via AzureDatabricks service tag
-    CP-->>-NSG: Tunnel Established (WebSocket)
-    NSG-->>-Worker: Connected
-    end
-
-    rect rgb(255, 249, 196)
-    Note over User,EventHub: Phase 4a: Heartbeat (Every 30s, Ongoing)
-    loop Every 30 seconds
-        Driver->>+NSG: Heartbeat + Metrics
-        NSG->>+CP: Via AzureDatabricks tag
-        CP-->>-NSG: Commands
-        NSG-->>-Driver: Execute commands
-    end
-    end
-
-    rect rgb(255, 235, 238)
-    Note over User,EventHub: Phase 4b: DBR Image Download (T+2min to T+3min)
-    Driver->>+NSG: GET DBR image<br/>(dbr-13.3-scala2.12)
-    NSG->>+DBRStorage: Via Storage service tag<br/>(Azure backbone)
-    DBRStorage-->>-NSG: DBR Runtime Image (2-5 GB)
-    NSG-->>-Driver: Image Downloaded ($0 egress)
-    
-    Worker->>+NSG: GET DBR image<br/>(dbr-13.3-scala2.12)
-    NSG->>+DBRStorage: Via Storage service tag<br/>(Azure backbone)
-    DBRStorage-->>-NSG: DBR Runtime Image (2-5 GB)
-    NSG-->>-Worker: Image Downloaded ($0 egress)
-    end
-
-    rect rgb(255, 235, 238)
-    Note over User,EventHub: Phase 4c: User Library Downloads (T+3min to T+4min)
-    Driver->>+NSG: pip install pandas numpy
-    NSG->>+NAT: Default route (0.0.0.0/0)
-    NAT->>+Internet: SNAT 203.0.113.45 → pypi.org
-    Internet-->>-NAT: Python packages (.whl files)
-    NAT-->>-NSG: Packages
-    NSG-->>-Driver: Installed
-    
-    Worker->>+NSG: pip install pandas numpy
-    NSG->>+NAT: Default route (0.0.0.0/0)
-    NAT->>+Internet: SNAT 203.0.113.45 → pypi.org
-    Internet-->>-NAT: Python packages (.whl files)
-    NAT-->>-NSG: Packages
-    NSG-->>-Worker: Installed
-    end
-
-    rect rgb(232, 245, 233)
-    Note over User,EventHub: Phase 4d: Storage Access (T+3min to T+5min)
-    Driver->>+NSG: Read init scripts (dbfs:/init/)
-    NSG->>+DBFS: Via Storage service tag<br/>+Service Endpoint
-    DBFS-->>-NSG: Init scripts
-    NSG-->>-Driver: Executed ($0 egress)
-    
-    Driver->>+NSG: Query UC metadata<br/>(catalog.schema.table)
-    NSG->>+UC: Via Storage service tag<br/>+Service Endpoint
-    UC-->>-NSG: Table definition
-    NSG-->>-Driver: Metadata cached ($0 egress)
-    
-    Worker->>+NSG: Read Delta table<br/>(abfss://external@...)
-    NSG->>+ExtLoc: Via Storage service tag<br/>+Service Endpoint
-    ExtLoc-->>-NSG: Data partitions
-    NSG-->>-Worker: Processing ($0 egress)
-    end
-
-    rect rgb(255, 249, 196)
-    Note over User,EventHub: Phase 4e: Logging (Continuous)
-    Driver->>+NSG: Send driver logs
-    NSG->>+EventHub: Via EventHub service tag
-    EventHub-->>-NSG: Acknowledged
-    NSG-->>-Driver: Logged ($0 egress)
-    
-    Worker->>+NSG: Send executor logs
-    NSG->>+EventHub: Via EventHub service tag
-    EventHub-->>-NSG: Acknowledged
-    NSG-->>-Worker: Logged ($0 egress)
-    end
-
-    rect rgb(240, 240, 255)
-    Note over User,EventHub: Phase 5: Shuffle Operations (During Execution)
-    Driver->>+Worker: Broadcast variable (10 MB)
-    Worker-->>-Driver: Acknowledged
-    
-    Worker->>+Worker: Shuffle exchange<br/>(partition redistribution)
-    Worker-->>-Worker: Complete
-    
-    Worker->>+Driver: Task results (aggregated)
-    Driver-->>-Worker: Next stage
-    Note over Driver,Worker: All traffic within VNet<br/>$0 egress, < 1ms latency
-    end
-
-    rect rgb(225, 241, 255)
-    Note over User,EventHub: Phase 6: Results Return
-    Driver->>+CP: Job completed
-    CP->>+UI: Update job status
-    UI-->>-User: Results available
-    CP-->>-Driver: Acknowledged
-    end
+    User->>UI: 1. Create Cluster
+    UI->>CP: Validate & Allocate
+    CP->>Azure: 2. Provision VMs (NPIP)
+    Azure-->>Cluster: VMs Ready
+    Cluster->>CP: 3. Establish SCC Tunnel
+    Cluster->>Storage: 4. Download DBR Images
+    Cluster->>CP: 5. Ready - Heartbeat Active
+    CP->>User: Cluster RUNNING
 ```
 
-**Key UML Elements** (per [Wikipedia Sequence Diagram](https://en.wikipedia.org/wiki/Sequence_diagram)):
-- **Lifelines**: Vertical dashed lines for each participant
-- **Activation Boxes**: Solid rectangles showing when objects are active (+/- syntax)
-- **Synchronous Messages**: Solid arrows (->>)
-- **Reply Messages**: Dashed arrows (-->>)
-- **Boxes**: Grouped participants (Customer VNet, Azure Storage)
-- **Notes**: Phase descriptions with timing information
-- **Loops**: Repeating interactions (heartbeats)
+**Timeline**: ~3-5 minutes from creation to ready state
 
-***REMOVED******REMOVED******REMOVED*** ASCII Diagram (for documentation/markdown viewers without Mermaid support)
+**Key Points**:
+- ✅ VMs have **no public IPs** (NPIP enabled)
+- ✅ Control plane traffic via **NSG service tag** (not NAT)
+- ✅ Storage access via **Service Endpoints** (Azure backbone)
+- ✅ User libraries via **NAT Gateway** (PyPI/Maven)
 
-This diagram shows the detailed traffic flow when a Databricks cluster starts within the VNet.
+---
+
+***REMOVED******REMOVED******REMOVED*** Detailed Phase Breakdown
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 1: Cluster Request** (T+0s)
 
 ```
-┌──────────────┐
-│ User / API   │
-└──────┬───────┘
+User → Databricks UI/API
+├─ POST /api/2.0/clusters/create
+├─ Payload: {node_type, count, dbr_version}
+└─ Response: Cluster ID (pending state)
+```
+
+**Network Path**: User → Public Internet → Databricks SaaS (Azure region)
+
+---
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 2: VM Provisioning** (T+0s to T+2min)
+
+```mermaid
+sequenceDiagram
+    participant CP as Control Plane
+    participant ARM as Azure ARM
+    participant VNet as Customer VNet
+    
+    CP->>ARM: Create VMs (no public IPs)
+    ARM->>VNet: Provision Driver (Public Subnet)
+    ARM->>VNet: Provision Workers (Private Subnet)
+    VNet-->>ARM: VMs Created
+    ARM-->>CP: Provisioning Complete
+```
+
+**Resources Created**:
+- Driver VM (public subnet, no public IP)
+- Worker VMs (private subnet, no public IP)
+- Managed disks (encrypted if CMK enabled)
+- NSG rules (auto-applied by Databricks)
+
+---
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 3: Control Plane Tunnel** (T+2min to T+3min)
+
+```
+Cluster VMs → NSG (AzureDatabricks tag) → Control Plane
+
+Protocol: HTTPS/WebSocket (443)
+Direction: Outbound only (VNet initiates)
+Purpose: Cluster management, commands, monitoring
+Routing: NOT via NAT Gateway (direct via NSG service tag)
+```
+
+**Traffic Type**: Heartbeats (every 30s) + Commands
+
+---
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 4: Resource Downloads** (T+2min to T+4min)
+
+**4a. DBR Images** (Databricks Runtime):
+```
+Cluster VMs → NSG (Storage tag) → Databricks-Managed Storage
+
+Source: dbartifactsprod*, dblogprod* (Databricks subscription)
+Size: 2-5 GB per cluster
+Routing: Service Endpoint (Azure backbone)
+Authentication: Managed by Databricks
+```
+
+**4b. User Libraries** (Optional):
+```
+Cluster VMs → NAT Gateway → Internet
+
+Examples: pip install pandas, Maven dependencies
+Source: PyPI, Maven Central, custom repos
+Routing: NAT Gateway (public IP for whitelisting)
+```
+
+---
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 5: Storage Access** (T+3min onwards)
+
+```mermaid
+graph LR
+    Cluster[Cluster VMs]
+    NSG[NSG: Storage Tag]
+    SE[Service Endpoint]
+    
+    subgraph Storage["Azure Storage (Customer)"]
+        DBFS[DBFS Root]
+        UC[UC Metastore]
+        ExtLoc[External Location]
+    end
+    
+    Cluster --> NSG
+    NSG --> SE
+    SE --> DBFS
+    SE --> UC
+    SE --> ExtLoc
+    
+    style NSG fill:***REMOVED***f3e5f5
+    style SE fill:***REMOVED***e8f5e9
+```
+
+**Access Pattern**:
+- DBFS: Init scripts, cluster logs, libraries
+- UC Metastore: Table metadata, schemas, permissions
+- External Location: User data (Delta, Parquet, etc.)
+
+**Authentication**: Managed Identity (Access Connector) via RBAC
+
+---
+
+***REMOVED******REMOVED******REMOVED*** Network Routing Summary
+
+| Traffic Type | Source | Destination | Path | Authentication |
+|--------------|--------|-------------|------|----------------|
+| **Control Plane** | Cluster VMs | Databricks SaaS | NSG: AzureDatabricks | Databricks-managed |
+| **DBR Images** | Cluster VMs | Databricks Storage | NSG: Storage → Backbone | Databricks-managed |
+| **User Libraries** | Cluster VMs | Internet (PyPI/Maven) | NAT Gateway → Internet | N/A |
+| **DBFS Access** | Cluster VMs | DBFS (Customer) | NSG: Storage → Service Endpoint | Managed Identity |
+| **UC Metastore** | Cluster VMs | UC Storage (Customer) | NSG: Storage → Service Endpoint | Managed Identity |
+| **External Data** | Cluster VMs | External Location | NSG: Storage → Service Endpoint | Managed Identity |
+| **Worker-to-Worker** | Worker VMs | Worker VMs | Within VNet | N/A |
+| **Logs/Metrics** | Cluster VMs | Event Hub | NSG: EventHub | Databricks-managed |
+
+**Key NSG Service Tags**:
+- `AzureDatabricks` - Control plane communication
+- `Storage` - All Azure Storage access (Databricks + Customer)
+- `EventHub` - Logs and metrics
+- Default route (0.0.0.0/0) → NAT Gateway for internet
+
+---
+
+***REMOVED******REMOVED******REMOVED*** Traffic Flow Diagram (Simplified)
+
+```
+┌─────────────┐
+│ User/API    │
+└──────┬──────┘
        │
-       │ 1. Create Cluster (HTTPS)
-       │    POST /api/2.0/clusters/create
        ↓
-┌─────────────────────────────────────────────────────────────────┐
-│ Databricks Control Plane (Public - Azure Region)               │
-│ ┌─────────────────────────────────────────────────────────────┐ │
-│ │ Cluster Manager                                             │ │
-│ │ - Validates request                                         │ │
-│ │ - Allocates cluster ID                                      │ │
-│ │ - Initiates provisioning                                    │ │
-│ └─────────────────────────────────────────────────────────────┘ │
-└────────┬────────────────────────────────────────────────────────┘
-         │
-         │ 2. Provision VMs in customer VNet
-         │    (Azure Resource Manager API)
-         ↓
-┌─────────────────────────────────────────────────────────────────┐
-│ Customer VNet (VNet Injection)                                  │
-│                                                                 │
-│ ┌──────────────────────────┐  ┌──────────────────────────┐    │
-│ │ Driver Node VM           │  │ Worker Node VMs          │    │
-│ │ (Public Subnet)          │  │ (Private Subnet)         │    │
-│ │ - No Public IP (NPIP)    │  │ - No Public IP (NPIP)    │    │
-│ └──────────┬───────────────┘  └────────┬─────────────────┘    │
-│            │                            │                       │
-│            │ 3. Establish secure tunnel │                       │
-│            │    to Control Plane        │                       │
-│            │    (Outbound HTTPS)        │                       │
-│            │    NSG: AzureDatabricks    │                       │
-│            │    (Direct via NSG tag)    │                       │
-│            └────────────────────────────┘                       │
-│                            │                                    │
-│              ┌─────────────┴─────────────┐                      │
-│              │ NSG Outbound Rules:       │                      │
-│              │ - AzureDatabricks (allow) │                      │
-│              │ - Storage (allow)         │                      │
-│              │ - EventHub (allow)        │                      │
-│              │ - Internet via NAT        │                      │
-│              └─────────────┬─────────────┘                      │
-└────────────────────────────┼────────────────────────────────────┘
-                             │
-         ┌───────────────────┼───────────────────┐
-         │                   │                   │
-         │ 4a. Heartbeat     │ 4b. Download      │ 4c. Access Storage
-         │    to Control     │     User Libs     │     DBFS/UC/External
-         │    Plane          │     (PyPI/Maven)  │     + DBR Images
-         │    (NSG: AzureDB) │     (NAT Gateway) │     (NSG: Storage)
-         ↓                   ↓                   ↓
-┌──────────────────┐  ┌──────────────┐  ┌────────────────────────┐
-│ Databricks       │  │ Internet     │  │ Azure Storage          │
-│ Control Plane    │  │ - PyPI       │  │ (via Service Endpoint) │
-│ (NSG Service Tag)│  │ - Maven      │  │ (NSG: Storage tag)     │
-│ - Receives       │  │ - Custom     │  │                        │
-│   heartbeats     │  │   repos      │  │ ┌────────────────────┐ │
-│ - Sends commands │  │              │  │ │ DBFS Root Storage  │ │
-│ - Monitors state │  │ NAT Gateway  │  │ │ - Init scripts     │ │
-│ - NO NAT used!   │  │ ONLY for     │  │ │ - Cluster logs     │ │
-└──────────────────┘  │ user libs!   │  │ │ - Libraries        │ │
-                      └──────────────┘  │ └────────────────────┘ │
-                                        │                        │
-                                        │ ┌────────────────────┐ │
-                                        │ │ UC Metastore       │ │
-         ┌──────────────────────────────┤ │ - Table metadata   │ │
-         │ 5. Worker-to-Worker          │ │ - Schemas          │ │
-         │    Communication             │ └────────────────────┘ │
-         │    (Within VNet)             │                        │
-         ↓                              │ ┌────────────────────┐ │
-┌──────────────────────────┐            │ │ External Location  │ │
-│ Inter-Worker Traffic     │            │ │ - User data        │ │
-│ - Shuffle operations     │            │ │ - Delta tables     │ │
-│ - Data redistribution    │            │ └────────────────────┘ │
-│ - RPC communication      │            │                        │
-│ - Stays within VNet      │            │ ┌────────────────────┐ │
-│ - No egress charges      │            │ │ DBR Images         │ │
-└──────────────────────────┘            │ │ (Databricks-managed│ │
-                                        │ │  dbartifactsprod*) │ │
-                                        │ └────────────────────┘ │
-                                        └────────────────────────┘
-
-Time: T+0s to T+5min (typical cluster startup)
-
-Legend:
-────>  : Data/Control plane traffic
-═════> : Storage traffic (Service Endpoints)
-- - -> : Monitoring/heartbeat traffic
+┌─────────────────────────────────────┐
+│ Databricks Control Plane (SaaS)    │
+│ - Cluster Manager                   │
+│ - Metadata Service                  │
+└──────┬──────────────────────────────┘
+       │
+       │ Provisions VMs
+       ↓
+┌─────────────────────────────────────┐
+│ Customer VNet (VNet Injection)      │
+│  ┌────────────┐  ┌────────────┐    │
+│  │ Driver VM  │  │ Worker VMs │    │
+│  │ (No Pub IP)│  │ (No Pub IP)│    │
+│  └─────┬──────┘  └──────┬─────┘    │
+│        │                 │           │
+│   ┌────┴─────────────────┴────┐    │
+│   │ NSG (Service Tags)        │    │
+│   │ - AzureDatabricks (CP)    │    │
+│   │ - Storage (SE backbone)   │    │
+│   │ - EventHub (logs)         │    │
+│   │ - Default → NAT           │    │
+│   └────┬──────────────────────┘    │
+│        │                            │
+│   ┌────┴────────┐                  │
+│   │ NAT Gateway │                  │
+│   │ (Pub IP)    │                  │
+│   └─────────────┘                  │
+└─────────────────────────────────────┘
+       │        │        │
+       │        │        └─→ Internet (PyPI/Maven)
+       │        │
+       │        └─→ Azure Storage (Service Endpoints)
+       │            - DBFS Root
+       │            - UC Metastore
+       │            - External Location
+       │
+       └─→ Databricks Storage (DBR Images)
+           - dbartifactsprod*
+           - dblogprod*
 ```
 
-***REMOVED******REMOVED******REMOVED*** Traffic Flow Details
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 1: Cluster Creation Request (T+0s)
-```
-User → Databricks Control Plane
-- Protocol: HTTPS (443)
-- Authentication: Bearer token / AAD token
-- Payload: Cluster configuration (node type, count, libraries)
-- Response: Cluster ID and provisioning state
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 2: VM Provisioning (T+0s to T+2min)
-```
-Control Plane → Azure Resource Manager → Customer VNet
-- VMs created in public and private subnets
-- No public IPs assigned (NPIP enabled)
-- NSG rules automatically applied by Databricks
-- Managed disks attached (encrypted if CMK enabled)
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 3: Secure Tunnel Establishment (T+2min to T+3min)
-```
-Driver/Worker VMs → Control Plane (via NSG Service Tag: AzureDatabricks)
-- Protocol: HTTPS (443)
-- Direction: Outbound only (initiated from VNet)
-- Routing: NSG Service Tag "AzureDatabricks" (NOT NAT Gateway)
-- Purpose: Cluster management, commands, monitoring
-- Persistent connection maintained via heartbeats
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 4a: Control Plane Communication (Ongoing)
-```
-Cluster VMs ←→ Control Plane (via NSG Service Tag: AzureDatabricks)
-- Routing: NSG Service Tag "AzureDatabricks" (NOT NAT Gateway)
-- Heartbeats every 30 seconds
-- Cluster state updates
-- Command execution (notebook runs, jobs)
-- Metrics and logs collection
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 4b: Package Downloads (T+2min to T+4min)
-```
-Cluster VMs → NAT Gateway → Internet (user libraries ONLY)
-- Python packages: PyPI (pip install)
-- Java/Scala: Maven Central (library dependencies)
-- Custom repos: Customer-configured repositories
-- Source IP: NAT Gateway public IP (stable for whitelisting)
-
-Cluster VMs → Azure Storage (DBR images via NSG Storage tag)
-- DBR Runtime Images: From Databricks-managed storage (dbartifactsprod*, dblogprod*)
-- Protocol: HTTPS via NSG Storage service tag
-- Size: ~2-5 GB per cluster
-- Cost: $0 egress (Azure backbone)
-- Reference: Data Exfiltration blog
-
-**Important**: NAT Gateway is ONLY for user libraries (PyPI/Maven), NOT for DBR images!
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 4c: Storage Access (T+3min to T+5min)
-```
-Cluster VMs → Service Endpoints → Azure Storage
-- Protocol: HTTPS (443)
-- Authentication: Managed identity (Access Connector)
-- Traffic: Azure backbone network (never leaves Azure)
-- Routing: NSG Service Tag "Storage" + Service Endpoints
-- No egress charges
-- No NAT Gateway involvement
-
-Storage accessed:
-1. DBFS Root Storage (Databricks-managed)
-   - Init scripts execution
-   - Cluster logs upload
-   - Installed libraries cache
-
-2. Unity Catalog Metastore Storage
-   - Table metadata queries
-   - Schema information
-   - Permissions validation
-
-3. External Location Storage (Customer-owned)
-   - User data access (Delta tables, Parquet, etc.)
-   - Read/write operations
-   - ACID transactions
-```
-
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 5: Worker-to-Worker Communication (During execution)
-```
-Worker VMs ←→ Worker VMs (Within VNet)
-- Shuffle operations (Spark)
-- Data redistribution
-- RPC communication
-- Stays entirely within VNet
-- No NAT Gateway usage
-- No egress charges
-- Low latency (< 1ms)
-```
-
-***REMOVED******REMOVED******REMOVED*** Network Path Summary
-
-| Traffic Type | Source | Destination | Path | Cost |
-|--------------|--------|-------------|------|------|
-| **Control Plane** | Cluster VMs | Databricks Control Plane | NAT Gateway → Internet | Data egress |
-| **Package Downloads** | Cluster VMs | PyPI/Maven/Docker Hub | NAT Gateway → Internet | Data egress |
-| **DBFS Access** | Cluster VMs | DBFS Storage | Service Endpoint (backbone) | No egress |
-| **Unity Catalog** | Cluster VMs | UC Storage | Service Endpoint (backbone) | No egress |
-| **External Data** | Cluster VMs | External Location | Service Endpoint (backbone) | No egress |
-| **Worker-to-Worker** | Worker VMs | Worker VMs | Within VNet | No egress |
+---
 
 ***REMOVED******REMOVED******REMOVED*** Security Controls
 
@@ -721,50 +582,10 @@ Worker VMs ←→ Worker VMs (Within VNet)
 | **Authentication** | Managed Identity | Passwordless auth to storage (Access Connector) |
 | **Data** | TLS 1.2+ | Encrypted in transit for all connections |
 | **Data** | RBAC | Fine-grained access control via Unity Catalog |
-| **Optional** | CMK | Customer-managed encryption keys |
-| **Optional** | IP Access Lists | Restrict workspace access by source IP |
-
-***REMOVED******REMOVED******REMOVED*** Performance Characteristics
-
-| Metric | Value | Notes |
-|--------|-------|-------|
-| **Cluster Startup** | 3-5 minutes | Standard node types |
-| **Control Plane Latency** | < 100ms | Via NAT Gateway |
-| **Storage Access Latency** | < 10ms | Service Endpoints (same region) |
-| **Worker-to-Worker Latency** | < 1ms | Within VNet |
-| **Package Download Speed** | Varies | Depends on NAT Gateway bandwidth |
 
 ---
 
-***REMOVED******REMOVED*** Cost Breakdown
-
-***REMOVED******REMOVED******REMOVED*** Monthly Infrastructure Cost
-
-| Resource | SKU/Tier | Quantity | Monthly Cost |
-|----------|----------|----------|--------------|
-| **Virtual Network** | Standard | 1 | $0 |
-| **Subnets** | N/A | 2 | $0 |
-| **Network Security Group** | Standard | 1 | $0 |
-| **NAT Gateway** | Standard | 1 | $33.00 |
-| **Public IP (NAT)** | Standard | 1 | $3.65 |
-| **Storage (Metastore)** | Standard LRS | ~10 GB | $0.50 |
-| **Storage (External)** | Standard LRS | ~100 GB | $5.00 |
-| **Access Connector** | N/A | 1 | $0 |
-| **Databricks Workspace** | Premium | 1 | $0 |
-| **TOTAL INFRASTRUCTURE** | | | **~$42/month** |
-
-**Notes**:
-- Databricks compute (DBU) charges are separate and usage-based
-- Storage costs scale with data volume
-- Data egress charges may apply for outbound traffic
-- CMK adds no additional infrastructure cost
-
-***REMOVED******REMOVED******REMOVED*** Cost Optimization Tips
-
-1. **NAT Gateway**: Required for package downloads (PyPI, Maven)
-2. **Storage**: Use lifecycle policies to archive old data
-3. **Compute**: Use cluster autoscaling and auto-termination
-4. **Unity Catalog**: Shared metastore reduces per-workspace cost
+**📖 For More Details**: See [Traffic Flows Deep Dive](../../docs/TRAFFIC-FLOWS.md) for complete sequence diagrams and packet-level analysis.
 
 ---
 
@@ -963,7 +784,6 @@ deployment_summary = {
 **Service Endpoints**:
 - ✅ Direct Azure backbone routing to storage
 - ✅ No internet exposure for storage traffic
-- ✅ No additional cost
 
 ***REMOVED******REMOVED******REMOVED*** Data Security
 
@@ -1098,12 +918,12 @@ tags = {
 - **VNet CIDR**: Avoid conflicts with other VNets (plan for peering)
 - **NAT Gateway**: Always enable for Non-PL pattern
 
-***REMOVED******REMOVED******REMOVED*** Cost Management
+***REMOVED******REMOVED******REMOVED*** Resource Management
 
 - **Cluster Policies**: Enforce autotermination and max DBUs
 - **Storage Lifecycle**: Archive old data to cool/archive tiers
 - **Unity Catalog**: Share metastore across regional workspaces
-- **Tagging**: Use cost allocation tags for chargeback
+- **Tagging**: Use tags for resource organization
 
 ---
 
@@ -1133,9 +953,9 @@ If migrating from legacy templates in `templates/terraform-scripts/adb-npip`:
 
 ***REMOVED******REMOVED******REMOVED*** Advanced Configurations
 
-- [Add CMK](../../docs/modules/WORKSPACE.md***REMOVED***customer-managed-keys-cmk)
-- [Configure IP Access Lists](../../docs/modules/WORKSPACE.md***REMOVED***ip-access-lists)
-- [Set up BYOV](../../docs/modules/NETWORKING.md***REMOVED***example-2-private-link-with-existing-network-byov)
+- [Add CMK](../modules/05-CMK.md)
+- [Configure IP Access Lists](../modules/02-WORKSPACE.md)
+- [Set up BYOV](../modules/01-NETWORKING.md)
 - [Share Unity Catalog metastore](../../docs/modules/UNITY-CATALOG.md***REMOVED***example-2-additional-workspace-use-existing-metastore)
 
 ***REMOVED******REMOVED******REMOVED*** Production Readiness
@@ -1159,6 +979,5 @@ If migrating from legacy templates in `templates/terraform-scripts/adb-npip`:
 ---
 
 **Pattern Version**: 1.0  
-**Last Updated**: 2026-01-10  
 **Status**: ✅ Production Ready  
 **Terraform Version**: >= 1.5

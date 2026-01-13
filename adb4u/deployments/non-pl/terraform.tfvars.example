@@ -2,7 +2,7 @@
 ***REMOVED*** Non-PL Deployment Configuration Example
 ***REMOVED*** ==============================================
 ***REMOVED*** This file provides example values for deploying an Azure Databricks workspace
-***REMOVED*** using the Non-PL pattern (Public Control Plane + NPIP Data Plane).
+***REMOVED*** using the Non-PL pattern (Control Plane + NPIP Data Plane).
 ***REMOVED***
 ***REMOVED*** Copy this file to terraform.tfvars and customize for your environment.
 ***REMOVED*** ==============================================
@@ -75,7 +75,7 @@ resource_group_name = "rg-databricks-prod-eastus2"
 ***REMOVED*** Databricks Account ID (REQUIRED for Unity Catalog)
 ***REMOVED*** Get from: https://accounts.azuredatabricks.net (top-right corner)
 ***REMOVED*** Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-databricks_account_id = "12345678-1234-1234-1234-123456789012"
+databricks_account_id = ""
 
 ***REMOVED*** ==============================================
 ***REMOVED*** Network Configuration
@@ -113,10 +113,23 @@ enable_service_endpoint_policy = true  ***REMOVED*** Restricts storage access to
 ***REMOVED*** Customer-Managed Keys (Optional)
 ***REMOVED*** ==============================================
 
-enable_cmk_managed_services = false
-enable_cmk_managed_disks    = false
-enable_cmk_dbfs_root        = false
-***REMOVED*** cmk_key_vault_key_id = "https://my-keyvault.vault.azure.net/keys/my-cmk-key/version"
+enable_cmk_managed_services = false  ***REMOVED*** Control plane data (notebooks, secrets, queries)
+enable_cmk_managed_disks    = false  ***REMOVED*** Cluster VM managed disks
+enable_cmk_dbfs_root        = false  ***REMOVED*** Workspace DBFS root storage
+
+***REMOVED*** Key Vault Configuration
+***REMOVED*** Option 1: Create new Key Vault (default)
+create_key_vault = true
+
+***REMOVED*** Option 2: Use existing Key Vault (set create_key_vault = false)
+***REMOVED*** existing_key_vault_id = "/subscriptions/.../resourceGroups/.../providers/Microsoft.KeyVault/vaults/my-kv"
+***REMOVED*** existing_key_id       = "https://my-keyvault.vault.azure.net/keys/my-cmk-key/version"  ***REMOVED*** Optional: will create if not provided
+
+***REMOVED*** Requirements:
+***REMOVED*** - Key Vault must be in same region as workspace
+***REMOVED*** - Key Vault must have purge protection enabled (auto-configured if creating new)
+***REMOVED*** - Soft delete retention: 90 days (auto-configured if creating new)
+***REMOVED*** - Key auto-rotation: 90 days (auto-configured if creating new)
 
 ***REMOVED*** ==============================================
 ***REMOVED*** IP Access Lists (Optional)
@@ -126,6 +139,36 @@ enable_ip_access_lists = false
 ***REMOVED*** allowed_ip_ranges = [
 ***REMOVED***   "203.0.113.0/24",    ***REMOVED*** Corporate network
 ***REMOVED***   "198.51.100.0/24"    ***REMOVED*** VPN range
+***REMOVED*** ]
+
+***REMOVED*** ==============================================
+***REMOVED*** Service Endpoint Policy (Optional)
+***REMOVED*** ==============================================
+
+***REMOVED*** Enable SEP to restrict VNet egress to only allow-listed storage accounts
+***REMOVED*** Applies to: Classic compute only (not serverless)
+***REMOVED*** Security: Prevents data exfiltration via unauthorized storage access
+enable_service_endpoint_policy = false
+
+***REMOVED*** IMPORTANT: Workspace Requirement for SEP
+***REMOVED*** -----------------------------------------
+***REMOVED*** Workspaces created on or after July 14, 2025 support SEP by default.
+***REMOVED*** 
+***REMOVED*** For workspaces created BEFORE July 14, 2025:
+***REMOVED***   1. Contact your Databricks account team to enable SEP support
+***REMOVED***   2. Once enabled, set enable_service_endpoint_policy = true
+***REMOVED***   3. Run terraform apply
+***REMOVED***
+***REMOVED*** If SEP is not enabled and you set this to true, you'll see this error:
+***REMOVED***   "ServiceResourceNameMustHaveEvenElements: invalid resource name /services/Azure/Databricks"
+***REMOVED***
+***REMOVED*** Reference: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/service-endpoints
+
+***REMOVED*** Optional: Additional customer storage accounts to allow
+***REMOVED*** Example: Existing data lakes, backup storage, shared storage accounts
+***REMOVED*** additional_allowed_storage_ids = [
+***REMOVED***   "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/data-rg/providers/Microsoft.Storage/storageAccounts/mydatalake",
+***REMOVED***   "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/backup-rg/providers/Microsoft.Storage/storageAccounts/mybackups"
 ***REMOVED*** ]
 
 ***REMOVED*** ==============================================

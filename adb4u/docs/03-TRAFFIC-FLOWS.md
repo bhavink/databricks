@@ -613,5 +613,4 @@ dbutils.fs.ls("abfss://...")
 ---
 
 **Document Version**: 1.0  
-**Last Updated**: 2026-01-10  
-**Pattern Coverage**: Non-PL (complete), Private Link (coming soon), Hub-Spoke (coming soon)
+**Pattern Coverage**: Non-PL (complete), Private Link (complete), Hub-Spoke (coming soon)

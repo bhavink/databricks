@@ -152,6 +152,4 @@ Historical content and diagrams have been archived. See **[archive/LEGACY-CONTEN
 
 ---
 
-**Repository Version**: 2.0  
-**Last Updated**: 2026-01-12  
-**Security Guide**: [https://bit.ly/adbsecurityguide](https://bit.ly/adbsecurityguide)
+**Repository Version**: 2.0
