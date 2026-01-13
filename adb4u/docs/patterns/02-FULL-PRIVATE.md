@@ -879,7 +879,7 @@ az storage account show \
 
 For detailed network architecture including DNS flow for multi-workspace hub-and-spoke deployments, see:
 - [Azure Databricks Data Exfiltration Protection](https://techcommunity.microsoft.com/t5/azure-architecture-blog/data-exfiltration-protection-with-azure-databricks/ba-p/2334376)
-- [Full-Private Deployment Architecture](../../deployments/full-private/docs/01-ARCHITECTURE.md)
+- [Azure Private Link Documentation](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link)
 
 ---
 
@@ -997,8 +997,6 @@ EOF
 
 ***REMOVED******REMOVED*** Troubleshooting
 
-See [Full Private Troubleshooting Guide](../../deployments/full-private/docs/06-TROUBLESHOOTING.md) for comprehensive issue resolution.
-
 ***REMOVED******REMOVED******REMOVED*** Common Issues
 
 **Issue**: Cannot Access Workspace
@@ -1066,11 +1064,13 @@ This is **expected in air-gapped deployments**. Libraries cannot be downloaded f
 
 ***REMOVED******REMOVED*** References
 
-- **Deployment Documentation**: [deployments/full-private/docs/README.md](../../deployments/full-private/docs/README.md)
-- **Architecture Deep Dive**: [deployments/full-private/docs/01-ARCHITECTURE.md](../../deployments/full-private/docs/01-ARCHITECTURE.md)
-- **Serverless Setup**: [deployments/full-private/docs/04-SERVERLESS-SETUP.md](../../deployments/full-private/docs/04-SERVERLESS-SETUP.md)
+- **Pattern Documentation**: This document (Full-Private deployment pattern)
+- **CMK Module Documentation**: [docs/modules/05-CMK.md](../modules/05-CMK.md)
+- **SEP Module Documentation**: [docs/modules/06-SEP.md](../modules/06-SEP.md)
+- **Troubleshooting Guide**: [docs/07-TROUBLESHOOTING.md](../07-TROUBLESHOOTING.md)
 - **Azure Databricks Private Link**: [Microsoft Documentation](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link)
 - **Unity Catalog**: [Microsoft Documentation](https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/)
+- **Azure Databricks Data Exfiltration Protection**: [Microsoft Tech Community](https://techcommunity.microsoft.com/t5/azure-architecture-blog/data-exfiltration-protection-with-azure-databricks/ba-p/2334376)
 
 ---
 
