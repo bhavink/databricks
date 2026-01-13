@@ -59,9 +59,20 @@ output "resources" {
       name                = module.service_endpoint_policy[0].service_endpoint_policy_name
       allowed_storage_ids = module.service_endpoint_policy[0].allowed_storage_accounts
     } : null
+    customer_managed_keys = (var.enable_cmk_managed_services || var.enable_cmk_managed_disks || var.enable_cmk_dbfs_root) ? {
+      key_vault_id     = var.cmk_key_vault_id
+      key_id           = var.cmk_key_vault_key_id
+      managed_services = var.enable_cmk_managed_services
+      managed_disks    = var.enable_cmk_managed_disks
+      dbfs_root        = var.enable_cmk_dbfs_root
+      disk_encryption_set = var.enable_cmk_managed_disks ? {
+        resource_id  = module.workspace.disk_encryption_set_identity.resource_id
+        principal_id = module.workspace.disk_encryption_set_identity.principal_id
+      } : null
+    } : null
     resource_group = {
-      name = azurerm_resource_group.this.name
-      id   = azurerm_resource_group.this.id
+      name = local.resource_group_name
+      id   = var.use_byor_infrastructure ? null : azurerm_resource_group.this[0].id
     }
   }
 }

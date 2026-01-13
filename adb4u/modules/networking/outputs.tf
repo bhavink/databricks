@@ -53,12 +53,12 @@ output "nat_gateway_public_ip" {
 ***REMOVED*** NSG Association IDs (required for workspace)
 output "public_subnet_nsg_association_id" {
   description = "Public subnet NSG association ID"
-  value       = local.using_existing ? "${local.public_subnet_id}/networkSecurityGroups/${local.nsg_id}" : azurerm_subnet_network_security_group_association.public[0].id
+  value       = local.using_existing ? var.existing_public_subnet_nsg_association_id : azurerm_subnet_network_security_group_association.public[0].id
 }
 
 output "private_subnet_nsg_association_id" {
   description = "Private subnet NSG association ID"
-  value       = local.using_existing ? "${local.private_subnet_id}/networkSecurityGroups/${local.nsg_id}" : azurerm_subnet_network_security_group_association.private[0].id
+  value       = local.using_existing ? var.existing_private_subnet_nsg_association_id : azurerm_subnet_network_security_group_association.private[0].id
 }
 
 ***REMOVED*** ==============================================

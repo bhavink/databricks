@@ -1,4 +1,14 @@
 ***REMOVED*** ==============================================
+***REMOVED*** Deployment Mode (Master Control)
+***REMOVED*** ==============================================
+
+variable "use_byor_infrastructure" {
+  description = "Set to true to use network and CMK resources provisioned by the BYOR deployment. When true, existing_* network and CMK variables must be provided. When false, new network and CMK resources will be created based on other variables."
+  type        = bool
+  default     = false
+}
+
+***REMOVED*** ==============================================
 ***REMOVED*** Core Configuration
 ***REMOVED*** ==============================================
 
@@ -83,6 +93,18 @@ variable "existing_nsg_name" {
   default     = ""
 }
 
+variable "existing_public_subnet_nsg_association_id" {
+  description = "Resource ID of the existing public subnet's NSG association (required if use_byor_infrastructure=true)"
+  type        = string
+  default     = ""
+}
+
+variable "existing_private_subnet_nsg_association_id" {
+  description = "Resource ID of the existing private subnet's NSG association (required if use_byor_infrastructure=true)"
+  type        = string
+  default     = ""
+}
+
 ***REMOVED*** New Network Configuration
 variable "vnet_address_space" {
   description = "Address space for VNet (CIDR /16 to /24). Used when creating new VNet."
@@ -106,6 +128,12 @@ variable "privatelink_subnet_address_prefix" {
   description = "Address prefix for Private Link subnet (CIDR at least /27). Used when creating new subnet for Full Private pattern."
   type        = list(string)
   default     = ["10.178.2.0/27"]
+}
+
+variable "enable_nat_gateway" {
+  description = "Create NAT Gateway for egress. For Full Private (air-gapped), set to false. Only relevant when use_byor_infrastructure=false."
+  type        = bool
+  default     = false  ***REMOVED*** Disabled by default for Full Private
 }
 
 ***REMOVED*** ==============================================
@@ -210,8 +238,27 @@ variable "enable_cmk_dbfs_root" {
   default     = true  ***REMOVED*** Enabled by default for Full Private
 }
 
+***REMOVED*** Key Vault Configuration (Create or Bring)
+variable "create_key_vault" {
+  description = "Create new Key Vault (true) or use existing (false). When use_byor_infrastructure=true with CMK enabled, this is automatically set to false."
+  type        = bool
+  default     = true
+}
+
+variable "existing_key_vault_id" {
+  description = "Azure Key Vault resource ID (required if create_key_vault=false or use_byor_infrastructure=true with CMK)"
+  type        = string
+  default     = ""
+}
+
+variable "existing_key_id" {
+  description = "Azure Key Vault key ID (optional, will create if not provided)"
+  type        = string
+  default     = ""
+}
+
 variable "cmk_key_vault_key_id" {
-  description = "Azure Key Vault Key ID for CMK encryption (e.g., https://kv-name.vault.azure.net/keys/key-name/version). Required if any enable_cmk_* is true."
+  description = "Azure Key Vault Key ID for CMK encryption (e.g., https://kv-name.vault.azure.net/keys/key-name/version). Required if any enable_cmk_* is true. Auto-populated from Key Vault module or use existing_key_id."
   type        = string
   default     = ""
 }

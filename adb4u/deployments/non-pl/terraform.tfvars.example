@@ -68,6 +68,23 @@
 ***REMOVED*** Core Configuration (REQUIRED)
 ***REMOVED*** ==============================================
 
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ DEPLOYMENT MODE (Master Control) - NEW!                                  │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+
+use_byor_infrastructure = false  ***REMOVED*** Set to true if using deployments/byor
+
+***REMOVED*** When TRUE:  Uses infrastructure from deployments/byor
+***REMOVED***             - Network: VNet, subnets, NSG (from BYOR)
+***REMOVED***             - NAT Gateway: Already created (automatic)
+***REMOVED***             - CMK: Key Vault from BYOR (if CMK enabled)
+***REMOVED***             - Copy-paste BYOR output: terraform output copy_paste_config
+***REMOVED***
+***REMOVED*** When FALSE: Creates all resources from scratch (default)
+***REMOVED***             - Must configure: vnet_address_space, subnet_address_prefix
+***REMOVED***             - Must set: enable_nat_gateway = true
+***REMOVED***             - If CMK: Workspace creates new Key Vault
+
 workspace_prefix = "proddb"  ***REMOVED*** Lowercase alphanumeric, max 12 chars
 location         = "eastus2"
 resource_group_name = "rg-databricks-prod-eastus2"
@@ -81,27 +98,32 @@ databricks_account_id = ""
 ***REMOVED*** Network Configuration
 ***REMOVED*** ==============================================
 
-***REMOVED*** Option 1: Create New Network (Default)
-use_existing_network         = false
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ SCENARIO 1: Create New Network (use_byor_infrastructure = false)         │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+
 vnet_address_space           = ["10.100.0.0/16"]
 public_subnet_address_prefix = ["10.100.1.0/26"]
 private_subnet_address_prefix = ["10.100.2.0/26"]
-
-***REMOVED*** Option 2: Bring Your Own VNet (BYOV)
-***REMOVED*** Uncomment and configure if using existing network:
-***REMOVED*** use_existing_network          = true
-***REMOVED*** existing_vnet_name            = "my-existing-vnet"
-***REMOVED*** existing_resource_group_name  = "my-existing-rg"
-***REMOVED*** existing_public_subnet_name   = "databricks-public"
-***REMOVED*** existing_private_subnet_name  = "databricks-private"
-***REMOVED*** existing_nsg_name             = "databricks-nsg"
-***REMOVED***
-***REMOVED*** ⚠️ IMPORTANT: Existing subnets MUST have:
-***REMOVED***    - Databricks delegation (Microsoft.Databricks/workspaces)
-***REMOVED***    - Service Endpoints (Microsoft.Storage, Microsoft.KeyVault)
-
-***REMOVED*** NAT Gateway (Recommended for Non-PL)
 enable_nat_gateway = true  ***REMOVED*** Required for downloading packages (PyPI, Maven, etc.)
+
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ SCENARIO 2: Use BYOR Infrastructure (use_byor_infrastructure = true)     │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+
+***REMOVED*** Run this from BYOR deployment to get copy-paste config:
+***REMOVED***   cd deployments/byor
+***REMOVED***   terraform output copy_paste_config
+***REMOVED***
+***REMOVED*** Then paste the output here. Example:
+***REMOVED***
+***REMOVED*** existing_vnet_name            = "proddb-vnet-9a8b"
+***REMOVED*** existing_resource_group_name  = "rg-databricks-byor-eastus2"
+***REMOVED*** existing_public_subnet_name   = "proddb-public-subnet-9a8b"
+***REMOVED*** existing_private_subnet_name  = "proddb-private-subnet-9a8b"
+***REMOVED*** existing_nsg_name             = "proddb-nsg-9a8b"
+***REMOVED***
+***REMOVED*** Note: NAT Gateway flag is automatically managed when using BYOR
 
 ***REMOVED*** ==============================================
 ***REMOVED*** Service Endpoint Policy (Security)
@@ -117,13 +139,25 @@ enable_cmk_managed_services = false  ***REMOVED*** Control plane data (notebooks
 enable_cmk_managed_disks    = false  ***REMOVED*** Cluster VM managed disks
 enable_cmk_dbfs_root        = false  ***REMOVED*** Workspace DBFS root storage
 
-***REMOVED*** Key Vault Configuration
-***REMOVED*** Option 1: Create new Key Vault (default)
-create_key_vault = true
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ SCENARIO 1: Create New Key Vault (use_byor_infrastructure = false)       │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
 
-***REMOVED*** Option 2: Use existing Key Vault (set create_key_vault = false)
-***REMOVED*** existing_key_vault_id = "/subscriptions/.../resourceGroups/.../providers/Microsoft.KeyVault/vaults/my-kv"
-***REMOVED*** existing_key_id       = "https://my-keyvault.vault.azure.net/keys/my-cmk-key/version"  ***REMOVED*** Optional: will create if not provided
+***REMOVED*** Workspace will automatically create Key Vault (no additional config needed)
+***REMOVED*** Note: Set enable_cmk_* flags to true above
+
+***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
+***REMOVED*** │ SCENARIO 2: Use BYOR Key Vault (use_byor_infrastructure = true)          │
+***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+
+***REMOVED*** Copy-paste from BYOR output (if BYOR created Key Vault):
+***REMOVED***   terraform output copy_paste_config
+***REMOVED***
+***REMOVED*** Example:
+***REMOVED*** existing_key_vault_id = "/subscriptions/.../vaults/proddb-kv-9a8b"
+***REMOVED*** existing_key_id       = "https://proddb-kv-9a8b.vault.azure.net/keys/databricks-cmk/..."
+***REMOVED***
+***REMOVED*** Note: Key Vault creation is automatically managed when using BYOR
 
 ***REMOVED*** Requirements:
 ***REMOVED*** - Key Vault must be in same region as workspace

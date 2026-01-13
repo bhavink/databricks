@@ -2,6 +2,24 @@
 ***REMOVED*** Core Configuration
 ***REMOVED*** ==============================================
 
+variable "use_byor_infrastructure" {
+  description = <<-EOT
+    Use infrastructure from BYOR deployment (network + optional CMK).
+    
+    When TRUE:  Uses existing resources from deployments/byor
+                - Network: VNet, subnets, NSG (required)
+                - NAT Gateway: Already created by BYOR (automatic)
+                - CMK: Key Vault from BYOR (if CMK enabled)
+    
+    When FALSE: Creates all resources from scratch
+                - Network: New VNet, subnets, NSG
+                - NAT Gateway: Created if enable_nat_gateway=true
+                - CMK: New Key Vault if create_key_vault=true
+  EOT
+  type        = bool
+  default     = false
+}
+
 variable "workspace_prefix" {
   description = "Prefix for resource naming (lowercase alphanumeric, max 12 chars)"
   type        = string
@@ -72,6 +90,18 @@ variable "existing_private_subnet_name" {
 
 variable "existing_nsg_name" {
   description = "Name of existing NSG (required if use_existing_network=true)"
+  type        = string
+  default     = ""
+}
+
+variable "existing_public_subnet_nsg_association_id" {
+  description = "Resource ID of existing public subnet NSG association (required if use_existing_network=true)"
+  type        = string
+  default     = ""
+}
+
+variable "existing_private_subnet_nsg_association_id" {
+  description = "Resource ID of existing private subnet NSG association (required if use_existing_network=true)"
   type        = string
   default     = ""
 }

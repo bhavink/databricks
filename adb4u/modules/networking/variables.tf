@@ -108,6 +108,18 @@ variable "existing_privatelink_subnet_name" {
   default     = ""
 }
 
+variable "existing_public_subnet_nsg_association_id" {
+  description = "Resource ID of existing public subnet NSG association (required if use_existing_network=true)"
+  type        = string
+  default     = ""
+}
+
+variable "existing_private_subnet_nsg_association_id" {
+  description = "Resource ID of existing private subnet NSG association (required if use_existing_network=true)"
+  type        = string
+  default     = ""
+}
+
 ***REMOVED*** ==============================================
 ***REMOVED*** Service Endpoint Policy Configuration
 ***REMOVED*** ==============================================

@@ -106,89 +106,7 @@ The Non-Private Link (Non-PL) pattern provides a **secure** Azure Databricks dep
 
 ---
 
-***REMOVED******REMOVED*** Architecture Diagrams
-
-***REMOVED******REMOVED******REMOVED*** High-Level Architecture (Mermaid)
-
-```mermaid
-graph TB
-    subgraph Internet
-        User[User Browser]
-        PyPI[PyPI/Maven<br/>Custom Repos]
-    end
-    
-    subgraph Azure["Azure Cloud"]
-        subgraph ControlPlane["Databricks Control Plane<br/>(Microsoft-Managed)"]
-            UI[Web UI/API]
-            ClusterMgr[Cluster Manager]
-            MetaService[Metadata Service]
-        end
-        
-        subgraph CustomerVNet["Customer VNet (10.100.0.0/16)"]
-            subgraph PublicSubnet["Public/Host Subnet<br/>(10.100.1.0/26)"]
-                Driver[Driver Node<br/>No Public IP]
-            end
-            
-            subgraph PrivateSubnet["Private/Container Subnet<br/>(10.100.2.0/26)"]
-                Worker1[Worker Node 1<br/>No Public IP]
-                Worker2[Worker Node 2<br/>No Public IP]
-            end
-            
-            NSG[Network Security Group<br/>Service Tags:<br/>AzureDatabricks, Storage, EventHub]
-            NAT[NAT Gateway<br/>203.0.113.45]
-        end
-        
-        subgraph Storage["Azure Storage"]
-            DBFS[DBFS Root<br/>Databricks-Managed]
-            UCMetastore[UC Metastore<br/>Customer-Owned]
-            ExtLocation[External Location<br/>Customer-Owned]
-            DBRImages[DBR Runtime Images<br/>Databricks-Managed<br/>dbartifactsprod*]
-        end
-        
-        EventHub[Event Hub<br/>Logs & Metrics]
-    end
-    
-    User -->|HTTPS| UI
-    UI -->|Commands| ClusterMgr
-    
-    ClusterMgr -.->|Provisions| Driver
-    ClusterMgr -.->|Provisions| Worker1
-    ClusterMgr -.->|Provisions| Worker2
-    
-    Driver -->|NSG: AzureDatabricks| ControlPlane
-    Worker1 -->|NSG: AzureDatabricks| ControlPlane
-    Worker2 -->|NSG: AzureDatabricks| ControlPlane
-    
-    Driver -->|NAT Gateway| PyPI
-    Worker1 -->|NAT Gateway| PyPI
-    Worker2 -->|NAT Gateway| PyPI
-    
-    Driver -->|NSG: Storage<br/>Service Endpoint| DBFS
-    Driver -->|NSG: Storage<br/>Service Endpoint| UCMetastore
-    Driver -->|NSG: Storage<br/>Service Endpoint| ExtLocation
-    Driver -->|NSG: Storage<br/>Service Endpoint| DBRImages
-    
-    Worker1 -->|NSG: Storage<br/>Service Endpoint| ExtLocation
-    Worker1 -->|NSG: Storage<br/>Service Endpoint| DBRImages
-    Worker2 -->|NSG: Storage<br/>Service Endpoint| ExtLocation
-    Worker2 -->|NSG: Storage<br/>Service Endpoint| DBRImages
-    
-    Driver -->|NSG: EventHub| EventHub
-    Worker1 -->|NSG: EventHub| EventHub
-    Worker2 -->|NSG: EventHub| EventHub
-    
-    Driver <-->|Within VNet| Worker1
-    Driver <-->|Within VNet| Worker2
-    Worker1 <-->|Within VNet| Worker2
-    
-    style ControlPlane fill:***REMOVED***e1f5ff
-    style CustomerVNet fill:***REMOVED***fff4e1
-    style Storage fill:***REMOVED***e8f5e9
-    style NAT fill:***REMOVED***ffebee
-    style NSG fill:***REMOVED***f3e5f5
-```
-
-***REMOVED******REMOVED******REMOVED*** Traffic Flow Routing
+***REMOVED******REMOVED*** Network Traffic Flow
 
 ```mermaid
 graph LR
@@ -663,19 +581,19 @@ terraform apply
 ***REMOVED*** terraform.tfvars
 
 ***REMOVED*** Core Configuration
-workspace_prefix    = "proddb"          ***REMOVED*** Lowercase, alphanumeric, max 12 chars
-location           = "eastus2"          ***REMOVED*** Azure region
-resource_group_name = "rg-databricks-prod-eastus2"
+workspace_prefix    = "<your-prefix>"        ***REMOVED*** Lowercase, alphanumeric, max 12 chars (e.g., "proddb", "devml")
+location           = "<azure-region>"        ***REMOVED*** Azure region (e.g., "eastus2", "westus")
+resource_group_name = "<rg-name>"            ***REMOVED*** Resource group name (e.g., "rg-databricks-prod-eastus2")
 
 ***REMOVED*** Databricks Configuration
-databricks_account_id = "12345678-1234-1234-1234-123456789012"  ***REMOVED*** Your account ID
+databricks_account_id = "<account-id>"       ***REMOVED*** Your Databricks account ID (UUID format)
 
 ***REMOVED*** Unity Catalog
-metastore_name = "prod-eastus2-metastore"  ***REMOVED*** Or use existing metastore ID
+metastore_name = "<metastore-name>"          ***REMOVED*** Metastore name (e.g., "prod-eastus2-metastore")
 
 ***REMOVED*** Tags
-tag_owner     = "platform-team@company.com"
-tag_keepuntil = "12/31/2026"
+tag_owner     = "<owner-email>"              ***REMOVED*** Resource owner email
+tag_keepuntil = "<expiration-date>"          ***REMOVED*** Resource expiration date (MM/DD/YYYY)
 
 ***REMOVED*** Standard tags
 tags = {
@@ -728,13 +646,13 @@ existing_metastore_id = "abc-123-def-456"  ***REMOVED*** From first workspace
 ***REMOVED******REMOVED******REMOVED*** Essential Outputs
 
 ```hcl
-workspace_url               = "https://adb-1234567890123456.azuredatabricks.net"
-workspace_id                = "/subscriptions/.../databrickses/proddb-workspace"
-resource_group_name         = "rg-databricks-prod-eastus2"
-vnet_name                   = "proddb-vnet-9a8b"
-nat_gateway_public_ip       = "203.0.113.45"
-metastore_id                = "abc-123-def-456"
-external_location_url       = "abfss://external@proddbexternal9a8b.dfs.core.windows.net/"
+workspace_url               = "https://adb-<workspace-id>.azuredatabricks.net"
+workspace_id                = "/subscriptions/<sub-id>/resourceGroups/<rg-name>/providers/Microsoft.Databricks/workspaces/<workspace-name>"
+resource_group_name         = "<rg-name>"
+vnet_name                   = "<workspace-prefix>-vnet-<suffix>"
+nat_gateway_public_ip       = "<public-ip>"
+metastore_id                = "<metastore-id>"
+external_location_url       = "abfss://external@<storage-account>.dfs.core.windows.net/"
 ```
 
 ***REMOVED******REMOVED******REMOVED*** Deployment Summary

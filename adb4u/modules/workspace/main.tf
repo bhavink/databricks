@@ -118,6 +118,57 @@ resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "this" {
 }
 
 ***REMOVED*** ==============================================
+***REMOVED*** Managed Disks CMK Encryption
+***REMOVED*** ==============================================
+
+***REMOVED*** Data source to find Disk Encryption Set (DES) created by Azure
+***REMOVED*** When managed_disk_cmk is enabled, Azure automatically creates a DES in the managed resource group
+***REMOVED*** We need to find it by querying the resources in the managed RG
+***REMOVED*** Reference: https://learn.microsoft.com/en-us/azure/databricks/security/keys/customer-managed-keys-managed-services-azure
+data "azurerm_resources" "disk_encryption_set" {
+  count               = var.enable_cmk_managed_disks ? 1 : 0
+  type                = "Microsoft.Compute/diskEncryptionSets"
+  resource_group_name = azurerm_databricks_workspace.this.managed_resource_group_name
+
+  depends_on = [azurerm_databricks_workspace.this]
+}
+
+***REMOVED*** Data source to read the actual Disk Encryption Set details including identity
+***REMOVED*** The azurerm_resources data source only gives us the ID, we need the specific DES data source for identity
+data "azurerm_disk_encryption_set" "this" {
+  count               = var.enable_cmk_managed_disks ? 1 : 0
+  name                = split("/", data.azurerm_resources.disk_encryption_set[0].resources[0].id)[8]
+  resource_group_name = azurerm_databricks_workspace.this.managed_resource_group_name
+
+  depends_on = [
+    azurerm_databricks_workspace.this,
+    data.azurerm_resources.disk_encryption_set
+  ]
+}
+
+***REMOVED*** Key Vault Access Policy for Disk Encryption Set Managed Identity
+***REMOVED*** This grants the DES permission to use the CMK for encrypting managed disks
+***REMOVED*** Without this, cluster startup will fail with: KeyVaultAccessForbidden
+resource "azurerm_key_vault_access_policy" "disk_encryption_set" {
+  count = var.enable_cmk_managed_disks ? 1 : 0
+
+  key_vault_id = var.cmk_key_vault_id
+  tenant_id    = data.azurerm_disk_encryption_set.this[0].identity[0].tenant_id
+  object_id    = data.azurerm_disk_encryption_set.this[0].identity[0].principal_id
+
+  key_permissions = [
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
+  ]
+
+  depends_on = [
+    azurerm_databricks_workspace.this,
+    data.azurerm_disk_encryption_set.this
+  ]
+}
+
+***REMOVED*** ==============================================
 ***REMOVED*** Workspace Configuration (Optional Features)
 ***REMOVED*** ==============================================
 

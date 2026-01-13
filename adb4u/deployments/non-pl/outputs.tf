@@ -57,13 +57,17 @@ output "resources" {
       allowed_storage_ids = module.service_endpoint_policy[0].allowed_storage_accounts
     } : null
     customer_managed_keys = local.cmk_enabled ? {
-      key_vault_id          = var.create_key_vault ? module.key_vault[0].key_vault_id : var.existing_key_vault_id
-      key_vault_name        = var.create_key_vault ? module.key_vault[0].key_vault_name : "existing"
-      key_id                = var.create_key_vault ? module.key_vault[0].key_id : var.existing_key_id
+      key_vault_id          = local.create_key_vault ? module.key_vault[0].key_vault_id : var.existing_key_vault_id
+      key_vault_name        = local.create_key_vault ? module.key_vault[0].key_vault_name : "existing"
+      key_id                = local.create_key_vault ? module.key_vault[0].key_id : var.existing_key_id
       managed_services      = var.enable_cmk_managed_services
       managed_disks         = var.enable_cmk_managed_disks
       dbfs_root             = var.enable_cmk_dbfs_root
-      auto_rotation_enabled = var.create_key_vault ? true : null
+      auto_rotation_enabled = local.create_key_vault ? true : null
+      disk_encryption_set   = var.enable_cmk_managed_disks ? {
+        resource_id  = module.workspace.disk_encryption_set_identity.resource_id
+        principal_id = module.workspace.disk_encryption_set_identity.principal_id
+      } : null
     } : null
   }
 }
@@ -92,7 +96,7 @@ output "deployment_summary" {
   ✅ Unity Catalog: ${module.unity_catalog.metastore_id}
   ✅ NCC (Serverless-Ready): ${module.ncc.ncc_id}
   ${var.enable_service_endpoint_policy ? "✅ Service Endpoint Policy: Enabled" : "⚠️  Service Endpoint Policy: Disabled"}
-  ${var.enable_nat_gateway ? "✅ NAT Gateway: ${module.networking.nat_gateway_public_ip}" : "⚠️  NAT Gateway: Disabled"}
+  ${local.enable_nat_gateway ? "✅ NAT Gateway: ${module.networking.nat_gateway_public_ip}" : "⚠️  NAT Gateway: Disabled (using BYOR)"}
   ${local.cmk_enabled ? "✅ Customer-Managed Keys: Enabled (${var.enable_cmk_managed_services ? "Managed Services" : ""}${var.enable_cmk_managed_services && var.enable_cmk_managed_disks ? " + " : ""}${var.enable_cmk_managed_disks ? "Managed Disks" : ""}${(var.enable_cmk_managed_services || var.enable_cmk_managed_disks) && var.enable_cmk_dbfs_root ? " + " : ""}${var.enable_cmk_dbfs_root ? "DBFS Root" : ""})" : "⚠️  Customer-Managed Keys: Disabled"}
   ${var.enable_cmk_managed_services || var.enable_cmk_managed_disks ? "✅ Customer-Managed Keys: Enabled" : "⚠️  Customer-Managed Keys: Disabled (optional)"}
   ${var.enable_ip_access_lists ? "✅ IP Access Lists: Enabled" : "⚠️  IP Access Lists: Disabled (optional)"}

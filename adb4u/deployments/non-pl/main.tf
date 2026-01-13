@@ -26,30 +26,94 @@ locals {
   
   ***REMOVED*** Determine if any CMK feature is enabled
   cmk_enabled = var.enable_cmk_managed_services || var.enable_cmk_managed_disks || var.enable_cmk_dbfs_root
+  
+  ***REMOVED*** ==============================================
+  ***REMOVED*** BYOR Derived Flags (Master Control Logic)
+  ***REMOVED*** ==============================================
+  ***REMOVED*** When use_byor_infrastructure=true, automatically derive correct flags
+  ***REMOVED*** to prevent user configuration errors.
+  
+  ***REMOVED*** Network: Use BYOR network if use_byor_infrastructure is true
+  use_existing_network = var.use_byor_infrastructure ? true : var.use_existing_network
+  
+  ***REMOVED*** NAT Gateway: BYOR already created it, so disable workspace creation
+  enable_nat_gateway = var.use_byor_infrastructure ? false : var.enable_nat_gateway
+  
+  ***REMOVED*** CMK Key Vault: BYOR already created it (if CMK enabled), so use existing
+  create_key_vault = (var.use_byor_infrastructure && local.cmk_enabled) ? false : var.create_key_vault
 }
 
+***REMOVED*** ==============================================
+***REMOVED*** Resource Group
+***REMOVED*** ==============================================
+
+***REMOVED*** Create new Resource Group only when not using BYOR
 resource "azurerm_resource_group" "this" {
+  count    = var.use_byor_infrastructure ? 0 : 1
   name     = var.resource_group_name
   location = var.location
   tags     = local.all_tags
+  
+  ***REMOVED*** Validation: When using BYOR, ensure network resources are provided
+  lifecycle {
+    precondition {
+      condition = (
+        var.use_byor_infrastructure == false ||
+        (var.existing_vnet_name != "" && 
+         var.existing_resource_group_name != "" &&
+         var.existing_public_subnet_name != "" &&
+         var.existing_private_subnet_name != "" &&
+         var.existing_nsg_name != "")
+      )
+      error_message = <<-EOT
+        When use_byor_infrastructure=true, all existing network resources must be provided:
+        - existing_vnet_name
+        - existing_resource_group_name
+        - existing_public_subnet_name
+        - existing_private_subnet_name
+        - existing_nsg_name
+      EOT
+    }
+    
+    precondition {
+      condition = (
+        var.use_byor_infrastructure == false ||
+        !local.cmk_enabled ||
+        (var.existing_key_vault_id != "" && var.existing_key_id != "")
+      )
+      error_message = <<-EOT
+        When use_byor_infrastructure=true with CMK enabled, Key Vault resources must be provided:
+        - existing_key_vault_id
+        - existing_key_id
+      EOT
+    }
+  }
+}
+
+***REMOVED*** Local to use either existing or newly created RG name
+locals {
+  ***REMOVED*** When using BYOR, RG already exists - just use the variable
+  ***REMOVED*** When not using BYOR, use the newly created RG name
+  resource_group_name = var.use_byor_infrastructure ? var.resource_group_name : azurerm_resource_group.this[0].name
 }
 
 ***REMOVED*** ==============================================
 ***REMOVED*** Key Vault Module (Optional - for CMK)
 ***REMOVED*** ==============================================
 
+***REMOVED*** Only invoke key_vault module if creating a new Key Vault
 module "key_vault" {
-  count  = local.cmk_enabled ? 1 : 0
+  count  = local.cmk_enabled && local.create_key_vault ? 1 : 0
   source = "../../modules/key-vault"
 
   ***REMOVED*** Create or use existing Key Vault
-  create_key_vault      = var.create_key_vault
+  create_key_vault      = local.create_key_vault
   existing_key_vault_id = var.existing_key_vault_id
   existing_key_id       = var.existing_key_id
 
   ***REMOVED*** Resource configuration
   workspace_prefix    = var.workspace_prefix
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
   location            = var.location
 
   ***REMOVED*** Key configuration (auto-rotation enabled)
@@ -73,8 +137,8 @@ module "key_vault" {
 module "networking" {
   source = "../../modules/networking"
 
-  ***REMOVED*** BYOV or create new
-  use_existing_network = var.use_existing_network
+  ***REMOVED*** BYOV or create new (derived from use_byor_infrastructure)
+  use_existing_network = local.use_existing_network
 
   ***REMOVED*** Existing network (BYOV)
   existing_vnet_name            = var.existing_vnet_name
@@ -82,19 +146,23 @@ module "networking" {
   existing_public_subnet_name   = var.existing_public_subnet_name
   existing_private_subnet_name  = var.existing_private_subnet_name
   existing_nsg_name             = var.existing_nsg_name
+  
+  ***REMOVED*** NSG Association IDs (required for BYOV)
+  existing_public_subnet_nsg_association_id  = var.existing_public_subnet_nsg_association_id
+  existing_private_subnet_nsg_association_id = var.existing_private_subnet_nsg_association_id
 
   ***REMOVED*** New network configuration
   vnet_address_space            = var.vnet_address_space
   public_subnet_address_prefix  = var.public_subnet_address_prefix
   private_subnet_address_prefix = var.private_subnet_address_prefix
 
-  ***REMOVED*** Non-PL pattern: NAT Gateway enabled, Private Link disabled
-  enable_nat_gateway  = var.enable_nat_gateway
+  ***REMOVED*** Non-PL pattern: NAT Gateway (derived from use_byor_infrastructure), Private Link disabled
+  enable_nat_gateway  = local.enable_nat_gateway
   enable_private_link = false
 
   ***REMOVED*** Core configuration
   location            = var.location
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
   workspace_prefix    = var.workspace_prefix
   tags                = local.all_tags
 
@@ -124,8 +192,8 @@ module "workspace" {
   enable_cmk_managed_services = var.enable_cmk_managed_services
   enable_cmk_managed_disks    = var.enable_cmk_managed_disks
   enable_cmk_dbfs_root        = var.enable_cmk_dbfs_root
-  cmk_key_vault_key_id        = local.cmk_enabled ? (var.create_key_vault ? module.key_vault[0].key_id : var.existing_key_id) : ""
-  cmk_key_vault_id            = local.cmk_enabled ? (var.create_key_vault ? module.key_vault[0].key_vault_id : var.existing_key_vault_id) : ""
+  cmk_key_vault_key_id        = local.cmk_enabled ? (local.create_key_vault ? module.key_vault[0].key_id : var.existing_key_id) : ""
+  cmk_key_vault_id            = local.cmk_enabled ? (local.create_key_vault ? module.key_vault[0].key_vault_id : var.existing_key_vault_id) : ""
   databricks_account_id       = var.databricks_account_id
 
   ***REMOVED*** IP Access Lists (optional)
@@ -134,7 +202,7 @@ module "workspace" {
 
   ***REMOVED*** Core configuration
   location            = var.location
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
   tags                = local.all_tags
 
   depends_on = [module.networking]
@@ -176,7 +244,7 @@ module "unity_catalog" {
 
   ***REMOVED*** Core configuration
   location            = var.location
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
   tags                = local.all_tags
 
   depends_on = [module.workspace]
@@ -195,7 +263,7 @@ module "service_endpoint_policy" {
   workspace_prefix   = var.workspace_prefix
   random_suffix      = random_string.deployment_suffix.result
   location           = var.location
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = local.resource_group_name
 
   ***REMOVED*** Storage accounts to allow-list
   dbfs_storage_resource_id          = module.workspace.dbfs_storage_account_id
@@ -209,13 +277,14 @@ module "service_endpoint_policy" {
 }
 
 ***REMOVED*** ==============================================
-***REMOVED*** Apply SEP to Subnets (Post-Deployment Step)
+***REMOVED*** Apply SEP to Subnets (Post-Deployment via Azure CLI)
 ***REMOVED*** ==============================================
-***REMOVED*** Note: This uses null_resource with Azure CLI to apply SEP to subnets
-***REMOVED*** after all resources are created to avoid circular dependencies
+***REMOVED*** Note: Cannot pass SEP ID to networking module during creation due to circular dependency:
+***REMOVED*** Networking → Workspace → Unity Catalog → SEP → (back to Networking)
+***REMOVED*** Solution: Apply SEP after all resources are created with built-in 30s sleep
 
 resource "null_resource" "apply_sep_to_public_subnet" {
-  count = var.enable_service_endpoint_policy && !var.use_existing_network ? 1 : 0
+  count = var.enable_service_endpoint_policy && !local.use_existing_network ? 1 : 0
 
   triggers = {
     sep_id          = module.service_endpoint_policy[0].service_endpoint_policy_id
@@ -225,6 +294,8 @@ resource "null_resource" "apply_sep_to_public_subnet" {
 
   provisioner "local-exec" {
     command = <<-EOT
+      echo "⏳ Waiting for SEP propagation..."
+      sleep 30
       echo "Applying Service Endpoint Policy to public subnet..."
       az network vnet subnet update \
         --ids ${module.networking.subnet_ids["public"]} \
@@ -251,7 +322,7 @@ resource "null_resource" "apply_sep_to_public_subnet" {
 }
 
 resource "null_resource" "apply_sep_to_private_subnet" {
-  count = var.enable_service_endpoint_policy && !var.use_existing_network ? 1 : 0
+  count = var.enable_service_endpoint_policy && !local.use_existing_network ? 1 : 0
 
   triggers = {
     sep_id          = module.service_endpoint_policy[0].service_endpoint_policy_id
@@ -261,6 +332,8 @@ resource "null_resource" "apply_sep_to_private_subnet" {
 
   provisioner "local-exec" {
     command = <<-EOT
+      echo "⏳ Waiting for SEP propagation..."
+      sleep 30
       echo "Applying Service Endpoint Policy to private subnet..."
       az network vnet subnet update \
         --ids ${module.networking.subnet_ids["private"]} \

@@ -6,17 +6,9 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
-    databricks = {
-      source  = "databricks/databricks"
-      version = "~> 1.40"
-    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.6"
-    }
-    null = {
-      source  = "hashicorp/null"
-      version = "~> 3.2"
     }
   }
 }

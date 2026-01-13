@@ -42,6 +42,15 @@ output "dbfs_storage_account_id" {
   value       = try(data.azurerm_resources.dbfs_storage.resources[0].id, null)
 }
 
+output "disk_encryption_set_identity" {
+  description = "Disk Encryption Set managed identity info (for CMK managed disks)"
+  value = var.enable_cmk_managed_disks ? {
+    resource_id  = data.azurerm_disk_encryption_set.this[0].id
+    principal_id = data.azurerm_disk_encryption_set.this[0].identity[0].principal_id
+    tenant_id    = data.azurerm_disk_encryption_set.this[0].identity[0].tenant_id
+  } : null
+}
+
 ***REMOVED*** ==============================================
 ***REMOVED*** Configuration Outputs
 ***REMOVED*** ==============================================
