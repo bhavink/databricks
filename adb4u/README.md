@@ -50,10 +50,8 @@ adb4u/
 │   ├── security/              ***REMOVED*** Security modules (CMK, IP access lists)
 │   └── monitoring/            ***REMOVED*** Monitoring and observability
 │
-├── archive/                   ***REMOVED*** Legacy content and templates
-│   └── LEGACY-CONTENT.md      ***REMOVED*** Historical reference
-│
-└── checkpoint/                ***REMOVED*** Implementation milestones
+└── archive/                   ***REMOVED*** Legacy content and templates
+    └── LEGACY-CONTENT.md      ***REMOVED*** Historical reference
 ```
 
 ***REMOVED******REMOVED******REMOVED*** 🎯 Deployment Patterns
