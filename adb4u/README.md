@@ -17,24 +17,43 @@ adb4u/
 ├── docs/                      ***REMOVED*** 📚 All documentation centralized here
 │   ├── README.md              ***REMOVED*** Documentation index
 │   ├── 01-QUICKSTART.md       ***REMOVED*** Quick start guide
-│   ├── TROUBLESHOOTING.md     ***REMOVED*** ⚠️ Common issues & solutions
-│   ├── DEPLOYMENT-CHECKLIST.md ***REMOVED*** Pre-flight checklist
-│   ├── 03-AUTHENTICATION.md   ***REMOVED*** Authentication setup
+│   ├── 02-DEPLOYMENT-CHECKLIST.md ***REMOVED*** Pre-flight checklist
+│   ├── 03-TRAFFIC-FLOWS.md    ***REMOVED*** Network traffic patterns
+│   ├── 04-TROUBLESHOOTING.md  ***REMOVED*** ⚠️ Common issues & solutions
+│   ├── guides/                ***REMOVED*** Additional guides
+│   │   └── 01-SERVERLESS-SETUP.md
 │   ├── modules/               ***REMOVED*** Module documentation
+│   │   ├── 01-NETWORKING.md
+│   │   ├── 02-WORKSPACE.md
+│   │   ├── 03-UNITY-CATALOG.md
+│   │   ├── 04-NCC.md
+│   │   ├── 05-CMK.md
+│   │   └── 06-SEP.md
 │   └── patterns/              ***REMOVED*** Pattern-specific guides
+│       ├── 01-NON-PL.md
+│       └── 02-FULL-PRIVATE.md
 │
 ├── deployments/               ***REMOVED*** Pre-built deployment patterns
 │   ├── non-pl/                ***REMOVED*** ✅ Non-Private Link (Ready)
 │   ├── full-private/          ***REMOVED*** ✅ Full Private (Ready)
+│   ├── byor/                  ***REMOVED*** ✅ Bring Your Own Resources (Ready)
 │   └── hub-spoke/             ***REMOVED*** 🚧 Hub-Spoke (Future)
 │
 ├── modules/                   ***REMOVED*** Reusable Terraform modules
 │   ├── networking/            ***REMOVED*** VNet, subnets, NSG, NAT
 │   ├── workspace/             ***REMOVED*** Databricks workspace
 │   ├── unity-catalog/         ***REMOVED*** Metastore, storage, credentials
-│   └── ncc/                   ***REMOVED*** Network Connectivity Config (serverless)
+│   ├── ncc/                   ***REMOVED*** Network Connectivity Config (serverless)
+│   ├── key-vault/             ***REMOVED*** Azure Key Vault integration
+│   ├── private-endpoints/     ***REMOVED*** Private Link endpoints
+│   ├── service-endpoint-policy/ ***REMOVED*** Service Endpoint Policies
+│   ├── security/              ***REMOVED*** Security modules (CMK, IP access lists)
+│   └── monitoring/            ***REMOVED*** Monitoring and observability
 │
-└── templates/                 ***REMOVED*** Legacy templates (reference only)
+├── archive/                   ***REMOVED*** Legacy content and templates
+│   └── LEGACY-CONTENT.md      ***REMOVED*** Historical reference
+│
+└── checkpoint/                ***REMOVED*** Implementation milestones
 ```
 
 ***REMOVED******REMOVED******REMOVED*** 🎯 Deployment Patterns
@@ -47,8 +66,8 @@ adb4u/
 - **Serverless**: NCC attached (Service Endpoints or Private Link)
 
 👉 **[Quick Start Guide →](./docs/01-QUICKSTART.md)**  
-🚀 **[Serverless Setup →](./deployments/non-pl/docs/SERVERLESS-SETUP.md)**  
-⚠️ **[Troubleshooting Guide →](./docs/TROUBLESHOOTING.md)** - Review before deploying!
+🚀 **[Serverless Setup →](./docs/guides/01-SERVERLESS-SETUP.md)**  
+⚠️ **[Troubleshooting Guide →](./docs/04-TROUBLESHOOTING.md)** - Review before deploying!
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** 2. **Full Private (Air-gapped)** ✅ Production Ready
 - **Workspace Access**: Private Link (SCC relay + API)
@@ -57,11 +76,19 @@ adb4u/
 - **Storage**: Private Link
 - **Serverless**: NCC attached (Private Link required)
 
-👉 **[Full Documentation →](./deployments/full-private/docs/README.md)**  
-🚀 **[Serverless Setup →](./deployments/full-private/docs/04-SERVERLESS-SETUP.md)**  
-⚠️ **[Troubleshooting Guide →](./deployments/full-private/docs/06-TROUBLESHOOTING.md)** - Common issues & solutions!
+👉 **[Pattern Documentation →](./docs/patterns/02-FULL-PRIVATE.md)**  
+🚀 **[Serverless Setup →](./docs/guides/01-SERVERLESS-SETUP.md)**  
+⚠️ **[Troubleshooting Guide →](./docs/04-TROUBLESHOOTING.md)** - Common issues & solutions!
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. **Hub-Spoke with Firewall** 🚧 Future
+***REMOVED******REMOVED******REMOVED******REMOVED*** 3. **BYOR (Bring Your Own Resources)** ✅ Production Ready
+- Integrate with existing Azure infrastructure
+- Bring your own VNet, Storage Account, Key Vault
+- Customer-Managed Keys (CMK) for enhanced security
+- Flexible configuration for existing environments
+
+👉 **[BYOR Documentation →](./deployments/byor/README.md)**
+
+***REMOVED******REMOVED******REMOVED******REMOVED*** 4. **Hub-Spoke with Firewall** 🚧 Future
 - Enterprise-scale multi-workspace deployments
 
 ***REMOVED******REMOVED******REMOVED*** ✨ Key Features
@@ -71,6 +98,9 @@ adb4u/
 - ✅ **Network Connectivity Config (NCC)**: Mandatory for serverless compute
 - ✅ **Flexible Networking**: Create new or BYOV
 - ✅ **Service Endpoint Policies**: Enhanced storage security
+- ✅ **Customer-Managed Keys (CMK)**: Optional encryption control
+- ✅ **Private Link Support**: Full private connectivity option
+- ✅ **BYOR Support**: Integrate with existing infrastructure
 - ✅ **Modular Design**: Reusable, composable components
 - ✅ **Well-Documented**: Comprehensive guides in `/docs`
 
@@ -103,10 +133,10 @@ terraform apply
 |---------|------------------|-------------------|
 | **Non-PL** | Service Endpoints (VNet) | Service Endpoints or Private Link (via NCC) |
 | **Full Private** | Private Endpoints (VNet) | Private Link (via NCC) |
+| **BYOR** | Flexible (based on existing setup) | Configurable via NCC |
 
 **Post-Deployment Setup**:
-- 📖 **Non-PL**: See [deployments/non-pl/docs/SERVERLESS-SETUP.md](./deployments/non-pl/docs/SERVERLESS-SETUP.md)
-- 📖 **Full Private**: See [deployments/full-private/docs/04-SERVERLESS-SETUP.md](./deployments/full-private/docs/04-SERVERLESS-SETUP.md)
+- 📖 **Serverless Setup**: See [docs/guides/01-SERVERLESS-SETUP.md](./docs/guides/01-SERVERLESS-SETUP.md)
 
 **Key Points**:
 - ✅ NCC is **mandatory** (created automatically like Unity Catalog)
@@ -117,30 +147,26 @@ terraform apply
 
 All documentation is centralized in the **[docs/](./docs/)** folder:
 
-**Non-PL Pattern (Production Ready)**:
+**Getting Started**:
 - **[Quick Start Guide](./docs/01-QUICKSTART.md)** - Deploy your first workspace
-- **[Serverless Setup](./deployments/non-pl/docs/SERVERLESS-SETUP.md)** - Enable SQL Warehouses & Notebooks
-- **[Troubleshooting Guide](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Traffic Flows](./docs/TRAFFIC-FLOWS.md)** - Network traffic patterns and sequences
-- **[Deployment Checklist](./docs/DEPLOYMENT-CHECKLIST.md)** - Pre-flight validation
-- **[Authentication Guide](./docs/03-AUTHENTICATION.md)** - Configure credentials
+- **[Deployment Checklist](./docs/02-DEPLOYMENT-CHECKLIST.md)** - Pre-flight validation
+- **[Traffic Flows](./docs/03-TRAFFIC-FLOWS.md)** - Network traffic patterns and sequences
+- **[Troubleshooting Guide](./docs/04-TROUBLESHOOTING.md)** - Common issues and solutions
 
-**Full Private Pattern (Production Ready)**:
-- **[Complete Documentation Index](./deployments/full-private/docs/README.md)** - Start here
-- **[Architecture Overview](./deployments/full-private/docs/01-ARCHITECTURE.md)** - Visual diagrams
-- **[Serverless Setup Guide](./deployments/full-private/docs/04-SERVERLESS-SETUP.md)** - Enable serverless compute
-- **[Troubleshooting Guide](./deployments/full-private/docs/06-TROUBLESHOOTING.md)** - Errors & solutions
+**Guides**:
+- **[Serverless Setup Guide](./docs/guides/01-SERVERLESS-SETUP.md)** - Enable SQL Warehouses & Notebooks
+
+**Pattern Documentation**:
+- **[Non-PL Pattern](./docs/patterns/01-NON-PL.md)** - Non-Private Link deployment
+- **[Full Private Pattern](./docs/patterns/02-FULL-PRIVATE.md)** - Air-gapped deployment
 
 **Module Documentation**:
-- **[Module Documentation](./docs/modules/)** - Detailed module reference
-  - [Networking Module](./docs/modules/NETWORKING.md)
-  - [Workspace Module](./docs/modules/WORKSPACE.md)
-  - [Unity Catalog Module](./docs/modules/UNITY-CATALOG.md)
-  - [NCC Module](./docs/modules/NCC.md) - Network Connectivity Configuration
-
-**Pattern Guides**:
-- **[Pattern Guides](./docs/patterns/)** - Pattern-specific documentation
-  - [Non-PL Pattern](./docs/patterns/NON-PL.md)
+- **[Networking Module](./docs/modules/01-NETWORKING.md)** - VNet, subnets, NSG, NAT
+- **[Workspace Module](./docs/modules/02-WORKSPACE.md)** - Databricks workspace configuration
+- **[Unity Catalog Module](./docs/modules/03-UNITY-CATALOG.md)** - Metastore and catalogs
+- **[NCC Module](./docs/modules/04-NCC.md)** - Network Connectivity Configuration
+- **[CMK Module](./docs/modules/05-CMK.md)** - Customer-Managed Keys
+- **[SEP Module](./docs/modules/06-SEP.md)** - Service Endpoint Policies
 
 ---
 
