@@ -17,35 +17,22 @@ adb4u/
 ├── docs/                      ***REMOVED*** 📚 All documentation centralized here
 │   ├── README.md              ***REMOVED*** Documentation index
 │   ├── 01-QUICKSTART.md       ***REMOVED*** Quick start guide
-│   ├── 02-DEPLOYMENT-CHECKLIST.md ***REMOVED*** Pre-flight checklist
-│   ├── 03-TRAFFIC-FLOWS.md    ***REMOVED*** Network traffic patterns
-│   ├── 04-TROUBLESHOOTING.md  ***REMOVED*** ⚠️ Common issues & solutions
-│   ├── guides/                ***REMOVED*** Guides
-│   │   └── 01-SERVERLESS-SETUP.md ***REMOVED*** Serverless compute setup
+│   ├── TROUBLESHOOTING.md     ***REMOVED*** ⚠️ Common issues & solutions
+│   ├── DEPLOYMENT-CHECKLIST.md ***REMOVED*** Pre-flight checklist
+│   ├── 03-AUTHENTICATION.md   ***REMOVED*** Authentication setup
 │   ├── modules/               ***REMOVED*** Module documentation
-│   │   ├── 01-NETWORKING.md
-│   │   ├── 02-WORKSPACE.md
-│   │   ├── 03-UNITY-CATALOG.md
-│   │   ├── 04-NCC.md
-│   │   ├── 05-CMK.md
-│   │   └── 06-SEP.md
 │   └── patterns/              ***REMOVED*** Pattern-specific guides
-│       ├── 01-NON-PL.md
-│       └── 02-FULL-PRIVATE.md
 │
 ├── deployments/               ***REMOVED*** Pre-built deployment patterns
 │   ├── non-pl/                ***REMOVED*** ✅ Non-Private Link (Ready)
 │   ├── full-private/          ***REMOVED*** ✅ Full Private (Ready)
-│   └── byor/                  ***REMOVED*** ✅ Bring Your Own Resources (Ready)
+│   └── hub-spoke/             ***REMOVED*** 🚧 Hub-Spoke (Future)
 │
 ├── modules/                   ***REMOVED*** Reusable Terraform modules
 │   ├── networking/            ***REMOVED*** VNet, subnets, NSG, NAT
 │   ├── workspace/             ***REMOVED*** Databricks workspace
 │   ├── unity-catalog/         ***REMOVED*** Metastore, storage, credentials
-│   ├── ncc/                   ***REMOVED*** Network Connectivity Config (serverless)
-│   ├── key-vault/             ***REMOVED*** Customer-Managed Keys (CMK)
-│   ├── service-endpoint-policy/ ***REMOVED*** Storage egress control (SEP)
-│   └── private-endpoints/     ***REMOVED*** Private Link endpoints
+│   └── ncc/                   ***REMOVED*** Network Connectivity Config (serverless)
 │
 └── templates/                 ***REMOVED*** Legacy templates (reference only)
 ```
@@ -60,8 +47,8 @@ adb4u/
 - **Serverless**: NCC attached (Service Endpoints or Private Link)
 
 👉 **[Quick Start Guide →](./docs/01-QUICKSTART.md)**  
-🚀 **[Serverless Setup →](./docs/guides/01-SERVERLESS-SETUP.md)**  
-⚠️ **[Troubleshooting Guide →](./docs/04-TROUBLESHOOTING.md)** - Review before deploying!
+🚀 **[Serverless Setup →](./deployments/non-pl/docs/SERVERLESS-SETUP.md)**  
+⚠️ **[Troubleshooting Guide →](./docs/TROUBLESHOOTING.md)** - Review before deploying!
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** 2. **Full Private (Air-gapped)** ✅ Production Ready
 - **Workspace Access**: Private Link (SCC relay + API)
@@ -70,9 +57,9 @@ adb4u/
 - **Storage**: Private Link
 - **Serverless**: NCC attached (Private Link required)
 
-👉 **[Full Documentation →](./docs/patterns/02-FULL-PRIVATE.md)**  
-🚀 **[Serverless Setup →](./docs/guides/01-SERVERLESS-SETUP.md)**  
-⚠️ **[Troubleshooting Guide →](./docs/04-TROUBLESHOOTING.md)** - Common issues & solutions!
+👉 **[Full Documentation →](./deployments/full-private/docs/README.md)**  
+🚀 **[Serverless Setup →](./deployments/full-private/docs/04-SERVERLESS-SETUP.md)**  
+⚠️ **[Troubleshooting Guide →](./deployments/full-private/docs/06-TROUBLESHOOTING.md)** - Common issues & solutions!
 
 ***REMOVED******REMOVED******REMOVED******REMOVED*** 3. **Hub-Spoke with Firewall** 🚧 Future
 - Enterprise-scale multi-workspace deployments
@@ -118,8 +105,8 @@ terraform apply
 | **Full Private** | Private Endpoints (VNet) | Private Link (via NCC) |
 
 **Post-Deployment Setup**:
-- 📖 **Non-PL**: See [docs/guides/01-SERVERLESS-SETUP.md](./docs/guides/01-SERVERLESS-SETUP.md)
-- 📖 **Full Private**: See [docs/guides/01-SERVERLESS-SETUP.md](./docs/guides/01-SERVERLESS-SETUP.md)
+- 📖 **Non-PL**: See [deployments/non-pl/docs/SERVERLESS-SETUP.md](./deployments/non-pl/docs/SERVERLESS-SETUP.md)
+- 📖 **Full Private**: See [deployments/full-private/docs/04-SERVERLESS-SETUP.md](./deployments/full-private/docs/04-SERVERLESS-SETUP.md)
 
 **Key Points**:
 - ✅ NCC is **mandatory** (created automatically like Unity Catalog)
@@ -132,30 +119,28 @@ All documentation is centralized in the **[docs/](./docs/)** folder:
 
 **Non-PL Pattern (Production Ready)**:
 - **[Quick Start Guide](./docs/01-QUICKSTART.md)** - Deploy your first workspace
-- **[Non-PL Pattern Documentation](./docs/patterns/01-NON-PL.md)** - Complete pattern guide
-- **[Serverless Setup](./docs/guides/01-SERVERLESS-SETUP.md)** - Enable SQL Warehouses & Notebooks
-- **[Troubleshooting Guide](./docs/04-TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Deployment Checklist](./docs/02-DEPLOYMENT-CHECKLIST.md)** - Pre-flight validation
-- **[Traffic Flows](./docs/03-TRAFFIC-FLOWS.md)** - Network traffic patterns
+- **[Serverless Setup](./deployments/non-pl/docs/SERVERLESS-SETUP.md)** - Enable SQL Warehouses & Notebooks
+- **[Troubleshooting Guide](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Traffic Flows](./docs/TRAFFIC-FLOWS.md)** - Network traffic patterns and sequences
+- **[Deployment Checklist](./docs/DEPLOYMENT-CHECKLIST.md)** - Pre-flight validation
+- **[Authentication Guide](./docs/03-AUTHENTICATION.md)** - Configure credentials
 
 **Full Private Pattern (Production Ready)**:
-- **[Full Private Pattern Documentation](./docs/patterns/02-FULL-PRIVATE.md)** - Complete pattern guide with DNS configuration
-- **[Serverless Setup Guide](./docs/guides/01-SERVERLESS-SETUP.md)** - Enable serverless compute
-- **[Troubleshooting Guide](./docs/04-TROUBLESHOOTING.md)** - Errors & solutions
+- **[Complete Documentation Index](./deployments/full-private/docs/README.md)** - Start here
+- **[Architecture Overview](./deployments/full-private/docs/01-ARCHITECTURE.md)** - Visual diagrams
+- **[Serverless Setup Guide](./deployments/full-private/docs/04-SERVERLESS-SETUP.md)** - Enable serverless compute
+- **[Troubleshooting Guide](./deployments/full-private/docs/06-TROUBLESHOOTING.md)** - Errors & solutions
 
 **Module Documentation**:
 - **[Module Documentation](./docs/modules/)** - Detailed module reference
-  - [Networking Module](./docs/modules/01-NETWORKING.md)
-  - [Workspace Module](./docs/modules/02-WORKSPACE.md)
-  - [Unity Catalog Module](./docs/modules/03-UNITY-CATALOG.md)
-  - [NCC Module](./docs/modules/04-NCC.md) - Network Connectivity Configuration
-  - [CMK Module](./docs/modules/05-CMK.md) - Customer-Managed Keys
-  - [SEP Module](./docs/modules/06-SEP.md) - Service Endpoint Policy
+  - [Networking Module](./docs/modules/NETWORKING.md)
+  - [Workspace Module](./docs/modules/WORKSPACE.md)
+  - [Unity Catalog Module](./docs/modules/UNITY-CATALOG.md)
+  - [NCC Module](./docs/modules/NCC.md) - Network Connectivity Configuration
 
 **Pattern Guides**:
 - **[Pattern Guides](./docs/patterns/)** - Pattern-specific documentation
-  - [Non-PL Pattern](./docs/patterns/01-NON-PL.md)
-  - [Full-Private Pattern](./docs/patterns/02-FULL-PRIVATE.md) - Includes DNS configuration
+  - [Non-PL Pattern](./docs/patterns/NON-PL.md)
 
 ---
 
