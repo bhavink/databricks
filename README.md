@@ -24,7 +24,7 @@ Security           Infrastructure        Multi-Cloud
 • Unity Catalog    • CI/CD Pipelines     • AWS (DB)
 • Private Link     • Config Management   • GCP (DB)
 • CMK/Encryption   • Custom Agents       • VNet/VPC/VPC-SC
-• Network Security • ADR Framework       • Cross-Cloud
+• Network Security • Automation          • Cross-Cloud
 ```
 
 ***REMOVED******REMOVED******REMOVED*** 📫 Connect
@@ -185,7 +185,4 @@ This repository follows the licensing described in the project. Please see the `
 ***REMOVED******REMOVED*** 🔗 Additional Resources
 
 - **Databricks Blog Articles**: [All 13+ Articles](https://www.databricks.com/blog/author/bhavin-kukadia)
-- **Professional Profile**: [ABOUT.md](../ABOUT.md)
-- **Custom Agent Framework**: [custom-agents/](../custom-agents/)
-- **Architecture Decision Records**: [ADR Framework](../../0-projects/architecture/adr-framework/)
 
