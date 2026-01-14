@@ -31,7 +31,6 @@ Security           Infrastructure        Multi-Cloud
 
 - 📝 Blog: [databricks.com/blog/author/bhavin-kukadia](https://www.databricks.com/blog/author/bhavin-kukadia)
 - 💼 LinkedIn: [linkedin.com/in/bhavink](https://www.linkedin.com/in/bhavink/)
-- 🌐 Full Profile: [ABOUT.md](../ABOUT.md)
 
 ---
 
