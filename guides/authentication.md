@@ -6,6 +6,46 @@
 
 ---
 
+## Authentication Decision Flow
+
+**Start here** - This diagram shows you which authentication method to use based on where you're running Terraform and which cloud you're using:
+
+```mermaid
+flowchart TD
+    Start[Need to run Terraform?]
+    Start --> Env{Where are you running it?}
+    
+    Env -->|My Laptop| Local[Local Development]
+    Env -->|CI/CD Pipeline| CICD[Automation]
+    
+    Local --> Cloud{Which cloud?}
+    CICD --> Cloud
+    
+    Cloud -->|Azure| AzChoice{Environment?}
+    Cloud -->|AWS| AwsChoice{Environment?}
+    Cloud -->|GCP| GcpChoice{Environment?}
+    
+    AzChoice -->|Laptop| AzCLI[az login]
+    AzChoice -->|CI/CD| AzSP[Service Principal env vars]
+    
+    AwsChoice -->|Laptop| AwsProfile[AWS CLI profile]
+    AwsChoice -->|CI/CD| AwsKeys[Access keys env vars]
+    
+    GcpChoice -->|Laptop| GcpADC[gcloud auth application-default login]
+    GcpChoice -->|CI/CD| GcpSA[Service account impersonation]
+    
+    AzCLI --> SetDB[Set DATABRICKS_* variables]
+    AzSP --> SetDB
+    AwsProfile --> SetDB
+    AwsKeys --> SetDB
+    GcpADC --> SetDB
+    GcpSA --> SetDB
+    
+    SetDB --> Run[terraform init<br/>terraform plan]
+```
+
+---
+
 ## Table of Contents
 
 1. [Quick Start](#quick-start) - Get running fast
@@ -1118,42 +1158,6 @@ terraform providers
 unset ARM_CLIENT_ID ARM_CLIENT_SECRET ARM_TENANT_ID ARM_SUBSCRIPTION_ID
 unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
 unset DATABRICKS_ACCOUNT_ID DATABRICKS_CLIENT_ID DATABRICKS_CLIENT_SECRET
-```
-
-### Authentication Decision Flow
-
-```mermaid
-flowchart TD
-    Start[Need to run Terraform?]
-    Start --> Env{Where are you running it?}
-    
-    Env -->|My Laptop| Local[Local Development]
-    Env -->|CI/CD Pipeline| CICD[Automation]
-    
-    Local --> Cloud{Which cloud?}
-    CICD --> Cloud
-    
-    Cloud -->|Azure| AzChoice{Environment?}
-    Cloud -->|AWS| AwsChoice{Environment?}
-    Cloud -->|GCP| GcpChoice{Environment?}
-    
-    AzChoice -->|Laptop| AzCLI[az login]
-    AzChoice -->|CI/CD| AzSP[Service Principal env vars]
-    
-    AwsChoice -->|Laptop| AwsProfile[AWS CLI profile]
-    AwsChoice -->|CI/CD| AwsKeys[Access keys env vars]
-    
-    GcpChoice -->|Laptop| GcpADC[gcloud auth application-default login]
-    GcpChoice -->|CI/CD| GcpSA[Service account impersonation]
-    
-    AzCLI --> SetDB[Set DATABRICKS_* variables]
-    AzSP --> SetDB
-    AwsProfile --> SetDB
-    AwsKeys --> SetDB
-    GcpADC --> SetDB
-    GcpSA --> SetDB
-    
-    SetDB --> Run[terraform init<br/>terraform plan]
 ```
 
 ---
