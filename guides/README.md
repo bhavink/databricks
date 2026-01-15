@@ -18,6 +18,22 @@ Perfect for:
 - Setting up CI/CD pipelines
 - Understanding which credentials go where
 
+### [Identities & Access Guide](./identities.md)
+**Understand how Databricks accesses your cloud account.**
+
+Learn how Databricks creates workspaces and accesses storage:
+- AWS: Cross-account roles and AssumeRole pattern
+- Azure: First-party app and managed identities
+- GCP: Service accounts and impersonation
+- Unity Catalog storage access patterns
+- Security model and audit trails
+
+Perfect for:
+- Understanding "how does this work?"
+- Security reviews and compliance
+- Troubleshooting access issues
+- Explaining to management/security teams
+
 ---
 
 ## Coming Soon
