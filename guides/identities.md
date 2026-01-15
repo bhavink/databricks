@@ -364,37 +364,127 @@ sequenceDiagram
 
 ### The Service Account Pattern
 
-GCP creates **TWO types** of service accounts:
+GCP has **MULTIPLE service accounts** working together - some in YOUR project, some in Databricks' project:
 
 ```mermaid
 flowchart TD
-    subgraph "Your GCP Project"
+    subgraph "Databricks Control Plane Project<br/>(Databricks-owned)"
+        WS_SA[Workspace SA<br/>db-{workspaceid}@prod-gcp-{region}.iam<br/>Manages workspace infrastructure]
+        DELEGATE[Delegate SA<br/>delegate-sa@prod-gcp-{region}.iam<br/>Launches GCE clusters]
+        UC_SA[Unity Catalog Storage SA<br/>db-uc-storage-UUID@uc-{region}.iam<br/>UC data access]
+    end
+    
+    subgraph "Your GCP Project<br/>(You own)"
+        subgraph "Customer-Created GSAs"
+            YOUR_SA[Terraform GSA<br/>terraform-automation@project.iam<br/>You create this for Terraform]
+        end
+        
         subgraph "Databricks-Created GSAs"
-            COMPUTE[databricks-compute@project.iam<br/>Runs on every cluster VM<br/>Default compute identity]
-            CONNECTOR[databricks-sa-connector@project.iam<br/>Unity Catalog access<br/>Storage credential identity]
+            COMPUTE[Compute SA<br/>databricks-compute@project.iam<br/>Attached to cluster VMs]
         end
         
-        subgraph "Your GSA (for Terraform)"
-            YOUR_GSA[terraform-automation@project.iam<br/>You create for automation<br/>Databricks impersonates this]
-        end
-        
-        subgraph "GCP Resources"
-            VM[Compute Engine VMs]
-            GCS[GCS Buckets]
+        subgraph "Resources"
             VPC[VPC Networks]
+            VM[GCE Instances]
+            GCS[GCS Buckets]
         end
     end
     
-    COMPUTE -->|Attached to| VM
+    YOUR_SA -->|Impersonated by<br/>Databricks provider| WS_SA
+    WS_SA -->|Validates/Creates| COMPUTE
+    WS_SA -->|Configures| VPC
+    DELEGATE -->|Launches| VM
+    VM -->|Has attached| COMPUTE
     COMPUTE -->|Accesses| GCS
-    CONNECTOR -->|Accesses| GCS
-    YOUR_GSA -->|Creates| COMPUTE
-    YOUR_GSA -->|Manages| VPC
+    UC_SA -->|Accesses<br/>UC-managed| GCS
     
+    style WS_SA fill:#FF3621,color:#fff
+    style DELEGATE fill:#FF9900,color:#000
+    style UC_SA fill:#1B72E8,color:#fff
+    style YOUR_SA fill:#FBBC04,color:#000
     style COMPUTE fill:#4285F4,color:#fff
-    style CONNECTOR fill:#34A853,color:#fff
-    style YOUR_GSA fill:#FBBC04,color:#000
 ```
+
+### Who Creates What and Why
+
+The key to understanding GCP is knowing **which GSA lives where and who creates it**:
+
+#### GSAs in Databricks' Control Plane (They Create & Own)
+
+**1. Workspace SA** - `db-{workspaceid}@prod-gcp-{region}.iam.gserviceaccount.com`
+- **Purpose**: Manages your workspace infrastructure
+- **Created**: Automatically when workspace is created
+- **Lives in**: Databricks' GCP project (not yours)
+- **What it does**: Validates and creates the Compute SA in your project, configures VPC, manages workspace resources
+
+**2. Delegate SA** - `delegate-sa@prod-gcp-{region}.iam.gserviceaccount.com`
+- **Purpose**: Launches GCE cluster instances
+- **Created**: Pre-existing (one per region)
+- **Lives in**: Databricks' GCP project
+- **What it does**: Creates and manages Compute Engine VMs for clusters
+
+**3. Unity Catalog Storage SA** - `db-uc-storage-UUID@uc-{region}.iam.gserviceaccount.com`
+- **Purpose**: Unity Catalog data access
+- **Created**: When you set up Unity Catalog
+- **Lives in**: Databricks' UC project
+- **What it does**: Accesses GCS buckets for Unity Catalog with scoped, short-lived tokens
+
+#### GSAs in Your Project (You Control Permissions)
+
+**4. Compute SA** - `databricks-compute@{your-project}.iam.gserviceaccount.com`
+- **Purpose**: Default identity attached to every cluster VM
+- **Created**: Automatically by Databricks Workspace SA (or you can pre-create it)
+- **Lives in**: YOUR GCP project
+- **What it does**: Cluster VMs use this to access GCS, write logs, send metrics
+
+**5. Terraform/Automation SA** - `terraform-automation@{your-project}.iam.gserviceaccount.com`
+- **Purpose**: Used by Terraform to create workspace
+- **Created**: By you
+- **Lives in**: YOUR GCP project
+- **What it does**: Databricks Terraform provider impersonates this to call Databricks APIs
+
+### The Key Difference
+
+Unlike AWS (where YOU create all IAM roles) or Azure (where it's built-in), GCP uses a **hybrid model**:
+- Databricks **creates GSAs in THEIR projects** (Workspace SA, Delegate SA, UC SA)
+- Databricks **creates GSAs in YOUR project** (Compute SA)
+- You **grant permissions** to Databricks' GSAs to access your resources
+- You **create your own GSA** for Terraform automation
+
+### How Workspace Creation Works
+
+```mermaid
+sequenceDiagram
+    participant You as Your Terraform<br/>(using your GSA)
+    participant DB as Databricks<br/>Control Plane
+    participant WS_SA as Workspace SA<br/>(Databricks project)
+    participant Your_Proj as Your GCP Project
+    participant Compute_SA as Compute SA<br/>(Your project)
+    
+    Note over You,Your_Proj: Workspace Creation
+    You->>DB: 1. Create workspace<br/>(impersonate your GSA)
+    DB->>WS_SA: 2. Create Workspace SA<br/>(in Databricks project)
+    WS_SA->>Your_Proj: 3. Validate project access
+    WS_SA->>Compute_SA: 4. Create Compute SA<br/>(in your project)
+    WS_SA->>Your_Proj: 5. Grant Compute SA roles<br/>(log writer, metric writer)
+    WS_SA->>Your_Proj: 6. Validate VPC configuration
+    DB->>You: 7. Workspace ready!
+    
+    Note over You,Your_Proj: Cluster Launch
+    You->>DB: 8. Launch cluster
+    WS_SA->>Your_Proj: 9. Create GCE instances
+    Your_Proj->>Compute_SA: 10. Attach Compute SA to VMs
+```
+
+### What Each GSA Does
+
+| Service Account | Lives In | Created By | Purpose | Permissions You Grant |
+|-----------------|----------|------------|---------|----------------------|
+| **Workspace SA**<br/>`db-{wsid}@prod-gcp-{region}.iam` | Databricks project | Databricks | Manage workspace infra | Editor role on your project |
+| **Delegate SA**<br/>`delegate-sa@prod-gcp-{region}.iam` | Databricks project | Databricks (pre-existing) | Launch GCE clusters | Compute Admin |
+| **Compute SA**<br/>`databricks-compute@project.iam` | Your project | Databricks Workspace SA | Cluster VM identity | Storage Admin, Log Writer, Metric Writer |
+| **UC Storage SA**<br/>`db-uc-storage-UUID@uc-{region}.iam` | Databricks UC project | Databricks | Unity Catalog storage | Storage Object Admin on UC buckets |
+| **Your Terraform SA**<br/>`terraform-automation@project.iam` | Your project | You | Terraform automation | Project Editor, IAM Admin |
 
 ### Unity Catalog Storage Access
 
