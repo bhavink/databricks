@@ -1,11 +1,11 @@
-***REMOVED*** Databricks on GCP
+# Databricks on GCP
 _The best practice guide that you've been looking for_
 
-***REMOVED*** Introduction
+# Introduction
 
 [Databricks](https://www.databricks.com) provides a data lakehouse platform unifying the best of data warehouses and data lakes in one simple platform to handle all your data, analytics and AI use cases. It's built on an open and reliable data foundation that efficiently handles all data types and applies one common security and governance approach across all of your data and cloud platforms.
 
-***REMOVED******REMOVED*** Databricks Lakehouse Platform Components
+## Databricks Lakehouse Platform Components
 
 ```mermaid
 graph TB
@@ -59,15 +59,15 @@ graph TB
     SQL --> DW
     CLASSIC --> EXT
     
-    style UI fill:***REMOVED***1E88E5
-    style WS fill:***REMOVED***1E88E5
-    style CLASSIC fill:***REMOVED***43A047
-    style SERVERLESS fill:***REMOVED***7CB342
-    style UC fill:***REMOVED***8E24AA
-    style DL fill:***REMOVED***FF6F00
+    style UI fill:#1E88E5
+    style WS fill:#1E88E5
+    style CLASSIC fill:#43A047
+    style SERVERLESS fill:#7CB342
+    style UC fill:#8E24AA
+    style DL fill:#FF6F00
 ```
 
-***REMOVED*** Objective
+# Objective
 In this guide we'll share with you architectural patterns and design guidelines to help you with:
 * [Getting Started](Getting-Started.md)
 * [Workspace Architecture](Workspace-Architecture.md)
@@ -80,7 +80,7 @@ In this guide we'll share with you architectural patterns and design guidelines 
 * [Observability and Monitoring](Observability-And-Monitoring.md)
 * [Cost Management, Charge backs & Analysis](Cost-Management-And-Analysis.md)
 
-***REMOVED******REMOVED*** Documentation Journey
+## Documentation Journey
 
 ```mermaid
 graph TB
@@ -100,25 +100,25 @@ graph TB
     GS --> IAM
     WP --> OBS
     WP --> COST
-    WS -.enhances.-> WP
-    IAM -.applies to.-> WP
-    OBS -.monitors.-> WP
-    COST -.optimizes.-> WP
+    WS -.->|enhances| WP
+    IAM -.->|applies to| WP
+    OBS -.->|monitors| WP
+    COST -.->|optimizes| WP
     
-    style Start fill:***REMOVED***FF6F00
-    style GS fill:***REMOVED***1E88E5
-    style WA fill:***REMOVED***43A047
-    style WP fill:***REMOVED***E53935
-    style WS fill:***REMOVED***8E24AA
-    style IAM fill:***REMOVED***FB8C00
-    style OBS fill:***REMOVED***00ACC1
-    style COST fill:***REMOVED***FDD835
+    style Start fill:#FF6F00
+    style GS fill:#1E88E5
+    style WA fill:#43A047
+    style WP fill:#E53935
+    style WS fill:#8E24AA
+    style IAM fill:#FB8C00
+    style OBS fill:#00ACC1
+    style COST fill:#FDD835
 ```
 
 Most of the content is derived from [public docs](https://docs.gcp.databricks.com)
 
 
-***REMOVED*** Contributing
+# Contributing
 
 Knowledge when shared gets multiplied. Any contributions you make are **greatly appreciated**.
 
@@ -132,7 +132,7 @@ And if you like it then please give us a star and spread the word!
 5. Open a Pull Request
 
 
-***REMOVED*** Contact
+# Contact
 
 Project Link: [https://github.com/bhavink/databricks/gcpdb4u](https://github.com/bhavink/databricks/gcpdb4u)
 
