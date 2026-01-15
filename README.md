@@ -48,12 +48,21 @@ This repository contains **production-ready infrastructure templates**, ready-to
 
 | Cloud | Description | Path |
 |-------|-------------|------|
+| **📖 Guides** | Cross-cloud guides (authentication, networking, troubleshooting) | [guides](./guides/) |
 | **🔷 Azure** | Production-ready security & modular Terraform deployment patterns | [adb4u](./adb4u/) |
 | **☁️ AWS** | Private Link workspace templates with DEP controls | [awsdb4u](./awsdb4u/) |
 | **🟢 GCP** | VPC-SC, Private Service Connect, CMEK implementations | [gcpdb4u](./gcpdb4u/) |
-| **🔌 REST API** | Postman collections for Databricks REST APIs | [databricks-rest-api-collection](./databricks-rest-api-collection/) |
-| **🚀 Jump Start** | Curated code samples and tutorials | [databricks-jump-start](./databricks-jump-start/) |
 | **🛠️ Utils** | Utilities and helper scripts | [databricks-utils](./databricks-utils/) |
+| **📦 Archive** | Legacy content and code samples | [archive](./archive/) |
+
+---
+
+## 📖 Cross-Cloud Guides (Start Here!)
+
+**New to Terraform or stuck on authentication?** Check out our beginner-friendly guides:
+
+- **[Authentication Guide](./guides/authentication.md)** - Set up Terraform authentication for Azure, AWS, or GCP (zero jargon!)
+- More guides coming soon: Networking, Security, Troubleshooting
 
 ---
 
@@ -136,9 +145,9 @@ Each cloud folder contains multiple deployment patterns:
 - Use provided Terraform modules and templates
 
 ### 4. **Explore Additional Resources**
-- **REST API Collections**: [`databricks-rest-api-collection/`](./databricks-rest-api-collection/)
-- **Jump Start Tutorials**: [`databricks-jump-start/`](./databricks-jump-start/)
-- **Utility Scripts**: [`databricks-utils/`](./databricks-utils/)
+- **Cross-Cloud Guides**: [guides/](./guides/) - Authentication, networking, troubleshooting
+- **Utility Scripts**: [databricks-utils/](./databricks-utils/) - Helper tools and scripts
+- **Archive**: [archive/](./archive/) - Legacy code samples and REST API collections
 
 ---
 

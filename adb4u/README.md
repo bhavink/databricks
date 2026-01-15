@@ -2,7 +2,8 @@ Azure Databricks Security Best Practices
 ==============
 **Production-ready, modular Terraform templates** for secure Azure Databricks deployments.
 
-📚 **[Complete Documentation →](./docs/)**
+📚 **[Complete Documentation →](./docs/)**  
+🔑 **[Authentication Setup Guide →](../guides/authentication.md)** - New to Terraform? Start here!
 
 ---
 

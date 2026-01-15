@@ -2,6 +2,8 @@
 
 Production-ready Terraform configurations for deploying secure Databricks workspaces on AWS with Private Link, Unity Catalog, and customer-managed encryption.
 
+🔑 **[Authentication Setup Guide →](../guides/authentication.md)** - Stuck on AWS/Databricks authentication? Start here!
+
 ---
 
 ## 📁 Repository Structure

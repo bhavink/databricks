@@ -1,6 +1,8 @@
 # Databricks on GCP
 _The best practice guide that you've been looking for_
 
+🔑 **[Authentication Setup Guide →](../guides/authentication.md)** - Need help with GCP/Databricks authentication? Start here!
+
 # Introduction
 
 [Databricks](https://www.databricks.com) provides a data lakehouse platform unifying the best of data warehouses and data lakes in one simple platform to handle all your data, analytics and AI use cases. It's built on an open and reliable data foundation that efficiently handles all data types and applies one common security and governance approach across all of your data and cloud platforms.
