@@ -6,6 +6,25 @@
 
 ---
 
+## Table of Contents
+
+**Quick Navigation:**
+
+- [The Big Picture](#the-big-picture) - Understand the core concept
+- [Quick Visual Overview](#quick-visual-overview) - Decision flow diagram
+- **Cloud-Specific Details:**
+  - [AWS: The "Temporary Key" Model](#aws-the-temporary-key-model)
+  - [Azure: The "First-Party App" Model](#azure-the-first-party-app-model)
+  - [GCP: The "Service Account" Model](#gcp-the-service-account-model)
+- [Unity Catalog: The Universal Data Governance Layer](#unity-catalog-the-universal-data-governance-layer)
+- [Security: Why This Design Is Safe](#security-why-this-design-is-safe)
+- [Common Questions](#common-questions)
+- [Comparison: All Three Clouds](#comparison-all-three-clouds)
+- [Visual Summary](#visual-summary)
+- [Next Steps](#next-steps)
+
+---
+
 ## The Big Picture
 
 Think of Databricks as a **construction company** that needs to build a house (workspace) on your property (cloud account).
