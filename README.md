@@ -1,13 +1,13 @@
 I design and implement secure, production-grade Data and AI platforms across **Azure**, **AWS**, and **GCP**. Specializing in **Databricks architecture**, **zero-trust security**, and **infrastructure automation**.
 
-***REMOVED******REMOVED******REMOVED*** 🎯 What I Do
+### 🎯 What I Do
 
 - 🏗️ **Build secure data lakehouses** with Private Link, Unity Catalog, and data exfiltration protection
 - ☁️ **Multi-cloud Databricks architecture** for regulated industries (finance, healthcare, government)
 - ⚙️ **Infrastructure as Code** with modular Terraform templates and automation frameworks
 - 📝 **Share knowledge** through technical articles and open source contributions
 
-***REMOVED******REMOVED******REMOVED*** 📚 Recent Work
+### 📚 Recent Work
 
 **Latest Articles** (13+ published on [Databricks Blog](https://www.databricks.com/blog/author/bhavin-kukadia)):
 - [A Unified Approach to Data Exfiltration Protection on Databricks](https://www.databricks.com/blog/unified-approach-data-exfiltration-protection-databricks) (Aug 2025)
@@ -15,7 +15,7 @@ I design and implement secure, production-grade Data and AI platforms across **A
 - [How Delta Sharing Enables Secure End-to-End Collaboration](https://www.databricks.com/blog/how-delta-sharing-enables-secure-end-end-collaboration) (May 2024)
 - [Data Exfiltration Protection with Azure Databricks](https://www.databricks.com/blog/data-exfiltration-protection-azure-databricks) (Mar 2024)
 
-***REMOVED******REMOVED******REMOVED*** 💡 Core Expertise
+### 💡 Core Expertise
 
 ```text
 Security           Infrastructure        Multi-Cloud
@@ -27,7 +27,7 @@ Security           Infrastructure        Multi-Cloud
 • Network Security • Automation          • Cross-Cloud
 ```
 
-***REMOVED******REMOVED******REMOVED*** 📫 Connect
+### 📫 Connect
 
 - 📝 Blog: [databricks.com/blog/author/bhavin-kukadia](https://www.databricks.com/blog/author/bhavin-kukadia)
 - 💼 LinkedIn: [linkedin.com/in/bhavink](https://www.linkedin.com/in/bhavink/)
@@ -38,13 +38,13 @@ Security           Infrastructure        Multi-Cloud
 
 ---
 
-***REMOVED*** Repository Contents: All Things Databricks ✅
+# Repository Contents: All Things Databricks ✅
 
 This repository contains **production-ready infrastructure templates**, ready-to-use code samples, how-to guides, and deployment architectures to help you learn and operate the Databricks Lakehouse on Azure, AWS, and GCP.
 
 ---
 
-***REMOVED******REMOVED*** Quick Links 🔗
+## Quick Links 🔗
 
 | Cloud | Description | Path |
 |-------|-------------|------|
@@ -57,9 +57,9 @@ This repository contains **production-ready infrastructure templates**, ready-to
 
 ---
 
-***REMOVED******REMOVED*** 🌩️ Databricks Deployment Guides by Cloud
+## 🌩️ Databricks Deployment Guides by Cloud
 
-***REMOVED******REMOVED******REMOVED*** 🔷 Azure (adb4u)
+### 🔷 Azure (adb4u)
 **Production-Ready Modular Terraform Templates**
 
 - ✅ **Focus**: Security, governance, and production-ready deployment patterns
@@ -79,7 +79,7 @@ This repository contains **production-ready infrastructure templates**, ready-to
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** ☁️ AWS (awsdb4u)
+### ☁️ AWS (awsdb4u)
 **Private Link Workspace Templates with DEP Controls**
 
 - 🎯 **Focus**: Deploying and operating Databricks on AWS with best practices
@@ -97,7 +97,7 @@ This repository contains **production-ready infrastructure templates**, ready-to
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 🟢 GCP (gcpdb4u)
+### 🟢 GCP (gcpdb4u)
 **VPC-SC, Private Service Connect, CMEK Implementations**
 
 - 🎯 **Focus**: GCP-specific guidance with emphasis on data plane security
@@ -115,48 +115,48 @@ This repository contains **production-ready infrastructure templates**, ready-to
 
 ---
 
-***REMOVED******REMOVED*** 🔧 How to Use This Repository
+## 🔧 How to Use This Repository
 
-***REMOVED******REMOVED******REMOVED*** 1. **Choose Your Cloud Platform**
+### 1. **Choose Your Cloud Platform**
 Pick the folder that matches your target environment:
 - Azure → [`adb4u/`](./adb4u/)
 - AWS → [`awsdb4u/`](./awsdb4u/)
 - GCP → [`gcpdb4u/`](./gcpdb4u/)
 
-***REMOVED******REMOVED******REMOVED*** 2. **Select Deployment Pattern**
+### 2. **Select Deployment Pattern**
 Each cloud folder contains multiple deployment patterns:
 - **Non-Private Link**: Public control plane + private data plane (NPIP)
 - **Full Private**: Private Link for both control and data planes
 - **Hub-Spoke**: Centralized networking with egress control
 
-***REMOVED******REMOVED******REMOVED*** 3. **Follow Deployment Guides**
+### 3. **Follow Deployment Guides**
 - Read the README in your chosen folder
 - Review architecture diagrams and documentation
 - Follow step-by-step deployment instructions
 - Use provided Terraform modules and templates
 
-***REMOVED******REMOVED******REMOVED*** 4. **Explore Additional Resources**
+### 4. **Explore Additional Resources**
 - **REST API Collections**: [`databricks-rest-api-collection/`](./databricks-rest-api-collection/)
 - **Jump Start Tutorials**: [`databricks-jump-start/`](./databricks-jump-start/)
 - **Utility Scripts**: [`databricks-utils/`](./databricks-utils/)
 
 ---
 
-***REMOVED******REMOVED*** 🌟 Highlighted Features
+## 🌟 Highlighted Features
 
-***REMOVED******REMOVED******REMOVED*** Production-Ready Templates
+### Production-Ready Templates
 - ✅ Modular Terraform code with conditional logic
 - ✅ Support for BYOV (Bring Your Own VNet/VPC)
 - ✅ Automated network security group rules
 - ✅ Unity Catalog with regional metastore management
 
-***REMOVED******REMOVED******REMOVED*** Comprehensive Documentation
+### Comprehensive Documentation
 - 📚 2,300+ lines of detailed guides
 - 📊 UML architecture and sequence diagrams
 - 🔍 Traffic flow analysis with cost breakdowns
 - ⚠️ Troubleshooting guides and deployment checklists
 
-***REMOVED******REMOVED******REMOVED*** Security Best Practices
+### Security Best Practices
 - 🔐 Data Exfiltration Protection (DEP) frameworks
 - 🔑 Customer-Managed Keys (CMK) with auto-rotation
 - 🌐 Private Link, VPC-SC, and network isolation
@@ -164,7 +164,7 @@ Each cloud folder contains multiple deployment patterns:
 
 ---
 
-***REMOVED******REMOVED*** ✨ Contributing
+## ✨ Contributing
 
 Contributions are welcome! Please:
 1. Open issues for bugs, questions, or feature requests
@@ -176,13 +176,13 @@ Contributions are welcome! Please:
 
 ---
 
-***REMOVED******REMOVED*** 📄 License
+## 📄 License
 
 This repository follows the licensing described in the project. Please see the `LICENSE` file (if present) or reach out for clarification.
 
 ---
 
-***REMOVED******REMOVED*** 🔗 Additional Resources
+## 🔗 Additional Resources
 
 - **Databricks Blog Articles**: [All 13+ Articles](https://www.databricks.com/blog/author/bhavin-kukadia)
 
