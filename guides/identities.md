@@ -368,35 +368,35 @@ GCP has **MULTIPLE service accounts** working together - some in YOUR project, s
 
 ```mermaid
 flowchart TD
-    subgraph "Databricks Control Plane Project<br/>(Databricks-owned)"
-        WS_SA[Workspace SA<br/>db-{workspaceid}@prod-gcp-{region}.iam<br/>Manages workspace infrastructure]
-        DELEGATE[Delegate SA<br/>delegate-sa@prod-gcp-{region}.iam<br/>Launches GCE clusters]
-        UC_SA[Unity Catalog Storage SA<br/>db-uc-storage-UUID@uc-{region}.iam<br/>UC data access]
+    subgraph DBXProj[Databricks Control Plane Project]
+        WS_SA[Workspace SA<br/>Manages workspace infrastructure]
+        DELEGATE[Delegate SA<br/>Launches GCE clusters]
+        UC_SA[Unity Catalog Storage SA<br/>UC data access]
     end
     
-    subgraph "Your GCP Project<br/>(You own)"
-        subgraph "Customer-Created GSAs"
-            YOUR_SA[Terraform GSA<br/>terraform-automation@project.iam<br/>You create this for Terraform]
+    subgraph YourProj[Your GCP Project]
+        subgraph CustomerGSA[Customer-Created GSAs]
+            YOUR_SA[Terraform GSA<br/>You create this for Terraform]
         end
         
-        subgraph "Databricks-Created GSAs"
-            COMPUTE[Compute SA<br/>databricks-compute@project.iam<br/>Attached to cluster VMs]
+        subgraph DBXCreatedGSA[Databricks-Created GSAs]
+            COMPUTE[Compute SA<br/>Attached to cluster VMs]
         end
         
-        subgraph "Resources"
+        subgraph Resources
             VPC[VPC Networks]
             VM[GCE Instances]
             GCS[GCS Buckets]
         end
     end
     
-    YOUR_SA -->|Impersonated by<br/>Databricks provider| WS_SA
+    YOUR_SA -->|Impersonated by Databricks provider| WS_SA
     WS_SA -->|Validates/Creates| COMPUTE
     WS_SA -->|Configures| VPC
     DELEGATE -->|Launches| VM
     VM -->|Has attached| COMPUTE
     COMPUTE -->|Accesses| GCS
-    UC_SA -->|Accesses<br/>UC-managed| GCS
+    UC_SA -->|Accesses UC-managed storage| GCS
     
     style WS_SA fill:#FF3621,color:#fff
     style DELEGATE fill:#FF9900,color:#000
