@@ -834,37 +834,61 @@ This **separation** means:
 
 ### Identity Flow Comparison
 
+Each cloud has a distinct identity flow pattern. Here's how each works:
+
+#### AWS Identity Flow
+
 ```mermaid
-flowchart TB
-    subgraph AWS["AWS Model"]
-        AWS1[You create IAM roles]
-        AWS2[Databricks AssumeRole]
-        AWS3[Temporary credentials]
-        AWS4[Access resources]
-        AWS1 --> AWS2 --> AWS3 --> AWS4
-    end
+flowchart LR
+    A[1. You create<br/>Cross-Account Role] --> B[2. Add trust policy<br/>for Databricks account]
+    B --> C[3. Databricks calls<br/>AWS STS AssumeRole]
+    C --> D[4. AWS returns<br/>temporary credentials]
+    D --> E[5. Databricks accesses<br/>your AWS resources]
     
-    subgraph Azure["Azure Model"]
-        AZ1[Azure trusts Databricks]
-        AZ2[You deploy workspace]
-        AZ3[Managed identity created]
-        AZ4[You grant permissions]
-        AZ5[Access resources]
-        AZ1 --> AZ2 --> AZ3 --> AZ4 --> AZ5
-    end
-    
-    subgraph GCP["GCP Model"]
-        GCP1[Databricks creates GSA]
-        GCP2[GSA added to your project]
-        GCP3[You grant permissions]
-        GCP4[Access resources]
-        GCP1 --> GCP2 --> GCP3 --> GCP4
-    end
-    
-    style AWS fill:#FF9900,color:#000
-    style Azure fill:#0078D4,color:#fff
-    style GCP fill:#4285F4,color:#fff
+    style A fill:#FF9900,color:#000
+    style B fill:#FF9900,color:#000
+    style C fill:#FF9900,color:#000
+    style D fill:#FF9900,color:#000
+    style E fill:#FF9900,color:#000
 ```
+
+**Key Point:** YOU create all IAM roles upfront. Databricks never creates anything in your AWS account.
+
+#### Azure Identity Flow
+
+```mermaid
+flowchart LR
+    A[1. Azure trusts<br/>Databricks natively] --> B[2. You deploy<br/>workspace resource]
+    B --> C[3. Azure creates<br/>managed identity]
+    C --> D[4. You grant RBAC<br/>permissions]
+    D --> E[5. Databricks accesses<br/>your Azure resources]
+    
+    style A fill:#0078D4,color:#fff
+    style B fill:#0078D4,color:#fff
+    style C fill:#0078D4,color:#fff
+    style D fill:#0078D4,color:#fff
+    style E fill:#0078D4,color:#fff
+```
+
+**Key Point:** Azure and Databricks are "partners" - Azure automatically handles identity creation.
+
+#### GCP Identity Flow
+
+```mermaid
+flowchart LR
+    A[1. Databricks creates<br/>Workspace GSA] --> B[2. Your Terraform GSA<br/>grants permissions]
+    B --> C[3. Workspace GSA creates<br/>Compute GSA in your project]
+    C --> D[4. You grant GSA<br/>IAM roles]
+    D --> E[5. Databricks accesses<br/>your GCP resources]
+    
+    style A fill:#4285F4,color:#fff
+    style B fill:#4285F4,color:#fff
+    style C fill:#4285F4,color:#fff
+    style D fill:#4285F4,color:#fff
+    style E fill:#4285F4,color:#fff
+```
+
+**Key Point:** Hybrid model - Databricks creates GSAs in BOTH their project and yours.
 
 ---
 
