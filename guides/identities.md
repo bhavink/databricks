@@ -416,6 +416,11 @@ The key to understanding GCP is knowing **which GSA lives where and who creates 
 - **Created**: Automatically when workspace is created
 - **Lives in**: Databricks' GCP project (not yours)
 - **What it does**: Validates and creates the Compute SA in your project, configures VPC, manages workspace resources
+- **Permissions**: Uses three custom roles auto-created by Databricks:
+  - **Databricks Project Role v2**: Project-level permissions
+  - **Databricks Resource Role v2**: Workspace-scoped with IAM condition
+  - **Databricks Network Role v2**: VPC network permissions
+  - [Full details](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/permissions#required-permissions-for-the-workspace-service-account)
 
 **2. Delegate SA** - `delegate-sa@prod-gcp-{region}.iam.gserviceaccount.com`
 - **Purpose**: Launches GCE cluster instances
@@ -436,12 +441,15 @@ The key to understanding GCP is knowing **which GSA lives where and who creates 
 - **Created**: Automatically by Databricks Workspace SA (or you can pre-create it)
 - **Lives in**: YOUR GCP project
 - **What it does**: Cluster VMs use this to access GCS, write logs, send metrics
+- **Minimum permissions** (auto-granted): `roles/logging.logWriter` + `roles/monitoring.metricWriter`
+- **Additional permissions**: You grant based on data access needs (e.g., Storage Object Viewer)
 
 **5. Terraform/Automation SA** - `terraform-automation@{your-project}.iam.gserviceaccount.com`
 - **Purpose**: Used by Terraform to create workspace
 - **Created**: By you
 - **Lives in**: YOUR GCP project
 - **What it does**: Databricks Terraform provider impersonates this to call Databricks APIs
+- **Permissions**: `roles/owner` on workspace and VPC projects (simplest), or custom role with [workspace creator permissions](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/permissions#required-permissions-for-the-workspace-creator)
 
 ### The Key Difference
 
@@ -480,11 +488,11 @@ sequenceDiagram
 
 | Service Account | Lives In | Created By | Purpose | Permissions You Grant |
 |-----------------|----------|------------|---------|----------------------|
-| **Workspace SA**<br/>`db-{wsid}@prod-gcp-{region}.iam` | Databricks project | Databricks | Manage workspace infra | Editor role on your project |
-| **Delegate SA**<br/>`delegate-sa@prod-gcp-{region}.iam` | Databricks project | Databricks (pre-existing) | Launch GCE clusters | Compute Admin |
-| **Compute SA**<br/>`databricks-compute@project.iam` | Your project | Databricks Workspace SA | Cluster VM identity | Storage Admin, Log Writer, Metric Writer |
+| **Workspace SA**<br/>`db-{wsid}@prod-gcp-{region}.iam` | Databricks project | Databricks | Manage workspace infra | Custom roles (auto-created):<br/>- Databricks Project Role v2<br/>- Databricks Resource Role v2 |
+| **Delegate SA**<br/>`delegate-sa@prod-gcp-{region}.iam` | Databricks project | Databricks (pre-existing) | Launch GCE clusters | Permissions granted via custom roles |
+| **Compute SA**<br/>`databricks-compute@project.iam` | Your project | Databricks Workspace SA | Cluster VM identity | Roles you grant:<br/>- Logging Log Writer<br/>- Monitoring Metric Writer |
 | **UC Storage SA**<br/>`db-uc-storage-UUID@uc-{region}.iam` | Databricks UC project | Databricks | Unity Catalog storage | Storage Object Admin on UC buckets |
-| **Your Terraform SA**<br/>`terraform-automation@project.iam` | Your project | You | Terraform automation | Project Editor, IAM Admin |
+| **Your Terraform SA**<br/>`terraform-automation@project.iam` | Your project | You | Terraform automation | Owner or custom role with workspace creation permissions |
 
 ### Unity Catalog Storage Access
 
