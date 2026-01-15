@@ -1,28 +1,28 @@
-***REMOVED*** Databricks on AWS - Terraform Deployments
+# Databricks on AWS - Terraform Deployments
 
 Production-ready Terraform configurations for deploying secure Databricks workspaces on AWS with Private Link, Unity Catalog, and customer-managed encryption.
 
 ---
 
-***REMOVED******REMOVED*** 📁 Repository Structure
+## 📁 Repository Structure
 
 ```
 awsdb4u/
-├── aws-pl-ws/                          ***REMOVED*** Databricks Private Link workspace deployments
-│   ├── databricks-aws-production/      ***REMOVED*** ✨ Production-ready deployment (Recommended)
-│   │   ├── modules/                    ***REMOVED*** 7 modular Terraform modules
-│   │   ├── docs/                       ***REMOVED*** Visual-first documentation
-│   │   ├── terraform.tfvars.example    ***REMOVED*** Configuration template
-│   │   └── quick-destroy.sh            ***REMOVED*** Safe cleanup script
-│   └── modular-version/                ***REMOVED*** Legacy version (deprecated)
-└── README.md                           ***REMOVED*** This file
+├── aws-pl-ws/                          # Databricks Private Link workspace deployments
+│   ├── databricks-aws-production/      # ✨ Production-ready deployment (Recommended)
+│   │   ├── modules/                    # 7 modular Terraform modules
+│   │   ├── docs/                       # Visual-first documentation
+│   │   ├── terraform.tfvars.example    # Configuration template
+│   │   └── quick-destroy.sh            # Safe cleanup script
+│   └── modular-version/                # Legacy version (deprecated)
+└── README.md                           # This file
 ```
 
 ---
 
-***REMOVED******REMOVED*** 🚀 Available Deployments
+## 🚀 Available Deployments
 
-***REMOVED******REMOVED******REMOVED*** **databricks-aws-production** (Recommended)
+### **databricks-aws-production** (Recommended)
 
 **Production-ready**, fully modularized Terraform deployment with comprehensive documentation and enterprise features.
 
@@ -47,14 +47,14 @@ awsdb4u/
 ```bash
 cd aws-pl-ws/databricks-aws-production
 cp terraform.tfvars.example terraform.tfvars
-***REMOVED*** Edit terraform.tfvars with your values
+# Edit terraform.tfvars with your values
 terraform init
 terraform apply
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **modular-version** (Legacy)
+### **modular-version** (Legacy)
 
 Original modular version - **deprecated in favor of databricks-aws-production**.
 
@@ -66,9 +66,7 @@ Original modular version - **deprecated in favor of databricks-aws-production**.
 
 ---
 
-***REMOVED******REMOVED*** 📋 Comparison
-
-***REMOVED******REMOVED*** 📋 Comparison
+## 📋 Comparison
 
 | Feature | databricks-aws-production | modular-version (legacy) |
 |---------|---------------------------|--------------------------|
@@ -84,9 +82,9 @@ Original modular version - **deprecated in favor of databricks-aws-production**.
 
 ---
 
-***REMOVED******REMOVED*** 🎯 Which Deployment Should I Use?
+## 🎯 Which Deployment Should I Use?
 
-***REMOVED******REMOVED******REMOVED*** Choose `databricks-aws-production` if you want:
+### Choose `databricks-aws-production` if you want:
 - ✅ Production-ready deployment with best practices
 - ✅ Visual documentation and architecture diagrams
 - ✅ Quick start with guided configuration
@@ -94,13 +92,13 @@ Original modular version - **deprecated in favor of databricks-aws-production**.
 - ✅ Active maintenance and updates
 - ✅ Clean, modular codebase
 
-***REMOVED******REMOVED******REMOVED*** Use `modular-version` if you:
+### Use `modular-version` if you:
 - ⚠️ Have an existing deployment to maintain
 - ⚠️ Need backward compatibility (consider migrating)
 
 ---
 
-***REMOVED******REMOVED*** 🏗️ Architecture Overview
+## 🏗️ Architecture Overview
 
 Both deployments create a **secure, production-ready Databricks workspace** with:
 
@@ -111,7 +109,7 @@ Both deployments create a **secure, production-ready Databricks workspace** with
 - ✅ **Dedicated PrivateLink subnets** for VPC endpoints
 - ✅ **IP Access Lists** (optional) for additional security
 
-***REMOVED******REMOVED******REMOVED*** Architecture Diagram
+### Architecture Diagram
 
 ```mermaid
 graph TB
@@ -159,15 +157,15 @@ graph TB
     PRIV2 -->|S3 Access| S3GW
     S3GW --> S3
     
-    style CONTROL fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style S3 fill:***REMOVED***569A31,color:***REMOVED***fff
-    style VPCE1 fill:***REMOVED***FF9900,color:***REMOVED***fff
-    style VPCE2 fill:***REMOVED***FF9900,color:***REMOVED***fff
+    style CONTROL fill:#FF3621,color:#fff
+    style S3 fill:#569A31,color:#fff
+    style VPCE1 fill:#FF9900,color:#fff
+    style VPCE2 fill:#FF9900,color:#fff
 ```
 
 ---
 
-***REMOVED******REMOVED*** 📚 Detailed Documentation
+## 📚 Detailed Documentation
 
 For detailed technical documentation, architecture, and configuration guides, see:
 
@@ -175,11 +173,11 @@ For detailed technical documentation, architecture, and configuration guides, se
 
 ---
 
-***REMOVED******REMOVED*** 🚦 Getting Started
+## 🚦 Getting Started
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites (5 minutes)
+### Prerequisites (5 minutes)
 
-***REMOVED******REMOVED******REMOVED*** 1. Databricks Account Requirements
+### 1. Databricks Account Requirements
 
 - **Databricks E2 Account** (Enterprise account on AWS)
 - **Account Console Access** at `https://accounts.cloud.databricks.com`
@@ -188,49 +186,49 @@ For detailed technical documentation, architecture, and configuration guides, se
   - `client_secret` (OAuth Secret)
 - **Databricks Account ID** (found in Account Console)
 
-***REMOVED******REMOVED******REMOVED*** 2. AWS Requirements
+### 2. AWS Requirements
 
 - **AWS Account** with administrator access
 - **AWS CLI** configured with credentials:
   ```bash
   aws configure --profile your-profile-name
-  ***REMOVED*** OR
+  # OR
   aws sso login --profile your-profile-name
   ```
 - **VPC Endpoint Services** enabled in your region
 - **Adequate service quotas** for VPC, subnets, and NAT gateways
 
-***REMOVED******REMOVED******REMOVED*** 3. Local Requirements
+### 3. Local Requirements
 
 - **Terraform** >= 1.0
 - **Git** (for version control)
 
-***REMOVED******REMOVED******REMOVED*** 4. Databricks User
+### 4. Databricks User
 
 - User must **already exist** in Databricks Account Console (for workspace admin assignment)
 - User email will be used for `workspace_admin_email` variable
 
 ---
 
-***REMOVED******REMOVED*** 🚀 Quick Deployment
+## 🚀 Quick Deployment
 
-***REMOVED******REMOVED******REMOVED*** 1. Choose Your Deployment
+### 1. Choose Your Deployment
 
 ```bash
 cd aws-pl-ws/databricks-aws-production
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Configure
+### 2. Configure
 
 ```bash
-***REMOVED*** Copy example configuration
+# Copy example configuration
 cp terraform.tfvars.example terraform.tfvars
 
-***REMOVED*** Edit with your values
+# Edit with your values
 nano terraform.tfvars
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Set Environment Variables
+### 3. Set Environment Variables
 
 Add to `~/.zshrc` or `~/.bashrc`:
 
@@ -240,7 +238,7 @@ export TF_VAR_databricks_client_id="your-service-principal-client-id"
 export TF_VAR_databricks_client_secret="your-service-principal-secret"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Deploy
+### 4. Deploy
 
 ```bash
 terraform init
@@ -254,9 +252,9 @@ terraform apply
 
 ---
 
-***REMOVED******REMOVED*** 📖 Documentation Index
+## 📖 Documentation Index
 
-***REMOVED******REMOVED******REMOVED*** databricks-aws-production
+### databricks-aws-production
 
 | Document | Description |
 |----------|-------------|
@@ -269,42 +267,42 @@ terraform apply
 
 ---
 
-***REMOVED******REMOVED*** 🔧 Configuration Examples
+## 🔧 Configuration Examples
 
-***REMOVED******REMOVED******REMOVED*** Minimal Configuration (Default Security)
+### Minimal Configuration (Default Security)
 
 ```hcl
 workspace_name = "my-databricks-workspace"
 region         = "us-west-1"
 prefix         = "dbx"
 
-***REMOVED*** S3 Buckets (globally unique)
+# S3 Buckets (globally unique)
 root_storage_bucket_name                = "mycompany-dbx-root-storage"
 unity_catalog_bucket_name               = "mycompany-dbx-uc-metastore"
 unity_catalog_root_storage_bucket_name  = "mycompany-dbx-uc-root-storage"
 unity_catalog_external_bucket_name      = "mycompany-dbx-uc-external"
 
-***REMOVED*** Security (defaults)
-enable_private_link  = true   ***REMOVED*** Private Link enabled
-enable_encryption    = true   ***REMOVED*** S3 KMS encryption
-enable_workspace_cmk = false  ***REMOVED*** Workspace CMK disabled
+# Security (defaults)
+enable_private_link  = true   # Private Link enabled
+enable_encryption    = true   # S3 KMS encryption
+enable_workspace_cmk = false  # Workspace CMK disabled
 ```
 
-***REMOVED******REMOVED******REMOVED*** Maximum Security Configuration
+### Maximum Security Configuration
 
 ```hcl
 workspace_name = "my-secure-workspace"
 region         = "us-west-1"
 
-***REMOVED*** Full encryption
-enable_private_link  = true   ***REMOVED*** Private Link
-enable_encryption    = true   ***REMOVED*** S3 KMS encryption
-enable_workspace_cmk = true   ***REMOVED*** Workspace CMK (DBFS + EBS + Managed Services)
+# Full encryption
+enable_private_link  = true   # Private Link
+enable_encryption    = true   # S3 KMS encryption
+enable_workspace_cmk = true   # Workspace CMK (DBFS + EBS + Managed Services)
 
-***REMOVED*** Public access control
-public_access_enabled = false  ***REMOVED*** Block public internet access
+# Public access control
+public_access_enabled = false  # Block public internet access
 
-***REMOVED*** S3 Buckets
+# S3 Buckets
 root_storage_bucket_name                = "mycompany-dbx-root-storage"
 unity_catalog_bucket_name               = "mycompany-dbx-uc-metastore"
 unity_catalog_root_storage_bucket_name  = "mycompany-dbx-uc-root-storage"
@@ -313,9 +311,9 @@ unity_catalog_external_bucket_name      = "mycompany-dbx-uc-external"
 
 ---
 
-***REMOVED******REMOVED*** 🛠️ What Gets Deployed?
+## 🛠️ What Gets Deployed?
 
-***REMOVED******REMOVED******REMOVED*** AWS Resources (65-70 resources)
+### AWS Resources (65-70 resources)
 
 ```
 ├── VPC + 3 subnet tiers (public/private/privatelink)
@@ -343,7 +341,7 @@ unity_catalog_external_bucket_name      = "mycompany-dbx-uc-external"
     └── Workspace CMK
 ```
 
-***REMOVED******REMOVED******REMOVED*** Databricks Resources
+### Databricks Resources
 
 ```
 ├── Workspace (with Private Link)
@@ -356,9 +354,9 @@ unity_catalog_external_bucket_name      = "mycompany-dbx-uc-external"
 
 ---
 
-***REMOVED******REMOVED*** 🔍 Key Features Explained
+## 🔍 Key Features Explained
 
-***REMOVED******REMOVED******REMOVED*** Private Link Architecture
+### Private Link Architecture
 
 **Traffic Flow:**
 ```
@@ -375,7 +373,7 @@ Databricks Control Plane
 - ✅ Compliance-friendly (HIPAA, PCI-DSS)
 - ✅ Lower latency
 
-***REMOVED******REMOVED******REMOVED*** Dual-Layer Encryption
+### Dual-Layer Encryption
 
 **Layer 1: S3 Bucket Encryption** (`enable_encryption = true`)
 - Encrypts Unity Catalog metastore buckets
@@ -390,7 +388,7 @@ Databricks Control Plane
 
 **Note:** Both layers can be enabled simultaneously for maximum security.
 
-***REMOVED******REMOVED******REMOVED*** Unity Catalog Integration
+### Unity Catalog Integration
 
 **Data Governance:**
 - Centralized metadata management
@@ -408,25 +406,25 @@ Single Unity Catalog Metastore
 
 ---
 
-***REMOVED******REMOVED*** ⚙️ Advanced Configuration
+## ⚙️ Advanced Configuration
 
-***REMOVED******REMOVED******REMOVED*** Reuse Existing Resources
+### Reuse Existing Resources
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Reuse Unity Catalog Metastore
+#### Reuse Unity Catalog Metastore
 
 ```hcl
-***REMOVED*** Skip metastore creation, use existing
+# Skip metastore creation, use existing
 metastore_id = "existing-metastore-id"
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Reuse Private Access Settings
+#### Reuse Private Access Settings
 
 ```hcl
-***REMOVED*** Share PAS across multiple workspaces in same region
+# Share PAS across multiple workspaces in same region
 existing_private_access_settings_id = "existing-pas-id"
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Use Existing KMS Key for Workspace CMK
+#### Use Existing KMS Key for Workspace CMK
 
 ```hcl
 enable_workspace_cmk = true
@@ -434,7 +432,7 @@ existing_workspace_cmk_key_arn   = "arn:aws:kms:us-west-1:123456789012:key/12345
 existing_workspace_cmk_key_alias = "alias/databricks-workspace-cmk"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Custom Network Configuration
+### Custom Network Configuration
 
 ```hcl
 vpc_cidr                 = "10.0.0.0/22"
@@ -442,26 +440,26 @@ private_subnet_cidrs     = ["10.0.1.0/24", "10.0.2.0/24"]
 privatelink_subnet_cidrs = ["10.0.3.0/26", "10.0.3.64/26"]
 public_subnet_cidrs      = ["10.0.0.0/26", "10.0.0.64/26"]
 
-***REMOVED*** Manual AZ selection (or leave empty for auto-detect)
+# Manual AZ selection (or leave empty for auto-detect)
 availability_zones = ["us-west-1a", "us-west-1c"]
 ```
 
 ---
 
-***REMOVED******REMOVED*** 🧹 Cleanup
+## 🧹 Cleanup
 
-***REMOVED******REMOVED******REMOVED*** Safe Destroy
+### Safe Destroy
 
 ```bash
 cd aws-pl-ws/databricks-aws-production
 terraform destroy
 ```
 
-**Issues?** See [Destroy Troubleshooting](aws-pl-ws/databricks-aws-production/docs/05-TROUBLESHOOTING.md***REMOVED***destroy-issues)
+**Issues?** See [Destroy Troubleshooting](aws-pl-ws/databricks-aws-production/docs/05-TROUBLESHOOTING.md#destroy-issues)
 
 ---
 
-***REMOVED******REMOVED*** 🆘 Troubleshooting
+## 🆘 Troubleshooting
 
 Common issues and solutions:
 
@@ -477,16 +475,16 @@ Common issues and solutions:
 
 ---
 
-***REMOVED******REMOVED*** 📞 Support & Resources
+## 📞 Support & Resources
 
-***REMOVED******REMOVED******REMOVED*** Documentation
+### Documentation
 - 📖 [Databricks AWS Docs](https://docs.databricks.com/aws/en/)
 - 🔒 [Private Link Guide](https://docs.databricks.com/aws/en/security/network/classic/privatelink.html)
 - 🏛️ [Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/)
 - 🔑 [Customer-Managed Keys](https://docs.databricks.com/aws/en/security/keys/)
 - 🏗️ [Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
 
-***REMOVED******REMOVED******REMOVED*** Getting Help
+### Getting Help
 1. Check [Troubleshooting Guide](aws-pl-ws/databricks-aws-production/docs/05-TROUBLESHOOTING.md)
 2. Review [Architecture Documentation](aws-pl-ws/databricks-aws-production/docs/01-ARCHITECTURE.md)
 3. Enable Terraform debug logs: `export TF_LOG=DEBUG`
@@ -494,7 +492,7 @@ Common issues and solutions:
 
 ---
 
-***REMOVED******REMOVED*** 📝 Version History
+## 📝 Version History
 
 | Version | Status | Notes |
 |---------|--------|-------|
@@ -503,7 +501,7 @@ Common issues and solutions:
 
 ---
 
-***REMOVED******REMOVED*** 🤝 Contributing
+## 🤝 Contributing
 
 Improvements and bug fixes are welcome:
 1. Follow visual-first documentation pattern
@@ -513,7 +511,7 @@ Improvements and bug fixes are welcome:
 
 ---
 
-***REMOVED******REMOVED*** 📄 License
+## 📄 License
 
 This configuration is provided as-is for reference purposes.
 
@@ -521,12 +519,12 @@ This configuration is provided as-is for reference purposes.
 
 **Ready to Deploy?** → [Quick Start Guide](aws-pl-ws/databricks-aws-production/docs/04-QUICK-START.md) ⚡
 
-***REMOVED******REMOVED******REMOVED*** 1. AWS Provider
+### 1. AWS Provider
 
 ```hcl
 provider "aws" {
   region  = "us-west-2"
-  profile = "your-aws-profile"  ***REMOVED*** OR use default credentials
+  profile = "your-aws-profile"  # OR use default credentials
 }
 ```
 
@@ -534,7 +532,7 @@ provider "aws" {
 - **Option 1**: Named AWS CLI profile (`aws_profile` variable)
 - **Option 2**: Default AWS credentials (SSO, environment variables, IAM role)
 
-***REMOVED******REMOVED******REMOVED*** 2. Databricks Account Provider
+### 2. Databricks Account Provider
 
 ```hcl
 provider "databricks" {
@@ -552,7 +550,7 @@ provider "databricks" {
 - Unity Catalog metastore
 - User permission assignments
 
-***REMOVED******REMOVED******REMOVED*** 3. Databricks Workspace Provider
+### 3. Databricks Workspace Provider
 
 ```hcl
 provider "databricks" {
@@ -571,20 +569,20 @@ provider "databricks" {
 
 ---
 
-***REMOVED******REMOVED*** AWS Infrastructure Components
+## AWS Infrastructure Components
 
-***REMOVED******REMOVED******REMOVED*** 1. Networking (`modules/networking`)
+### 1. Networking (`modules/networking`)
 
 Creates a **3-tier VPC architecture**:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** VPC Configuration
+#### VPC Configuration
 ```
 VPC CIDR: 10.0.0.0/22 (1024 total IPs - optimized for single workspace)
 ├── DNS Hostnames: Enabled
 └── DNS Support: Enabled
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Subnets (2 Availability Zones)
+#### Subnets (2 Availability Zones)
 
 | Subnet Type | Purpose | CIDR | Usable IPs | Count |
 |-------------|---------|------|------------|-------|
@@ -598,13 +596,13 @@ VPC CIDR: 10.0.0.0/22 (1024 total IPs - optimized for single workspace)
 - **PrivateLink Subnets /26**: 59 IPs each = more than enough for VPC endpoint ENIs (need ~10 IPs)
 - **Public Subnets /26**: 59 IPs each = sufficient for NAT gateway elastic IPs
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Route Tables
+#### Route Tables
 
 - **Public Route Table**: Routes `0.0.0.0/0` → Internet Gateway
 - **Private Route Tables** (per AZ): Routes `0.0.0.0/0` → NAT Gateway
 - **PrivateLink Route Table**: Routes `0.0.0.0/0` → NAT Gateway (for egress to Databricks control plane)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** NAT Gateways
+#### NAT Gateways
 
 - **Count**: 2 (one per AZ for high availability)
 - **Purpose**: Outbound internet access for private subnets
@@ -622,9 +620,9 @@ VPC CIDR: 10.0.0.0/22 (1024 total IPs - optimized for single workspace)
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 2. VPC Endpoints (`modules/networking/vpc_endpoints.tf`)
+### 2. VPC Endpoints (`modules/networking/vpc_endpoints.tf`)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Databricks-Specific Endpoints
+#### Databricks-Specific Endpoints
 
 | Endpoint | Type | Purpose | Port | Subnets |
 |----------|------|---------|------|---------|
@@ -641,7 +639,7 @@ resource "databricks_mws_vpc_endpoint" "workspace_vpce" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** AWS Service Endpoints
+#### AWS Service Endpoints
 
 | Endpoint | Type | Purpose |
 |----------|------|---------|
@@ -653,9 +651,9 @@ resource "databricks_mws_vpc_endpoint" "workspace_vpce" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 3. Security Groups (`modules/networking/security_groups.tf`)
+### 3. Security Groups (`modules/networking/security_groups.tf`)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Workspace Security Group (for Databricks Clusters)
+#### Workspace Security Group (for Databricks Clusters)
 
 **Ingress Rules:**
 ```
@@ -680,7 +678,7 @@ resource "databricks_mws_vpc_endpoint" "workspace_vpce" {
 - **AWS merges rules:** If multiple targets are specified for the same port in AWS Console, they appear as a single rule. Terraform creates separate rules for clarity.
 - **Security group rule evaluation:** AWS uses an "allow" model - if any rule permits traffic, it's allowed. Rules are evaluated independently without priority or ordering.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** VPC Endpoint Security Group
+#### VPC Endpoint Security Group
 
 **Ingress Rules:**
 ```
@@ -696,7 +694,7 @@ resource "databricks_mws_vpc_endpoint" "workspace_vpce" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 4. Storage (`modules/storage`)
+### 4. Storage (`modules/storage`)
 
 Creates S3 buckets with encryption and versioning:
 
@@ -711,9 +709,9 @@ Creates S3 buckets with encryption and versioning:
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 5. IAM Roles and Policies (`modules/iam`)
+### 5. IAM Roles and Policies (`modules/iam`)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Cross-Account Role
+#### Cross-Account Role
 
 **Purpose:** Allows Databricks control plane to manage workspace resources
 
@@ -724,7 +722,7 @@ Permissions: EC2, VPC, S3 (workspace management)
 
 **Generated by:** `databricks_aws_crossaccount_policy` data source
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Instance Profile Role
+#### Instance Profile Role
 
 **Purpose:** Grants Databricks clusters access to S3 and AWS services
 
@@ -736,7 +734,7 @@ Permissions:
   - CloudWatch logs (optional)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Unity Catalog Role
+#### Unity Catalog Role
 
 **Purpose:** Grants Unity Catalog access to S3 data locations
 
@@ -750,11 +748,11 @@ Permissions:
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 6. Customer-Managed Keys (Optional) (`modules/kms`)
+### 6. Customer-Managed Keys (Optional) (`modules/kms`)
 
 When `enable_workspace_cmk = true`:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Single KMS Key for Workspace
+#### Single KMS Key for Workspace
 
 **Use Cases:**
 - `STORAGE` - DBFS root and EBS volume encryption
@@ -774,25 +772,25 @@ Permissions:
 
 ---
 
-***REMOVED******REMOVED*** Databricks Resources
+## Databricks Resources
 
-***REMOVED******REMOVED******REMOVED*** 1. Workspace Configuration (`modules/databricks_workspace`)
+### 1. Workspace Configuration (`modules/databricks_workspace`)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Credentials
+#### Credentials
 ```hcl
 databricks_mws_credentials
 ├── Role ARN: Cross-account role
 └── Purpose: AWS resource management
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Storage Configuration
+#### Storage Configuration
 ```hcl
 databricks_mws_storage_configurations
 ├── Bucket: Root storage bucket
 └── Purpose: DBFS root storage
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Network Configuration
+#### Network Configuration
 ```hcl
 databricks_mws_networks
 ├── VPC ID
@@ -803,7 +801,7 @@ databricks_mws_networks
     └── dataplane_relay: Relay VPC Endpoint ID
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Private Access Settings
+#### Private Access Settings
 ```hcl
 databricks_mws_private_access_settings
 ├── Public Access: Configurable (default: enabled)
@@ -811,7 +809,7 @@ databricks_mws_private_access_settings
 └── Region: Workspace region
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Workspace
+#### Workspace
 ```hcl
 databricks_mws_workspaces
 ├── Credentials ID
@@ -826,9 +824,9 @@ databricks_mws_workspaces
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 2. Unity Catalog (`modules/unity_catalog`)
+### 2. Unity Catalog (`modules/unity_catalog`)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Metastore
+#### Metastore
 ```hcl
 databricks_metastore
 ├── Name: {prefix}-metastore
@@ -837,7 +835,7 @@ databricks_metastore
 └── Owner: Metastore admin email
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Metastore Assignment
+#### Metastore Assignment
 ```hcl
 databricks_metastore_assignment
 ├── Workspace ID
@@ -845,7 +843,7 @@ databricks_metastore_assignment
 └── Default Catalog: "main"
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Storage Credentials (Optional)
+#### Storage Credentials (Optional)
 ```hcl
 databricks_storage_credential (root_storage)
 ├── IAM Role: UC root storage role ARN
@@ -856,7 +854,7 @@ databricks_storage_credential (external_storage)
 └── Purpose: Access to external data buckets
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** External Locations (Optional)
+#### External Locations (Optional)
 ```hcl
 databricks_external_location (root_storage)
 ├── URL: s3://uc-root-storage-bucket/
@@ -867,7 +865,7 @@ databricks_external_location (external_location)
 └── Credential: external_storage
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Workspace Catalog (Optional)
+#### Workspace Catalog (Optional)
 ```hcl
 databricks_catalog
 ├── Name: {prefix}_catalog
@@ -877,7 +875,7 @@ databricks_catalog
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 3. User Assignment (`modules/user_assignment`)
+### 3. User Assignment (`modules/user_assignment`)
 
 Assigns existing Databricks account user as workspace admin:
 
@@ -899,9 +897,9 @@ databricks_mws_permission_assignment
 
 ---
 
-***REMOVED******REMOVED*** Deployment Flow
+## Deployment Flow
 
-***REMOVED******REMOVED******REMOVED*** Module Dependency Graph
+### Module Dependency Graph
 
 ```mermaid
 graph TD
@@ -945,14 +943,14 @@ graph TD
     
     U --> Y[User Assignment Module]
     
-    style A fill:***REMOVED***f9f,stroke:***REMOVED***333
-    style M fill:***REMOVED***bbf,stroke:***REMOVED***333
-    style S fill:***REMOVED***bfb,stroke:***REMOVED***333
-    style Y fill:***REMOVED***fbb,stroke:***REMOVED***333
-    style R fill:***REMOVED***FF3621,color:***REMOVED***fff
+    style A fill:#f9f,stroke:#333
+    style M fill:#bbf,stroke:#333
+    style S fill:#bfb,stroke:#333
+    style Y fill:#fbb,stroke:#333
+    style R fill:#FF3621,color:#fff
 ```
 
-***REMOVED******REMOVED******REMOVED*** Deployment Sequence
+### Deployment Sequence
 
 ```mermaid
 sequenceDiagram
@@ -1001,35 +999,35 @@ sequenceDiagram
     Note over DB_ACC: Wait 20 minutes for<br/>Backend Private Link
 ```
 
-***REMOVED******REMOVED******REMOVED*** Critical Dependencies
+### Critical Dependencies
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Module-Level Dependencies
+#### Module-Level Dependencies
 
 ```hcl
 module "databricks_workspace" {
   depends_on = [
-    module.networking,  ***REMOVED*** VPC, subnets, VPC endpoints
-    module.storage,     ***REMOVED*** S3 buckets
-    module.iam,         ***REMOVED*** Cross-account role, instance profile
-    module.kms          ***REMOVED*** KMS keys (if enabled)
+    module.networking,  # VPC, subnets, VPC endpoints
+    module.storage,     # S3 buckets
+    module.iam,         # Cross-account role, instance profile
+    module.kms          # KMS keys (if enabled)
   ]
 }
 
 module "unity_catalog" {
   depends_on = [
-    module.databricks_workspace,  ***REMOVED*** Workspace must exist
-    module.storage                ***REMOVED*** UC buckets must exist
+    module.databricks_workspace,  # Workspace must exist
+    module.storage                # UC buckets must exist
   ]
 }
 
 module "user_assignment" {
   depends_on = [
-    module.unity_catalog.metastore_assignment_id  ***REMOVED*** UC must be assigned first
+    module.unity_catalog.metastore_assignment_id  # UC must be assigned first
   ]
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Resource-Level Dependencies
+#### Resource-Level Dependencies
 
 **Within Databricks Workspace Module:**
 ```
@@ -1057,43 +1055,43 @@ Workspace Catalog (external locations must exist)
 
 ---
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
-***REMOVED******REMOVED******REMOVED*** 1. Required Variables
+### 1. Required Variables
 
 Create `terraform.tfvars`:
 
 ```hcl
-***REMOVED*** AWS Configuration
+# AWS Configuration
 region      = "us-west-2"
-aws_profile = "your-aws-profile"  ***REMOVED*** Or use default credentials
+aws_profile = "your-aws-profile"  # Or use default credentials
 
-***REMOVED*** Databricks Account Configuration
+# Databricks Account Configuration
 databricks_account_id = "your-account-id"
 client_id             = "your-service-principal-client-id"
 client_secret         = "your-service-principal-secret"
 
-***REMOVED*** Workspace Configuration
+# Workspace Configuration
 workspace_name        = "my-databricks-workspace"
 workspace_admin_email = "admin@example.com"
 
-***REMOVED*** Metastore Configuration
+# Metastore Configuration
 metastore_admin_email = "admin@example.com"
 
-***REMOVED*** Network Configuration
+# Network Configuration
 vpc_cidr             = "10.0.0.0/22"
 private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
 public_subnet_cidrs  = ["10.0.0.0/26", "10.0.0.64/26"]
 privatelink_subnet_cidrs = ["10.0.3.0/26", "10.0.3.64/26"]
 
-***REMOVED*** VPC Endpoint Services (region-specific)
+# VPC Endpoint Services (region-specific)
 workspace_vpce_service = "com.amazonaws.vpce.us-west-2.vpce-svc-xxxxx"
 relay_vpce_service     = "com.amazonaws.vpce.us-west-2.vpce-svc-yyyyy"
 
-***REMOVED*** AWS Account
+# AWS Account
 aws_account_id = "123456789012"
 
-***REMOVED*** Tags
+# Tags
 tags = {
   Environment = "dev"
   Project     = "databricks-privatelink"
@@ -1101,55 +1099,55 @@ tags = {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Optional Features
+### 2. Optional Features
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Customer-Managed Keys
+#### Customer-Managed Keys
 ```hcl
 enable_workspace_cmk = true
 cmk_admin_arn        = "arn:aws:iam::123456789012:user/admin"
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** IP Access Lists
+#### IP Access Lists
 ```hcl
 enable_ip_access_lists = true
 allowed_ip_addresses   = ["1.2.3.4/32", "5.6.7.8/32"]
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Unity Catalog Workspace Catalog
+#### Unity Catalog Workspace Catalog
 ```hcl
 create_workspace_catalog = true
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Private Access Settings
+#### Private Access Settings
 ```hcl
-public_access_enabled = false      ***REMOVED*** Fully private workspace
-private_access_level  = "ACCOUNT"  ***REMOVED*** or "ENDPOINT"
+public_access_enabled = false      # Fully private workspace
+private_access_level  = "ACCOUNT"  # or "ENDPOINT"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Initialize Terraform
+### Step 1: Initialize Terraform
 
 ```bash
 cd aws/modular-version
 terraform init
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Validate Configuration
+### Step 2: Validate Configuration
 
 ```bash
 terraform validate
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Review Plan
+### Step 3: Review Plan
 
 ```bash
 terraform plan
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Apply Configuration
+### Step 4: Apply Configuration
 
 ```bash
 terraform apply
@@ -1157,13 +1155,13 @@ terraform apply
 
 **Deployment Time:** ~15-20 minutes
 
-***REMOVED******REMOVED******REMOVED*** Step 5: Wait for Backend Private Link
+### Step 5: Wait for Backend Private Link
 
 ⚠️ **IMPORTANT:** Wait **20 minutes** after workspace creation before creating clusters.
 
 This allows the backend Private Link connection to fully stabilize.
 
-***REMOVED******REMOVED******REMOVED*** Step 6: Verify Deployment
+### Step 6: Verify Deployment
 
 1. Access workspace at the output URL
 2. Log in with workspace admin email
@@ -1172,11 +1170,11 @@ This allows the backend Private Link connection to fully stabilize.
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues and Solutions
+### Common Issues and Solutions
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Provider Type Mismatch Error
+#### 1. Provider Type Mismatch Error
 
 **Error:**
 ```
@@ -1196,12 +1194,12 @@ terraform init -upgrade
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Security Group Egress Rules Warning
+#### 2. Security Group Egress Rules Warning
 
 **Warning:**
 ```
 Warning: Egress rules in the Security Group sg-xxxxx are not configured correctly.
-See the requirements at https://docs.databricks.com/administration-guide/cloud-configurations/aws/customer-managed-vpc.html***REMOVED***security-groups.
+See the requirements at https://docs.databricks.com/administration-guide/cloud-configurations/aws/customer-managed-vpc.html#security-groups.
 ```
 
 **Common Causes:**
@@ -1213,7 +1211,7 @@ See the requirements at https://docs.databricks.com/administration-guide/cloud-c
 
 **Check for redundant rules:**
 ```bash
-***REMOVED*** View all egress rules for the workspace security group
+# View all egress rules for the workspace security group
 aws ec2 describe-security-groups \
   --group-ids <WORKSPACE_SG_ID> \
   --query 'SecurityGroups[0].IpPermissionsEgress[?FromPort==`443`]' \
@@ -1222,7 +1220,7 @@ aws ec2 describe-security-groups \
 
 **If you see both `0.0.0.0/0` and a prefix list for port 443, remove the prefix list:**
 ```bash
-***REMOVED*** Remove redundant S3 prefix list rule (change pl-xxxxx to your prefix list ID)
+# Remove redundant S3 prefix list rule (change pl-xxxxx to your prefix list ID)
 aws ec2 revoke-security-group-egress \
   --group-id <WORKSPACE_SG_ID> \
   --ip-permissions 'IpProtocol=tcp,FromPort=443,ToPort=443,PrefixListIds=[{PrefixListId=pl-xxxxx}]' \
@@ -1231,7 +1229,7 @@ aws ec2 revoke-security-group-egress \
 
 **Verify Terraform configuration matches AWS:**
 ```bash
-terraform plan  ***REMOVED*** Should show no changes if in sync
+terraform plan  # Should show no changes if in sync
 ```
 
 **Why this happens:**
@@ -1243,7 +1241,7 @@ terraform plan  ***REMOVED*** Should show no changes if in sync
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. VPC Endpoint Service Not Found
+#### 3. VPC Endpoint Service Not Found
 
 **Error:**
 ```
@@ -1254,14 +1252,14 @@ Error: creating EC2 VPC Endpoint: InvalidServiceName
 1. Verify you're using the correct region
 2. Get the correct VPC endpoint service names from Databricks support:
    ```bash
-   ***REMOVED*** Contact Databricks support for your region-specific service names
+   # Contact Databricks support for your region-specific service names
    workspace_vpce_service = "com.amazonaws.vpce.REGION.vpce-svc-xxxxx"
    relay_vpce_service     = "com.amazonaws.vpce.REGION.vpce-svc-yyyyy"
    ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 4. Cannot Create User Assignment Error
+#### 4. Cannot Create User Assignment Error
 
 **Error:**
 ```
@@ -1274,15 +1272,15 @@ Error: cannot create mws permission assignment: Permission assignment APIs are n
 
 **Workaround:**
 ```hcl
-***REMOVED*** In terraform.tfvars, leave empty to skip:
+# In terraform.tfvars, leave empty to skip:
 workspace_admin_email = ""
 
-***REMOVED*** Then assign admin manually via Databricks UI
+# Then assign admin manually via Databricks UI
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 5. KMS Key Policy Circular Dependency
+#### 5. KMS Key Policy Circular Dependency
 
 **Error:**
 ```
@@ -1300,7 +1298,7 @@ locals {
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 6. Workspace URL Double HTTPS Error
+#### 6. Workspace URL Double HTTPS Error
 
 **Error:**
 ```
@@ -1309,12 +1307,12 @@ Error: Config: host=https://https://...
 
 **Solution:** The workspace URL output should not include `https://` prefix:
 ```hcl
-***REMOVED*** Correct:
+# Correct:
 output "workspace_url" {
   value = databricks_mws_workspaces.workspace.workspace_url
 }
 
-***REMOVED*** Incorrect:
+# Incorrect:
 output "workspace_url" {
   value = "https://${databricks_mws_workspaces.workspace.workspace_url}"
 }
@@ -1322,7 +1320,7 @@ output "workspace_url" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 7. Cluster Creation Fails After Workspace Deployment
+#### 7. Cluster Creation Fails After Workspace Deployment
 
 **Error:**
 ```
@@ -1340,7 +1338,7 @@ Cluster creation failed: Unable to connect to data plane
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 8. S3 Access Denied Errors
+#### 8. S3 Access Denied Errors
 
 **Error:**
 ```
@@ -1364,7 +1362,7 @@ Error: Access Denied when accessing S3 bucket
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 9. Unity Catalog Metastore Assignment Fails
+#### 9. Unity Catalog Metastore Assignment Fails
 
 **Error:**
 ```
@@ -1385,7 +1383,7 @@ Error: cannot assign metastore to workspace
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 10. Destroy Fails with Dynamic Provider Error
+#### 10. Destroy Fails with Dynamic Provider Error
 
 **Error:**
 ```
@@ -1394,14 +1392,14 @@ Error: cannot read storage credential: failed during request visitor
 
 **Solution:** Use targeted destroy:
 ```bash
-***REMOVED*** Step 1: Remove Unity Catalog resources
+# Step 1: Remove Unity Catalog resources
 terraform destroy -target=module.user_assignment
 terraform destroy -target=module.unity_catalog
 
-***REMOVED*** Step 2: Remove workspace
+# Step 2: Remove workspace
 terraform destroy -target=module.databricks_workspace
 
-***REMOVED*** Step 3: Remove remaining resources
+# Step 3: Remove remaining resources
 terraform destroy
 ```
 
@@ -1413,47 +1411,47 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Debug Commands
+### Debug Commands
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Check Terraform State
+#### Check Terraform State
 ```bash
 terraform state list
 terraform state show 'module.name.resource.name'
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Refresh State
+#### Refresh State
 ```bash
 terraform refresh
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** View Outputs
+#### View Outputs
 ```bash
 terraform output
 terraform output -json | jq
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Enable Debug Logging
+#### Enable Debug Logging
 ```bash
 export TF_LOG=DEBUG
 export TF_LOG_PATH=terraform-debug.log
 terraform apply
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Validate Network Connectivity
+#### Validate Network Connectivity
 ```bash
-***REMOVED*** Test VPC endpoint DNS resolution
+# Test VPC endpoint DNS resolution
 nslookup workspace-endpoint-name.vpce-svc-xxxxx.us-west-2.vpce.amazonaws.com
 
-***REMOVED*** Check NAT Gateway status
+# Check NAT Gateway status
 aws ec2 describe-nat-gateways --region us-west-2
 
-***REMOVED*** Verify security group rules
+# Verify security group rules
 aws ec2 describe-security-groups --group-ids sg-xxxxx
 ```
 
 ---
 
-***REMOVED******REMOVED*** Additional Resources
+## Additional Resources
 
 - [Databricks Private Link Documentation](https://docs.databricks.com/administration-guide/cloud-configurations/aws/privatelink.html)
 - [Unity Catalog Setup Guide](https://docs.databricks.com/data-governance/unity-catalog/get-started.html)
@@ -1463,16 +1461,16 @@ aws ec2 describe-security-groups --group-ids sg-xxxxx
 
 ---
 
-***REMOVED******REMOVED*** Support
+## Support
 
 For issues or questions:
-1. Check the [Troubleshooting](***REMOVED***troubleshooting) section above
+1. Check the [Troubleshooting](#troubleshooting) section above
 2. Review Terraform debug logs (`TF_LOG=DEBUG`)
 3. Consult [Databricks documentation](https://docs.databricks.com)
 4. Contact Databricks support for account-specific issues
 
 ---
 
-***REMOVED******REMOVED*** License
+## License
 
 This configuration is provided as-is for reference purposes.
