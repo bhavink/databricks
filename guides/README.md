@@ -34,13 +34,48 @@ Perfect for:
 - Troubleshooting access issues
 - Explaining to management/security teams
 
+### [Networking Guide](./networking.md)
+**Understand Databricks network architecture and design secure networks.**
+
+Learn how to design and deploy Databricks networking:
+- Control plane vs compute plane architecture
+- **AWS customer-managed VPC** (complete with troubleshooting)
+- **Azure VNet injection** (complete with troubleshooting)
+- **GCP customer-managed VPC** (complete with troubleshooting)
+- VPC/VNet requirements, security rules, NAT configuration
+- Private connectivity options (PrivateLink, Private Link, PSC, VPC-SC)
+- Cross-cloud comparison table
+- Cloud-specific troubleshooting with CLI examples
+- Best practices across all three clouds
+
+Perfect for:
+- Platform engineers deploying infrastructure
+- Cloud architects designing secure networks
+- Security teams reviewing network controls
+- Troubleshooting connectivity issues across AWS, Azure, and GCP
+
+### [Common Questions & Answers](./common-questions.md)
+**Quick answers to frequently asked questions.**
+
+Searchable Q&A covering all Databricks topics:
+- General concepts (classic vs serverless, workspace types)
+- Networking (AWS, Azure, GCP-specific questions)
+- Authentication & identity (coming soon)
+- Security & compliance
+- Troubleshooting common issues
+
+Perfect for:
+- Quick reference when stuck
+- Understanding specific concepts
+- Comparing options across clouds
+- Troubleshooting guidance
+
 ---
 
 ## Coming Soon
 
-- **Networking Guide** - VPCs, subnets, private endpoints explained simply
 - **Security Guide** - Best practices for secure Databricks deployments
-- **Troubleshooting Guide** - Common errors and how to fix them
+- **Performance Guide** - Optimization and tuning recommendations
 
 ---
 

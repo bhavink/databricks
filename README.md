@@ -59,10 +59,13 @@ This repository contains **production-ready infrastructure templates**, ready-to
 
 ## 📖 Cross-Cloud Guides (Start Here!)
 
-**New to Terraform or stuck on authentication?** Check out our beginner-friendly guides:
+**New to Databricks infrastructure?** Check out our comprehensive guides:
 
 - **[Authentication Guide](./guides/authentication.md)** - Set up Terraform authentication for Azure, AWS, or GCP (zero jargon!)
-- More guides coming soon: Networking, Security, Troubleshooting
+- **[Identities Guide](./guides/identities.md)** - Understand how Databricks accesses your cloud account
+- **[Networking Guide](./guides/networking.md)** - Complete multi-cloud guide covering AWS, Azure, and GCP networking with troubleshooting
+- **[Common Questions & Answers](./guides/common-questions.md)** - Quick answers to frequently asked questions
+- More guides coming soon: Security, Performance
 
 ---
 
