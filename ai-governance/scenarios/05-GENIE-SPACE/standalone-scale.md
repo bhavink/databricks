@@ -454,9 +454,9 @@ GROUP BY department, region, country, job_level, employment_status;
 ALTER MATERIALIZED VIEW hr_analytics.analytics.headcount_mv 
   SET TBLPROPERTIES('pipelines.autoUpdate.enabled' = 'true');
 
--- Grant access to all roles (aggregated data is safe)
-GRANT SELECT ON MATERIALIZED VIEW hr_analytics.analytics.headcount_mv 
-  TO `employees`, `managers`, `directors`, `executives`, `hr-admins`;
+-- Grant access via UC UI: All roles can see aggregated data
+-- Navigate to Catalog Explorer → hr_analytics.analytics.headcount_mv → Permissions
+-- Grant SELECT to: employees, managers, directors, executives, hr-admins
 ```
 
 #### Attrition Metrics View
@@ -498,9 +498,9 @@ FULL OUTER JOIN terminated_employees t
     AND a.region = t.region 
     AND a.hire_month = t.term_month;
 
--- Grant access
-GRANT SELECT ON MATERIALIZED VIEW hr_analytics.analytics.attrition_mv 
-  TO `managers`, `directors`, `executives`, `hr-admins`;
+-- Grant access via UC UI: Management and HR only
+-- Navigate to Catalog Explorer → hr_analytics.analytics.attrition_mv → Permissions
+-- Grant SELECT to: managers, directors, executives, hr-admins
 ```
 
 ### Table Partitioning Strategy
@@ -979,7 +979,7 @@ ORDER BY error_count DESC;
 **Solutions:**
 - Verify user group memberships
 - Check if row filter function has bugs
-- Validate GRANT statements were applied
+- Validate SELECT permissions were granted via UC UI (Catalog Explorer → Permissions tab)
 - Review Genie instructions (may be generating wrong queries)
 
 ### Issue 3: Cost Overrun

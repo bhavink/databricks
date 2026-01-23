@@ -187,39 +187,41 @@ COMMENT 'Shared reference data';
 
 ### Step 2: Grant Catalog/Schema Permissions
 
-```sql
--- Grant catalog access to all teams
-GRANT USE CATALOG ON CATALOG revenue_analytics 
-  TO `sales-team`, `marketing-team`, `finance-team`, `executives`;
+**Grant permissions manually via Unity Catalog UI:**
 
--- Grant schema access based on team
-GRANT USE SCHEMA ON SCHEMA revenue_analytics.sales TO `sales-team`, `executives`;
-GRANT USE SCHEMA ON SCHEMA revenue_analytics.marketing TO `marketing-team`, `executives`;
-GRANT USE SCHEMA ON SCHEMA revenue_analytics.finance TO `finance-team`, `executives`;
-GRANT USE SCHEMA ON SCHEMA revenue_analytics.shared 
-  TO `sales-team`, `marketing-team`, `finance-team`, `executives`;
-```
+1. Navigate to **Catalog Explorer** in Databricks UI
+2. Select catalog `revenue_analytics`
+3. Click **Permissions** tab
+4. Grant `USE CATALOG` to: `sales-team`, `marketing-team`, `finance-team`, `executives`
+
+5. For each schema, grant `USE SCHEMA` permissions:
+   - **`revenue_analytics.sales`**: Grant to `sales-team`, `executives`
+   - **`revenue_analytics.marketing`**: Grant to `marketing-team`, `executives`
+   - **`revenue_analytics.finance`**: Grant to `finance-team`, `executives`
+   - **`revenue_analytics.shared`**: Grant to all teams
+
+> **Why manual grants?** For learning exercises, manually granting permissions via UI helps you understand the Unity Catalog hierarchy and permission model.
 
 ### Step 3: Grant Table Permissions
 
-```sql
--- Sales team: Read opportunities
-GRANT SELECT ON TABLE revenue_analytics.sales.opportunities TO `sales-team`, `executives`;
+**Grant SELECT permissions manually via Unity Catalog UI:**
 
--- Marketing team: Read campaigns and opportunities (for attribution)
-GRANT SELECT ON TABLE revenue_analytics.marketing.campaigns TO `marketing-team`, `executives`;
-GRANT SELECT ON TABLE revenue_analytics.sales.opportunities TO `marketing-team`, `executives`;
+1. Navigate to each table in **Catalog Explorer**
+2. Click **Permissions** tab
+3. Grant `SELECT` to appropriate groups:
 
--- Finance team: Read revenue and opportunities
-GRANT SELECT ON TABLE revenue_analytics.finance.revenue TO `finance-team`, `executives`;
-GRANT SELECT ON TABLE revenue_analytics.sales.opportunities TO `finance-team`, `executives`;
+**Sales team tables:**
+- `revenue_analytics.sales.opportunities` → `sales-team`, `executives`, `marketing-team` (for attribution), `finance-team` (for revenue)
 
--- Shared tables: All teams
-GRANT SELECT ON TABLE revenue_analytics.shared.customers 
-  TO `sales-team`, `marketing-team`, `finance-team`, `executives`;
-GRANT SELECT ON TABLE revenue_analytics.shared.products 
-  TO `sales-team`, `marketing-team`, `finance-team`, `executives`;
-```
+**Marketing team tables:**
+- `revenue_analytics.marketing.campaigns` → `marketing-team`, `executives`
+
+**Finance team tables:**
+- `revenue_analytics.finance.revenue` → `finance-team`, `executives`
+
+**Shared tables:**
+- `revenue_analytics.shared.customers` → All teams
+- `revenue_analytics.shared.products` → All teams
 
 ### Step 4: Create Row Filter Functions
 
@@ -575,8 +577,8 @@ ORDER BY avg_duration_ms DESC;
 
 **Diagnosis:**
 ```sql
--- Check table permissions
-SHOW GRANTS ON TABLE revenue_analytics.sales.opportunities;
+-- Check table permissions (via UI: Catalog Explorer → Table → Permissions tab)
+SELECT * FROM revenue_analytics.sales.opportunities;
 
 -- Check row filter definition
 SHOW CREATE FUNCTION revenue_analytics.sales.filter_opportunities;
@@ -589,7 +591,7 @@ SELECT * FROM system.access.users WHERE email = '<user-email>';
 **Solution:**
 - Verify user is in correct group (sales-team, marketing-team, etc.)
 - Check row filter logic allows user's group
-- Ensure GRANT SELECT was applied
+- Ensure SELECT permission was granted via UC UI (Catalog Explorer → Table → Permissions tab)
 
 ### Issue 2: Wrong Data Visible
 

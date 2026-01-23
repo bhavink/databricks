@@ -178,18 +178,18 @@ COMMENT 'Vector Search indexes';
 
 ### Step 2: Grant Catalog Permissions
 
-```sql
--- Grant catalog access to all engineering teams
-GRANT USE CATALOG ON CATALOG docs_catalog 
-  TO `platform-team`, `data-team`, `ml-team`, `security-team`;
+**Grant permissions manually via Unity Catalog UI:**
 
--- Grant schema access
-GRANT USE SCHEMA ON SCHEMA docs_catalog.processed 
-  TO `platform-team`, `data-team`, `ml-team`, `security-team`;
+1. Navigate to **Catalog Explorer** in Databricks UI
+2. Select catalog `docs_catalog`
+3. Click **Permissions** tab
+4. Grant `USE CATALOG` to: `platform-team`, `data-team`, `ml-team`, `security-team`
 
-GRANT USE SCHEMA ON SCHEMA docs_catalog.indexes 
-  TO `platform-team`, `data-team`, `ml-team`, `security-team`;
-```
+5. For each schema, grant `USE SCHEMA`:
+   - **`docs_catalog.processed`**: Grant to all engineering teams
+   - **`docs_catalog.indexes`**: Grant to all engineering teams
+
+> **Why manual grants?** For learning exercises, manually granting permissions via UI helps you understand the Unity Catalog hierarchy and permission model.
 
 ### Step 3: Row Filter for Team-Based Access
 
@@ -240,14 +240,14 @@ ALTER TABLE docs_catalog.processed.document_chunks
 
 ### Step 4: Grant Table Permissions
 
-```sql
--- Grant SELECT on metadata and chunks
-GRANT SELECT ON TABLE docs_catalog.processed.document_metadata 
-  TO `platform-team`, `data-team`, `ml-team`, `security-team`;
+**Grant SELECT permissions manually via Unity Catalog UI:**
 
-GRANT SELECT ON TABLE docs_catalog.processed.document_chunks 
-  TO `platform-team`, `data-team`, `ml-team`, `security-team`;
-```
+1. Navigate to **Catalog Explorer** → `docs_catalog.processed`
+2. For each table, click **Permissions** tab and grant `SELECT` to all teams:
+   - `docs_catalog.processed.document_metadata` → `platform-team`, `data-team`, `ml-team`, `security-team`
+   - `docs_catalog.processed.document_chunks` → `platform-team`, `data-team`, `ml-team`, `security-team`
+
+> **Note**: Row filters automatically apply when users query these tables, so each team only sees their own documents.
 
 ---
 
@@ -292,11 +292,13 @@ print(f"Index created: {index.name}")
 
 ### Step 3: Grant Index Access
 
-```sql
--- Grant access to Vector Search index
-GRANT SELECT ON TABLE docs_catalog.indexes.engineering_docs 
-  TO `platform-team`, `data-team`, `ml-team`, `security-team`;
-```
+**Grant SELECT permissions manually via Unity Catalog UI:**
+
+1. Navigate to **Catalog Explorer** → `docs_catalog.indexes.engineering_docs`
+2. Click **Permissions** tab
+3. Grant `SELECT` to: `platform-team`, `data-team`, `ml-team`, `security-team`
+
+> **Note**: The row filter on the source table automatically applies to Vector Search queries, ensuring team-based access control.
 
 ---
 
@@ -646,14 +648,15 @@ if __name__ == "__main__":
 
 ### Grant Ingestion Job Permissions
 
-```sql
--- Grant service principal INSERT permission
-GRANT INSERT ON TABLE docs_catalog.processed.document_metadata 
-  TO `sp-docs-ingestion-prod`;
+**Grant INSERT permissions manually via Unity Catalog UI:**
 
-GRANT INSERT ON TABLE docs_catalog.processed.document_chunks 
-  TO `sp-docs-ingestion-prod`;
-```
+1. Navigate to **Catalog Explorer** → `docs_catalog.processed.document_metadata`
+2. Click **Permissions** tab
+3. Grant `INSERT` permission to service principal: `sp-docs-ingestion-prod`
+
+4. Repeat for `docs_catalog.processed.document_chunks`
+
+> **Why service principal needs INSERT**: The ingestion job runs as a service principal and needs permission to write new documents to the tables.
 
 ---
 
