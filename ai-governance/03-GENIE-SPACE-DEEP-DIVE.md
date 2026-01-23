@@ -212,17 +212,85 @@ flowchart TB
 - UC row filter ensures each customer sees only their data
 
 **SDK Support:**
+
+**Current Implementation (2024+):**
 ```python
 from databricks.sdk import WorkspaceClient
 from databricks_langchain import GenieAgent
+from databricks_ai_bridge import ModelServingUserCredentials
 
-# OBO authentication via SDK
-client = WorkspaceClient()
+# 1. Configure the WorkspaceClient for OBO authentication
+user_client = WorkspaceClient(credentials_strategy=ModelServingUserCredentials())
+
+# 2. Initialize the GenieAgent with the configured client
 agent = GenieAgent(
-    space_id="<genie-space-id>",
-    on_behalf_of="customer@email.com"  # Query runs as this user
+    genie_space_id="<genie-space-id>",
+    genie_agent_name="Genie",  # Optional name
+    description="This agent queries sales data",  # Optional description
+    client=user_client  # Pass the OBO client here
 )
+
+# 3. Use the agent
+response = agent.invoke("Show me the total revenue for last month.")
 ```
+
+**Key Changes from Legacy Approach:**
+- **Authentication Method:** Use `ModelServingUserCredentials()` within `WorkspaceClient` instead of `on_behalf_of` string parameter
+- **Client Parameter:** Pass the specialized `WorkspaceClient` to `GenieAgent` via the `client` parameter
+- **Automatic Token Injection:** When deployed to Model Serving, Databricks automatically injects a short-lived OAuth token for the user session
+
+**How It Works:**
+
+1. **Token Injection:** When an agent is deployed to a Mosaic AI Model Serving endpoint, Databricks automatically injects a short-lived OAuth token for the user session into the environment
+2. **Credential Strategy:** `ModelServingUserCredentials` instructs the `WorkspaceClient` to look for and use this injected token automatically
+3. **User Context:** The Genie query executes with the **end user's permissions**, enforcing UC row filters and column masks
+
+**Implementation Requirements:**
+
+⚠️ **Initialize Inside Predict:**
+```python
+class MyAgent:
+    def predict(self, request):
+        # Initialize OBO access INSIDE predict, not in __init__
+        # User identity is only known at runtime
+        user_client = WorkspaceClient(
+            credentials_strategy=ModelServingUserCredentials()
+        )
+        
+        agent = GenieAgent(
+            genie_space_id="<genie-space-id>",
+            client=user_client
+        )
+        
+        return agent.invoke(request.query)
+```
+
+⚠️ **Declare API Scopes:**
+When logging the agent for deployment, declare the Databricks REST API scopes:
+```python
+import mlflow
+from mlflow.models.auth_policy import AuthPolicy, UserAuthPolicy
+
+user_policy = UserAuthPolicy(api_scopes=[
+    "dashboards.genie",  # For Genie Space access
+    "sql.warehouses",     # If Genie uses SQL Warehouse
+    "sql.statement-execution"
+])
+
+with mlflow.start_run():
+    mlflow.pyfunc.log_model(
+        name="agent",
+        python_model="agent.py",
+        auth_policy=AuthPolicy(user_auth_policy=user_policy)
+    )
+```
+
+⚠️ **Library Requirements:**
+```bash
+pip install databricks-sdk databricks-ai-bridge databricks-langchain
+```
+
+**Reference:** [OBO Authentication Documentation](https://learn.microsoft.com/en-us/azure/databricks/generative-ai/agent-framework/agent-authentication#on-behalf-of-user-authentication)
 
 ---
 

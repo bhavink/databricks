@@ -835,6 +835,38 @@ SELECT * FROM catalog.schema.table;
 - Use for APIs outside Databricks (OpenAI, Salesforce, etc.)
 - Data from external sources is not governed by UC until written to UC tables
 
+### 📖 Agent Framework Authentication Reference
+
+For **Agent Bricks** and **AI agents**, the authentication methods integrate with UC as follows:
+
+#### Automatic Authentication Passthrough
+- **Agent Framework:** Agent runs with permissions of deployer, Databricks manages short-lived credentials
+- **UC Integration:** Service principal permissions evaluated (Pattern 1 above)
+- **When to use:** Simple agents, consistent access requirements, least-privilege automation
+- **Reference:** [Agent Authentication - Automatic Passthrough](https://learn.microsoft.com/en-us/azure/databricks/generative-ai/agent-framework/agent-authentication#automatic-authentication-passthrough)
+
+#### On-Behalf-Of-User (OBO) Authentication
+- **Agent Framework:** Agent runs with permissions of end user making request
+- **UC Integration:** Per-user row filters and column masks apply (Pattern 2 above)
+- **When to use:** Per-user data access, fine-grained UC governance, user-attributed auditing
+- **Security:** Tokens are downscoped to declared API scopes, reducing risk
+- **Reference:** [Agent Authentication - OBO](https://learn.microsoft.com/en-us/azure/databricks/generative-ai/agent-framework/agent-authentication#on-behalf-of-user-authentication)
+
+**OBO Security Considerations:**
+- Agents can access sensitive resources on behalf of users
+- While scopes restrict APIs, endpoints might allow more actions than explicitly requested
+- Example: `serving.serving-endpoints` scope grants permission to run a serving endpoint, but that endpoint may access additional API scopes
+- **Always review:** [OBO Security Considerations](https://learn.microsoft.com/en-us/azure/databricks/generative-ai/agent-framework/agent-authentication#obo-security-considerations)
+
+#### Manual Authentication (OAuth/PAT)
+- **Agent Framework:** Explicitly provide credentials via environment variables
+- **UC Integration:** Depends on credential type (service principal vs user PAT)
+- **When to use:** External resources, prompt registry access, non-passthrough scenarios
+- **OAuth (Recommended):** Secure, token-based with automatic refresh
+- **Reference:** [Agent Authentication - Manual](https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication#manual-authentication)
+
+> **Important:** For complete Agent Framework authentication setup (code examples, MLflow integration, resource declarations), see the [official Agent Authentication documentation](https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication). This document focuses on **how UC enforces authorization** once authentication is established.
+
 ---
 
 ## ✅ Testing and Verification
