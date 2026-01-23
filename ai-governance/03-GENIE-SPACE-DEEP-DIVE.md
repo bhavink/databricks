@@ -1779,25 +1779,27 @@ Congratulations! You now understand how to secure multi-team Genie deployments w
 
 ### Continue Learning
 
-1. **[Other AI Products →](04-OTHER-PRODUCTS.md)**
-   - Agent Bricks (custom AI agents)
-   - Databricks Apps (custom applications)
-   - Model Serving (ML/LLM endpoints)
+1. **[Foundational Documents →](README.md)**
+   - [Authentication Patterns](01-AUTHENTICATION-PATTERNS.md) - Core authentication concepts
+   - [Authorization with UC](02-AUTHORIZATION-WITH-UC.md) - Unity Catalog governance
+   - **Other AI Products** *(Coming Soon)* - Agent Bricks, Databricks Apps, Model Serving
 
 2. **[Real-World Scenarios →](scenarios/)**
-   - Complete multi-team Genie implementations
-   - Industry-specific examples
-   - Advanced UC patterns
+   - [Genie Space Multi-Team](scenarios/05-GENIE-SPACE/standalone-multi-team.md) - Multiple teams, row filters
+   - [Genie Space at Scale](scenarios/05-GENIE-SPACE/standalone-scale.md) - 1000+ users, ABAC
+   - [Knowledge Assistant](scenarios/01-KNOWLEDGE-ASSISTANT/multi-team.md) - Vector Search with UC
+   - [Multi-Agent Supervisor](scenarios/04-MULTI-AGENT-SUPERVISOR/genie-coordination.md) - Coordinating Genies
 
-3. **[Setup Guides →](setup/)**
+3. **[Practical Examples →](examples/)** *(Coming Soon)*
    - Step-by-step Genie configuration
-   - UC policy implementation
+   - UC policy implementation with SQL scripts
    - Testing with multiple personas
+   - Row/column security examples
 
-4. **[Best Practices →](best-practices/)**
-   - Production deployment patterns
-   - Performance optimization
-   - Monitoring and maintenance
+4. **Production Best Practices** *(Covered in this document)*
+   - See [Best Practices for Multi-Team Genie](#-best-practices-for-multi-team-genie) above
+   - See [Security & Compliance](#-security--compliance) section above
+   - For additional guidance: [Authentication Guide](../guides/authentication.md)
 
 ### Official Documentation
 
