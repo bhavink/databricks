@@ -1187,22 +1187,24 @@ Complete implementation examples:
 - Industry-specific patterns (financial services, healthcare, retail)
 
 ### 3. Hands-On Setup
-**[setup/ →](setup/)**
+**[examples/ →](examples/)** *(Coming Soon)*
 
-Step-by-step guides:
-- Create catalogs, schemas, and tables
-- Configure row filters and column masks
-- Test with multiple user personas
-- Monitor and troubleshoot UC policies
+> **Note**: Practical, copy-paste ready examples are currently being developed. These will include step-by-step SQL scripts and UI instructions for:
+> - Row-level security setup
+> - Column-level security and masking
+> - ABAC patterns
+> - Genie Space curation with UC governance
+
+For now, refer to the [scenarios/](scenarios/) folder for complete implementation examples.
 
 ### 4. Review Best Practices
-**[best-practices/ →](best-practices/)**
+**[Best Practices →](../guides/)** *(See related guides)*
 
-Production patterns:
-- Security hardening
-- Performance optimization
-- Governance workflows
-- Compliance considerations
+> **Note**: Dedicated best-practices section is planned for future release. For now, this document includes production-ready patterns in the sections above.
+
+For additional guidance, see:
+- [Authentication Guide](../guides/authentication.md) - Secure authentication patterns
+- [Networking Guide](../guides/networking.md) - Multi-cloud networking best practices
 
 ---
 
