@@ -4,6 +4,33 @@
 
 ---
 
+## ⚠️ Important Disclaimers
+
+### Multi-Cloud Documentation
+
+This guide primarily links to **AWS Databricks documentation** for consistency. However, all authentication concepts apply universally across **AWS, Azure, and GCP**.
+
+**To access cloud-specific documentation:**
+- Use the **cloud selector dropdown** at the top of any Databricks doc page
+- Navigate: AWS docs → Switch to Azure or GCP
+- Cloud-specific differences are noted where applicable
+
+**Quick Links:**
+- [AWS Documentation](https://docs.databricks.com/aws/en/)
+- [Azure Documentation](https://learn.microsoft.com/en-us/azure/databricks/)
+- [GCP Documentation](https://docs.databricks.com/gcp/en/)
+
+### Guidance vs Official Documentation
+
+- This guide represents **practical guidance and best practices**, not official Databricks positions
+- Always consult [official Databricks documentation](https://docs.databricks.com) for authoritative information
+- Databricks features evolve rapidly - **verify current capabilities** and syntax in official docs
+- **Use your best judgment** when applying these patterns to your specific requirements
+- Features, APIs, and best practices may have changed since publication
+- **Check official documentation** for the latest updates
+
+---
+
 ## 🎯 Overview
 
 Databricks provides a **unified authentication and authorization model** that works consistently across all AI products. Understanding this model is essential for building secure, scalable AI applications.
@@ -729,7 +756,7 @@ You create the Service Principal **once in Databricks**, and Databricks automati
 
 **Cloud-Specific Documentation:**
 - [AWS Identity and Access](https://docs.databricks.com/en/aws/iam/index.html)
-- [Azure Identity and Access](https://docs.databricks.com/en/azure/iam/index.html)
+- [Azure Identity and Access](https://learn.microsoft.com/en-us/azure/databricks/security/)
 - [GCP Identity and Access](https://docs.databricks.com/en/gcp/iam/index.html)
 
 ---
