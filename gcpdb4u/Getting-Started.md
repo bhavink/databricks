@@ -1,16 +1,16 @@
-***REMOVED*** Consuming Databricks on GCP
+## Consuming Databricks on GCP
 Databricks service is available as a GCP market place offering and the unit of deployment is called a [`workspace`](https://docs.gcp.databricks.com/getting-started/concepts.html***REMOVED***workspace), from here onwards we'll be using `workspace` to refer to databricks service through out this guide.
 
 Databricks is a `Managed Service` and is fully hosted, managed, and supported by the Databricks. Although you register with the Databricks to use the service, Google handles all billing.
 
-***REMOVED*** Try Databricks
+## Try Databricks
 * Trying databricks in an individual capacity? here's your 14 days free [trial](https://docs.gcp.databricks.com/getting-started/try-databricks-gcp.html) Please note that free trial requires credit card and the trial is converted to a pay-as-you-go subscription after 14 days.
 * If your company has a contract subscription in place with GCP, you have two options:
   *  start the free trial and at the end of trial become a pay-as-you-go customer or end the trial.
   *  have a need to extend the trial then reach out to your databricks representative or send an email to `sales@databricks.com` about how to create/extend your subscription with a Google Marketplace Private Offer.
 *  At the end of the trial, you are automatically subscribed to the plan that you have been on during the free trial. You can cancel your subscription at any time.
 
-***REMOVED******REMOVED*** Trial to Production Journey
+### Trial to Production Journey
 
 ```mermaid
 stateDiagram-v2
@@ -41,7 +41,7 @@ stateDiagram-v2
     end note
 ```
 
-***REMOVED*** Databricks to GCP mapping
+## Databricks to GCP mapping
 
 | Databricks  | Relationship  | GCP  |
 |---|---|---|
@@ -54,7 +54,7 @@ stateDiagram-v2
 - *Represents purchase, pricing, and payment mechanism for an account
 - **Compute resources resides within your GCP Project and utilizes your own VPC
 
-***REMOVED******REMOVED*** Architecture Overview
+### Architecture Overview
 
 ```mermaid
 graph TB
@@ -97,19 +97,19 @@ graph TB
     GCE1 -.resides in.-> VPC1
     GCE2 -.resides in.-> VPC2
     
-    style DBA fill:***REMOVED***1E88E5
-    style WS1 fill:***REMOVED***1E88E5
-    style WS2 fill:***REMOVED***1E88E5
-    style SCP fill:***REMOVED***43A047
-    style BA fill:***REMOVED***FF6F00
-    style SUB fill:***REMOVED***FDD835
+    style DBA fill:#1E88E5
+    style WS1 fill:#1E88E5
+    style WS2 fill:#1E88E5
+    style SCP fill:#43A047
+    style BA fill:#FF6F00
+    style SUB fill:#FDD835
 ```
 
-***REMOVED*** Availability Regions
+## Availability Regions
 
 Please refer to public doc site for [supported regions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/regions.html)
 
-***REMOVED*** Things to remember
+## Things to remember
 
 * Each Databricks account is mapped to one GCP Billing Account (1:1)
 * Customer can have more than one account with Databricks
@@ -122,7 +122,7 @@ Please refer to public doc site for [supported regions](https://docs.gcp.databri
 * Subscription tiers could be upgraded. This applies the upgrade to both current and future workspaces.
 * Subscription tier applies at account level so all of the workspace belonging to the account have same features.
 
-***REMOVED******REMOVED*** Cost Breakdown
+### Cost Breakdown
 
 ```mermaid
 graph TB
@@ -141,13 +141,13 @@ graph TB
     GCPC --> NET[Networking<br/>Egress/VPC]
     GCPC --> OTHER[Other Services<br/>BigQuery, etc.]
     
-    style TC fill:***REMOVED***FF6F00
-    style DBC fill:***REMOVED***1E88E5
-    style GCPC fill:***REMOVED***4285F4
-    style DBU fill:***REMOVED***FDD835
+    style TC fill:#FF6F00
+    style DBC fill:#1E88E5
+    style GCPC fill:#4285F4
+    style DBU fill:#FDD835
 ```
 
-***REMOVED******REMOVED*** Subscription Tiers
+### Subscription Tiers
 
 ```mermaid
 graph LR
@@ -164,13 +164,13 @@ graph LR
     PREMIUM -.applies to.-> WS1
     ENTERPRISE -.applies to.-> WS1
     
-    style STANDARD fill:***REMOVED***90CAF9
-    style PREMIUM fill:***REMOVED***1E88E5
-    style ENTERPRISE fill:***REMOVED***0D47A1
-    style WS1 fill:***REMOVED***FDD835
+    style STANDARD fill:#90CAF9
+    style PREMIUM fill:#1E88E5
+    style ENTERPRISE fill:#0D47A1
+    style WS1 fill:#FDD835
 ```
 
-***REMOVED*** Recommendations
+## Recommendations
 
 * Read thru pricing and subscription tiers details before your begin.
 * `Premium` tier includes security features like [Customer Managed VPC](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html) and [IP Access List](https://docs.gcp.databricks.com/security/network/ip-access-list.html) which are are a must have for most of the enterprises and thats what rest of the docs are going to refer to.
@@ -180,7 +180,7 @@ graph LR
 * Configure [audit log](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/log-delivery.html) delivery, this is an account level feature.
 * Configure [domain name](https://docs.gcp.databricks.com/security/network/firewall-rules.html) firewall rules.
 
-***REMOVED******REMOVED*** Initial Setup Sequence
+### Initial Setup Sequence
 
 ```mermaid
 sequenceDiagram
@@ -212,7 +212,7 @@ sequenceDiagram
     DBA->>GCP: Deploy Workspace in Consumer Project
 ```
 
-***REMOVED*** Workspace Deployment Considerations
+## Workspace Deployment Considerations
 
 Workspace deployment is influenced by your organization structure on GCP. Workspace is created within your GCP project utilizing your VPC so there are several options available to us. Taking a cue from the GCP recommendations on [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy)
 ![resource-layout](https://cloud.google.com/resource-manager/img/cloud-hierarchy.svg)
@@ -220,7 +220,7 @@ Workspace deployment is influenced by your organization structure on GCP. Worksp
 here we share few options
 ![deployment-patterns](./images/GCP-Databricks%20Workspace-Deployment%20Patterns.png)
 
-***REMOVED******REMOVED*** Deployment Options Overview
+### Deployment Options Overview
 
 ```mermaid
 graph TB
@@ -264,13 +264,13 @@ graph TB
         O3SV -.attached.-> O3SP3
     end
     
-    style O1P1 fill:***REMOVED***4285F4
-    style O1P2 fill:***REMOVED***4285F4
-    style O2P fill:***REMOVED***4285F4
-    style O3HP fill:***REMOVED***EA4335
-    style O3SP1 fill:***REMOVED***4285F4
-    style O3SP2 fill:***REMOVED***4285F4
-    style O3SP3 fill:***REMOVED***4285F4
+    style O1P1 fill:#4285F4
+    style O1P2 fill:#4285F4
+    style O2P fill:#4285F4
+    style O3HP fill:#EA4335
+    style O3SP1 fill:#4285F4
+    style O3SP2 fill:#4285F4
+    style O3SP3 fill:#4285F4
 ```
 
 * Option 1:
@@ -292,7 +292,7 @@ graph TB
   * VPC and Workspace reside in different GCP Project
   * **Use Case**: Centralized network management, security compliance, multi-project organizations
 
-***REMOVED******REMOVED*** Workspace Creation Flow
+### Workspace Creation Flow
 
 ```mermaid
 sequenceDiagram
