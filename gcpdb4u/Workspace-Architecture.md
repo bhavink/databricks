@@ -1,7 +1,7 @@
 
-***REMOVED*** Workspace Architecture
+## Workspace Architecture
 
-From [here](https://docs.gcp.databricks.com/getting-started/overview.html***REMOVED***high-level-architecture): Databricks is built on GCP and operates out of a `control plane` and a `compute plane`.
+From [here](https://docs.gcp.databricks.com/getting-started/overview.html#high-level-architecture): Databricks is built on GCP and operates out of a `control plane` and a `compute plane`.
 
 The `control plane` includes the backend services that Databricks manages in its own Google Cloud account. Notebook commands and many other workspace configurations are stored in the control plane and encrypted at rest.
 
@@ -11,9 +11,9 @@ For `serverless` compute, the serverless compute resources run in a serverless c
 
 For `classic` Databricks compute, the compute resources are in your Google Cloud resources in what is called the classic compute plane. This refers to the network in your Google Cloud resources and its resources.
 
-To learn more about classic compute and serverless compute, see [Types of compute](https://docs.gcp.databricks.com/en/compute/index.html***REMOVED***types-of-compute).
+To learn more about classic compute and serverless compute, see [Types of compute](https://docs.gcp.databricks.com/en/compute/index.html#types-of-compute).
 
-***REMOVED******REMOVED*** High-Level Architecture
+### High-Level Architecture
 
 ```mermaid
 graph TB
@@ -67,30 +67,30 @@ graph TB
     
     SCP_VPC -.Private Google<br/>Access.-> GCS
     
-    style CP fill:***REMOVED***1E88E5
-    style WEB fill:***REMOVED***1E88E5
-    style GCE fill:***REMOVED***43A047
-    style SCP fill:***REMOVED***7CB342
-    style VPC fill:***REMOVED***4285F4
-    style GCS fill:***REMOVED***FF6F00
+    style CP fill:#1E88E5
+    style WEB fill:#1E88E5
+    style GCE fill:#43A047
+    style SCP fill:#7CB342
+    style VPC fill:#4285F4
+    style GCS fill:#FF6F00
 ```
 
 Before you begin, please make sure to familiarize yourself with
-- [Serverless compute plane](https://docs.gcp.databricks.com/en/getting-started/overview.html***REMOVED***serverless-compute-plane)
-- [Classic compute plane](https://docs.gcp.databricks.com/en/getting-started/overview.html***REMOVED***classic-compute-plane)
-- [Workspace storage buckets](https://docs.gcp.databricks.com/en/getting-started/overview.html***REMOVED***workspace-storage-buckets)
-- [Type of compute](https://docs.gcp.databricks.com/en/compute/index.html***REMOVED***compute)
-- [Databricks Runtime aka dbr](https://docs.gcp.databricks.com/en/compute/index.html***REMOVED***dbr)
-- [DBR versioning](https://docs.gcp.databricks.com/en/compute/index.html***REMOVED***runtime-versioning)
+- [Serverless compute plane](https://docs.gcp.databricks.com/en/getting-started/overview.html#serverless-compute-plane)
+- [Classic compute plane](https://docs.gcp.databricks.com/en/getting-started/overview.html#classic-compute-plane)
+- [Workspace storage buckets](https://docs.gcp.databricks.com/en/getting-started/overview.html#workspace-storage-buckets)
+- [Type of compute](https://docs.gcp.databricks.com/en/compute/index.html#compute)
+- [Databricks Runtime aka dbr](https://docs.gcp.databricks.com/en/compute/index.html#dbr)
+- [DBR versioning](https://docs.gcp.databricks.com/en/compute/index.html#runtime-versioning)
 - [Unity catalog](https://docs.gcp.databricks.com/en/data-governance/unity-catalog/index.html)
 - [Budget policies](https://docs.gcp.databricks.com/en/admin/account-settings/budgets.html)
 - [How to get support](https://docs.gcp.databricks.com/en/resources/support.html)
 
 Next we'll zoom into the compute plane architecture.
 
-***REMOVED*** High-Level Communication flow between control plane and [classic compute plane](https://docs.gcp.databricks.com/en/security/network/classic/index.html***REMOVED***classic-compute-plane-networking)
+## High-Level Communication flow between control plane and [classic compute plane](https://docs.gcp.databricks.com/en/security/network/classic/index.html#classic-compute-plane-networking)
 
-***REMOVED******REMOVED*** Secure Cluster Connectivity Architecture
+### Secure Cluster Connectivity Architecture
 
 ```mermaid
 sequenceDiagram
@@ -125,15 +125,15 @@ sequenceDiagram
     Note over User,GCS: All communication encrypted<br/>No inbound connections to cluster
 ```
 
-***REMOVED******REMOVED*** Things to remember
+### Things to remember
 
 * This communication pattern is called [Secure Cluster Connectivity](https://docs.gcp.databricks.com/security/secure-cluster-connectivity.html) and is enabled by default.
 * No public IP addresses on compute plane nodes(GCE instances)
-* The secure cluster connectivity relay: compute plane initiate's a network connection to the control plane (egress) secure cluster connectivity relay during databricks [cluster](https://docs.gcp.databricks.com/en/compute/index.html***REMOVED***compute) creation.
+* The secure cluster connectivity relay: compute plane initiate's a network connection to the control plane (egress) secure cluster connectivity relay during databricks [cluster](https://docs.gcp.databricks.com/en/compute/index.html#compute) creation.
 
-***REMOVED*** Detailed Deployment Architecture
+## Detailed Deployment Architecture
 
-***REMOVED******REMOVED*** Network Communication Flows
+### Network Communication Flows
 
 ```mermaid
 graph TB
@@ -192,14 +192,14 @@ graph TB
     DRIVER -->|9: Query| BQ
     DRIVER -->|9: External Access| EXT
     
-    style DCP fill:***REMOVED***1E88E5
-    style SUBNET fill:***REMOVED***4285F4
-    style DRIVER fill:***REMOVED***43A047
-    style WORKER1 fill:***REMOVED***43A047
-    style WORKER2 fill:***REMOVED***43A047
-    style NAT fill:***REMOVED***FF6F00
-    style SCP fill:***REMOVED***7CB342
-    style GCS_DATA fill:***REMOVED***FDD835
+    style DCP fill:#1E88E5
+    style SUBNET fill:#4285F4
+    style DRIVER fill:#43A047
+    style WORKER1 fill:#43A047
+    style WORKER2 fill:#43A047
+    style NAT fill:#FF6F00
+    style SCP fill:#7CB342
+    style GCS_DATA fill:#FDD835
 ```
 
 **Network Flow Descriptions:**
