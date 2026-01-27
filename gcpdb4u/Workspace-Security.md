@@ -1,6 +1,6 @@
 ## Objectives
 Databricks provides two flavors of compute
-- Clasic compute
+- Classic compute
 - Serverless compute
 
 * Each workspace is provisioned within the customer's GCP project. [Classic compute](https://docs.gcp.databricks.com/clusters/index.html) resides within customers project and utlizes customers vpc.
