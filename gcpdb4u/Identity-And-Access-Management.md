@@ -1,8 +1,8 @@
-***REMOVED*** Users and Groups Best Practices
+## Users and Groups Best Practices
 
 This guide provides best practices for managing users and groups in Databricks on Google Cloud, ensuring security, scalability, and efficient administration. Based on the official Databricks documentation: [Users and Groups Best Practices](https://docs.databricks.com/gcp/en/admin/users-groups/best-practices).
 
-***REMOVED******REMOVED*** Identity Management Architecture
+### Identity Management Architecture
 
 ```mermaid
 graph TB
@@ -50,37 +50,37 @@ graph TB
     AUDIT --> REVIEW
     REVIEW --> REVOKE
     
-    style IDP fill:***REMOVED***4285F4
-    style SCIM fill:***REMOVED***43A047
-    style GROUPS fill:***REMOVED***1E88E5
-    style SP fill:***REMOVED***FF6F00
-    style AUDIT fill:***REMOVED***8E24AA
+    style IDP fill:#4285F4
+    style SCIM fill:#43A047
+    style GROUPS fill:#1E88E5
+    style SP fill:#FF6F00
+    style AUDIT fill:#8E24AA
 ```
 
-***REMOVED******REMOVED*** Table of Contents
-1. [Use Identity Federation](***REMOVED***use-identity-federation)
-2. [Follow Least Privilege Access](***REMOVED***follow-least-privilege-access)
-3. [Use Groups for Role-Based Access Control](***REMOVED***use-groups-for-role-based-access-control)
-4. [Manage Service Principals for Automation](***REMOVED***manage-service-principals-for-automation)
-5. [Audit and Monitor Access](***REMOVED***audit-and-monitor-access)
-6. [Review and Revoke Unused Access](***REMOVED***review-and-revoke-unused-access)
+### Table of Contents
+1. [Use Identity Federation](#use-identity-federation)
+2. [Follow Least Privilege Access](#follow-least-privilege-access)
+3. [Use Groups for Role-Based Access Control](#use-groups-for-role-based-access-control)
+4. [Manage Service Principals for Automation](#manage-service-principals-for-automation)
+5. [Audit and Monitor Access](#audit-and-monitor-access)
+6. [Review and Revoke Unused Access](#review-and-revoke-unused-access)
 
-***REMOVED******REMOVED*** Use Identity Federation
+### Use Identity Federation
 - Utilize **Google Cloud Identity** or **SCIM provisioning** to centrally manage users.
 - Enable **single sign-on (SSO)** for streamlined authentication.
 - Reference: [Databricks Identity Federation](https://docs.databricks.com/gcp/en/admin/users-groups/scim.html).
 
-***REMOVED******REMOVED*** Follow Least Privilege Access
+### Follow Least Privilege Access
 - Assign only necessary permissions to users to limit security risks.
 - Use predefined **Databricks workspace permissions** (e.g., Admin, User, Viewer).
 - Regularly review and remove excessive permissions.
 
-***REMOVED******REMOVED*** Use Groups for Role-Based Access Control
+### Use Groups for Role-Based Access Control
 - Create **groups** in Databricks and assign permissions at the group level rather than individual users.
 - Align groups with **project teams** or **functional roles**.
 - Assign workspace and cluster access based on the principle of least privilege.
 
-***REMOVED******REMOVED*** Role-Based Access Control (RBAC) Model
+### Role-Based Access Control (RBAC) Model
 
 ```mermaid
 graph TB
@@ -125,19 +125,19 @@ graph TB
     DATA_ANAL --> CLUSTER_ATTACH
     DATA_ANAL --> DATA_READ
     
-    style ADMIN fill:***REMOVED***E53935
-    style DATA_ENG fill:***REMOVED***1E88E5
-    style DATA_SCI fill:***REMOVED***43A047
-    style DATA_ANAL fill:***REMOVED***FF6F00
-    style WS_ADMIN fill:***REMOVED***FDD835
+    style ADMIN fill:#E53935
+    style DATA_ENG fill:#1E88E5
+    style DATA_SCI fill:#43A047
+    style DATA_ANAL fill:#FF6F00
+    style WS_ADMIN fill:#FDD835
 ```
 
-***REMOVED******REMOVED*** Manage Service Principals for Automation
+### Manage Service Principals for Automation
 - Use **service principals** instead of personal accounts for automated jobs and API access.
 - Assign appropriate permissions to service principals without unnecessary admin rights.
 - Reference: [Manage Service Principals](https://docs.databricks.com/gcp/en/admin/users-groups/service-principals.html).
 
-***REMOVED******REMOVED*** Service Principal Usage Flow
+### Service Principal Usage Flow
 
 ```mermaid
 sequenceDiagram
@@ -174,17 +174,17 @@ sequenceDiagram
     Note over Admin,SP: Best Practices:<br/>- Rotate tokens regularly<br/>- Use least privilege<br/>- One SP per application
 ```
 
-***REMOVED******REMOVED*** Audit and Monitor Access
+### Audit and Monitor Access
 - Regularly check **audit logs** to monitor access patterns and potential security risks.
 - Use **Databricks system tables** to track user activity.
 - Reference: [Audit Logging](https://docs.databricks.com/gcp/en/admin/account-settings/audit-logs.html).
 
-***REMOVED******REMOVED*** Review and Revoke Unused Access
+### Review and Revoke Unused Access
 - Periodically review user access and **disable inactive users**.
 - Revoke access from employees who leave or change roles.
 - Use automated scripts to enforce access reviews.
 
-***REMOVED******REMOVED*** Access Lifecycle Management
+### Access Lifecycle Management
 
 ```mermaid
 stateDiagram-v2
@@ -228,7 +228,7 @@ stateDiagram-v2
     end note
 ```
 
-***REMOVED******REMOVED*** Audit Monitoring Dashboard
+### Audit Monitoring Dashboard
 
 ```mermaid
 graph TB
@@ -275,12 +275,12 @@ graph TB
     PRIVESC --> REVIEW
     EXFIL --> TICKET
     
-    style LOGS fill:***REMOVED***1E88E5
-    style ANOM fill:***REMOVED***FF6F00
-    style FAILED fill:***REMOVED***E53935
-    style PRIVESC fill:***REMOVED***E53935
-    style EXFIL fill:***REMOVED***E53935
-    style NOTIFY fill:***REMOVED***FDD835
+    style LOGS fill:#1E88E5
+    style ANOM fill:#FF6F00
+    style FAILED fill:#E53935
+    style PRIVESC fill:#E53935
+    style EXFIL fill:#E53935
+    style NOTIFY fill:#FDD835
 ```
 
 For more details, refer to the official [Databricks Users and Groups Best Practices](https://docs.databricks.com/gcp/en/admin/users-groups/best-practices).

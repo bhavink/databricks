@@ -1,8 +1,8 @@
-***REMOVED*** Databricks Cost Management and Analysis
+## Databricks Cost Management and Analysis
 
 This guide provides a step-by-step walkthrough of monitoring and managing usage in Databricks on Google Cloud. It is based on the official Databricks documentation: [Monitor and Manage Cloud Usage](https://docs.databricks.com/gcp/en/admin/usage/).
 
-***REMOVED******REMOVED*** Cost Management Overview
+### Cost Management Overview
 
 ```mermaid
 graph TB
@@ -40,28 +40,28 @@ graph TB
     POOL --> COMPUTE
     SPOT --> COMPUTE
     
-    style UI fill:***REMOVED***1E88E5
-    style ST fill:***REMOVED***1E88E5
-    style GCP fill:***REMOVED***4285F4
-    style DASH fill:***REMOVED***43A047
-    style BUDGET fill:***REMOVED***FF6F00
-    style DBU fill:***REMOVED***FDD835
+    style UI fill:#1E88E5
+    style ST fill:#1E88E5
+    style GCP fill:#4285F4
+    style DASH fill:#43A047
+    style BUDGET fill:#FF6F00
+    style DBU fill:#FDD835
 ```
 
-***REMOVED******REMOVED*** Table of Contents
-1. [Overview](***REMOVED***overview)
-2. [Monitor Usage with the Databricks Console](***REMOVED***monitor-usage-with-the-databricks-console)
-3. [Using System Tables for Usage Analysis](***REMOVED***using-system-tables-for-usage-analysis)
-4. [Using GCP Billing Reports](***REMOVED***using-gcp-billing-reports)
-5. [Using Budget Policies for Cost Control](***REMOVED***using-budget-policies-for-cost-control)
-6. [Using the Databricks Usage Dashboard](***REMOVED***using-the-databricks-usage-dashboard)
-7. [Best Practices for Cost Management](***REMOVED***best-practices-for-cost-management)
+### Table of Contents
+1. [Overview](#overview)
+2. [Monitor Usage with the Databricks Console](#monitor-usage-with-the-databricks-console)
+3. [Using System Tables for Usage Analysis](#using-system-tables-for-usage-analysis)
+4. [Using GCP Billing Reports](#using-gcp-billing-reports)
+5. [Using Budget Policies for Cost Control](#using-budget-policies-for-cost-control)
+6. [Using the Databricks Usage Dashboard](#using-the-databricks-usage-dashboard)
+7. [Best Practices for Cost Management](#best-practices-for-cost-management)
 
-***REMOVED******REMOVED*** Overview
+### Overview
 Databricks on Google Cloud allows administrators to track and manage resource usage effectively. This includes monitoring compute, storage, and job execution costs using built-in tools like the Databricks UI, system tables, budget policies, dashboards, and GCP billing reports.
 
-***REMOVED******REMOVED*** Monitor Usage with the Databricks Console
-***REMOVED******REMOVED******REMOVED*** Steps:
+### Monitor Usage with the Databricks Console
+#### Steps:
 1. **Log in to Databricks Workspace**
    - Navigate to your Databricks workspace on GCP.
    - Sign in with appropriate admin credentials.
@@ -74,10 +74,10 @@ Databricks on Google Cloud allows administrators to track and manage resource us
    - In the **Usage** tab, view details on active clusters, job execution, and DBU (Databricks Units) consumption.
    - Use the **Clusters** section to analyze the runtime and auto-scaling settings for cost control.
 
-***REMOVED******REMOVED*** Using System Tables for Usage Analysis
+### Using System Tables for Usage Analysis
 Databricks provides system tables that store metadata about usage. These tables can be queried using SQL for more granular insights.
 
-***REMOVED******REMOVED******REMOVED*** Steps:
+#### Steps:
 1. **Enable System Tables**
    - Go to **Compute** > **SQL Warehouses**.
    - Ensure you have a running SQL warehouse.
@@ -98,7 +98,7 @@ Databricks provides system tables that store metadata about usage. These tables 
 3. **Export Reports**
    - Use the **Export** option in the UI to download reports in CSV format.
 
-***REMOVED******REMOVED*** System Tables Analysis Flow
+### System Tables Analysis Flow
 
 ```mermaid
 sequenceDiagram
@@ -127,10 +127,10 @@ sequenceDiagram
     end
 ```
 
-***REMOVED******REMOVED*** Using GCP Billing Reports
+### Using GCP Billing Reports
 Google Cloud provides billing export features that can be leveraged to analyze Databricks costs.
 
-***REMOVED******REMOVED******REMOVED*** Steps:
+#### Steps:
 1. **Enable Billing Export in Google Cloud**
    - Go to **Google Cloud Console** > **Billing**.
    - Enable **BigQuery Export** under billing settings.
@@ -151,7 +151,7 @@ Google Cloud provides billing export features that can be leveraged to analyze D
 4. **Set Up Alerts**
    - Configure budget alerts in GCP Billing to notify you when Databricks costs exceed a threshold.
 
-***REMOVED******REMOVED*** GCP Billing Integration Architecture
+### GCP Billing Integration Architecture
 
 ```mermaid
 graph TB
@@ -190,18 +190,18 @@ graph TB
     GCS_COST --> BILL
     NET_COST --> BILL
     
-    style BILL fill:***REMOVED***4285F4
-    style BQ fill:***REMOVED***4285F4
-    style QUERY fill:***REMOVED***1E88E5
-    style VIZ fill:***REMOVED***43A047
-    style ALERT fill:***REMOVED***FF6F00
-    style DBU_COST fill:***REMOVED***FDD835
+    style BILL fill:#4285F4
+    style BQ fill:#4285F4
+    style QUERY fill:#1E88E5
+    style VIZ fill:#43A047
+    style ALERT fill:#FF6F00
+    style DBU_COST fill:#FDD835
 ```
 
-***REMOVED******REMOVED*** Using Budget Policies for Cost Control
+### Using Budget Policies for Cost Control
 Budget policies allow administrators to set predefined limits and take automated actions to prevent overspending.
 
-***REMOVED******REMOVED******REMOVED*** Steps:
+#### Steps:
 1. **Access Budget Settings**
    - Navigate to **Admin Console** > **Account Settings** > **Budgets** ([Databricks Budget Policies](https://docs.databricks.com/gcp/en/admin/account-settings/budgets)).
 
@@ -215,7 +215,7 @@ Budget policies allow administrators to set predefined limits and take automated
    - View real-time budget consumption through the Budgets dashboard.
    - Set up email notifications to alert administrators of budget exceedance.
 
-***REMOVED******REMOVED*** Budget Policy Workflow
+### Budget Policy Workflow
 
 ```mermaid
 stateDiagram-v2
@@ -256,10 +256,10 @@ stateDiagram-v2
     end note
 ```
 
-***REMOVED******REMOVED*** Using the Databricks Usage Dashboard
+### Using the Databricks Usage Dashboard
 Databricks provides a built-in **Usage Dashboard** that gives a graphical representation of costs and consumption trends.
 
-***REMOVED******REMOVED******REMOVED*** Steps:
+#### Steps:
 1. **Access the Usage Dashboard**
    - Go to **Admin Console** > **Account Settings** > **Usage** ([Databricks Usage Dashboard](https://docs.databricks.com/gcp/en/admin/account-settings/usage)).
 
@@ -275,7 +275,7 @@ Databricks provides a built-in **Usage Dashboard** that gives a graphical repres
      - Optimize cluster utilization.
      - Adjust auto-scaling policies.
 
-***REMOVED******REMOVED*** Best Practices for Cost Management
+### Best Practices for Cost Management
 - **Use Auto-Termination for Clusters**: Ensure all clusters have auto-termination enabled to avoid unnecessary costs.
 - **Monitor Job Execution Time**: Track and optimize long-running jobs.
 - **Use Spot Instances for Workloads**: Leverage GCP Preemptible VMs to reduce costs for non-critical workloads.
@@ -284,7 +284,7 @@ Databricks provides a built-in **Usage Dashboard** that gives a graphical repres
 - **Set Up Budget Policies**: Define budgets with automated alerts to prevent cost overruns.
 - **Utilize the Usage Dashboard**: Monitor resource consumption trends for proactive cost management.
 
-***REMOVED******REMOVED*** Cost Optimization Strategy
+### Cost Optimization Strategy
 
 ```mermaid
 graph TB
@@ -324,14 +324,14 @@ graph TB
     QUOTA --> SCHEDULE
     TAG --> CACHE
     
-    style AUTO_TERM fill:***REMOVED***43A047
-    style SPOT fill:***REMOVED***43A047
-    style RIGHT_SIZE fill:***REMOVED***43A047
-    style BUDGET fill:***REMOVED***FF6F00
-    style QUOTA fill:***REMOVED***FF6F00
-    style TAG fill:***REMOVED***FF6F00
-    style SPOT_FALL fill:***REMOVED***1E88E5
-    style CACHE fill:***REMOVED***1E88E5
+    style AUTO_TERM fill:#43A047
+    style SPOT fill:#43A047
+    style RIGHT_SIZE fill:#43A047
+    style BUDGET fill:#FF6F00
+    style QUOTA fill:#FF6F00
+    style TAG fill:#FF6F00
+    style SPOT_FALL fill:#1E88E5
+    style CACHE fill:#1E88E5
 ```
 
 For more details, refer to the official documentation:

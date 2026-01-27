@@ -1,8 +1,8 @@
-***REMOVED*** Jobs Monitoring Guide
+## Jobs Monitoring Guide
 
 This guide provides best practices for monitoring jobs in Databricks on Google Cloud, ensuring efficient troubleshooting, performance optimization, and cost control. Based on the official Databricks documentation: [Monitor Databricks Jobs](https://docs.databricks.com/gcp/en/jobs/monitor).
 
-***REMOVED******REMOVED*** Observability Architecture
+### Observability Architecture
 
 ```mermaid
 graph TB
@@ -52,40 +52,40 @@ graph TB
     BOTTLENECK --> PARTITION
     BOTTLENECK --> TUNING
     
-    style UI fill:***REMOVED***1E88E5
-    style SPARK_UI fill:***REMOVED***1E88E5
-    style ALERTS fill:***REMOVED***FF6F00
-    style DASH fill:***REMOVED***43A047
-    style BOTTLENECK fill:***REMOVED***E53935
+    style UI fill:#1E88E5
+    style SPARK_UI fill:#1E88E5
+    style ALERTS fill:#FF6F00
+    style DASH fill:#43A047
+    style BOTTLENECK fill:#E53935
 ```
 
-***REMOVED******REMOVED*** Table of Contents
-1. [View Job Runs](***REMOVED***view-job-runs)
-2. [Monitor Job Run Details](***REMOVED***monitor-job-run-details)
-3. [Set Up Alerts](***REMOVED***set-up-alerts)
-4. [Analyze Job Performance](***REMOVED***analyze-job-performance)
-5. [Monitor Job Costs](***REMOVED***monitor-job-costs)
-6. [Use REST API for Monitoring](***REMOVED***use-rest-api-for-monitoring)
+### Table of Contents
+1. [View Job Runs](#view-job-runs)
+2. [Monitor Job Run Details](#monitor-job-run-details)
+3. [Set Up Alerts](#set-up-alerts)
+4. [Analyze Job Performance](#analyze-job-performance)
+5. [Monitor Job Costs](#monitor-job-costs)
+6. [Use REST API for Monitoring](#use-rest-api-for-monitoring)
 
-***REMOVED******REMOVED*** View Job Runs
+### View Job Runs
 - Access job run history via the **Jobs UI** in Databricks.
 - Navigate to **Workflows > Jobs** to see scheduled and manual job runs.
 - Filter job runs based on **status, start time, duration, and cluster used**.
-- Reference: [Jobs UI](https://docs.databricks.com/gcp/en/jobs/index.html***REMOVED***jobs-ui).
+- Reference: [Jobs UI](https://docs.databricks.com/gcp/en/jobs/index.html#jobs-ui).
 
-***REMOVED******REMOVED*** Monitor Job Run Details
+### Monitor Job Run Details
 - Click on a specific job run to view logs, execution graphs, and detailed metrics.
 - Review the **task execution timeline** to identify bottlenecks.
 - Use **cluster logs** and **Spark UI** to debug failures.
 - Reference: [Spark UI](https://docs.databricks.com/gcp/en/clusters/spark-ui.html).
 
-***REMOVED******REMOVED*** Set Up Alerts
+### Set Up Alerts
 - Enable **failure notifications** via email or webhooks in job settings.
 - Use **Databricks Alerts** to trigger actions when jobs meet specific conditions.
 - Configure alerts in the **Jobs UI** under the **Notifications** tab.
 - Reference: [Databricks Alerts](https://docs.databricks.com/gcp/en/alerts/index.html).
 
-***REMOVED******REMOVED*** Job Monitoring Workflow
+### Job Monitoring Workflow
 
 ```mermaid
 sequenceDiagram
@@ -128,19 +128,19 @@ sequenceDiagram
     Note over Admin,MONITOR: Identify optimization opportunities
 ```
 
-***REMOVED******REMOVED*** Analyze Job Performance
+### Analyze Job Performance
 - Use **Ganglia Metrics** and **Spark UI** to analyze resource usage.
 - Optimize job execution by tuning cluster settings, caching, and parallelism.
 - Identify long-running tasks and optimize data partitioning.
 - Reference: [Performance Tuning](https://docs.databricks.com/gcp/en/clusters/performance.html).
 
-***REMOVED******REMOVED*** Monitor Job Costs
+### Monitor Job Costs
 - Use the **Usage Dashboard** to track compute and storage costs.
 - Identify high-cost jobs and optimize resource allocation.
 - Enable **job-level tagging** to track costs by project or team.
 - Reference: [Databricks Usage Dashboard](https://docs.databricks.com/gcp/en/admin/account-settings/usage.html).
 
-***REMOVED******REMOVED*** Performance Troubleshooting Decision Tree
+### Performance Troubleshooting Decision Tree
 
 ```mermaid
 graph TB
@@ -172,16 +172,16 @@ graph TB
     FIX --> TEST[Test & Validate]
     TEST --> END[Performance Improved ✓]
     
-    style START fill:***REMOVED***FF6F00
-    style MEM_ISSUE fill:***REMOVED***E53935
-    style TIME_ISSUE fill:***REMOVED***E53935
-    style NET_ISSUE fill:***REMOVED***E53935
-    style SPARK_UI fill:***REMOVED***1E88E5
-    style GANGLIA fill:***REMOVED***1E88E5
-    style END fill:***REMOVED***43A047
+    style START fill:#FF6F00
+    style MEM_ISSUE fill:#E53935
+    style TIME_ISSUE fill:#E53935
+    style NET_ISSUE fill:#E53935
+    style SPARK_UI fill:#1E88E5
+    style GANGLIA fill:#1E88E5
+    style END fill:#43A047
 ```
 
-***REMOVED******REMOVED*** Use REST API for Monitoring
+### Use REST API for Monitoring
 - Retrieve job run details programmatically using the Databricks Jobs API.
 - Automate monitoring by integrating with external dashboards or alerting systems.
 - API Example: 
@@ -191,7 +191,7 @@ graph TB
   ```
 - Reference: [Databricks Jobs API](https://docs.databricks.com/api/workspace/jobs).
 
-***REMOVED******REMOVED*** API-Driven Monitoring Integration
+### API-Driven Monitoring Integration
 
 ```mermaid
 graph TB
@@ -240,15 +240,15 @@ graph TB
     DATADOG --> SLACK
     SPLUNK --> EMAIL
     
-    style DB_API fill:***REMOVED***1E88E5
-    style JOBS_API fill:***REMOVED***1E88E5
-    style GRAFANA fill:***REMOVED***43A047
-    style PROM fill:***REMOVED***43A047
-    style PAGER fill:***REMOVED***FF6F00
-    style SLACK fill:***REMOVED***FF6F00
+    style DB_API fill:#1E88E5
+    style JOBS_API fill:#1E88E5
+    style GRAFANA fill:#43A047
+    style PROM fill:#43A047
+    style PAGER fill:#FF6F00
+    style SLACK fill:#FF6F00
 ```
 
-***REMOVED******REMOVED*** Comprehensive Monitoring Strategy
+### Comprehensive Monitoring Strategy
 
 ```mermaid
 graph LR
@@ -288,15 +288,15 @@ graph LR
     A2 --> O2
     A3 --> O3
     
-    style RT1 fill:***REMOVED***1E88E5
-    style RT2 fill:***REMOVED***1E88E5
-    style RT3 fill:***REMOVED***1E88E5
-    style A1 fill:***REMOVED***FF6F00
-    style A2 fill:***REMOVED***FF6F00
-    style A3 fill:***REMOVED***FF6F00
-    style O1 fill:***REMOVED***43A047
-    style O2 fill:***REMOVED***43A047
-    style O3 fill:***REMOVED***43A047
+    style RT1 fill:#1E88E5
+    style RT2 fill:#1E88E5
+    style RT3 fill:#1E88E5
+    style A1 fill:#FF6F00
+    style A2 fill:#FF6F00
+    style A3 fill:#FF6F00
+    style O1 fill:#43A047
+    style O2 fill:#43A047
+    style O3 fill:#43A047
 ```
 
 For more details, refer to the official [Databricks Jobs Monitoring Documentation](https://docs.databricks.com/gcp/en/jobs/monitor).

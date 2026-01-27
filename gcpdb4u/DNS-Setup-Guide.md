@@ -1,10 +1,10 @@
-***REMOVED*** Databricks GCP DNS Setup Guide
+## Databricks GCP DNS Setup Guide
 
-***REMOVED******REMOVED*** Overview
+### Overview
 
 Introduction to DNS configuration requirements for Databricks workspaces on GCP, covering both **Private Service Connect (PSC)** and **Non-PSC** deployment models.
 
-***REMOVED******REMOVED******REMOVED***  Key Differences: PSC vs Non-PSC
+####  Key Differences: PSC vs Non-PSC
 
 | Aspect | PSC Workspace | Non-PSC Workspace |
 |--------|--------------|-------------------|
@@ -14,9 +14,9 @@ Introduction to DNS configuration requirements for Databricks workspaces on GCP,
 | **Backend DNS** | Private tunnel zone required | Handled by GCP default DNS |
 | **Security** | Highest - no public exposure | Standard - relies on public DNS |
 
-***REMOVED******REMOVED*** DNS Chain Examples
+### DNS Chain Examples
 
-***REMOVED******REMOVED******REMOVED*** PSC Workspace DNS Chain
+#### PSC Workspace DNS Chain
 ```
 311715749948597.7.gcp.databricks.com         [workspace URL]
 → us-east1.psc.gcp.databricks.com            [intermediate PSC DNS]
@@ -29,7 +29,7 @@ Introduction to DNS configuration requirements for Databricks workspaces on GCP,
 - Resolves to private endpoint in your VPC
 - All traffic stays within VPC boundaries
 
-***REMOVED******REMOVED******REMOVED*** Non-PSC Workspace DNS Chain
+#### Non-PSC Workspace DNS Chain
 ```
 3987547239507508.8.gcp.databricks.com         [workspace URL]
 → us-east1.gcp.databricks.com                 [shard URL]
@@ -45,9 +45,9 @@ dp-3987447239507508.8.gcp.databricks.com      [dataplane workspace record]
 - No PSC-specific intermediate DNS
 - Traffic traverses public internet
 
-***REMOVED******REMOVED*** Architecture Diagrams
+### Architecture Diagrams
 
-***REMOVED******REMOVED******REMOVED*** PSC Workspace Architecture
+#### PSC Workspace Architecture
 
 ```mermaid
 graph TB
@@ -86,17 +86,17 @@ graph TB
     TunnelZone -->|A Record| BackendPE
     BackendPE -->|Private Connection| ControlPlane
 
-    style MainZone fill:***REMOVED***E8F5E9
-    style PSCZone fill:***REMOVED***E8F5E9
-    style AuthZone fill:***REMOVED***E8F5E9
-    style TunnelZone fill:***REMOVED***E8F5E9
-    style FrontendPE fill:***REMOVED***BBDEFB
-    style BackendPE fill:***REMOVED***BBDEFB
-    style ControlPlane fill:***REMOVED***FF6F00
-    style DataPlane fill:***REMOVED***FF6F00
+    style MainZone fill:#E8F5E9
+    style PSCZone fill:#E8F5E9
+    style AuthZone fill:#E8F5E9
+    style TunnelZone fill:#E8F5E9
+    style FrontendPE fill:#BBDEFB
+    style BackendPE fill:#BBDEFB
+    style ControlPlane fill:#FF6F00
+    style DataPlane fill:#FF6F00
 ```
 
-***REMOVED******REMOVED******REMOVED*** Non-PSC Workspace Architecture
+#### Non-PSC Workspace Architecture
 
 ```mermaid
 graph TB
@@ -132,15 +132,15 @@ graph TB
     AccountsZone -->|Forward| GoogleDNS
     GoogleDNS -->|Resolve| Accounts
 
-    style RegionalZone fill:***REMOVED***FFF9C4
-    style AccountsZone fill:***REMOVED***FFF9C4
-    style GoogleDNS fill:***REMOVED***B3E5FC
-    style Internet fill:***REMOVED***FFCCBC
-    style Workspace fill:***REMOVED***FF6F00
-    style Accounts fill:***REMOVED***FF6F00
+    style RegionalZone fill:#FFF9C4
+    style AccountsZone fill:#FFF9C4
+    style GoogleDNS fill:#B3E5FC
+    style Internet fill:#FFCCBC
+    style Workspace fill:#FF6F00
+    style Accounts fill:#FF6F00
 ```
 
-***REMOVED******REMOVED******REMOVED*** DNS Resolution Comparison
+#### DNS Resolution Comparison
 
 ```mermaid
 graph LR
@@ -176,17 +176,17 @@ graph LR
         NonPSC_Internet --> NonPSC_DB
     end
 
-    style PSC_Private fill:***REMOVED***E8F5E9
-    style PSC_PrivateIP fill:***REMOVED***BBDEFB
-    style PSC_Endpoint fill:***REMOVED***BBDEFB
-    style NonPSC_Forward fill:***REMOVED***FFF9C4
-    style NonPSC_Public fill:***REMOVED***B3E5FC
-    style NonPSC_Internet fill:***REMOVED***FFCCBC
+    style PSC_Private fill:#E8F5E9
+    style PSC_PrivateIP fill:#BBDEFB
+    style PSC_Endpoint fill:#BBDEFB
+    style NonPSC_Forward fill:#FFF9C4
+    style NonPSC_Public fill:#B3E5FC
+    style NonPSC_Internet fill:#FFCCBC
 ```
 
-***REMOVED******REMOVED*** DNS Zone Requirements
+### DNS Zone Requirements
 
-***REMOVED******REMOVED******REMOVED*** PSC Workspace DNS Configuration
+#### PSC Workspace DNS Configuration
 
 All DNS records are configured in **private DNS zones**. Records resolve to **private IP addresses**, keeping all traffic within the VPC.
 
@@ -197,7 +197,7 @@ All DNS records are configured in **private DNS zones**. Records resolve to **pr
 | **Auth Callback DNS** | `databricks-psc-webapp-auth` | `psc-auth.gcp.databricks.com.` | Private | A | `us-east1.psc-auth.gcp.databricks.com` → Frontend Private IP | Frontend Private IP | Same as workspace URL private IP |
 | **Backend (Tunnel) DNS** | `databricks-psc-backend-<region>` | `tunnel.<region>.gcp.databricks.com.` | Private | A | `tunnel.us-east1.gcp.databricks.com` → Backend Private PSC Endpoint IP | Backend Private PSC Endpoint IP | Region-specific private DNS zone |
 
-***REMOVED******REMOVED******REMOVED*** Non-PSC Workspace DNS Configuration
+#### Non-PSC Workspace DNS Configuration
 
 DNS queries are forwarded to **public DNS servers** (e.g., Google Public DNS: 8.8.8.8, 8.8.4.4). Records resolve to **public IP addresses**.
 
@@ -207,7 +207,7 @@ DNS queries are forwarded to **public DNS servers** (e.g., Google Public DNS: 8.
 | **Backend Workspace Records** | Same as above | Same as above | Forwarding | CNAME (via public DNS) | `dp-51237447239507508.8.gcp.databricks.com` → `us-east1.gcp.databricks.com` | Public IP via Google Public DNS | Separate record; applies to backend workspace records |
 | **Backend (Tunnel) DNS** | N/A | N/A | N/A | N/A | N/A | Handled by GCP's default DNS | No setup required |
 
-***REMOVED******REMOVED******REMOVED*** Common: Databricks Accounts Console
+#### Common: Databricks Accounts Console
 
 Required for **both PSC and Non-PSC workspaces**:
 
@@ -215,9 +215,9 @@ Required for **both PSC and Non-PSC workspaces**:
 |---------|-----------|----------|------|------------|-------|
 | **Accounts Console** | `databricks-account-console` | `accounts.gcp.databricks.com.` | Forwarding | 8.8.8.8, 8.8.4.4 | Resolves using Google's or your preferred public DNS service |
 
-***REMOVED******REMOVED*** Implementation Options
+### Implementation Options
 
-***REMOVED******REMOVED******REMOVED*** Option 1: Terraform Configuration
+#### Option 1: Terraform Configuration
 
 **Implementation File**: [dns-extend.tf](templates/terraform-scripts/infra4db/dns-extend.tf)
 
@@ -231,15 +231,15 @@ Required for **both PSC and Non-PSC workspaces**:
 
 1. **Set variables in `terraform.tfvars`**:
    ```hcl
-   workspace_type    = "psc"  ***REMOVED*** or "non-psc"
+   workspace_type    = "psc"  # or "non-psc"
    vpc_network_id    = "projects/PROJECT_ID/global/networks/VPC_NAME"
    vpc_project_id    = "your-project-id"
 
    databricks_regions = {
      us-east1 = {
        region         = "us-east1"
-       frontend_pe_ip = "10.10.10.10"  ***REMOVED*** PSC only - Frontend PSC Endpoint IP
-       backend_pe_ip  = "10.10.10.20"  ***REMOVED*** PSC only - Backend PSC Endpoint IP
+       frontend_pe_ip = "10.10.10.10"  # PSC only - Frontend PSC Endpoint IP
+       backend_pe_ip  = "10.10.10.20"  # PSC only - Backend PSC Endpoint IP
      }
    }
 
@@ -264,7 +264,7 @@ Required for **both PSC and Non-PSC workspaces**:
    terraform output
    ```
 
-***REMOVED******REMOVED******REMOVED*** Option 2: gcloud CLI Commands
+#### Option 2: gcloud CLI Commands
 
 **Implementation Script**: [dns-extend-gcloud](templates/gcloud-cmds/dns-extend-gcloud)
 
@@ -279,7 +279,7 @@ Required for **both PSC and Non-PSC workspaces**:
    ```bash
    PROJECT_ID="your-project-id"
    VPC_NETWORK="your-vpc-network"
-   WORKSPACE_TYPE="psc"  ***REMOVED*** or "non-psc"
+   WORKSPACE_TYPE="psc"  # or "non-psc"
    REGION="us-east1"
    FRONTEND_PRIVATE_IP="10.10.10.10"
    BACKEND_PRIVATE_IP="10.10.10.20"
@@ -298,9 +298,9 @@ Required for **both PSC and Non-PSC workspaces**:
 
 4. **Verify DNS setup** using the verification commands in the script output
 
-***REMOVED******REMOVED*** Sequence Diagrams
+### Sequence Diagrams
 
-***REMOVED******REMOVED******REMOVED*** PSC Workspace DNS Resolution
+#### PSC Workspace DNS Resolution
 
 ```mermaid
 sequenceDiagram
@@ -322,7 +322,7 @@ sequenceDiagram
     Note over Client,Control: All traffic within VPC<br/>No public internet exposure
 ```
 
-***REMOVED******REMOVED******REMOVED*** Non-PSC Workspace DNS Resolution
+#### Non-PSC Workspace DNS Resolution
 
 ```mermaid
 sequenceDiagram
@@ -346,7 +346,7 @@ sequenceDiagram
     Note over Client,Databricks: Traffic via public internet
 ```
 
-***REMOVED******REMOVED******REMOVED*** Accounts Console Resolution (Both Types)
+#### Accounts Console Resolution (Both Types)
 
 ```mermaid
 sequenceDiagram
@@ -365,53 +365,53 @@ sequenceDiagram
     Note over Client,Accounts: Required for both PSC and Non-PSC workspaces
 ```
 
-***REMOVED******REMOVED*** DNS Resolution Flow Summary
+### DNS Resolution Flow Summary
 
-***REMOVED******REMOVED******REMOVED*** PSC Flow
+#### PSC Flow
 - **Workspace URL**: `workspace_id.gcp.databricks.com` → private DNS → CNAME to `region.psc.gcp.databricks.com` → A record to private frontend IP → PSC Endpoint → Databricks Control Plane
 - **Workspace Auth**: `region.psc-auth.gcp.databricks.com` → private DNS → A record to private frontend IP → PSC Endpoint → Databricks Control Plane
 - **Tunnel DNS**: `tunnel.region.gcp.databricks.com` → private DNS → A record to private backend IP → PSC Endpoint → Databricks Control Plane
 
-***REMOVED******REMOVED******REMOVED*** Non-PSC Flow
+#### Non-PSC Flow
 - **Workspace URL**: `workspace_id.gcp.databricks.com` → forwarding zone → public DNS (8.8.8.8) → public IP → internet → Databricks
 - **dp-* record**: `dp-workspace_id.gcp.databricks.com` → forwarding zone → public DNS (8.8.8.8) → public IP → internet → Databricks
 - **Backend**: Handled automatically by GCP default DNS (no configuration needed)
 
-***REMOVED******REMOVED*** Verification
+### Verification
 
-***REMOVED******REMOVED******REMOVED*** Verify DNS Zones
+#### Verify DNS Zones
 ```bash
-***REMOVED*** List all DNS zones in the project
+## List all DNS zones in the project
 gcloud dns managed-zones list --project=PROJECT_ID
 
-***REMOVED*** Describe a specific zone
+## Describe a specific zone
 gcloud dns managed-zones describe databricks-main --project=PROJECT_ID
 
-***REMOVED*** Check zone visibility and network association
+## Check zone visibility and network association
 gcloud dns managed-zones describe databricks-main \
   --project=PROJECT_ID \
   --format="yaml(privateVisibilityConfig)"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Verify DNS Records
+#### Verify DNS Records
 ```bash
-***REMOVED*** List all records in a zone
+## List all records in a zone
 gcloud dns record-sets list --zone=databricks-main --project=PROJECT_ID
 
-***REMOVED*** List specific record
+## List specific record
 gcloud dns record-sets list \
   --zone=databricks-main \
   --name="311716749948597.7.gcp.databricks.com." \
   --project=PROJECT_ID
 
-***REMOVED*** Test DNS resolution from VM in VPC (using GCP's metadata DNS server)
+## Test DNS resolution from VM in VPC (using GCP's metadata DNS server)
 dig @169.254.169.254 311716749948597.7.gcp.databricks.com
 
-***REMOVED*** Alternative test using nslookup
+## Alternative test using nslookup
 nslookup 311716749948597.7.gcp.databricks.com 169.254.169.254
 ```
 
-***REMOVED******REMOVED******REMOVED*** Expected Outputs
+#### Expected Outputs
 
 **PSC Workspace**:
 - `workspace_id.gcp.databricks.com` should resolve to `region.psc.gcp.databricks.com` (CNAME)
@@ -426,11 +426,11 @@ nslookup 311716749948597.7.gcp.databricks.com 169.254.169.254
 **Both**:
 - `accounts.gcp.databricks.com` should resolve to public IP via forwarding
 
-***REMOVED******REMOVED*** Troubleshooting
+### Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+#### Common Issues
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: DNS records not resolving from VMs in VPC
+##### Issue: DNS records not resolving from VMs in VPC
 
 **Symptoms**:
 - `dig` or `nslookup` returns `NXDOMAIN` or `SERVFAIL`
@@ -443,23 +443,23 @@ nslookup 311716749948597.7.gcp.databricks.com 169.254.169.254
 
 **Solutions**:
 ```bash
-***REMOVED*** Check if zone is associated with VPC
+## Check if zone is associated with VPC
 gcloud dns managed-zones describe databricks-main \
   --project=PROJECT_ID \
   --format="yaml(privateVisibilityConfig)"
 
-***REMOVED*** Verify VM's DNS configuration
-***REMOVED*** From VM:
-cat /etc/resolv.conf  ***REMOVED*** Should show 169.254.169.254 as nameserver
+## Verify VM's DNS configuration
+## From VM:
+cat /etc/resolv.conf  # Should show 169.254.169.254 as nameserver
 
-***REMOVED*** Test with correct DNS server
+## Test with correct DNS server
 dig @169.254.169.254 your-workspace-url.gcp.databricks.com
 
-***REMOVED*** Check firewall rules allow DNS (UDP/TCP port 53)
+## Check firewall rules allow DNS (UDP/TCP port 53)
 gcloud compute firewall-rules list --project=PROJECT_ID --filter="targetTags:* AND allowed.ports:53"
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: PSC workspace cannot reach Databricks
+##### Issue: PSC workspace cannot reach Databricks
 
 **Symptoms**:
 - DNS resolves correctly but connection timeouts
@@ -473,27 +473,27 @@ gcloud compute firewall-rules list --project=PROJECT_ID --filter="targetTags:* A
 
 **Solutions**:
 ```bash
-***REMOVED*** Verify all 4 DNS zones exist for PSC
+## Verify all 4 DNS zones exist for PSC
 gcloud dns managed-zones list --project=PROJECT_ID | grep databricks
 
-***REMOVED*** Expected zones:
-***REMOVED*** - databricks-main
-***REMOVED*** - databricks-psc-webapp
-***REMOVED*** - databricks-psc-webapp-auth
-***REMOVED*** - databricks-psc-backend-<region>
+## Expected zones:
+## - databricks-main
+## - databricks-psc-webapp
+## - databricks-psc-webapp-auth
+## - databricks-psc-backend-<region>
 
-***REMOVED*** Check if IPs in DNS match PSC endpoint IPs
+## Check if IPs in DNS match PSC endpoint IPs
 gcloud dns record-sets list --zone=databricks-psc-webapp --project=PROJECT_ID
 
-***REMOVED*** Verify PSC endpoint status
+## Verify PSC endpoint status
 gcloud compute forwarding-rules list --project=PROJECT_ID | grep databricks
 
-***REMOVED*** Test connectivity to private IP
+## Test connectivity to private IP
 ping <private-frontend-ip>
 curl -v https://<private-frontend-ip>
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: Non-PSC workspace DNS not forwarding correctly
+##### Issue: Non-PSC workspace DNS not forwarding correctly
 
 **Symptoms**:
 - DNS queries failing or timing out
@@ -506,26 +506,26 @@ curl -v https://<private-frontend-ip>
 
 **Solutions**:
 ```bash
-***REMOVED*** Check forwarding configuration
+## Check forwarding configuration
 gcloud dns managed-zones describe databricks-public-us-east1 \
   --project=PROJECT_ID \
   --format="yaml(forwardingConfig)"
 
-***REMOVED*** Verify forwarding targets
-***REMOVED*** Should show:
-***REMOVED*** forwardingConfig:
-***REMOVED***   targetNameServers:
-***REMOVED***   - ipv4Address: 8.8.8.8
-***REMOVED***   - ipv4Address: 8.8.4.4
+## Verify forwarding targets
+## Should show:
+## forwardingConfig:
+##   targetNameServers:
+##   - ipv4Address: 8.8.8.8
+##   - ipv4Address: 8.8.4.4
 
-***REMOVED*** Test connectivity to Google Public DNS
+## Test connectivity to Google Public DNS
 dig @8.8.8.8 google.com
 
-***REMOVED*** Check firewall rules allow outbound DNS to 8.8.8.8
+## Check firewall rules allow outbound DNS to 8.8.8.8
 gcloud compute firewall-rules list --project=PROJECT_ID --format="table(name,allowed)"
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: Accounts console not accessible
+##### Issue: Accounts console not accessible
 
 **Symptoms**:
 - `accounts.gcp.databricks.com` not resolving
@@ -537,22 +537,22 @@ gcloud compute firewall-rules list --project=PROJECT_ID --format="table(name,all
 
 **Solutions**:
 ```bash
-***REMOVED*** Check if accounts zone exists
+## Check if accounts zone exists
 gcloud dns managed-zones list --project=PROJECT_ID | grep account
 
-***REMOVED*** Verify forwarding configuration
+## Verify forwarding configuration
 gcloud dns managed-zones describe databricks-account-console \
   --project=PROJECT_ID \
   --format="yaml(dnsName,forwardingConfig)"
 
-***REMOVED*** Test DNS resolution
+## Test DNS resolution
 dig @169.254.169.254 accounts.gcp.databricks.com
 
-***REMOVED*** Test HTTPS connectivity
+## Test HTTPS connectivity
 curl -v https://accounts.gcp.databricks.com
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: CNAME records not resolving correctly (PSC)
+##### Issue: CNAME records not resolving correctly (PSC)
 
 **Symptoms**:
 - Workspace URL returns `NXDOMAIN`
@@ -565,49 +565,49 @@ curl -v https://accounts.gcp.databricks.com
 
 **Solutions**:
 ```bash
-***REMOVED*** Check CNAME record
+## Check CNAME record
 gcloud dns record-sets list --zone=databricks-main \
   --name="311716749948597.7.gcp.databricks.com." \
   --project=PROJECT_ID
 
-***REMOVED*** Verify target A record exists
+## Verify target A record exists
 gcloud dns record-sets list --zone=databricks-psc-webapp \
   --name="us-east1.psc.gcp.databricks.com." \
   --project=PROJECT_ID
 
-***REMOVED*** Test full resolution chain
+## Test full resolution chain
 dig +trace @169.254.169.254 311716749948597.7.gcp.databricks.com
 ```
 
-***REMOVED******REMOVED******REMOVED*** Debug Commands
+#### Debug Commands
 
 ```bash
-***REMOVED*** Full DNS trace
+## Full DNS trace
 dig +trace @169.254.169.254 <your-workspace-url>
 
-***REMOVED*** Check all zones
+## Check all zones
 gcloud dns managed-zones list --project=PROJECT_ID
 
-***REMOVED*** Check all records in a zone
+## Check all records in a zone
 gcloud dns record-sets list --zone=<zone-name> --project=PROJECT_ID
 
-***REMOVED*** Test from specific DNS server
-dig @169.254.169.254 <domain>  ***REMOVED*** GCP metadata DNS
-dig @8.8.8.8 <domain>           ***REMOVED*** Google Public DNS
+## Test from specific DNS server
+dig @169.254.169.254 <domain>  # GCP metadata DNS
+dig @8.8.8.8 <domain>           # Google Public DNS
 
-***REMOVED*** Check PSC endpoint status
+## Check PSC endpoint status
 gcloud compute forwarding-rules describe <psc-endpoint-name> \
   --region=<region> \
   --project=PROJECT_ID
 
-***REMOVED*** View PSC connection status
+## View PSC connection status
 gcloud compute forwarding-rules describe <psc-endpoint-name> \
   --region=<region> \
   --project=PROJECT_ID \
   --format="value(pscConnectionStatus)"
 ```
 
-***REMOVED******REMOVED*** Additional Resources
+### Additional Resources
 
 - [GCP Cloud DNS Documentation](https://cloud.google.com/dns/docs)
 - [Databricks GCP Network Architecture](https://docs.databricks.com/administration-guide/cloud-configurations/gcp/index.html)
@@ -616,7 +616,7 @@ gcloud compute forwarding-rules describe <psc-endpoint-name> \
 - [GCP DNS Best Practices](https://cloud.google.com/dns/docs/best-practices)
 - [Databricks PSC Architecture](https://docs.gcp.databricks.com/security/network/serverless-network-security/private-service-connect.html)
 
-***REMOVED******REMOVED*** Summary
+### Summary
 
 This guide covers DNS setup for both PSC and Non-PSC Databricks workspaces on GCP:
 

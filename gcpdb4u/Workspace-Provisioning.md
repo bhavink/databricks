@@ -1,9 +1,9 @@
-***REMOVED*** Create Databricks Workspace
+## Create Databricks Workspace
 
-***REMOVED******REMOVED*** Objective
+### Objective
 Create Databricks workspace in a **customer managed VPC**. VPC could be a shared vpc or a customer managed stand alone vpc.
 
-***REMOVED******REMOVED*** Customer Managed VPC Architecture
+### Customer Managed VPC Architecture
 
 ```mermaid
 graph TB
@@ -51,28 +51,28 @@ graph TB
     IMGPOL -.validates.-> CLUSTER
     AUTHPOL -.validates.-> SA
     
-    style ACCT fill:***REMOVED***1E88E5
-    style VPC fill:***REMOVED***4285F4
-    style WS fill:***REMOVED***1E88E5
-    style CLUSTER fill:***REMOVED***43A047
-    style ORGPOL fill:***REMOVED***FF6F00
+    style ACCT fill:#1E88E5
+    style VPC fill:#4285F4
+    style WS fill:#1E88E5
+    style CLUSTER fill:#43A047
+    style ORGPOL fill:#FF6F00
 ```
 
-***REMOVED******REMOVED*** Before you begin
+### Before you begin
 
-***REMOVED******REMOVED******REMOVED*** Domain Restricted Sharing
+#### Domain Restricted Sharing
 If your Google Cloud organization enables Domain Restricted Sharing Organization Policy, add Google Workspace customer ID for Databricks (C01p0oudw) to your policy’s allowed list. You may override your policy at the project level instead of modifying at the organization level.
 
 For more information, see Restricting identities by [domain](https://cloud.google.com/resource-manager/docs/organization-policy/restricting-domains)
 
-***REMOVED******REMOVED******REMOVED*** Trusted Image Policies
+#### Trusted Image Policies
 Add `databricks-external-images` to the trusted image policy for the GCP Databricks workspace project
 
-***REMOVED******REMOVED******REMOVED*** Restrict Authentication Types Cloud Storage Policy
-Make sure to allow `SERVICE_ACCOUNT_HMAC_SIGNED_REQUESTS` authentication, more details [here](https://cloud.google.com/storage/docs/org-policy-constraints***REMOVED***restrict-auth-types)
+#### Restrict Authentication Types Cloud Storage Policy
+Make sure to allow `SERVICE_ACCOUNT_HMAC_SIGNED_REQUESTS` authentication, more details [here](https://cloud.google.com/storage/docs/org-policy-constraints#restrict-auth-types)
  
 
-***REMOVED******REMOVED******REMOVED*** Databricks Related Google Service Accounts(GSA's)
+#### Databricks Related Google Service Accounts(GSA's)
 
 `Workspace SA`: This is created in the Regional Control Plane that is specific to this Workspace is assigned privileges to create and manage resources 
 inside the Databricks Compute Plane.  Its email address looks like db-{workspaceid}@prod-gcp-{region}.iam.gserviceaccount.com 
@@ -81,7 +81,7 @@ inside the Databricks Compute Plane.  Its email address looks like db-{workspace
 
 `Storage SAs` (one or more Google Service Accounts) in the Control Plane are used to set up Unity Catalog (UC) Credentials that enable granting access to UC managed  storage in your Projects and in the Compute Plane.  The Storage SA generates a short-lived token and provides it to the Compute cluster process with privileges to access data. Privileges are scoped down to be specific to the requested operation.
 
-***REMOVED******REMOVED*** Service Account Interaction Flow
+### Service Account Interaction Flow
 
 ```mermaid
 sequenceDiagram
@@ -113,7 +113,7 @@ sequenceDiagram
 ```
 
 
-***REMOVED******REMOVED*** FAQ
+### FAQ
 * Can I use Terraform to create workspace
   * Yes you can, more details [here](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace).
 * How many subnets I need?
@@ -129,7 +129,7 @@ sequenceDiagram
   * `10.0.0.0/8`, `100.64.0.0/10`, `172.16.0.0/12`, `192.168.0.0/16`, and `240.0.0.0/4`
 * User/Service Account creating the workspace is automatically added to the workspace as an admin.
 
-***REMOVED******REMOVED*** Quick sizing guideline
+### Quick sizing guideline
 
 | Subnet Size                                                                 | Total Nodes Per Workspace |
 |-----------------------------------------------------------------------------|---------------------------|
@@ -144,7 +144,7 @@ sequenceDiagram
 
 Total Nodes Per Workspace = Total number of concurrent nodes (compute instances) supported by the workspace at a given point in time.
 
-***REMOVED******REMOVED*** Subnet Sizing Visualization
+### Subnet Sizing Visualization
 
 ```mermaid
 graph LR
@@ -163,16 +163,16 @@ graph LR
     
     S26 -.cannot resize.-> S26
     
-    style S26 fill:***REMOVED***90CAF9
-    style S24 fill:***REMOVED***64B5F6
-    style S22 fill:***REMOVED***42A5F5
-    style S20 fill:***REMOVED***1E88E5
-    style S19 fill:***REMOVED***1565C0
+    style S26 fill:#90CAF9
+    style S24 fill:#64B5F6
+    style S22 fill:#42A5F5
+    style S20 fill:#1E88E5
+    style S19 fill:#1565C0
 ```
 
 **Important Note:** Subnet CIDR ranges cannot be changed after workspace creation. Choose carefully based on your expected growth!
 
-***REMOVED******REMOVED*** Subnet CIDR ranges
+### Subnet CIDR ranges
 
 
 | Network resource or attribute   | Description      | Range |
@@ -180,7 +180,7 @@ graph LR
 | Primary subnet |  Classic compute nodes | between /29 to /9 |
 | Region | VPC Region |    Workspace and VPC region must match |
 
-***REMOVED******REMOVED*** Recommendation
+### Recommendation
 
 * Pay close attention to subnet CIDR ranges, they cannot be changed (increase or decrease) after the workspace is created.
 * Review and Increase [GCP resource quota](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html) appropiately.
@@ -193,19 +193,19 @@ graph LR
 * If you have VPC SC configured than please make sure you read through [this](./security/Configure-VPC-SC.md) section.
 
 
-***REMOVED******REMOVED*** Create Workspace (using UI)
+### Create Workspace (using UI)
 Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)
 
-***REMOVED******REMOVED*** Create Workspace (using Terraform)
+### Create Workspace (using Terraform)
 Please follow public [documentation](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace). Here's a few sample [TF script](./templates/terraform-scripts/readme.md) to deploy a bring your VPC based workspace using Terraform
 
-* create a [PSC + CMEK enabled workspace and attach a custom SA](./templates/terraform-scripts/byovpc-psc-cmek-ws). Please note that PSC and CMEK is in preview, follow [instructions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html***REMOVED***step-1-enable-your-account-for-private-service-connect) to sign up for this feature
+* create a [PSC + CMEK enabled workspace and attach a custom SA](./templates/terraform-scripts/byovpc-psc-cmek-ws). Please note that PSC and CMEK is in preview, follow [instructions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#step-1-enable-your-account-for-private-service-connect) to sign up for this feature
   
-***REMOVED******REMOVED*** Validate setup
+### Validate setup
 - Create a Databricks cluster to validate n/w setup
 - Databricks Cluster comes up fine
 
-***REMOVED******REMOVED*** Cluster Validation Flow
+### Cluster Validation Flow
 
 ```mermaid
 sequenceDiagram
@@ -248,7 +248,7 @@ sequenceDiagram
   make sure that commands runs successfully.
 
 
-***REMOVED******REMOVED*** Troubleshooting
+### Troubleshooting
 
 * Not able to create Network Configuration
   * Follow steps mentioned over [here](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html), pay close attention to required roles and permissions.
@@ -277,7 +277,7 @@ sequenceDiagram
 * Databricks Cluster Creation fails with quota errors:
   - Verify that you have adequate GCP resource quota limit set, follow steps mentioned over [here](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html).
 
-***REMOVED******REMOVED*** Common Failure Scenarios
+### Common Failure Scenarios
 
 ```mermaid
 graph TB
@@ -299,12 +299,12 @@ graph TB
     CHECK5 -->|No| FAIL5[Policy Violation<br/>Fix: Update org policies<br/>or project settings]
     CHECK5 -->|Yes| SUCCESS[Cluster Running ✓]
     
-    style START fill:***REMOVED***1E88E5
-    style SUCCESS fill:***REMOVED***43A047
-    style FAIL1 fill:***REMOVED***E53935
-    style FAIL2 fill:***REMOVED***E53935
-    style FAIL3 fill:***REMOVED***E53935
-    style FAIL4 fill:***REMOVED***E53935
-    style FAIL5 fill:***REMOVED***E53935
+    style START fill:#1E88E5
+    style SUCCESS fill:#43A047
+    style FAIL1 fill:#E53935
+    style FAIL2 fill:#E53935
+    style FAIL3 fill:#E53935
+    style FAIL4 fill:#E53935
+    style FAIL5 fill:#E53935
 ```
 
