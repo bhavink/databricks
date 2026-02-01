@@ -273,8 +273,12 @@
         
         .scenarios-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 1000px) {
+            .scenarios-grid { grid-template-columns: 1fr 1fr; }
         }
         
         .scenario-box {
@@ -491,10 +495,10 @@
         </div>
     </section>
     
-    <!-- Two Auth Scenarios -->
+    <!-- Three Auth Scenarios -->
     <section class="scenarios-section">
         <div class="scenarios-container">
-            <h3>Two Authentication Scenarios</h3>
+            <h3>Three Authentication Scenarios</h3>
             
             <div class="scenarios-grid">
                 <div class="scenario-box external">
@@ -517,6 +521,18 @@
                         <li>Manual Authentication</li>
                         <li>Declared at logging time</li>
                     </ul>
+                </div>
+                
+                <div class="scenario-box dbxapp" style="border-top: 3px solid #22d3ee;">
+                    <h4 style="color: #22d3ee;">Scenario C: Databricks App → Resources</h4>
+                    <p>Your web app runs ON Databricks (Apps platform) and needs to access resources.</p>
+                    <ul>
+                        <li>Native OAuth (automatic)</li>
+                        <li>Unity Catalog integration</li>
+                        <li>Databricks SQL access</li>
+                        <li>Streamlit, Dash, Gradio, React</li>
+                    </ul>
+                    <a href="https://docs.databricks.com/aws/en/dev-tools/databricks-apps" target="_blank" style="font-size: 0.75rem; color: #22d3ee; text-decoration: none; margin-top: 0.5rem; display: inline-block;">📚 Databricks Apps Docs →</a>
                 </div>
             </div>
             

@@ -24,33 +24,22 @@ This architecture defines governed applications that orchestrate across:
 flowchart TB
     subgraph Entry["🌐 Entry Points"]
         ExtApp["External App<br/>(Your Infrastructure)"]
-        DBApp["Databricks App<br/>(Native)"]
+        DBXApp["Databricks App<br/>(Streamlit, Dash, etc.)"]
+        AgentEP["Agent Endpoint<br/>(Model Serving)"]
     end
 
     subgraph Auth["🔐 Authentication"]
         ExtApp -->|"Token Federation<br/>(IdP → Databricks)"| TokenEx["OAuth Token<br/>Exchange"]
-        DBApp -->|"Native OAuth"| NativeAuth["Databricks<br/>OAuth"]
+        DBXApp -->|"Native OAuth<br/>(Automatic)"| NativeAuth["Databricks<br/>OAuth"]
+        AgentEP -->|"3 Auth Methods"| AgentAuth["Agent Auth<br/>(Auto/OBO/Manual)"]
         TokenEx --> DBToken["Databricks Token"]
         NativeAuth --> DBToken
     end
 
-    subgraph Serving["⚙️ Model Serving"]
-        DBToken --> MS["Model Serving<br/>Endpoint"]
-        
-        subgraph Models["Deployed Models"]
-            Agents["🤖 Custom Agents"]
-            FM["🧠 Foundation Models"]
-            ExtModels["🌉 External Models<br/>(via AI Gateway)"]
-        end
-        
-        MS --> Models
-    end
-
-    subgraph AgentAuth["🔑 Agent Auth Methods"]
-        Models --> AuthChoice{Auth Method?}
-        AuthChoice -->|"Automatic"| AutoPass["⚡ Service Principal<br/>Passthrough"]
-        AuthChoice -->|"OBO"| OBO["👤 User Identity<br/>Passthrough"]
-        AuthChoice -->|"Manual"| Manual["🔑 Stored<br/>Credentials"]
+    subgraph Compute["⚙️ Compute Layer"]
+        DBToken --> Apps["Databricks Apps<br/>(Serverless)"]
+        DBToken --> MS["Model Serving<br/>(Agents)"]
+        AgentAuth --> MS
     end
 
     subgraph Resources["📦 Resources & Tools"]
@@ -59,20 +48,19 @@ flowchart TB
             VS["🔍 Vector Search"]
             UCFunc["⚙️ UC Functions"]
             DBSQL["📊 DBSQL"]
-            ExtMCP["🔗 External MCP<br/>(UC HTTP Conn)"]
+            ExtMCP["🔗 External MCP"]
         end
         
         subgraph Other["Other Services"]
-            Gateway["🌉 AI Gateway<br/>(External LLMs)"]
-            LB["🗃️ Lakebase<br/>(Agent Memory)"]
+            Gateway["🌉 AI Gateway"]
+            LB["🗃️ Lakebase"]
         end
     end
 
-    AutoPass --> MCP
-    OBO --> MCP
-    Manual --> Other
-    AutoPass --> Other
-    OBO --> Other
+    Apps --> MCP
+    Apps --> Other
+    MS --> MCP
+    MS --> Other
 
     subgraph Gov["🛡️ Unity Catalog Governance"]
         UC["Permissions • ABAC • Row Filters • Column Masks • Lineage"]
@@ -82,8 +70,7 @@ flowchart TB
     Other --> UC
 
     style Entry fill:#a855f7,color:#fff
-    style Serving fill:#4ade80,color:#1a1a2e
-    style AgentAuth fill:#14b8a6,color:#fff
+    style Compute fill:#4ade80,color:#1a1a2e
     style Resources fill:#3b82f6,color:#fff
     style Gov fill:#64748b,color:#fff
     style Gateway fill:#f97316,color:#fff
@@ -92,7 +79,7 @@ flowchart TB
 
 ---
 
-## Two Authentication Scenarios
+## Three Authentication Scenarios
 
 ### Scenario A: External App → Databricks
 
@@ -172,6 +159,33 @@ flowchart LR
 - Only request OAuth scopes your agent needs
 
 📚 [Agent Authentication Docs](https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication) | 📺 [Interactive: Agent Auth Methods](interactive/orchestration/agent-auth-methods.html)
+
+---
+
+### Scenario C: Databricks App → Resources
+
+Your **web application** runs on the Databricks Apps platform (Streamlit, Dash, Gradio, React, etc.) and needs to access Databricks resources.
+
+**Solution: Native OAuth (Automatic)**
+- Apps run on serverless compute with built-in OAuth
+- Automatic integration with Unity Catalog
+- Access to Databricks SQL, Model Serving, and other APIs
+- No manual token handling required
+
+| Framework | Type | Use Cases |
+|-----------|------|-----------|
+| **Streamlit** | Python | Dashboards, data apps |
+| **Dash** | Python | Interactive visualizations |
+| **Gradio** | Python | ML/AI demos, chat interfaces |
+| **React/Angular/Svelte** | Node.js | Custom web apps |
+
+**Key Benefits:**
+- No separate infrastructure needed
+- Built-in security and governance
+- Direct access to workspace resources
+- OAuth handled automatically by the platform
+
+📚 [Databricks Apps Docs](https://docs.databricks.com/aws/en/dev-tools/databricks-apps)
 
 ---
 
