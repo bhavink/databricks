@@ -35,7 +35,7 @@ This guide primarily links to **AWS Databricks documentation** for consistency. 
 
 **Unity Catalog (UC)** is Databricks' unified governance layer that enforces authorization policies for all data access, regardless of which AI product or compute resource accesses the data.
 
-> 📺 **[View interactive access control flow →](interactive/uc-access-control-layers.html)**
+> 📺 **[View interactive access control flow →](https://bhavink.github.io/databricks/ai-governance/interactive/uc-access-control-layers.html)**
 
 ### Key Principles
 
@@ -261,7 +261,7 @@ GRANT SELECT ON TABLE finance_prod.accounting.transactions TO `analysts`;
 
 Row filters restrict **which rows** users can see in a table based on their identity or group membership.
 
-> 📺 **[View interactive row filters flow →](interactive/uc-row-filters.html)**
+> 📺 **[View interactive row filters flow →](https://bhavink.github.io/databricks/ai-governance/interactive/uc-row-filters.html)**
 
 ### Concept
 
@@ -382,7 +382,7 @@ ALTER TABLE catalog.schema.table_name DROP ROW FILTER;
 
 Column masks control **what values** users see in specific columns based on their identity or group membership.
 
-> 📺 **[View interactive column masks flow →](interactive/uc-column-masks.html)**
+> 📺 **[View interactive column masks flow →](https://bhavink.github.io/databricks/ai-governance/interactive/uc-column-masks.html)**
 
 ### Concept
 
@@ -520,7 +520,7 @@ ALTER TABLE catalog.schema.table_name
 
 > **Preview Feature:** ABAC is currently in Public Preview.
 >
-> 📺 **[View interactive ABAC + Governed Tags flow →](interactive/uc-abac-governed-tags.html)**
+> 📺 **[View interactive ABAC + Governed Tags flow →](https://bhavink.github.io/databricks/ai-governance/interactive/uc-abac-governed-tags.html)**
 
 ABAC is a **centralized, tag-based policy framework** for enforcing access control in Unity Catalog. It enables admins to define scalable policies that apply dynamically across catalogs, schemas, and tables based on **governed tags**. Databricks recommends using ABAC for centralized and scalable governance, rather than applying filters or masks individually on each table.
 

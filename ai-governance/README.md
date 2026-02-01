@@ -96,19 +96,19 @@ Agent Bricks offers pre-configured templates for production-grade AI agents ([do
 
 - **[Authentication Flows](reference/authentication-flows.md)** - Visual Mermaid diagrams of auth patterns
 - **[Authorization Flows](reference/authorization-flows.md)** - Visual diagrams of UC four-layer access control
-- **[Interactive Visualizations](interactive/)** - Scrollytelling explainers for core concepts
+- **[Interactive Visualizations](https://bhavink.github.io/databricks/ai-governance/interactive/)** - Scrollytelling explainers for core concepts
 
 ### Interactive Visualizations
 
 | Page | Concept | Description |
 |------|---------|-------------|
-| [Access Control Layers](interactive/uc-access-control-layers.html) | UC Authorization | Four layers: workspace, privileges, ABAC, filtering |
-| [ABAC + Governed Tags](interactive/uc-abac-governed-tags.html) | ABAC | Tag-based dynamic access control |
-| [Row Filters](interactive/uc-row-filters.html) | Row-Level Security | Filter rows by `current_user()` |
-| [Column Masks](interactive/uc-column-masks.html) | Column-Level Security | Mask values by `is_member()` |
-| [OBO Auth Flow](interactive/auth-flow-obo.html) | Pattern 2 | On-Behalf-Of-User authentication |
-| [Service Principal Auth](interactive/auth-flow-service-principal.html) | Pattern 1 | Automatic passthrough |
-| [Decision Guide](interactive/decision-guide.html) | Quick Start | Choose the right pattern |
+| [Access Control Layers](https://bhavink.github.io/databricks/ai-governance/interactive/uc-access-control-layers.html) | UC Authorization | Four layers: workspace, privileges, ABAC, filtering |
+| [ABAC + Governed Tags](https://bhavink.github.io/databricks/ai-governance/interactive/uc-abac-governed-tags.html) | ABAC | Tag-based dynamic access control |
+| [Row Filters](https://bhavink.github.io/databricks/ai-governance/interactive/uc-row-filters.html) | Row-Level Security | Filter rows by `current_user()` |
+| [Column Masks](https://bhavink.github.io/databricks/ai-governance/interactive/uc-column-masks.html) | Column-Level Security | Mask values by `is_member()` |
+| [OBO Auth Flow](https://bhavink.github.io/databricks/ai-governance/interactive/auth-flow-obo.html) | Pattern 2 | On-Behalf-Of-User authentication |
+| [Service Principal Auth](https://bhavink.github.io/databricks/ai-governance/interactive/auth-flow-service-principal.html) | Pattern 1 | Automatic passthrough |
+| [Decision Guide](https://bhavink.github.io/databricks/ai-governance/interactive/decision-guide.html) | Quick Start | Choose the right pattern |
 
 ---
 

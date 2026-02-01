@@ -277,4 +277,4 @@ flowchart TB
 - [Access Control in Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/access-control) — Official four-layer model
 - [ABAC](https://docs.databricks.com/aws/en/data-governance/unity-catalog/abac) — Attribute-based access control
 - [Governed Tags](https://docs.databricks.com/aws/en/admin/governed-tags/) — Tag management for ABAC
-- [Interactive Scrollytelling: Access Control Layers](../interactive/uc-access-control-layers.html) — Visual explainer
+- [Interactive Scrollytelling: Access Control Layers](https://bhavink.github.io/databricks/ai-governance/interactive/uc-access-control-layers.html) — Visual explainer

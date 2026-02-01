@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Databricks AI Governance - Interactive Guide</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+        }
+        
+        .logo { font-size: 4rem; margin-bottom: 1rem; }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #14b8a6, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .repo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .repo-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border-color: rgba(255,255,255,0.2);
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin: 3rem 0 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.2rem;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(20, 184, 166, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+        }
+        
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.4rem;
+            color: #fff;
+        }
+        
+        .card p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            flex-grow: 1;
+        }
+        
+        .card-tag {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            background: rgba(20, 184, 166, 0.15);
+            color: #14b8a6;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.8rem;
+            align-self: flex-start;
+        }
+        
+        .card-tag.auth { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
+        .card-tag.uc { background: rgba(34, 211, 238, 0.15); color: #22d3ee; }
+        .card-tag.abac { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+        
+        .info-box {
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .info-box h3 {
+            color: #14b8a6;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .info-box p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        .info-box a {
+            color: #22d3ee;
+            text-decoration: none;
+        }
+        
+        .info-box a:hover { text-decoration: underline; }
+        
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .two-col a {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            color: #e8e8e8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .two-col a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        
+        footer a {
+            color: #14b8a6;
+            text-decoration: none;
+        }
+        
+        footer a:hover { text-decoration: underline; }
+        
+        @media (max-width: 700px) {
+            .cards { grid-template-columns: 1fr; }
+            .two-col { grid-template-columns: 1fr; }
+            h1 { font-size: 2rem; }
+            .container { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🛡️</div>
+            <h1>AI Governance Guide</h1>
+            <p class="subtitle">Interactive visualizations for Databricks authentication patterns and Unity Catalog access control</p>
+            <a href="https://github.com/bhavink/databricks/tree/master/ai-governance" class="repo-link" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                View Full Documentation on GitHub
+            </a>
+        </header>
+        
+        <div class="info-box">
+            <h3>📖 How to Use This Site</h3>
+            <p>
+                <strong>This site</strong> hosts <strong>interactive visualizations</strong> that explain complex concepts through scroll-based animations.<br>
+                <strong>The <a href="https://github.com/bhavink/databricks/tree/master/ai-governance" target="_blank">GitHub repo</a></strong> contains detailed markdown documentation with code examples, SQL snippets, and reference materials.
+            </p>
+        </div>
+        
+        <h2 class="section-title">🔐 Authentication Patterns</h2>
+        <div class="cards">
+            <a href="interactive/auth-flow-obo.html" class="card">
+                <div class="card-icon">👤</div>
+                <h3>On-Behalf-Of-User (OBO)</h3>
+                <p>Pattern 2: User authentication passthrough with Unity Catalog row/column security per user.</p>
+                <span class="card-tag auth">Authentication</span>
+            </a>
+            <a href="interactive/auth-flow-service-principal.html" class="card">
+                <div class="card-icon">🤖</div>
+                <h3>Service Principal Auth</h3>
+                <p>Pattern 1: Automatic passthrough with least-privilege service principal credentials.</p>
+                <span class="card-tag auth">Authentication</span>
+            </a>
+            <a href="interactive/decision-guide.html" class="card">
+                <div class="card-icon">🧭</div>
+                <h3>Decision Guide</h3>
+                <p>Interactive decision tree to help you choose the right authentication pattern.</p>
+                <span class="card-tag auth">Quick Start</span>
+            </a>
+        </div>
+        
+        <h2 class="section-title">🏛️ Unity Catalog Authorization</h2>
+        <div class="cards">
+            <a href="interactive/uc-access-control-layers.html" class="card">
+                <div class="card-icon">🛡️</div>
+                <h3>Four Layers of Access Control</h3>
+                <p>Workspace restrictions → Privileges → ABAC policies → Table-level filtering.</p>
+                <span class="card-tag uc">UC Core</span>
+            </a>
+            <a href="interactive/uc-abac-governed-tags.html" class="card">
+                <div class="card-icon">🏷️</div>
+                <h3>ABAC + Governed Tags</h3>
+                <p>Tag-based dynamic access control for centralized, scalable governance.</p>
+                <span class="card-tag abac">ABAC</span>
+            </a>
+            <a href="interactive/uc-row-filters.html" class="card">
+                <div class="card-icon">📊</div>
+                <h3>Row Filters</h3>
+                <p>Row-level security using <code>current_user()</code> to filter data per user.</p>
+                <span class="card-tag uc">Row Security</span>
+            </a>
+            <a href="interactive/uc-column-masks.html" class="card">
+                <div class="card-icon">🔒</div>
+                <h3>Column Masks</h3>
+                <p>Column-level security using <code>is_member()</code> to mask sensitive values.</p>
+                <span class="card-tag uc">Column Security</span>
+            </a>
+        </div>
+        
+        <h2 class="section-title">📚 Documentation (on GitHub)</h2>
+        <div class="two-col">
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/01-AUTHENTICATION-PATTERNS.md" target="_blank">
+                📄 Authentication Patterns Guide
+            </a>
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/02-AUTHORIZATION-WITH-UC.md" target="_blank">
+                📄 Authorization with Unity Catalog
+            </a>
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/03-GENIE-SPACE-DEEP-DIVE.md" target="_blank">
+                📄 Genie Space Deep Dive
+            </a>
+            <a href="https://github.com/bhavink/databricks/tree/master/ai-governance/scenarios" target="_blank">
+                📁 Implementation Scenarios
+            </a>
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/reference/authentication-flows.md" target="_blank">
+                📄 Auth Flow Diagrams
+            </a>
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/reference/authorization-flows.md" target="_blank">
+                📄 Authorization Flow Diagrams
+            </a>
+        </div>
+        
+        <h2 class="section-title">🔗 Official Databricks Documentation</h2>
+        <div class="two-col">
+            <a href="https://docs.databricks.com/aws/en/generative-ai/agent-bricks/" target="_blank">
+                🚀 Agent Bricks
+            </a>
+            <a href="https://docs.databricks.com/aws/en/data-governance/unity-catalog/access-control" target="_blank">
+                🛡️ UC Access Control
+            </a>
+            <a href="https://docs.databricks.com/aws/en/data-governance/unity-catalog/abac" target="_blank">
+                🏷️ ABAC (Attribute-Based)
+            </a>
+            <a href="https://docs.databricks.com/aws/en/admin/governed-tags/" target="_blank">
+                📎 Governed Tags
+            </a>
+        </div>
+        
+        <footer>
+            <p>
+                Built for learning Databricks AI product governance patterns.<br>
+                <a href="https://github.com/bhavink/databricks" target="_blank">github.com/bhavink/databricks</a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
