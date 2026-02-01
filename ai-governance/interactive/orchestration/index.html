@@ -539,33 +539,54 @@
             <!-- Lakebase Highlight -->
             <div style="margin-top: 2rem; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05)); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 1.5rem;">
                 <h4 style="color: #fbbf24; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <span>🗃️</span> Lakebase: Agent Memory & OLTP State
+                    <span>🗃️</span> Lakebase: Managed Postgres for AI Applications
                 </h4>
                 <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem;">
-                    <strong>Lakebase</strong> is a fully-managed Postgres OLTP database for agent memory (short-term & long-term), 
-                    session state, and fast governed data access. Supports both <strong>OAuth</strong> and <strong>native Postgres</strong> authentication.
+                    <strong>Lakebase</strong> is a fully-managed Postgres OLTP database. Register in <strong>Unity Catalog</strong> for 
+                    unified governance, permissions, lineage, and cross-source analytics alongside your lakehouse data.
                 </p>
+                
+                <!-- Use Cases -->
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                    <div style="flex: 1; min-width: 180px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.8rem;">
+                        <div style="font-weight: 600; font-size: 0.8rem; color: #a855f7; margin-bottom: 0.4rem;">🧠 Agent Memory</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;">Short-term (session) & long-term (cross-session) memory with checkpointing</div>
+                    </div>
+                    <div style="flex: 1; min-width: 180px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.8rem;">
+                        <div style="font-weight: 600; font-size: 0.8rem; color: #ec4899; margin-bottom: 0.4rem;">⚡ Online Feature Store</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;">Low-latency feature serving for real-time ML models</div>
+                    </div>
+                    <div style="flex: 1; min-width: 180px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.8rem;">
+                        <div style="font-weight: 600; font-size: 0.8rem; color: #14b8a6; margin-bottom: 0.4rem;">💾 OLTP State</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;">Fast transactional data access for apps and agents</div>
+                    </div>
+                </div>
+                
+                <!-- Auth Options -->
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem;">
-                        <div style="font-weight: 600; font-size: 0.85rem; color: #4ade80; margin-bottom: 0.5rem;">OAuth (U2M / M2M)</div>
-                        <ul style="font-size: 0.8rem; color: #94a3b8; padding-left: 1rem; margin: 0;">
+                    <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.8rem;">
+                        <div style="font-weight: 600; font-size: 0.8rem; color: #4ade80; margin-bottom: 0.4rem;">OAuth (U2M / M2M)</div>
+                        <ul style="font-size: 0.75rem; color: #94a3b8; padding-left: 1rem; margin: 0;">
                             <li>1-hour tokens as DB password</li>
                             <li>User, Group, or Service Principal</li>
                             <li>Requires SSL connection</li>
                         </ul>
                     </div>
-                    <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem;">
-                        <div style="font-weight: 600; font-size: 0.85rem; color: #22d3ee; margin-bottom: 0.5rem;">Native Postgres Password</div>
-                        <ul style="font-size: 0.8rem; color: #94a3b8; padding-left: 1rem; margin: 0;">
+                    <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.8rem;">
+                        <div style="font-weight: 600; font-size: 0.8rem; color: #22d3ee; margin-bottom: 0.4rem;">Native Postgres Password</div>
+                        <ul style="font-size: 0.75rem; color: #94a3b8; padding-left: 1rem; margin: 0;">
                             <li>For apps that can't rotate tokens</li>
                             <li>Standard CREATE ROLE</li>
                             <li>Enable via instance settings</li>
                         </ul>
                     </div>
                 </div>
-                <div style="margin-top: 1rem; display: flex; gap: 0.8rem; flex-wrap: wrap;">
-                    <a href="https://docs.databricks.com/aws/en/generative-ai/agent-framework/stateful-agents" target="_blank" style="font-size: 0.8rem; color: #fbbf24; text-decoration: none; padding: 0.4rem 0.8rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">📚 Agent Memory Docs</a>
-                    <a href="https://docs.databricks.com/aws/en/oltp/instances/authentication" target="_blank" style="font-size: 0.8rem; color: #fbbf24; text-decoration: none; padding: 0.4rem 0.8rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">🔐 Lakebase Auth Docs</a>
+                
+                <div style="margin-top: 1rem; display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                    <a href="https://docs.databricks.com/aws/en/oltp/projects/register-uc" target="_blank" style="font-size: 0.75rem; color: #fbbf24; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">🛡️ UC Registration</a>
+                    <a href="https://docs.databricks.com/aws/en/generative-ai/agent-framework/stateful-agents" target="_blank" style="font-size: 0.75rem; color: #fbbf24; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">🧠 Agent Memory</a>
+                    <a href="https://docs.databricks.com/aws/en/machine-learning/feature-store/online-feature-store" target="_blank" style="font-size: 0.75rem; color: #fbbf24; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">⚡ Online Features</a>
+                    <a href="https://docs.databricks.com/aws/en/oltp/instances/authentication" target="_blank" style="font-size: 0.75rem; color: #fbbf24; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">🔐 Auth Docs</a>
                 </div>
             </div>
         </div>

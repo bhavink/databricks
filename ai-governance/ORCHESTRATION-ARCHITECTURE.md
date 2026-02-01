@@ -265,14 +265,23 @@ Route **all** external LLM traffic through AI Gateway to unify governance, track
 
 ---
 
-## Lakebase: Agent Memory & OLTP State
+## Lakebase: Managed Postgres for AI Applications
 
-Fully-managed Postgres OLTP database for agent state.
+Fully-managed Postgres OLTP database with Unity Catalog integration for unified governance.
+
+### Unity Catalog Integration
+Register Lakebase databases in Unity Catalog to enable:
+- **Unified governance** — Apply UC permissions, lineage tracking, and audit logs
+- **Cross-source queries** — Join Lakebase and lakehouse data in single SQL queries
+- **Centralized discovery** — Browse databases in Catalog Explorer
 
 ### Use Cases
-- **Short-term memory** — Conversation context within a session (thread IDs, checkpointing)
-- **Long-term memory** — Key insights across multiple sessions
-- **OLTP state** — Fast, governed data access for agents
+
+| Use Case | Description |
+|----------|-------------|
+| **Agent Memory** | Short-term (session context, checkpointing) and long-term (cross-session insights) memory |
+| **Online Feature Store** | Low-latency feature serving for real-time ML models and recommendations |
+| **OLTP State** | Fast transactional data access for apps and agents |
 
 ### Authentication Options
 
@@ -281,7 +290,7 @@ Fully-managed Postgres OLTP database for agent state.
 | **OAuth (U2M/M2M)** | 1-hour tokens as DB password; User, Group, or SP; Requires SSL |
 | **Native Postgres** | For apps that can't rotate tokens hourly; Standard CREATE ROLE |
 
-📚 [Agent Memory Docs](https://docs.databricks.com/aws/en/generative-ai/agent-framework/stateful-agents) | 📚 [Lakebase Auth Docs](https://docs.databricks.com/aws/en/oltp/instances/authentication)
+📚 [Register in UC](https://docs.databricks.com/aws/en/oltp/projects/register-uc) | 📚 [Agent Memory](https://docs.databricks.com/aws/en/generative-ai/agent-framework/stateful-agents) | 📚 [Online Feature Store](https://docs.databricks.com/aws/en/machine-learning/feature-store/online-feature-store) | 📚 [Auth Docs](https://docs.databricks.com/aws/en/oltp/instances/authentication)
 
 ---
 
