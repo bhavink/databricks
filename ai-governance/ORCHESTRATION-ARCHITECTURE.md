@@ -18,6 +18,78 @@ This architecture defines governed applications that orchestrate across:
 | **Lakebase** | Agent memory, OLTP state | OAuth or Native PG |
 | **Unity Catalog** | Permissions, ABAC, row filters, column masks | All access governed |
 
+### Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph Entry["🌐 Entry Points"]
+        ExtApp["External App<br/>(Your Infrastructure)"]
+        DBApp["Databricks App<br/>(Native)"]
+    end
+
+    subgraph Auth["🔐 Authentication"]
+        ExtApp -->|"Token Federation<br/>(IdP → Databricks)"| TokenEx["OAuth Token<br/>Exchange"]
+        DBApp -->|"Native OAuth"| NativeAuth["Databricks<br/>OAuth"]
+        TokenEx --> DBToken["Databricks Token"]
+        NativeAuth --> DBToken
+    end
+
+    subgraph Serving["⚙️ Model Serving"]
+        DBToken --> MS["Model Serving<br/>Endpoint"]
+        
+        subgraph Models["Deployed Models"]
+            Agents["🤖 Custom Agents"]
+            FM["🧠 Foundation Models"]
+            ExtModels["🌉 External Models<br/>(via AI Gateway)"]
+        end
+        
+        MS --> Models
+    end
+
+    subgraph AgentAuth["🔑 Agent Auth Methods"]
+        Models --> AuthChoice{Auth Method?}
+        AuthChoice -->|"Automatic"| AutoPass["⚡ Service Principal<br/>Passthrough"]
+        AuthChoice -->|"OBO"| OBO["👤 User Identity<br/>Passthrough"]
+        AuthChoice -->|"Manual"| Manual["🔑 Stored<br/>Credentials"]
+    end
+
+    subgraph Resources["📦 Resources & Tools"]
+        subgraph MCP["MCP Servers"]
+            Genie["🔮 Genie"]
+            VS["🔍 Vector Search"]
+            UCFunc["⚙️ UC Functions"]
+            DBSQL["📊 DBSQL"]
+            ExtMCP["🔗 External MCP<br/>(UC HTTP Conn)"]
+        end
+        
+        subgraph Other["Other Services"]
+            Gateway["🌉 AI Gateway<br/>(External LLMs)"]
+            LB["🗃️ Lakebase<br/>(Agent Memory)"]
+        end
+    end
+
+    AutoPass --> MCP
+    OBO --> MCP
+    Manual --> Other
+    AutoPass --> Other
+    OBO --> Other
+
+    subgraph Gov["🛡️ Unity Catalog Governance"]
+        UC["Permissions • ABAC • Row Filters • Column Masks • Lineage"]
+    end
+
+    MCP --> UC
+    Other --> UC
+
+    style Entry fill:#a855f7,color:#fff
+    style Serving fill:#4ade80,color:#1a1a2e
+    style AgentAuth fill:#14b8a6,color:#fff
+    style Resources fill:#3b82f6,color:#fff
+    style Gov fill:#64748b,color:#fff
+    style Gateway fill:#f97316,color:#fff
+    style LB fill:#fbbf24,color:#1a1a2e
+```
+
 ---
 
 ## Two Authentication Scenarios
@@ -32,6 +104,23 @@ Your application runs **outside** Databricks and needs to call Databricks APIs.
 - Two federation types:
   - **Account-wide** — Maps IdP users to Databricks users
   - **Workload Identity** — Maps to Databricks Service Principals
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as External App
+    participant IdP as Identity Provider<br/>(Okta/Entra)
+    participant DBX as Databricks
+
+    User->>App: 1. Access application
+    App->>IdP: 2. Authenticate user
+    IdP-->>App: 3. IdP JWT token
+    App->>DBX: 4. Token exchange request<br/>(POST /oidc/v1/token)
+    Note over DBX: Validate federation policy<br/>Map identity
+    DBX-->>App: 5. Databricks OAuth token
+    App->>DBX: 6. Call APIs with token<br/>(MCP, Serving, etc.)
+    DBX-->>App: 7. Response (UC-governed)
+```
 
 **Azure Alternative: Native OAuth with Entra**
 - Call Azure Databricks APIs directly with Entra-issued tokens
@@ -52,6 +141,30 @@ Your agent runs **on** Databricks (Model Serving) and needs to access resources.
 | **Automatic Passthrough** | Service Principal | Tools not requiring user context |
 | **On-Behalf-Of-User (OBO)** | End User | User-specific data access, UC ACLs |
 | **Manual Authentication** | Stored Credentials | External services (non-Databricks) |
+
+```mermaid
+flowchart LR
+    Agent["🤖 Agent<br/>(Model Serving)"]
+    
+    Agent --> Q1{Resource<br/>Type?}
+    
+    Q1 -->|"Databricks<br/>Resource"| Q2{Need User<br/>Context?}
+    Q1 -->|"External<br/>Service"| Manual["🔑 Manual Auth<br/>(Secrets)"]
+    
+    Q2 -->|"No"| Auto["⚡ Automatic<br/>Passthrough"]
+    Q2 -->|"Yes"| OBO["👤 OBO<br/>(User Identity)"]
+    
+    Auto --> SP["Uses: Service Principal"]
+    OBO --> User["Uses: End User Identity"]
+    Manual --> Creds["Uses: Stored Credentials"]
+    
+    SP --> UC["Unity Catalog<br/>Governance"]
+    User --> UC
+    
+    style Auto fill:#4ade80,color:#1a1a2e
+    style OBO fill:#22d3ee,color:#1a1a2e
+    style Manual fill:#f97316,color:#fff
+```
 
 **Key Points:**
 - Declare dependencies at `mlflow.log_model()` time
