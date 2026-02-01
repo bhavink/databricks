@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Databricks Apps - Governed Orchestration</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #ec4899; }
+        
+        .progress-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ec4899, #f472b6, #a855f7);
+            width: 0%;
+            z-index: 101;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+        
+        .hero h2 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ec4899, #f472b6, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 700px; margin-bottom: 1.5rem; }
+        
+        .doc-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.5rem; }
+        
+        .doc-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(236, 72, 153, 0.1);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+            border-radius: 6px;
+            color: #ec4899;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .doc-link:hover { background: rgba(236, 72, 153, 0.2); border-color: #ec4899; }
+        
+        .scroll-hint { animation: bounce 2s infinite; color: #ec4899; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        .scrollytelling { display: flex; position: relative; }
+        .scroll-text { flex: 0 0 45%; padding: 0 3rem; }
+        
+        .sticky-visual {
+            flex: 0 0 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+        
+        .step.active { opacity: 1; }
+        
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            width: fit-content;
+        }
+        
+        .step-badge.pink { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+        .step-badge.purple { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+        .step-badge.cyan { background: rgba(34, 211, 238, 0.2); color: #22d3ee; }
+        .step-badge.green { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+        .step-badge.orange { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+        
+        .step h3 { font-size: 1.9rem; margin-bottom: 1rem; color: #fff; }
+        .step p { color: #94a3b8; font-size: 1.05rem; margin-bottom: 1rem; }
+        
+        .step .highlight-pink { color: #ec4899; font-weight: 600; }
+        .step .highlight-purple { color: #a855f7; font-weight: 600; }
+        .step .highlight-cyan { color: #22d3ee; font-weight: 600; }
+        .step .highlight-green { color: #4ade80; font-weight: 600; }
+        .step .highlight-orange { color: #f97316; font-weight: 600; }
+        
+        .step code {
+            background: rgba(236, 72, 153, 0.15);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: #f472b6;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.85rem;
+        }
+        
+        .step ul {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .step ul li { margin-bottom: 0.4rem; }
+        
+        .step .key-point {
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid #ec4899;
+            padding: 0.8rem 1rem;
+            margin-top: 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+        }
+        
+        .step .key-point.purple { border-left-color: #a855f7; }
+        .step .key-point.cyan { border-left-color: #22d3ee; }
+        .step .key-point.green { border-left-color: #4ade80; }
+        
+        /* Diagram Container */
+        .diagram-container {
+            width: 100%;
+            max-width: 520px;
+            height: 600px;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+        
+        /* Flow elements */
+        .flow-box {
+            position: absolute;
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .flow-box.visible { opacity: 1; }
+        .flow-box.active { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .flow-box.dimmed { opacity: 0.3; }
+        
+        .flow-box .icon { font-size: 1.3rem; margin-bottom: 0.2rem; }
+        .flow-box .title { font-weight: 600; font-size: 0.85rem; }
+        .flow-box .desc { font-size: 0.65rem; opacity: 0.8; margin-top: 0.1rem; }
+        
+        /* Box colors */
+        .flow-box.pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+        .flow-box.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
+        .flow-box.cyan { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #1a1a2e; }
+        .flow-box.green { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
+        .flow-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .flow-box.orange { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+        .flow-box.yellow { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1a1a2e; }
+        .flow-box.slate { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #e8e8e8; }
+        
+        /* Framework boxes */
+        .framework-box {
+            position: absolute;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.5s ease;
+            font-size: 0.75rem;
+        }
+        
+        .framework-box.visible { opacity: 1; }
+        .framework-box.active { transform: scale(1.08); }
+        
+        .framework-box.streamlit { background: linear-gradient(135deg, #ff4b4b, #ff6b6b); color: white; }
+        .framework-box.dash { background: linear-gradient(135deg, #119dff, #1a8cff); color: white; }
+        .framework-box.gradio { background: linear-gradient(135deg, #f97316, #fb923c); color: white; }
+        .framework-box.react { background: linear-gradient(135deg, #61dafb, #00d8ff); color: #1a1a2e; }
+        
+        /* Arrows */
+        .flow-arrow {
+            position: absolute;
+            opacity: 0;
+            transition: all 0.5s ease;
+            color: #64748b;
+            font-size: 1.2rem;
+        }
+        
+        .flow-arrow.visible { opacity: 1; }
+        .flow-arrow.pink { color: #ec4899; }
+        .flow-arrow.green { color: #4ade80; }
+        .flow-arrow.cyan { color: #22d3ee; }
+        
+        /* Flow labels */
+        .flow-label {
+            position: absolute;
+            font-size: 0.65rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .flow-label.visible { opacity: 1; }
+        .flow-label.pink { color: #ec4899; }
+        .flow-label.green { color: #4ade80; }
+        
+        /* Section divider */
+        .section-divider {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .section-divider.visible { opacity: 1; }
+        
+        .section-label {
+            position: absolute;
+            font-size: 0.6rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .section-label.visible { opacity: 1; }
+        
+        /* Footer */
+        footer {
+            padding: 4rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        footer h3 { font-size: 1.5rem; margin-bottom: 1rem; color: #ec4899; }
+        footer p { color: #94a3b8; max-width: 600px; margin: 0 auto 2rem; }
+        
+        .footer-links { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        
+        .footer-link {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-link.primary { background: #ec4899; color: white; }
+        .footer-link.primary:hover { background: #db2777; }
+        .footer-link.secondary { border: 1px solid rgba(236, 72, 153, 0.3); color: #ec4899; }
+        .footer-link.secondary:hover { background: rgba(236, 72, 153, 0.1); }
+        
+        @media (max-width: 900px) {
+            .scrollytelling { flex-direction: column; }
+            .scroll-text { flex: none; padding: 0 1.5rem; }
+            .sticky-visual { position: relative; height: 50vh; flex: none; }
+            .step { min-height: 60vh; }
+            .hero h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏠 Databricks Apps — Native OAuth & UC Integration</h1>
+    </header>
+    
+    <div class="progress-bar" id="progress"></div>
+    
+    <section class="hero">
+        <h2>Databricks Apps</h2>
+        <p>
+            Host web applications directly on the Databricks platform with automatic OAuth authentication, 
+            Unity Catalog integration, and seamless access to workspace resources.
+        </p>
+        <div class="doc-links">
+            <a href="https://docs.databricks.com/aws/en/dev-tools/databricks-apps" target="_blank" class="doc-link">📚 Databricks Apps Docs</a>
+            <a href="https://docs.databricks.com/aws/en/dev-tools/databricks-apps/tutorials" target="_blank" class="doc-link">📖 Tutorials</a>
+            <a href="https://docs.databricks.com/aws/en/dev-tools/databricks-apps/configuration" target="_blank" class="doc-link">⚙️ Configuration</a>
+        </div>
+        <div class="scroll-hint">↓ Scroll to explore</div>
+    </section>
+    
+    <div class="scrollytelling">
+        <div class="scroll-text">
+            <!-- Step 1: What are Databricks Apps -->
+            <div class="step" data-step="1">
+                <div class="step-badge pink">📱 STEP 1</div>
+                <h3>What are Databricks Apps?</h3>
+                <p>
+                    Databricks Apps is a <span class="highlight-pink">managed platform</span> for hosting 
+                    web applications directly within your Databricks workspace.
+                </p>
+                <p>
+                    Build data applications, AI demos, dashboards, and internal tools — 
+                    all running on <span class="highlight-cyan">serverless compute</span> with built-in security.
+                </p>
+                <div class="key-point">
+                    <strong>Key benefit:</strong> No separate infrastructure to manage. Your app inherits 
+                    Databricks security, authentication, and governance automatically.
+                </div>
+            </div>
+            
+            <!-- Step 2: Supported Frameworks -->
+            <div class="step" data-step="2">
+                <div class="step-badge purple">🔧 STEP 2</div>
+                <h3>Supported Frameworks</h3>
+                <p>
+                    Databricks Apps supports both <span class="highlight-pink">Python</span> and 
+                    <span class="highlight-cyan">Node.js</span> frameworks:
+                </p>
+                <ul>
+                    <li><strong>Streamlit</strong> — Data apps & dashboards</li>
+                    <li><strong>Dash</strong> — Interactive visualizations</li>
+                    <li><strong>Gradio</strong> — ML/AI demos & chat interfaces</li>
+                    <li><strong>React/Angular/Svelte</strong> — Custom web apps</li>
+                </ul>
+                <div class="key-point purple">
+                    <strong>Deployment:</strong> Push your code → Databricks builds and serves it 
+                    on serverless infrastructure.
+                </div>
+            </div>
+            
+            <!-- Step 3: Native OAuth -->
+            <div class="step" data-step="3">
+                <div class="step-badge green">🔐 STEP 3</div>
+                <h3>Native OAuth Authentication</h3>
+                <p>
+                    Apps running on Databricks get <span class="highlight-green">automatic OAuth</span> — 
+                    no manual token handling required.
+                </p>
+                <p>
+                    When a user accesses your app, they authenticate through Databricks. 
+                    The platform provides your app with tokens to access workspace resources 
+                    <span class="highlight-pink">on behalf of that user</span>.
+                </p>
+                <div class="key-point green">
+                    <strong>Zero configuration:</strong> OAuth is handled by the platform. 
+                    Just use the Databricks SDK in your app code.
+                </div>
+            </div>
+            
+            <!-- Step 4: Access to Resources -->
+            <div class="step" data-step="4">
+                <div class="step-badge cyan">🔗 STEP 4</div>
+                <h3>Direct Access to Resources</h3>
+                <p>
+                    Your Databricks App can directly access all workspace resources:
+                </p>
+                <ul>
+                    <li><span class="highlight-cyan">SQL Warehouses</span> — Run queries on lakehouse data</li>
+                    <li><span class="highlight-purple">Model Serving</span> — Call deployed ML models & agents</li>
+                    <li><span class="highlight-green">Unity Catalog</span> — Browse and query governed tables</li>
+                    <li><span class="highlight-orange">Jobs & Workflows</span> — Trigger and monitor pipelines</li>
+                </ul>
+                <div class="key-point cyan">
+                    Resources are accessed with the <strong>user's identity</strong> — 
+                    UC permissions are enforced automatically.
+                </div>
+            </div>
+            
+            <!-- Step 5: Unity Catalog Integration -->
+            <div class="step" data-step="5">
+                <div class="step-badge green">🛡️ STEP 5</div>
+                <h3>Unity Catalog Integration</h3>
+                <p>
+                    Every data access from your app flows through <span class="highlight-green">Unity Catalog</span> 
+                    governance:
+                </p>
+                <ul>
+                    <li><strong>Permissions</strong> — Users only see data they're authorized to access</li>
+                    <li><strong>Row filters</strong> — Automatic row-level security</li>
+                    <li><strong>Column masks</strong> — Sensitive data is masked per policy</li>
+                    <li><strong>Audit logs</strong> — All access is tracked</li>
+                </ul>
+                <div class="key-point green">
+                    <strong>Build once, govern always:</strong> Your app code stays simple while 
+                    UC handles fine-grained access control.
+                </div>
+            </div>
+            
+            <!-- Step 6: User Identity Flow -->
+            <div class="step" data-step="6">
+                <div class="step-badge pink">👤 STEP 6</div>
+                <h3>User Identity Propagation</h3>
+                <p>
+                    When a user interacts with your app, their <span class="highlight-pink">identity flows through</span> 
+                    to all backend resources:
+                </p>
+                <p>
+                    <code>User → App → SQL Warehouse → UC → Data</code>
+                </p>
+                <p>
+                    This ensures that data access respects each user's permissions — 
+                    two users using the same app may see different data based on their roles.
+                </p>
+                <div class="key-point">
+                    <strong>Example:</strong> A finance user sees all revenue data; a regional manager 
+                    sees only their region's data — from the same dashboard.
+                </div>
+            </div>
+            
+            <!-- Step 7: Comparison with External -->
+            <div class="step" data-step="7">
+                <div class="step-badge orange">⚖️ STEP 7</div>
+                <h3>vs. External App Hosting</h3>
+                <p>
+                    Compare Databricks Apps with hosting your app <span class="highlight-orange">externally</span>:
+                </p>
+                <ul>
+                    <li><strong>No token exchange needed</strong> — OAuth is automatic vs. manual federation</li>
+                    <li><strong>No infrastructure</strong> — No VMs, containers, or cloud setup</li>
+                    <li><strong>Built-in security</strong> — Network isolation, secrets management included</li>
+                    <li><strong>Direct UC access</strong> — No VPN or firewall configuration</li>
+                </ul>
+                <div class="key-point purple">
+                    <strong>Trade-off:</strong> External hosting offers more flexibility; 
+                    Databricks Apps offers simpler security and governance.
+                </div>
+            </div>
+            
+            <!-- Step 8: Use Cases -->
+            <div class="step" data-step="8">
+                <div class="step-badge cyan">💡 STEP 8</div>
+                <h3>Common Use Cases</h3>
+                <p>
+                    Databricks Apps excels for <span class="highlight-cyan">internal applications</span> 
+                    that need secure data access:
+                </p>
+                <ul>
+                    <li><span class="highlight-pink">AI Chat Interfaces</span> — Gradio apps calling deployed agents</li>
+                    <li><span class="highlight-green">Data Dashboards</span> — Streamlit apps querying lakehouse</li>
+                    <li><span class="highlight-purple">Model Demos</span> — Interactive ML model testing</li>
+                    <li><span class="highlight-orange">Admin Tools</span> — Internal ops & monitoring apps</li>
+                </ul>
+                <div class="key-point cyan">
+                    <strong>Ideal for:</strong> Apps where users are already in your Databricks workspace 
+                    or identity provider.
+                </div>
+            </div>
+            
+            <!-- Step 9: Deployment Flow -->
+            <div class="step" data-step="9">
+                <div class="step-badge purple">🚀 STEP 9</div>
+                <h3>Deployment Workflow</h3>
+                <p>
+                    Deploy your app in minutes:
+                </p>
+                <ul>
+                    <li><strong>1.</strong> Write your app code (Streamlit, Gradio, etc.)</li>
+                    <li><strong>2.</strong> Create an <code>app.yaml</code> configuration</li>
+                    <li><strong>3.</strong> Use <code>databricks apps deploy</code> CLI</li>
+                    <li><strong>4.</strong> Access via <code>https://{workspace}/apps/{app-name}</code></li>
+                </ul>
+                <div class="key-point purple">
+                    <strong>CI/CD ready:</strong> Integrate deployment into your Git workflows 
+                    for automated app updates.
+                </div>
+            </div>
+            
+            <!-- Step 10: Summary -->
+            <div class="step" data-step="10">
+                <div class="step-badge pink">✅ STEP 10</div>
+                <h3>Summary: Databricks Apps</h3>
+                <p>
+                    Databricks Apps provides a <span class="highlight-pink">managed, secure platform</span> 
+                    for hosting web applications with:
+                </p>
+                <ul>
+                    <li>✅ <strong>Native OAuth</strong> — Automatic authentication, no token handling</li>
+                    <li>✅ <strong>UC Integration</strong> — Permissions, filters, masks enforced</li>
+                    <li>✅ <strong>User Identity</strong> — Per-user data access with audit trail</li>
+                    <li>✅ <strong>Serverless</strong> — No infrastructure to manage</li>
+                    <li>✅ <strong>Multiple Frameworks</strong> — Python & Node.js supported</li>
+                </ul>
+                <div class="key-point">
+                    <strong>Best for:</strong> Internal data apps, AI demos, and dashboards where 
+                    security and governance are priorities.
+                </div>
+            </div>
+        </div>
+        
+        <div class="sticky-visual">
+            <div class="diagram-container">
+                <!-- User -->
+                <div id="user-box" class="flow-box cyan" style="top: 30px; left: 210px; width: 100px;">
+                    <div class="icon">👤</div>
+                    <div class="title">User</div>
+                    <div class="desc">Authenticated</div>
+                </div>
+                
+                <!-- Databricks Apps Platform -->
+                <div id="apps-platform" class="flow-box pink" style="top: 130px; left: 150px; width: 220px;">
+                    <div class="icon">🏠</div>
+                    <div class="title">Databricks Apps</div>
+                    <div class="desc">Serverless Platform</div>
+                </div>
+                
+                <!-- Framework boxes -->
+                <div id="framework-streamlit" class="framework-box streamlit" style="top: 220px; left: 50px;">
+                    <div>📊 Streamlit</div>
+                </div>
+                <div id="framework-dash" class="framework-box dash" style="top: 220px; left: 155px;">
+                    <div>📈 Dash</div>
+                </div>
+                <div id="framework-gradio" class="framework-box gradio" style="top: 220px; left: 245px;">
+                    <div>🤖 Gradio</div>
+                </div>
+                <div id="framework-react" class="framework-box react" style="top: 220px; left: 340px;">
+                    <div>⚛️ React</div>
+                </div>
+                
+                <!-- OAuth box -->
+                <div id="oauth-box" class="flow-box green" style="top: 130px; left: 385px; width: 100px;">
+                    <div class="icon">🔐</div>
+                    <div class="title">OAuth</div>
+                    <div class="desc">Automatic</div>
+                </div>
+                
+                <!-- Resources section label -->
+                <div id="section-resources" class="section-divider" style="top: 290px;"></div>
+                <div id="label-resources" class="section-label" style="top: 295px; left: 20px;">Workspace Resources</div>
+                
+                <!-- Resources -->
+                <div id="resource-sql" class="flow-box cyan" style="top: 330px; left: 30px; width: 100px;">
+                    <div class="icon">🗃️</div>
+                    <div class="title">SQL Warehouse</div>
+                    <div class="desc">Queries</div>
+                </div>
+                
+                <div id="resource-model" class="flow-box purple" style="top: 330px; left: 145px; width: 100px;">
+                    <div class="icon">🤖</div>
+                    <div class="title">Model Serving</div>
+                    <div class="desc">ML & Agents</div>
+                </div>
+                
+                <div id="resource-jobs" class="flow-box orange" style="top: 330px; left: 260px; width: 100px;">
+                    <div class="icon">⚡</div>
+                    <div class="title">Jobs</div>
+                    <div class="desc">Workflows</div>
+                </div>
+                
+                <div id="resource-catalog" class="flow-box blue" style="top: 330px; left: 375px; width: 100px;">
+                    <div class="icon">📚</div>
+                    <div class="title">Catalog</div>
+                    <div class="desc">Browse</div>
+                </div>
+                
+                <!-- Unity Catalog -->
+                <div id="uc-layer" class="flow-box green" style="top: 450px; left: 140px; width: 240px;">
+                    <div class="icon">🛡️</div>
+                    <div class="title">Unity Catalog Governance</div>
+                    <div class="desc">Permissions • Row Filters • Column Masks • Audit</div>
+                </div>
+                
+                <!-- Data -->
+                <div id="data-box" class="flow-box slate" style="top: 540px; left: 170px; width: 180px;">
+                    <div class="icon">💾</div>
+                    <div class="title">Lakehouse Data</div>
+                    <div class="desc">Governed Access</div>
+                </div>
+                
+                <!-- Comparison: External App -->
+                <div id="external-app" class="flow-box orange" style="top: 30px; left: 30px; width: 120px;">
+                    <div class="icon">🌐</div>
+                    <div class="title">External App</div>
+                    <div class="desc">Needs Token Exchange</div>
+                </div>
+                
+                <!-- Arrows -->
+                <div id="arrow-user-apps" class="flow-arrow pink" style="top: 95px; left: 255px;">↓</div>
+                <div id="arrow-apps-resources" class="flow-arrow pink" style="top: 195px; left: 255px;">↓</div>
+                <div id="arrow-oauth" class="flow-arrow green" style="top: 100px; left: 400px;">↙</div>
+                <div id="arrow-to-uc" class="flow-arrow green" style="top: 415px; left: 255px;">↓</div>
+                <div id="arrow-uc-data" class="flow-arrow green" style="top: 520px; left: 255px;">↓</div>
+                
+                <!-- Labels -->
+                <div id="label-auto-auth" class="flow-label pink" style="top: 85px; right: 50px;">Auto Auth</div>
+                <div id="label-identity" class="flow-label pink" style="top: 200px; left: 270px;">User Identity</div>
+                <div id="label-governed" class="flow-label green" style="top: 500px; left: 270px;">Governed</div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <h3>Continue Your Journey</h3>
+        <p>Explore more architecture patterns and authentication flows in the Governed Orchestration series.</p>
+        <div class="footer-links">
+            <a href="index.html" class="footer-link primary">← Architecture Hub</a>
+            <a href="external-app-auth.html" class="footer-link secondary">External App Auth</a>
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/ORCHESTRATION-ARCHITECTURE.md" target="_blank" class="footer-link secondary">Architecture Reference</a>
+        </div>
+    </footer>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        // Progress bar
+        gsap.to("#progress", {
+            width: "100%",
+            ease: "none",
+            scrollTrigger: {
+                trigger: ".scrollytelling",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: true
+            }
+        });
+        
+        const steps = document.querySelectorAll('.step');
+        
+        function resetDiagram() {
+            document.querySelectorAll('.flow-box, .framework-box, .flow-arrow, .flow-label, .section-divider, .section-label').forEach(el => {
+                el.classList.remove('visible', 'active', 'dimmed');
+            });
+        }
+        
+        function updateDiagram(stepNum) {
+            resetDiagram();
+            
+            switch(stepNum) {
+                case 1: // What are Databricks Apps
+                    ['apps-platform'].forEach(id => {
+                        document.getElementById(id).classList.add('visible', 'active');
+                    });
+                    break;
+                    
+                case 2: // Supported Frameworks
+                    ['apps-platform'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['framework-streamlit', 'framework-dash', 'framework-gradio', 'framework-react'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('apps-platform').classList.add('active');
+                    break;
+                    
+                case 3: // Native OAuth
+                    ['user-box', 'apps-platform', 'oauth-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('oauth-box').classList.add('active');
+                    document.getElementById('arrow-user-apps').classList.add('visible');
+                    document.getElementById('arrow-oauth').classList.add('visible');
+                    document.getElementById('label-auto-auth').classList.add('visible');
+                    break;
+                    
+                case 4: // Access to Resources
+                    ['user-box', 'apps-platform', 'oauth-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['resource-sql', 'resource-model', 'resource-jobs', 'resource-catalog'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('section-resources').classList.add('visible');
+                    document.getElementById('label-resources').classList.add('visible');
+                    document.getElementById('arrow-user-apps').classList.add('visible');
+                    document.getElementById('arrow-apps-resources').classList.add('visible');
+                    document.getElementById('label-identity').classList.add('visible');
+                    break;
+                    
+                case 5: // Unity Catalog Integration
+                    ['user-box', 'apps-platform', 'resource-sql', 'resource-model', 'uc-layer', 'data-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('uc-layer').classList.add('active');
+                    document.getElementById('section-resources').classList.add('visible');
+                    document.getElementById('arrow-user-apps').classList.add('visible');
+                    document.getElementById('arrow-apps-resources').classList.add('visible');
+                    document.getElementById('arrow-to-uc').classList.add('visible');
+                    document.getElementById('arrow-uc-data').classList.add('visible');
+                    document.getElementById('label-governed').classList.add('visible');
+                    break;
+                    
+                case 6: // User Identity Flow
+                    ['user-box', 'apps-platform', 'resource-sql', 'uc-layer', 'data-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('user-box').classList.add('active');
+                    document.getElementById('arrow-user-apps').classList.add('visible');
+                    document.getElementById('arrow-apps-resources').classList.add('visible');
+                    document.getElementById('arrow-to-uc').classList.add('visible');
+                    document.getElementById('arrow-uc-data').classList.add('visible');
+                    document.getElementById('label-identity').classList.add('visible');
+                    document.getElementById('label-governed').classList.add('visible');
+                    break;
+                    
+                case 7: // Comparison with External
+                    ['user-box', 'apps-platform', 'external-app', 'oauth-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('apps-platform').classList.add('active');
+                    document.getElementById('external-app').classList.add('dimmed');
+                    document.getElementById('arrow-user-apps').classList.add('visible');
+                    document.getElementById('arrow-oauth').classList.add('visible');
+                    document.getElementById('label-auto-auth').classList.add('visible');
+                    break;
+                    
+                case 8: // Use Cases
+                    ['apps-platform'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['framework-streamlit', 'framework-dash', 'framework-gradio', 'framework-react'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['resource-sql', 'resource-model', 'resource-jobs', 'resource-catalog'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('section-resources').classList.add('visible');
+                    document.getElementById('label-resources').classList.add('visible');
+                    document.getElementById('arrow-apps-resources').classList.add('visible');
+                    break;
+                    
+                case 9: // Deployment Flow
+                    ['user-box', 'apps-platform', 'oauth-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['framework-streamlit', 'framework-dash', 'framework-gradio', 'framework-react'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('apps-platform').classList.add('active');
+                    break;
+                    
+                case 10: // Summary
+                    ['user-box', 'apps-platform', 'oauth-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['framework-streamlit', 'framework-dash', 'framework-gradio', 'framework-react'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['resource-sql', 'resource-model', 'resource-jobs', 'resource-catalog'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['uc-layer', 'data-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('section-resources').classList.add('visible');
+                    document.getElementById('label-resources').classList.add('visible');
+                    ['arrow-user-apps', 'arrow-apps-resources', 'arrow-oauth', 'arrow-to-uc', 'arrow-uc-data'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['label-auto-auth', 'label-identity', 'label-governed'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+            }
+        }
+        
+        steps.forEach((step, index) => {
+            ScrollTrigger.create({
+                trigger: step,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => { 
+                    steps.forEach(s => s.classList.remove('active')); 
+                    step.classList.add('active'); 
+                    updateDiagram(index + 1); 
+                },
+                onEnterBack: () => { 
+                    steps.forEach(s => s.classList.remove('active')); 
+                    step.classList.add('active'); 
+                    updateDiagram(index + 1); 
+                }
+            });
+        });
+        
+        // Initial state
+        setTimeout(() => { steps[0].classList.add('active'); updateDiagram(1); }, 500);
+    </script>
+</body>
+</html>

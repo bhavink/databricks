@@ -110,6 +110,7 @@ The "mother of all" scenarios — how to build governed AI applications that orc
 | [External App Auth](https://bhavink.github.io/databricks/ai-governance/interactive/orchestration/external-app-auth.html) | Token Federation | OAuth exchange for apps outside Databricks |
 | [MCP Integration](https://bhavink.github.io/databricks/ai-governance/interactive/orchestration/mcp-integration.html) | MCP Servers | Managed, External, Custom MCP patterns |
 | [AI Gateway](https://bhavink.github.io/databricks/ai-governance/interactive/orchestration/ai-gateway-governance.html) | Governance | Rate limits, guardrails, inference tables |
+| [Databricks Apps](https://bhavink.github.io/databricks/ai-governance/interactive/orchestration/databricks-apps.html) | Native OAuth | Hosted apps with automatic UC integration |
 
 ### Interactive Visualizations
 
