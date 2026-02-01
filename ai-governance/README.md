@@ -52,27 +52,63 @@ AI/BI chatbot that turns tables into expert conversations ([docs](https://docs.d
 
 > **Note**: Additional Genie scenarios (embedded in apps, agent integration) are covered in detail in [03-GENIE-SPACE-DEEP-DIVE.md](03-GENIE-SPACE-DEEP-DIVE.md).
 
-### 🤖 Agent Bricks: Knowledge Assistant
+### 📊 Audit Logging & Monitoring
 
-Turn documents into high-quality chatbot ([docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/knowledge-assistant))
+Comprehensive monitoring and analytics for Genie spaces using system tables ([guide](audit-logging/README.md))
+
+| Component | Description | Status |
+|-----------|-------------|--------|
+| [System Tables Analytics](audit-logging/monitoring/README-GENIE-AUDIT-QUICKSTART.md) | 15-min quick start for system tables-based monitoring | ✅ Complete |
+| [Architecture Design](audit-logging/monitoring/GENIE-AUDIT-LOG-DESIGN.md) | Complete architecture and streaming design | ✅ Complete |
+| [SQL Implementation](audit-logging/monitoring/genie-audit-implementation.sql) | Production-ready SQL queries (650+ lines) | ✅ Complete |
+| [Python Utilities](audit-logging/monitoring/genie-audit-python-implementation.py) | Enrichment and alerting framework | ✅ Complete |
+
+**Features:**
+- ✅ Conversation activity tracking (daily trends, user engagement)
+- ✅ User activity monitoring with email mapping
+- ✅ Query insights (generated SQL parsing, performance metrics)
+- ✅ Real-time alerting (failures, inactive spaces, slow queries)
+- ✅ Delta streaming architecture for near-real-time monitoring
+
+### 🤖 Agent Bricks Use Cases
+
+Agent Bricks offers pre-configured templates for production-grade AI agents ([docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/)):
+
+| Use Case | Description | Status | Docs |
+|----------|-------------|--------|------|
+| **Knowledge Assistant** | Turn documents into a chatbot that cites sources | GA | [Docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/knowledge-assistant) |
+| **Information Extraction** | Transform unstructured text into structured insights | Beta | [Docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/key-info-extraction) |
+| **Custom LLM** | Summarization, text transformation tasks | Beta | [Docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/custom-llm) |
+| **Multi-Agent Supervisor** | Multi-agent systems with Genie + agents | Beta | [Docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/multi-agent-supervisor) |
+| **AI/BI Genie** | Turn tables into an expert AI chatbot | GA | [Docs](https://docs.databricks.com/aws/en/genie/) |
+| **Code Your Own** | Build with OSS libraries and Agent Framework | GA | [Docs](https://docs.databricks.com/aws/en/generative-ai/agent-framework/author-agent) |
+
+### 📋 Agent Bricks Scenarios
 
 | Scenario | Description | Users | Status |
 |----------|-------------|-------|--------|
-| [Multi-Team Docs](scenarios/01-KNOWLEDGE-ASSISTANT/multi-team.md) | Engineering teams with team-specific documentation | 100-500 | ✅ Complete |
-
-### 🏗️ Agent Bricks: Multi-Agent Supervisor
-
-Coordinate multiple Genie spaces and agents ([docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/multi-agent-supervisor))
-
-| Scenario | Description | Users | Status |
-|----------|-------------|-------|--------|
-| [Genie Coordination](scenarios/04-MULTI-AGENT-SUPERVISOR/genie-coordination.md) | Supervisor routing to specialized Genies | Variable | ✅ Complete |
+| [Knowledge Assistant: Multi-Team](scenarios/01-KNOWLEDGE-ASSISTANT/multi-team.md) | Engineering teams with team-specific documentation | 100-500 | ✅ Complete |
+| [Multi-Agent Supervisor: Genie Coordination](scenarios/04-MULTI-AGENT-SUPERVISOR/genie-coordination.md) | Supervisor routing to specialized Genies | Variable | ✅ Complete |
 
 ---
 
 ## 📚 Reference Materials
 
 - **[Authentication Flows](reference/authentication-flows.md)** - Visual Mermaid diagrams of auth patterns
+- **[Authorization Flows](reference/authorization-flows.md)** - Visual diagrams of UC four-layer access control
+- **[Interactive Visualizations](interactive/)** - Scrollytelling explainers for core concepts
+
+### Interactive Visualizations
+
+| Page | Concept | Description |
+|------|---------|-------------|
+| [Access Control Layers](interactive/uc-access-control-layers.html) | UC Authorization | Four layers: workspace, privileges, ABAC, filtering |
+| [ABAC + Governed Tags](interactive/uc-abac-governed-tags.html) | ABAC | Tag-based dynamic access control |
+| [Row Filters](interactive/uc-row-filters.html) | Row-Level Security | Filter rows by `current_user()` |
+| [Column Masks](interactive/uc-column-masks.html) | Column-Level Security | Mask values by `is_member()` |
+| [OBO Auth Flow](interactive/auth-flow-obo.html) | Pattern 2 | On-Behalf-Of-User authentication |
+| [Service Principal Auth](interactive/auth-flow-service-principal.html) | Pattern 1 | Automatic passthrough |
+| [Decision Guide](interactive/decision-guide.html) | Quick Start | Choose the right pattern |
 
 ---
 
@@ -151,7 +187,10 @@ A: See [Genie Space at Scale](scenarios/05-GENIE-SPACE/standalone-scale.md).
 A: Use Manual Credentials pattern. See [Authentication Patterns](01-AUTHENTICATION-PATTERNS.md#pattern-3-manual-credentials).
 
 **Q: How do I audit access?**  
-A: Use Unity Catalog audit logs via `system.access.audit` table. See [Authorization with UC](02-AUTHORIZATION-WITH-UC.md#audit-logging) for details.
+A: Use Unity Catalog audit logs via `system.access.audit` table. See [Authorization with UC](02-AUTHORIZATION-WITH-UC.md#audit-logging) and [Audit Logging & Monitoring](audit-logging/README.md) for comprehensive monitoring solutions.
+
+**Q: How do I monitor Genie conversations and query performance?**  
+A: Use the system tables-based monitoring solution in [Audit Logging & Monitoring](audit-logging/README.md). Provides conversation tracking, user analytics, query insights, and real-time alerting.
 
 ---
 
@@ -168,9 +207,16 @@ Found an issue or have a scenario to add? Contributions welcome:
 
 ## 🔗 Related Resources
 
-**Databricks Documentation:**
+**Databricks Official Documentation:**
 - [Agent Bricks Overview](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/)
+- [Agent Framework Authentication](https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication)
 - [Unity Catalog](https://docs.databricks.com/en/data-governance/unity-catalog/index.html)
+- [Access Control in Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/access-control) — Four layers
+- [ABAC (Attribute-Based Access Control)](https://docs.databricks.com/aws/en/data-governance/unity-catalog/abac)
+- [Governed Tags](https://docs.databricks.com/aws/en/admin/governed-tags/)
+- [Row Filters & Column Masks](https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-row-filter-column-mask.html)
+- [OAuth M2M](https://docs.databricks.com/aws/en/dev-tools/auth/oauth-m2m.html) — Service Principal auth
+- [OAuth U2M](https://docs.databricks.com/aws/en/dev-tools/auth/oauth-u2m.html) — User auth (OBO)
 - [Databricks Apps](https://docs.databricks.com/en/dev-tools/databricks-apps/index.html)
 - [Genie Space](https://docs.databricks.com/aws/en/genie/)
 

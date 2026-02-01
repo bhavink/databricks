@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Catalog Column Masks</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #ec4899; }
+        
+        .progress-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 3px;
+            background: #ec4899;
+            width: 0%;
+            z-index: 101;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+        
+        .hero h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ec4899, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p { font-size: 1.3rem; color: #94a3b8; max-width: 600px; margin-bottom: 1.5rem; }
+        
+        .hero .doc-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(236, 72, 153, 0.1);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+            border-radius: 6px;
+            color: #ec4899;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .hero .doc-link:hover { background: rgba(236, 72, 153, 0.2); border-color: #ec4899; }
+        
+        .scroll-hint { animation: bounce 2s infinite; color: #ec4899; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        .scrollytelling { display: flex; position: relative; }
+        .scroll-text { flex: 0 0 45%; padding: 0 3rem; }
+        
+        .sticky-visual {
+            flex: 0 0 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+        
+        .step.active { opacity: 1; }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #ec4899;
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #fff; }
+        .step p { color: #94a3b8; font-size: 1.15rem; margin-bottom: 1rem; }
+        .step .highlight { color: #ec4899; font-weight: 600; }
+        
+        .step code {
+            background: rgba(236, 72, 153, 0.15);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            color: #ec4899;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.95rem;
+        }
+        
+        .diagram-container {
+            width: 100%;
+            max-width: 520px;
+            height: 480px;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .diagram-box {
+            position: absolute;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .diagram-box.visible { opacity: 1; transform: scale(1); }
+        
+        .box-icon { font-size: 1.8rem; margin-bottom: 0.3rem; }
+        .box-label { font-weight: 600; font-size: 0.95rem; }
+        .box-sublabel { font-size: 0.75rem; opacity: 0.8; margin-top: 0.2rem; }
+        
+        .analyst-box { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: white; }
+        .admin-box { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
+        .mask-box { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+        .table-box { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
+        
+        /* Column visualization */
+        .column-display {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .column-display.visible { opacity: 1; }
+        
+        .column-header {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #ec4899;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #ec4899;
+            margin-bottom: 4px;
+        }
+        
+        .column-value {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.4s ease;
+        }
+        
+        .column-value .name { color: #94a3b8; }
+        .column-value .ssn { color: #fff; font-weight: 500; }
+        .column-value .ssn.masked { color: #ec4899; }
+        
+        .arrow {
+            position: absolute;
+            opacity: 0;
+            transition: all 0.5s ease;
+            font-size: 1.5rem;
+            color: #ec4899;
+        }
+        
+        .arrow.visible { opacity: 1; }
+        
+        .comparison-box {
+            position: absolute;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .comparison-box.visible { opacity: 1; }
+        
+        .comparison-title {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .comparison-value {
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 1rem;
+        }
+        
+        .summary {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #ec4899; }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            max-width: 800px;
+            margin-bottom: 3rem;
+        }
+        
+        .summary-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+        }
+        
+        .summary-card h4 { color: #ec4899; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .summary-card p { color: #94a3b8; font-size: 0.95rem; }
+        
+        .back-link {
+            color: #ec4899;
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            border: 2px solid #ec4899;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover { background: #ec4899; color: #1a1a2e; }
+        
+        @media (max-width: 900px) {
+            .scrollytelling { flex-direction: column; }
+            .scroll-text { flex: none; padding: 0 1.5rem; }
+            .sticky-visual { flex: none; height: 50vh; position: sticky; top: 60px; }
+            .step { min-height: 80vh; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .hero h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎭 Unity Catalog Authorization</h1>
+    </header>
+    
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <section class="hero">
+        <h2>Column Masks</h2>
+        <p>How Unity Catalog automatically transforms sensitive column values based on who's viewing them.</p>
+        <a href="https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-row-filter-column-mask.html" target="_blank" class="doc-link">📖 Row Filters & Column Masks Documentation</a>
+        <div class="scroll-hint">↓ Scroll to explore the flow</div>
+    </section>
+    
+    <section class="scrollytelling">
+        <div class="scroll-text">
+            <div class="step" data-step="1">
+                <span class="step-number">1</span>
+                <h3>Sensitive Data Exists</h3>
+                <p>
+                    The <code>customers</code> table contains <span class="highlight">SSN numbers</span> — highly sensitive PII that not everyone should see.
+                </p>
+                <p>
+                    Raw values: <code>123-45-6789</code>, <code>987-65-4321</code>, etc.
+                </p>
+            </div>
+            
+            <div class="step" data-step="2">
+                <span class="step-number">2</span>
+                <h3>Column Mask Defined</h3>
+                <p>
+                    A <span class="highlight">mask function</span> is applied to the SSN column:
+                </p>
+                <p>
+                    <code>CASE WHEN is_member('admins') THEN VALUE ELSE '***-**-' || SUBSTR(VALUE, -4) END</code>
+                </p>
+            </div>
+            
+            <div class="step" data-step="3">
+                <span class="step-number">3</span>
+                <h3>Analyst Queries</h3>
+                <p>
+                    <span class="highlight">Sarah (Analyst)</span> runs: <code>SELECT name, ssn FROM customers</code>
+                </p>
+                <p>
+                    She's in the <code>analysts</code> group, but NOT in <code>admins</code>.
+                </p>
+            </div>
+            
+            <div class="step" data-step="4">
+                <span class="step-number">4</span>
+                <h3>Mask Applied Automatically</h3>
+                <p>
+                    UC evaluates <code>is_member('admins')</code> → <span class="highlight">FALSE</span> for Sarah.
+                </p>
+                <p>
+                    Sarah sees: <code>***-**-6789</code> — the last 4 digits only.
+                </p>
+            </div>
+            
+            <div class="step" data-step="5">
+                <span class="step-number">5</span>
+                <h3>Admin Sees Full Value</h3>
+                <p>
+                    <span class="highlight">Dave (Admin)</span> runs the exact same query.
+                </p>
+                <p>
+                    UC evaluates <code>is_member('admins')</code> → <span class="highlight">TRUE</span> for Dave. He sees: <code>123-45-6789</code>
+                </p>
+            </div>
+        </div>
+        
+        <div class="sticky-visual">
+            <div class="diagram-container">
+                <div class="diagram-box table-box" id="box-table" style="left: 30px; top: 30px;">
+                    <div class="box-icon">📊</div>
+                    <div class="box-label">customers</div>
+                    <div class="box-sublabel">Contains SSN</div>
+                </div>
+                
+                <div class="diagram-box mask-box" id="box-mask" style="right: 30px; top: 30px;">
+                    <div class="box-icon">🎭</div>
+                    <div class="box-label">Column Mask</div>
+                    <div class="box-sublabel">mask_ssn()</div>
+                </div>
+                
+                <div class="diagram-box analyst-box" id="box-analyst" style="left: 30px; bottom: 150px;">
+                    <div class="box-icon">👩‍💻</div>
+                    <div class="box-label">Sarah</div>
+                    <div class="box-sublabel">Group: analysts</div>
+                </div>
+                
+                <div class="diagram-box admin-box" id="box-admin" style="right: 30px; bottom: 150px;">
+                    <div class="box-icon">👨‍💼</div>
+                    <div class="box-label">Dave</div>
+                    <div class="box-sublabel">Group: admins</div>
+                </div>
+                
+                <!-- Raw Data Column -->
+                <div class="column-display" id="raw-data" style="left: 30px; top: 130px;">
+                    <div class="column-header">SSN Column (Raw)</div>
+                    <div class="column-value">
+                        <span class="name">John</span>
+                        <span class="ssn">123-45-6789</span>
+                    </div>
+                    <div class="column-value">
+                        <span class="name">Jane</span>
+                        <span class="ssn">987-65-4321</span>
+                    </div>
+                    <div class="column-value">
+                        <span class="name">Bob</span>
+                        <span class="ssn">456-78-9012</span>
+                    </div>
+                </div>
+                
+                <!-- Masked Data Column -->
+                <div class="column-display" id="masked-data" style="left: 30px; top: 130px;">
+                    <div class="column-header">Sarah's View (Masked)</div>
+                    <div class="column-value">
+                        <span class="name">John</span>
+                        <span class="ssn masked">***-**-6789</span>
+                    </div>
+                    <div class="column-value">
+                        <span class="name">Jane</span>
+                        <span class="ssn masked">***-**-4321</span>
+                    </div>
+                    <div class="column-value">
+                        <span class="name">Bob</span>
+                        <span class="ssn masked">***-**-9012</span>
+                    </div>
+                </div>
+                
+                <!-- Comparison boxes -->
+                <div class="comparison-box" id="compare-analyst" style="left: 30px; bottom: 30px;">
+                    <div class="comparison-title">Sarah sees:</div>
+                    <div class="comparison-value" style="color: #ec4899;">***-**-6789</div>
+                </div>
+                
+                <div class="comparison-box" id="compare-admin" style="right: 30px; bottom: 30px;">
+                    <div class="comparison-title">Dave sees:</div>
+                    <div class="comparison-value" style="color: #4ade80;">123-45-6789</div>
+                </div>
+                
+                <div class="arrow" id="arrow-1" style="left: 160px; top: 55px;">→</div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="summary">
+        <h2>Key Takeaways</h2>
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h4>🎭 Value Transformation</h4>
+                <p>Column masks transform values, not hide rows. Users still see the row, just with masked values.</p>
+            </div>
+            <div class="summary-card">
+                <h4>👥 Group-Based Logic</h4>
+                <p>is_member() function checks group membership to decide masking behavior.</p>
+            </div>
+            <div class="summary-card">
+                <h4>🔐 PII/PHI Protection</h4>
+                <p>Ideal for SSN, credit cards, health records — show partial info for verification.</p>
+            </div>
+            <div class="summary-card">
+                <h4>⚡ Same Query, Different View</h4>
+                <p>Users run identical queries but see different values based on their groups.</p>
+            </div>
+        </div>
+        <a href="../02-AUTHORIZATION-WITH-UC.md" class="back-link">← Back to Documentation</a>
+    </section>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        gsap.to("#progressBar", {
+            width: "100%",
+            ease: "none",
+            scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: true }
+        });
+        
+        const steps = document.querySelectorAll('.step');
+        
+        function updateDiagram(stepNum) {
+            // Reset all
+            document.querySelectorAll('.diagram-box').forEach(box => box.classList.remove('visible'));
+            document.querySelectorAll('.arrow').forEach(arrow => arrow.classList.remove('visible'));
+            document.querySelectorAll('.column-display').forEach(col => col.classList.remove('visible'));
+            document.querySelectorAll('.comparison-box').forEach(box => box.classList.remove('visible'));
+            
+            switch(stepNum) {
+                case 1:
+                    document.getElementById('box-table').classList.add('visible');
+                    document.getElementById('raw-data').classList.add('visible');
+                    break;
+                    
+                case 2:
+                    document.getElementById('box-table').classList.add('visible');
+                    document.getElementById('box-mask').classList.add('visible');
+                    document.getElementById('raw-data').classList.add('visible');
+                    document.getElementById('arrow-1').classList.add('visible');
+                    break;
+                    
+                case 3:
+                    document.getElementById('box-table').classList.add('visible');
+                    document.getElementById('box-mask').classList.add('visible');
+                    document.getElementById('box-analyst').classList.add('visible');
+                    document.getElementById('raw-data').classList.add('visible');
+                    break;
+                    
+                case 4:
+                    document.getElementById('box-mask').classList.add('visible');
+                    document.getElementById('box-analyst').classList.add('visible');
+                    document.getElementById('masked-data').classList.add('visible');
+                    document.getElementById('compare-analyst').classList.add('visible');
+                    break;
+                    
+                case 5:
+                    document.getElementById('box-analyst').classList.add('visible');
+                    document.getElementById('box-admin').classList.add('visible');
+                    document.getElementById('compare-analyst').classList.add('visible');
+                    document.getElementById('compare-admin').classList.add('visible');
+                    break;
+            }
+        }
+        
+        steps.forEach((step, index) => {
+            ScrollTrigger.create({
+                trigger: step,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => { steps.forEach(s => s.classList.remove('active')); step.classList.add('active'); updateDiagram(index + 1); },
+                onEnterBack: () => { steps.forEach(s => s.classList.remove('active')); step.classList.add('active'); updateDiagram(index + 1); }
+            });
+        });
+        
+        setTimeout(() => { steps[0].classList.add('active'); updateDiagram(1); }, 500);
+    </script>
+</body>
+</html>

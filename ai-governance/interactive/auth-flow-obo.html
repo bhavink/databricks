@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>On-Behalf-Of-User (OBO) Authentication Flow</title>
+    
+    <!-- GSAP + ScrollTrigger from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        header h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #4ade80;
+        }
+        
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 3px;
+            background: #4ade80;
+            width: 0%;
+            z-index: 101;
+        }
+        
+        /* Hero section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+        
+        .hero h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #4ade80, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .hero .doc-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            border-radius: 6px;
+            color: #4ade80;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .hero .doc-link:hover { background: rgba(74, 222, 128, 0.2); border-color: #4ade80; }
+        
+        .scroll-hint {
+            animation: bounce 2s infinite;
+            color: #4ade80;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        /* === SCROLLYTELLING LAYOUT === */
+        .scrollytelling {
+            display: flex;
+            position: relative;
+        }
+        
+        /* Left side: scrolling text */
+        .scroll-text {
+            flex: 0 0 45%;
+            padding: 0 3rem;
+        }
+        
+        /* Right side: sticky visual */
+        .sticky-visual {
+            flex: 0 0 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        /* Individual step text blocks */
+        .step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+        
+        .step.active {
+            opacity: 1;
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #4ade80;
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .step h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+        
+        .step p {
+            color: #94a3b8;
+            font-size: 1.15rem;
+            margin-bottom: 1rem;
+        }
+        
+        .step .highlight {
+            color: #4ade80;
+            font-weight: 600;
+        }
+        
+        .step code {
+            background: rgba(74, 222, 128, 0.15);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            color: #4ade80;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.95rem;
+        }
+        
+        /* === DIAGRAM AREA === */
+        .diagram-container {
+            width: 100%;
+            max-width: 500px;
+            height: 450px;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        /* Diagram boxes - all hidden by default */
+        .diagram-box {
+            position: absolute;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        
+        .diagram-box.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+        
+        .box-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .box-label {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .box-sublabel {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 0.2rem;
+        }
+        
+        /* Box styles */
+        .user-box {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: #1a1a2e;
+        }
+        
+        .product-box {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        
+        .oauth-box {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #1a1a2e;
+        }
+        
+        .uc-box {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+        }
+        
+        .data-box {
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            color: white;
+        }
+        
+        /* Animated arrow */
+        .arrow {
+            position: absolute;
+            opacity: 0;
+            transition: all 0.5s ease;
+            font-size: 1.5rem;
+        }
+        
+        .arrow.visible {
+            opacity: 1;
+        }
+        
+        /* Token badge */
+        .token-badge {
+            position: absolute;
+            padding: 0.4rem 1rem;
+            background: rgba(74, 222, 128, 0.2);
+            border: 2px solid #4ade80;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #4ade80;
+            white-space: nowrap;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .token-badge.visible {
+            opacity: 1;
+        }
+        
+        /* Summary section */
+        .summary {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .summary h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #4ade80;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            max-width: 800px;
+            margin-bottom: 3rem;
+        }
+        
+        .summary-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+        }
+        
+        .summary-card h4 {
+            color: #4ade80;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .summary-card p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        
+        .back-link {
+            color: #4ade80;
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            border: 2px solid #4ade80;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: #4ade80;
+            color: #1a1a2e;
+        }
+        
+        /* Responsive */
+        @media (max-width: 900px) {
+            .scrollytelling {
+                flex-direction: column;
+            }
+            
+            .scroll-text {
+                flex: none;
+                padding: 0 1.5rem;
+            }
+            
+            .sticky-visual {
+                flex: none;
+                height: 50vh;
+                position: sticky;
+                top: 60px;
+            }
+            
+            .step {
+                min-height: 80vh;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🔐 Databricks Authentication Patterns</h1>
+    </header>
+    
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <!-- Hero -->
+    <section class="hero">
+        <h2>On-Behalf-Of-User (OBO)</h2>
+        <p>Pattern 2: How Databricks executes queries with the end user's identity, ensuring each user sees only their authorized data.</p>
+        <a href="https://docs.databricks.com/aws/en/dev-tools/auth/oauth-u2m.html" target="_blank" class="doc-link">📖 OAuth U2M Documentation</a>
+        <div class="scroll-hint">↓ Scroll to explore the flow</div>
+    </section>
+    
+    <!-- Scrollytelling Section -->
+    <section class="scrollytelling">
+        <!-- Left: Scrolling Text -->
+        <div class="scroll-text">
+            <!-- Step 1 -->
+            <div class="step" data-step="1">
+                <span class="step-number">1</span>
+                <h3>User Logs In</h3>
+                <p>
+                    <span class="highlight">Alice</span> (<code>alice@company.com</code>) authenticates through your Identity Provider and accesses Genie Space.
+                </p>
+                <p>
+                    Her identity is federated from <span class="highlight">Okta, Azure AD, or another IdP</span> via SCIM protocol.
+                </p>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="step" data-step="2">
+                <span class="step-number">2</span>
+                <h3>OAuth Token Exchange</h3>
+                <p>
+                    Genie validates Alice's session and requests a <span class="highlight">scoped access token</span> from the Databricks OAuth server.
+                </p>
+                <p>
+                    The token is short-lived (<span class="highlight">1 hour TTL</span>) and automatically rotates. No manual credential management needed.
+                </p>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="step" data-step="3">
+                <span class="step-number">3</span>
+                <h3>Unity Catalog Query</h3>
+                <p>
+                    Genie queries Unity Catalog <span class="highlight">as Alice</span>. UC sees the request coming from her identity.
+                </p>
+                <p>
+                    The function <code>current_user()</code> returns <code>'alice@company.com'</code> — enabling per-user access control.
+                </p>
+            </div>
+            
+            <!-- Step 4 -->
+            <div class="step" data-step="4">
+                <span class="step-number">4</span>
+                <h3>Row Filters Applied</h3>
+                <p>
+                    Unity Catalog evaluates <span class="highlight">row filters</span> automatically:
+                </p>
+                <p>
+                    <code>WHERE owner = current_user()</code>
+                </p>
+                <p>
+                    Column masks hide sensitive fields based on <code>is_member('group')</code>. No app code changes needed.
+                </p>
+            </div>
+            
+            <!-- Step 5 -->
+            <div class="step" data-step="5">
+                <span class="step-number">5</span>
+                <h3>Personalized Response</h3>
+                <p>
+                    Alice receives <span class="highlight">only her authorized data</span>. If Bob runs the same query, he sees his own data instead.
+                </p>
+                <p>
+                    All access is logged with Alice's email for <span class="highlight">HIPAA, SOC2, and GDPR compliance</span>.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Right: Sticky Visual -->
+        <div class="sticky-visual">
+            <div class="diagram-container">
+                <!-- User Box -->
+                <div class="diagram-box user-box" id="box-user" style="left: 20px; top: 180px;">
+                    <div class="box-icon">👤</div>
+                    <div class="box-label">Alice</div>
+                    <div class="box-sublabel">alice@company.com</div>
+                </div>
+                
+                <!-- Product/Genie Box -->
+                <div class="diagram-box product-box" id="box-product" style="left: 180px; top: 30px;">
+                    <div class="box-icon">🤖</div>
+                    <div class="box-label">Genie Space</div>
+                    <div class="box-sublabel">AI Product</div>
+                </div>
+                
+                <!-- OAuth Box -->
+                <div class="diagram-box oauth-box" id="box-oauth" style="right: 20px; top: 30px;">
+                    <div class="box-icon">🔑</div>
+                    <div class="box-label">OAuth Server</div>
+                    <div class="box-sublabel">Token Generation</div>
+                </div>
+                
+                <!-- Unity Catalog Box -->
+                <div class="diagram-box uc-box" id="box-uc" style="left: 180px; top: 180px;">
+                    <div class="box-icon">📊</div>
+                    <div class="box-label">Unity Catalog</div>
+                    <div class="box-sublabel">current_user() = alice</div>
+                </div>
+                
+                <!-- Data Box -->
+                <div class="diagram-box data-box" id="box-data" style="left: 180px; bottom: 30px;">
+                    <div class="box-icon">📁</div>
+                    <div class="box-label">Alice's Data</div>
+                    <div class="box-sublabel">Filtered Results</div>
+                </div>
+                
+                <!-- Arrows -->
+                <div class="arrow" id="arrow-1" style="left: 130px; top: 160px;">→</div>
+                <div class="arrow" id="arrow-2" style="right: 140px; top: 55px;">→</div>
+                <div class="arrow" id="arrow-3" style="left: 230px; top: 130px;">↓</div>
+                <div class="arrow" id="arrow-4" style="left: 230px; top: 280px;">↓</div>
+                <div class="arrow" id="arrow-5" style="left: 100px; top: 320px;">←</div>
+                
+                <!-- Token Badge -->
+                <div class="token-badge" id="token" style="right: 80px; top: 100px;">🎫 User Token</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Summary -->
+    <section class="summary">
+        <h2>Key Takeaways</h2>
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h4>🎯 User Identity Preserved</h4>
+                <p>Each request carries the actual user's identity through the entire flow.</p>
+            </div>
+            <div class="summary-card">
+                <h4>🔐 Automatic Filtering</h4>
+                <p>Unity Catalog row filters enforce per-user access without app code changes.</p>
+            </div>
+            <div class="summary-card">
+                <h4>📋 Audit Compliant</h4>
+                <p>Every access is logged with the user's email for HIPAA, SOC2, GDPR.</p>
+            </div>
+            <div class="summary-card">
+                <h4>⚡ Zero Config for Genie</h4>
+                <p>Genie Space always uses OBO — no configuration needed.</p>
+            </div>
+        </div>
+        <a href="../01-AUTHENTICATION-PATTERNS.md" class="back-link">← Back to Documentation</a>
+    </section>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        // Progress bar
+        gsap.to("#progressBar", {
+            width: "100%",
+            ease: "none",
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: true
+            }
+        });
+        
+        // Get all steps
+        const steps = document.querySelectorAll('.step');
+        
+        // Define what's visible at each step
+        const stepConfig = {
+            1: {
+                boxes: ['box-user', 'box-product'],
+                arrows: ['arrow-1'],
+                token: false
+            },
+            2: {
+                boxes: ['box-user', 'box-product', 'box-oauth'],
+                arrows: ['arrow-1', 'arrow-2'],
+                token: true
+            },
+            3: {
+                boxes: ['box-product', 'box-uc'],
+                arrows: ['arrow-3'],
+                token: false
+            },
+            4: {
+                boxes: ['box-uc', 'box-data'],
+                arrows: ['arrow-4'],
+                token: false
+            },
+            5: {
+                boxes: ['box-user', 'box-product', 'box-data'],
+                arrows: ['arrow-5'],
+                token: false
+            }
+        };
+        
+        // Function to update diagram
+        function updateDiagram(stepNum) {
+            const config = stepConfig[stepNum];
+            
+            // Hide all boxes
+            document.querySelectorAll('.diagram-box').forEach(box => {
+                box.classList.remove('visible');
+            });
+            
+            // Hide all arrows
+            document.querySelectorAll('.arrow').forEach(arrow => {
+                arrow.classList.remove('visible');
+            });
+            
+            // Hide token
+            document.getElementById('token').classList.remove('visible');
+            
+            // Show configured boxes
+            config.boxes.forEach(id => {
+                document.getElementById(id).classList.add('visible');
+            });
+            
+            // Show configured arrows (with slight delay)
+            setTimeout(() => {
+                config.arrows.forEach(id => {
+                    document.getElementById(id).classList.add('visible');
+                });
+            }, 200);
+            
+            // Show token if needed
+            if (config.token) {
+                setTimeout(() => {
+                    document.getElementById('token').classList.add('visible');
+                }, 300);
+            }
+        }
+        
+        // Create ScrollTriggers for each step
+        steps.forEach((step, index) => {
+            ScrollTrigger.create({
+                trigger: step,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => {
+                    // Update active state
+                    steps.forEach(s => s.classList.remove('active'));
+                    step.classList.add('active');
+                    // Update diagram
+                    updateDiagram(index + 1);
+                },
+                onEnterBack: () => {
+                    // Update active state
+                    steps.forEach(s => s.classList.remove('active'));
+                    step.classList.add('active');
+                    // Update diagram
+                    updateDiagram(index + 1);
+                }
+            });
+        });
+        
+        // Initialize first step
+        setTimeout(() => {
+            steps[0].classList.add('active');
+            updateDiagram(1);
+        }, 500);
+    </script>
+</body>
+</html>

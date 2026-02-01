@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Decision Guide - Authentication Patterns</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #22d3ee; }
+        
+        .progress-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 3px;
+            background: #22d3ee;
+            width: 0%;
+            z-index: 101;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+        
+        .hero h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p { font-size: 1.3rem; color: #94a3b8; max-width: 600px; margin-bottom: 2rem; }
+        .scroll-hint { animation: bounce 2s infinite; color: #22d3ee; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        .scrollytelling { display: flex; position: relative; }
+        .scroll-text { flex: 0 0 45%; padding: 0 3rem; }
+        
+        .sticky-visual {
+            flex: 0 0 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+        
+        .step.active { opacity: 1; }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #22d3ee;
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #fff; }
+        .step p { color: #94a3b8; font-size: 1.15rem; margin-bottom: 1rem; }
+        .step .highlight { color: #22d3ee; font-weight: 600; }
+        .step .highlight-green { color: #4ade80; font-weight: 600; }
+        .step .highlight-orange { color: #f59e0b; font-weight: 600; }
+        
+        .step code {
+            background: rgba(34, 211, 238, 0.15);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            color: #22d3ee;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.95rem;
+        }
+        
+        .diagram-container {
+            width: 100%;
+            max-width: 500px;
+            height: 500px;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        /* Decision nodes */
+        .decision-node {
+            position: absolute;
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            font-size: 0.85rem;
+        }
+        
+        .decision-node.visible { opacity: 1; transform: scale(1); }
+        .decision-node.active { transform: scale(1.08); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .decision-node.dimmed { opacity: 0.3; }
+        .decision-node.path { border-width: 3px; }
+        
+        .question-node {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: #1a1a2e;
+            border: 2px solid transparent;
+        }
+        
+        .answer-node {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.2);
+            color: #e8e8e8;
+        }
+        
+        .answer-node.yes { border-color: #4ade80; }
+        .answer-node.no { border-color: #f59e0b; }
+        
+        .result-node {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: #1a1a2e;
+            border: 2px solid transparent;
+            font-weight: 600;
+        }
+        
+        .result-node.pattern1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .result-node.pattern2 { background: linear-gradient(135deg, #4ade80, #22c55e); }
+        .result-node.pattern3 { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+        
+        /* Connectors */
+        .connector {
+            position: absolute;
+            height: 2px;
+            background: rgba(255,255,255,0.2);
+            transform-origin: left center;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .connector.visible { opacity: 1; }
+        .connector.path { background: #4ade80; height: 3px; }
+        
+        .summary {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #22d3ee; }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 900px;
+            margin-bottom: 3rem;
+        }
+        
+        .summary-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+        }
+        
+        .summary-card.orange { border-top: 4px solid #f59e0b; }
+        .summary-card.green { border-top: 4px solid #4ade80; }
+        .summary-card.pink { border-top: 4px solid #ec4899; }
+        
+        .summary-card h4 { margin-bottom: 0.5rem; font-size: 1rem; }
+        .summary-card.orange h4 { color: #f59e0b; }
+        .summary-card.green h4 { color: #4ade80; }
+        .summary-card.pink h4 { color: #ec4899; }
+        .summary-card p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.5rem; }
+        .summary-card ul { color: #94a3b8; font-size: 0.8rem; padding-left: 1.2rem; }
+        
+        .back-link {
+            color: #22d3ee;
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            border: 2px solid #22d3ee;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover { background: #22d3ee; color: #1a1a2e; }
+        
+        @media (max-width: 900px) {
+            .scrollytelling { flex-direction: column; }
+            .scroll-text { flex: none; padding: 0 1.5rem; }
+            .sticky-visual { flex: none; height: 50vh; position: sticky; top: 60px; }
+            .step { min-height: 80vh; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .hero h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎯 Authentication Decision Guide</h1>
+    </header>
+    
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <section class="hero">
+        <h2>Quick Decision Guide</h2>
+        <p>Walk through the key questions to determine which authentication pattern fits your use case.</p>
+        <div class="scroll-hint">↓ Scroll to navigate the decision tree</div>
+    </section>
+    
+    <section class="scrollytelling">
+        <div class="scroll-text">
+            <div class="step" data-step="1">
+                <span class="step-number">?</span>
+                <h3>First Question</h3>
+                <p>
+                    <span class="highlight">Is there a user logged in?</span>
+                </p>
+                <p>
+                    Think about who or what is making the request. Is it a human user interacting with the system, or an automated job/workflow?
+                </p>
+            </div>
+            
+            <div class="step" data-step="2">
+                <span class="step-number">A</span>
+                <h3>No User — Automated Job</h3>
+                <p>
+                    If it's a <span class="highlight-orange">scheduled job, CI/CD pipeline, or background process</span>, there's no user identity.
+                </p>
+                <p>
+                    → Use <span class="highlight-orange">Pattern 1: Service Principal</span>
+                </p>
+                <p>
+                    The service principal has fixed permissions that apply to every execution.
+                </p>
+            </div>
+            
+            <div class="step" data-step="3">
+                <span class="step-number">B</span>
+                <h3>Yes User — Next Question</h3>
+                <p>
+                    If a <span class="highlight-green">user is logged in</span>, we need to ask:
+                </p>
+                <p>
+                    <span class="highlight">Should each user see different data?</span>
+                </p>
+                <p>
+                    Do you need row-level security, user-specific filtering, or per-user audit trails?
+                </p>
+            </div>
+            
+            <div class="step" data-step="4">
+                <span class="step-number">C</span>
+                <h3>Yes — Per-User Access</h3>
+                <p>
+                    If users need <span class="highlight-green">personalized data access</span>:
+                </p>
+                <p>
+                    → Use <span class="highlight-green">Pattern 2: On-Behalf-Of-User (OBO)</span>
+                </p>
+                <p>
+                    Unity Catalog row filters use <code>current_user()</code> to show each user only their data.
+                </p>
+            </div>
+            
+            <div class="step" data-step="5">
+                <span class="step-number">D</span>
+                <h3>Need External APIs?</h3>
+                <p>
+                    Finally: <span class="highlight">Are you accessing external services?</span>
+                </p>
+                <p>
+                    If you need to call OpenAI, Salesforce, or other external APIs, you'll also need:
+                </p>
+                <p>
+                    → Add <span class="highlight" style="color: #ec4899;">Pattern 3: Manual Credentials</span> (via Databricks Secrets)
+                </p>
+            </div>
+        </div>
+        
+        <div class="sticky-visual">
+            <div class="diagram-container">
+                <!-- Start Question -->
+                <div class="decision-node question-node" id="q1" style="left: 50%; top: 30px; transform: translateX(-50%);">
+                    User logged in?
+                </div>
+                
+                <!-- Answer branches -->
+                <div class="decision-node answer-node no" id="a1-no" style="left: 60px; top: 120px;">
+                    No (automated)
+                </div>
+                
+                <div class="decision-node answer-node yes" id="a1-yes" style="right: 60px; top: 120px;">
+                    Yes (user present)
+                </div>
+                
+                <!-- Pattern 1 Result -->
+                <div class="decision-node result-node pattern1" id="r1" style="left: 30px; top: 210px;">
+                    Pattern 1: SP
+                </div>
+                
+                <!-- Second Question -->
+                <div class="decision-node question-node" id="q2" style="right: 40px; top: 210px;">
+                    Per-user data?
+                </div>
+                
+                <!-- Second answers -->
+                <div class="decision-node answer-node no" id="a2-no" style="left: 140px; top: 300px;">
+                    No (same for all)
+                </div>
+                
+                <div class="decision-node answer-node yes" id="a2-yes" style="right: 40px; top: 300px;">
+                    Yes (filter/mask)
+                </div>
+                
+                <!-- Pattern 2 Result -->
+                <div class="decision-node result-node pattern2" id="r2" style="right: 30px; top: 390px;">
+                    Pattern 2: OBO
+                </div>
+                
+                <!-- Pattern 3 note -->
+                <div class="decision-node result-node pattern3" id="r3" style="left: 50%; bottom: 30px; transform: translateX(-50%);">
+                    + Pattern 3 for external APIs
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="summary">
+        <h2>Pattern Summary</h2>
+        <div class="summary-grid">
+            <div class="summary-card orange">
+                <h4>Pattern 1: Service Principal</h4>
+                <p><strong>When:</strong> No user, automated jobs</p>
+                <ul>
+                    <li>Batch processing</li>
+                    <li>CI/CD pipelines</li>
+                    <li>Scheduled workflows</li>
+                    <li>Same permissions every run</li>
+                </ul>
+            </div>
+            <div class="summary-card green">
+                <h4>Pattern 2: OBO (User Auth)</h4>
+                <p><strong>When:</strong> User needs their own data</p>
+                <ul>
+                    <li>Genie Spaces (always OBO)</li>
+                    <li>User-facing apps</li>
+                    <li>Row-level security</li>
+                    <li>Per-user audit trails</li>
+                </ul>
+            </div>
+            <div class="summary-card pink">
+                <h4>Pattern 3: Manual Credentials</h4>
+                <p><strong>When:</strong> External APIs needed</p>
+                <ul>
+                    <li>OpenAI, Anthropic APIs</li>
+                    <li>SaaS integrations</li>
+                    <li>Combined with P1 or P2</li>
+                    <li>Secrets stored securely</li>
+                </ul>
+            </div>
+        </div>
+        <a href="../README.md" class="back-link">← Back to Documentation</a>
+    </section>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        gsap.to("#progressBar", {
+            width: "100%",
+            ease: "none",
+            scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: true }
+        });
+        
+        const steps = document.querySelectorAll('.step');
+        
+        function updateDiagram(stepNum) {
+            // Reset all nodes
+            document.querySelectorAll('.decision-node').forEach(node => {
+                node.classList.remove('visible', 'active', 'dimmed', 'path');
+            });
+            
+            switch(stepNum) {
+                case 1:
+                    // Show first question
+                    document.getElementById('q1').classList.add('visible', 'active');
+                    document.getElementById('a1-no').classList.add('visible');
+                    document.getElementById('a1-yes').classList.add('visible');
+                    break;
+                    
+                case 2:
+                    // Highlight NO path -> Pattern 1
+                    document.getElementById('q1').classList.add('visible', 'dimmed');
+                    document.getElementById('a1-no').classList.add('visible', 'active', 'path');
+                    document.getElementById('a1-yes').classList.add('visible', 'dimmed');
+                    document.getElementById('r1').classList.add('visible', 'active');
+                    break;
+                    
+                case 3:
+                    // Highlight YES path -> next question
+                    document.getElementById('q1').classList.add('visible', 'dimmed');
+                    document.getElementById('a1-no').classList.add('visible', 'dimmed');
+                    document.getElementById('a1-yes').classList.add('visible', 'active', 'path');
+                    document.getElementById('r1').classList.add('visible', 'dimmed');
+                    document.getElementById('q2').classList.add('visible', 'active');
+                    document.getElementById('a2-no').classList.add('visible');
+                    document.getElementById('a2-yes').classList.add('visible');
+                    break;
+                    
+                case 4:
+                    // Highlight YES to per-user -> Pattern 2
+                    document.getElementById('q1').classList.add('visible', 'dimmed');
+                    document.getElementById('a1-yes').classList.add('visible', 'path');
+                    document.getElementById('q2').classList.add('visible', 'dimmed');
+                    document.getElementById('a2-no').classList.add('visible', 'dimmed');
+                    document.getElementById('a2-yes').classList.add('visible', 'active', 'path');
+                    document.getElementById('r2').classList.add('visible', 'active');
+                    break;
+                    
+                case 5:
+                    // Show Pattern 3 addition
+                    document.getElementById('q1').classList.add('visible', 'dimmed');
+                    document.getElementById('a1-yes').classList.add('visible', 'dimmed');
+                    document.getElementById('a1-no').classList.add('visible', 'dimmed');
+                    document.getElementById('r1').classList.add('visible', 'dimmed');
+                    document.getElementById('q2').classList.add('visible', 'dimmed');
+                    document.getElementById('a2-yes').classList.add('visible', 'dimmed');
+                    document.getElementById('r2').classList.add('visible', 'dimmed');
+                    document.getElementById('r3').classList.add('visible', 'active');
+                    break;
+            }
+        }
+        
+        steps.forEach((step, index) => {
+            ScrollTrigger.create({
+                trigger: step,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => { steps.forEach(s => s.classList.remove('active')); step.classList.add('active'); updateDiagram(index + 1); },
+                onEnterBack: () => { steps.forEach(s => s.classList.remove('active')); step.classList.add('active'); updateDiagram(index + 1); }
+            });
+        });
+        
+        setTimeout(() => { steps[0].classList.add('active'); updateDiagram(1); }, 500);
+    </script>
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Catalog - Four Layers of Access Control</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #14b8a6; }
+        
+        .progress-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #22d3ee, #4ade80, #a855f7, #f97316);
+            width: 0%;
+            z-index: 101;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+        
+        .hero h2 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #22d3ee, #4ade80, #a855f7, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 650px; margin-bottom: 1.5rem; }
+        
+        .hero .doc-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 6px;
+            color: #14b8a6;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .hero .doc-link:hover { background: rgba(20, 184, 166, 0.2); border-color: #14b8a6; }
+        
+        .scroll-hint { animation: bounce 2s infinite; color: #14b8a6; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        .scrollytelling { display: flex; position: relative; }
+        .scroll-text { flex: 0 0 45%; padding: 0 3rem; }
+        
+        .sticky-visual {
+            flex: 0 0 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+        
+        .step.active { opacity: 1; }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .step-number.cyan { background: #22d3ee; color: #1a1a2e; }
+        .step-number.green { background: #4ade80; color: #1a1a2e; }
+        .step-number.purple { background: #a855f7; color: white; }
+        .step-number.orange { background: #f97316; color: #1a1a2e; }
+        .step-number.teal { background: #14b8a6; color: #1a1a2e; }
+        
+        .step h3 { font-size: 1.9rem; margin-bottom: 1rem; color: #fff; }
+        .step p { color: #94a3b8; font-size: 1.1rem; margin-bottom: 1rem; }
+        .step .highlight-cyan { color: #22d3ee; font-weight: 600; }
+        .step .highlight-green { color: #4ade80; font-weight: 600; }
+        .step .highlight-purple { color: #a855f7; font-weight: 600; }
+        .step .highlight-orange { color: #f97316; font-weight: 600; }
+        
+        .step code {
+            background: rgba(20, 184, 166, 0.15);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: #14b8a6;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.9rem;
+        }
+        
+        .step ul {
+            color: #94a3b8;
+            font-size: 1rem;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .step ul li { margin-bottom: 0.3rem; }
+        
+        .diagram-container {
+            width: 100%;
+            max-width: 460px;
+            height: 540px;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        /* Layer boxes */
+        .layer-box {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;
+            padding: 0.9rem 1.2rem;
+            border-radius: 12px;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        
+        .layer-box.visible { opacity: 1; }
+        .layer-box.active { transform: translateX(-50%) scale(1.05); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .layer-box.dimmed { opacity: 0.35; }
+        
+        .layer-icon { font-size: 1.3rem; margin-bottom: 0.2rem; }
+        .layer-title { font-weight: 600; font-size: 0.95rem; }
+        .layer-desc { font-size: 0.7rem; opacity: 0.8; margin-top: 0.1rem; }
+        
+        .layer-1 { top: 25px; background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #1a1a2e; }
+        .layer-2 { top: 130px; background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
+        .layer-3 { top: 235px; background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
+        .layer-4 { top: 340px; background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+        
+        /* Flow arrows */
+        .flow-arrow {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.3rem;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .flow-arrow.visible { opacity: 1; }
+        
+        .arrow-1 { top: 95px; color: #22d3ee; }
+        .arrow-2 { top: 200px; color: #4ade80; }
+        .arrow-3 { top: 305px; color: #a855f7; }
+        .arrow-4 { top: 410px; color: #f97316; }
+        
+        /* Result box */
+        .result-box {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 20px;
+            width: 320px;
+            padding: 0.9rem 1.2rem;
+            border-radius: 12px;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.5s ease;
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: white;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        
+        .result-box.visible { opacity: 1; }
+        
+        /* Status indicators */
+        .status-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            margin-top: 0.4rem;
+        }
+        
+        .status-check { background: rgba(255,255,255, 0.2); }
+        
+        .summary {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #14b8a6; }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.2rem;
+            max-width: 900px;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.2rem;
+            text-align: left;
+        }
+        
+        .summary-card.cyan { border-left: 4px solid #22d3ee; }
+        .summary-card.green { border-left: 4px solid #4ade80; }
+        .summary-card.purple { border-left: 4px solid #a855f7; }
+        .summary-card.orange { border-left: 4px solid #f97316; }
+        
+        .summary-card h4 { margin-bottom: 0.4rem; font-size: 1rem; }
+        .summary-card.cyan h4 { color: #22d3ee; }
+        .summary-card.green h4 { color: #4ade80; }
+        .summary-card.purple h4 { color: #a855f7; }
+        .summary-card.orange h4 { color: #f97316; }
+        .summary-card p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.3rem; }
+        .summary-card ul { color: #94a3b8; font-size: 0.8rem; padding-left: 1.1rem; }
+        
+        .back-link {
+            color: #14b8a6;
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid #14b8a6;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover { background: #14b8a6; color: #1a1a2e; }
+        
+        @media (max-width: 900px) {
+            .scrollytelling { flex-direction: column; }
+            .scroll-text { flex: none; padding: 0 1.5rem; }
+            .sticky-visual { flex: none; height: 55vh; position: sticky; top: 60px; }
+            .step { min-height: 80vh; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .hero h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🛡️ Unity Catalog Access Control</h1>
+    </header>
+    
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <section class="hero">
+        <h2>Four Layers of Access Control</h2>
+        <p>Unity Catalog uses complementary layers that work together to enforce secure, fine-grained access across your data environment.</p>
+        <a href="https://docs.databricks.com/aws/en/data-governance/unity-catalog/access-control" target="_blank" class="doc-link">📖 Official Access Control Documentation</a>
+        <div class="scroll-hint">↓ Scroll to explore each layer</div>
+    </section>
+    
+    <section class="scrollytelling">
+        <div class="scroll-text">
+            <div class="step" data-step="1">
+                <span class="step-number teal">→</span>
+                <h3>Query Arrives</h3>
+                <p>
+                    A user or service principal sends a query to access data in Unity Catalog.
+                </p>
+                <p>
+                    UC evaluates <span class="highlight-cyan">four complementary layers</span> before returning any data. Each layer answers a different question.
+                </p>
+            </div>
+            
+            <div class="step" data-step="2">
+                <span class="step-number cyan">1</span>
+                <h3>Workspace Restrictions</h3>
+                <p>
+                    <span class="highlight-cyan">WHERE can users access data?</span>
+                </p>
+                <p>
+                    Workspace bindings limit which workspaces can access specific catalogs, external locations, and storage credentials.
+                </p>
+                <ul>
+                    <li>Restrict production data to production workspaces</li>
+                    <li>Isolate environments (dev, staging, prod)</li>
+                    <li>Overrides user-level permissions</li>
+                </ul>
+            </div>
+            
+            <div class="step" data-step="3">
+                <span class="step-number green">2</span>
+                <h3>Privileges & Ownership</h3>
+                <p>
+                    <span class="highlight-green">WHO can access WHAT?</span>
+                </p>
+                <p>
+                    GRANTs on securable objects control baseline access.
+                </p>
+                <ul>
+                    <li><code>GRANT SELECT ON TABLE</code></li>
+                    <li>Hierarchical: catalog → schema → table</li>
+                    <li>Owners have full control</li>
+                    <li>Explicit: no access without GRANT</li>
+                </ul>
+            </div>
+            
+            <div class="step" data-step="4">
+                <span class="step-number purple">3</span>
+                <h3>ABAC Policies</h3>
+                <p>
+                    <span class="highlight-purple">WHAT data based on tags?</span>
+                </p>
+                <p>
+                    Attribute-based policies use <span class="highlight-purple">governed tags</span> to dynamically enforce access at scale.
+                </p>
+                <ul>
+                    <li>Define once → apply to 1000s of tables</li>
+                    <li>Tag-driven: <code>sensitivity=high</code></li>
+                    <li>UDFs for filters/masks</li>
+                    <li>Recommended for centralized governance</li>
+                </ul>
+            </div>
+            
+            <div class="step" data-step="5">
+                <span class="step-number orange">4</span>
+                <h3>Table-Level Filtering</h3>
+                <p>
+                    <span class="highlight-orange">WHAT rows/columns within tables?</span>
+                </p>
+                <p>
+                    Row filters, column masks, and dynamic views control data visibility at query time.
+                </p>
+                <ul>
+                    <li>Row filters: <code>WHERE owner = current_user()</code></li>
+                    <li>Column masks: <code>CASE WHEN is_member() THEN VALUE</code></li>
+                    <li>Dynamic views: SQL-based logic</li>
+                    <li>Use when per-table logic needed</li>
+                </ul>
+            </div>
+            
+            <div class="step" data-step="6">
+                <span class="step-number teal">✓</span>
+                <h3>Governed Data Returned</h3>
+                <p>
+                    All four layers evaluate in sequence. The user receives <span class="highlight-green">fully governed data</span>:
+                </p>
+                <ul>
+                    <li>✓ Workspace access verified</li>
+                    <li>✓ Privileges checked</li>
+                    <li>✓ ABAC policies enforced</li>
+                    <li>✓ Rows filtered, columns masked</li>
+                    <li>✓ All actions audited</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="sticky-visual">
+            <div class="diagram-container">
+                <div class="layer-box layer-1" id="layer-1">
+                    <div class="layer-icon">🏢</div>
+                    <div class="layer-title">Layer 1: Workspace Restrictions</div>
+                    <div class="layer-desc">WHERE can they access? (workspace bindings)</div>
+                    <div class="status-badge status-check" id="status-1" style="display: none;">✓ Workspace allowed</div>
+                </div>
+                
+                <div class="flow-arrow arrow-1" id="arrow-1">↓</div>
+                
+                <div class="layer-box layer-2" id="layer-2">
+                    <div class="layer-icon">🔐</div>
+                    <div class="layer-title">Layer 2: Privileges & Ownership</div>
+                    <div class="layer-desc">WHO can access WHAT? (GRANTs)</div>
+                    <div class="status-badge status-check" id="status-2" style="display: none;">✓ Has SELECT</div>
+                </div>
+                
+                <div class="flow-arrow arrow-2" id="arrow-2">↓</div>
+                
+                <div class="layer-box layer-3" id="layer-3">
+                    <div class="layer-icon">🏷️</div>
+                    <div class="layer-title">Layer 3: ABAC Policies</div>
+                    <div class="layer-desc">WHAT data based on tags? (governed tags + UDFs)</div>
+                    <div class="status-badge status-check" id="status-3" style="display: none;">✓ Tag policy matched</div>
+                </div>
+                
+                <div class="flow-arrow arrow-3" id="arrow-3">↓</div>
+                
+                <div class="layer-box layer-4" id="layer-4">
+                    <div class="layer-icon">🔍</div>
+                    <div class="layer-title">Layer 4: Table-Level Filtering</div>
+                    <div class="layer-desc">WHAT rows/columns? (filters, masks, views)</div>
+                    <div class="status-badge status-check" id="status-4" style="display: none;">✓ Filtered & masked</div>
+                </div>
+                
+                <div class="flow-arrow arrow-4" id="arrow-4">↓</div>
+                
+                <div class="result-box" id="result-box">
+                    <div class="layer-icon">✅</div>
+                    <div class="layer-title">Governed Data Returned</div>
+                    <div class="layer-desc">Secure, audited, compliant</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="summary">
+        <h2>The Four Layers</h2>
+        <div class="summary-grid">
+            <div class="summary-card cyan">
+                <h4>1. Workspace Restrictions</h4>
+                <p><strong>Question:</strong> WHERE can they access?</p>
+                <ul>
+                    <li>Workspace bindings on catalogs</li>
+                    <li>External location restrictions</li>
+                    <li>Environment isolation</li>
+                </ul>
+            </div>
+            <div class="summary-card green">
+                <h4>2. Privileges & Ownership</h4>
+                <p><strong>Question:</strong> WHO can access WHAT?</p>
+                <ul>
+                    <li>GRANTs (SELECT, MODIFY, etc.)</li>
+                    <li>Object ownership</li>
+                    <li>Hierarchical inheritance</li>
+                </ul>
+            </div>
+            <div class="summary-card purple">
+                <h4>3. ABAC Policies</h4>
+                <p><strong>Question:</strong> WHAT data based on tags?</p>
+                <ul>
+                    <li>Governed tags + policies</li>
+                    <li>Centralized, scalable governance</li>
+                    <li>Dynamic enforcement via UDFs</li>
+                </ul>
+            </div>
+            <div class="summary-card orange">
+                <h4>4. Table-Level Filtering</h4>
+                <p><strong>Question:</strong> WHAT rows/columns?</p>
+                <ul>
+                    <li>Row filters (current_user)</li>
+                    <li>Column masks (is_member)</li>
+                    <li>Dynamic views</li>
+                </ul>
+            </div>
+        </div>
+        <a href="../02-AUTHORIZATION-WITH-UC.md" class="back-link">← Back to Documentation</a>
+    </section>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        gsap.to("#progressBar", {
+            width: "100%",
+            ease: "none",
+            scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: true }
+        });
+        
+        const steps = document.querySelectorAll('.step');
+        
+        function updateDiagram(stepNum) {
+            // Reset
+            ['layer-1', 'layer-2', 'layer-3', 'layer-4'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('visible', 'active', 'dimmed');
+            });
+            ['arrow-1', 'arrow-2', 'arrow-3', 'arrow-4'].forEach(id => {
+                document.getElementById(id).classList.remove('visible');
+            });
+            ['status-1', 'status-2', 'status-3', 'status-4'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            document.getElementById('result-box').classList.remove('visible');
+            
+            switch(stepNum) {
+                case 1:
+                    // Show all layers dimmed
+                    ['layer-1', 'layer-2', 'layer-3', 'layer-4'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 2:
+                    // Highlight Layer 1
+                    document.getElementById('layer-1').classList.add('visible', 'active');
+                    document.getElementById('layer-2').classList.add('visible', 'dimmed');
+                    document.getElementById('layer-3').classList.add('visible', 'dimmed');
+                    document.getElementById('layer-4').classList.add('visible', 'dimmed');
+                    document.getElementById('status-1').style.display = 'inline-block';
+                    document.getElementById('arrow-1').classList.add('visible');
+                    break;
+                    
+                case 3:
+                    // Highlight Layer 2
+                    document.getElementById('layer-1').classList.add('visible', 'dimmed');
+                    document.getElementById('layer-2').classList.add('visible', 'active');
+                    document.getElementById('layer-3').classList.add('visible', 'dimmed');
+                    document.getElementById('layer-4').classList.add('visible', 'dimmed');
+                    document.getElementById('status-1').style.display = 'inline-block';
+                    document.getElementById('status-2').style.display = 'inline-block';
+                    document.getElementById('arrow-1').classList.add('visible');
+                    document.getElementById('arrow-2').classList.add('visible');
+                    break;
+                    
+                case 4:
+                    // Highlight Layer 3
+                    document.getElementById('layer-1').classList.add('visible', 'dimmed');
+                    document.getElementById('layer-2').classList.add('visible', 'dimmed');
+                    document.getElementById('layer-3').classList.add('visible', 'active');
+                    document.getElementById('layer-4').classList.add('visible', 'dimmed');
+                    document.getElementById('status-1').style.display = 'inline-block';
+                    document.getElementById('status-2').style.display = 'inline-block';
+                    document.getElementById('status-3').style.display = 'inline-block';
+                    document.getElementById('arrow-1').classList.add('visible');
+                    document.getElementById('arrow-2').classList.add('visible');
+                    document.getElementById('arrow-3').classList.add('visible');
+                    break;
+                    
+                case 5:
+                    // Highlight Layer 4
+                    document.getElementById('layer-1').classList.add('visible', 'dimmed');
+                    document.getElementById('layer-2').classList.add('visible', 'dimmed');
+                    document.getElementById('layer-3').classList.add('visible', 'dimmed');
+                    document.getElementById('layer-4').classList.add('visible', 'active');
+                    document.getElementById('status-1').style.display = 'inline-block';
+                    document.getElementById('status-2').style.display = 'inline-block';
+                    document.getElementById('status-3').style.display = 'inline-block';
+                    document.getElementById('status-4').style.display = 'inline-block';
+                    document.getElementById('arrow-1').classList.add('visible');
+                    document.getElementById('arrow-2').classList.add('visible');
+                    document.getElementById('arrow-3').classList.add('visible');
+                    document.getElementById('arrow-4').classList.add('visible');
+                    break;
+                    
+                case 6:
+                    // Show full flow with result
+                    ['layer-1', 'layer-2', 'layer-3', 'layer-4'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['status-1', 'status-2', 'status-3', 'status-4'].forEach(id => {
+                        document.getElementById(id).style.display = 'inline-block';
+                    });
+                    ['arrow-1', 'arrow-2', 'arrow-3', 'arrow-4'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('result-box').classList.add('visible');
+                    break;
+            }
+        }
+        
+        steps.forEach((step, index) => {
+            ScrollTrigger.create({
+                trigger: step,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => { steps.forEach(s => s.classList.remove('active')); step.classList.add('active'); updateDiagram(index + 1); },
+                onEnterBack: () => { steps.forEach(s => s.classList.remove('active')); step.classList.add('active'); updateDiagram(index + 1); }
+            });
+        });
+        
+        setTimeout(() => { steps[0].classList.add('active'); updateDiagram(1); }, 500);
+    </script>
+</body>
+</html>

@@ -43,10 +43,25 @@ This guide applies to all Databricks AI products:
 |---------|-------------|---------------|
 | **Genie Space** | AI/BI chatbot for natural language queries on data | [Genie Docs](https://docs.databricks.com/en/genie/index.html) |
 | **AI/BI Dashboards** | Intelligence dashboards with natural language | [AI/BI Docs](https://docs.databricks.com/en/dashboards/index.html) |
-| **Agent Bricks** | Production-grade AI agents (Knowledge Assistant, Multi-Agent Supervisor, etc.) | [Agent Bricks Docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/) |
+| **Agent Bricks** | Production-grade AI agents with declarative templates (see use cases below) | [Agent Bricks Docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/) |
 | **Databricks Apps** | Custom data applications with Streamlit, Dash, Gradio | [Apps Docs](https://docs.databricks.com/en/dev-tools/databricks-apps/index.html) |
 | **Model Serving** | Deployed ML models and LLM endpoints | [Serving Docs](https://docs.databricks.com/en/machine-learning/model-serving/index.html) |
 | **Vector Search** | Vector search is a type of search optimized for retrieving embeddings | [Vector Search](https://docs.databricks.com/aws/en/vector-search/vector-search)|
+
+### Agent Bricks Supported Use Cases
+
+Agent Bricks offers pre-configured templates for the following use cases:
+
+| Use Case | Description | Status | Documentation |
+|----------|-------------|--------|---------------|
+| **[Knowledge Assistant](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/knowledge-assistant)** | Turn documents into a high-quality chatbot that answers questions and cites sources | GA | [Docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/knowledge-assistant) |
+| **[Information Extraction](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/key-info-extraction)** | Transform documents and unstructured text into structured insights via extraction, classification | Beta | [Docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/key-info-extraction) |
+| **[Custom LLM](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/custom-llm)** | Custom text generation tasks such as summarization and text transformation | Beta | [Docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/custom-llm) |
+| **[Multi-Agent Supervisor](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/multi-agent-supervisor)** | Design multi-agent AI systems that bring Genie Spaces and agents together | Beta | [Docs](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/multi-agent-supervisor) |
+| **[AI/BI Genie](https://docs.databricks.com/aws/en/genie/)** | Turn tables into an expert AI chatbot | GA | [Docs](https://docs.databricks.com/aws/en/genie/) |
+| **[Code Your Own Agent](https://docs.databricks.com/aws/en/generative-ai/agent-framework/author-agent)** | Build custom agents with OSS libraries and Agent Framework | GA | [Docs](https://docs.databricks.com/aws/en/generative-ai/agent-framework/author-agent) |
+
+> **Note:** Beta features require workspace admin to enable via **Manage Databricks Previews**. See [Managing Previews](https://docs.databricks.com/aws/en/admin/workspace-settings/manage-previews).
 ### Key Principles
 
 1. **Authentication** and **Authorization** are separated:

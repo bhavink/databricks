@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity Catalog Row Filters</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #f97316; }
+        
+        .progress-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 3px;
+            background: #f97316;
+            width: 0%;
+            z-index: 101;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+        
+        .hero h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #f97316, #fb923c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p { font-size: 1.3rem; color: #94a3b8; max-width: 600px; margin-bottom: 1.5rem; }
+        
+        .hero .doc-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 6px;
+            color: #f97316;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .hero .doc-link:hover { background: rgba(249, 115, 22, 0.2); border-color: #f97316; }
+        
+        .scroll-hint { animation: bounce 2s infinite; color: #f97316; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        .scrollytelling { display: flex; position: relative; }
+        .scroll-text { flex: 0 0 45%; padding: 0 3rem; }
+        
+        .sticky-visual {
+            flex: 0 0 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+        
+        .step.active { opacity: 1; }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #f97316;
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #fff; }
+        .step p { color: #94a3b8; font-size: 1.15rem; margin-bottom: 1rem; }
+        .step .highlight { color: #f97316; font-weight: 600; }
+        
+        .step code {
+            background: rgba(249, 115, 22, 0.15);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            color: #f97316;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.95rem;
+        }
+        
+        .diagram-container {
+            width: 100%;
+            max-width: 520px;
+            height: 480px;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .diagram-box {
+            position: absolute;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .diagram-box.visible { opacity: 1; transform: scale(1); }
+        
+        .box-icon { font-size: 1.8rem; margin-bottom: 0.3rem; }
+        .box-label { font-weight: 600; font-size: 0.95rem; }
+        .box-sublabel { font-size: 0.75rem; opacity: 0.8; margin-top: 0.2rem; }
+        
+        .user-box { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
+        .query-box { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .filter-box { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+        .table-box { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
+        .result-box { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+        
+        /* Data rows visualization */
+        .data-rows {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .data-rows.visible { opacity: 1; }
+        
+        .data-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            transition: all 0.4s ease;
+        }
+        
+        .data-row.alice { background: rgba(74, 222, 128, 0.3); border: 1px solid #4ade80; }
+        .data-row.bob { background: rgba(96, 165, 250, 0.3); border: 1px solid #60a5fa; }
+        .data-row.carol { background: rgba(251, 146, 60, 0.3); border: 1px solid #fb923c; }
+        .data-row.filtered { opacity: 0.2; transform: scale(0.9); }
+        .data-row.hidden { opacity: 0; height: 0; padding: 0; margin: 0; overflow: hidden; }
+        
+        .arrow {
+            position: absolute;
+            opacity: 0;
+            transition: all 0.5s ease;
+            font-size: 1.5rem;
+            color: #f97316;
+        }
+        
+        .arrow.visible { opacity: 1; }
+        
+        .summary {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #f97316; }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            max-width: 800px;
+            margin-bottom: 3rem;
+        }
+        
+        .summary-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+        }
+        
+        .summary-card h4 { color: #f97316; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .summary-card p { color: #94a3b8; font-size: 0.95rem; }
+        
+        .back-link {
+            color: #f97316;
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            border: 2px solid #f97316;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover { background: #f97316; color: #1a1a2e; }
+        
+        @media (max-width: 900px) {
+            .scrollytelling { flex-direction: column; }
+            .scroll-text { flex: none; padding: 0 1.5rem; }
+            .sticky-visual { flex: none; height: 50vh; position: sticky; top: 60px; }
+            .step { min-height: 80vh; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .hero h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🔒 Unity Catalog Authorization</h1>
+    </header>
+    
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <section class="hero">
+        <h2>Row Filters</h2>
+        <p>How Unity Catalog automatically filters which rows each user can see, based on their identity.</p>
+        <a href="https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-row-filter-column-mask.html" target="_blank" class="doc-link">📖 Row Filters & Column Masks Documentation</a>
+        <div class="scroll-hint">↓ Scroll to explore the flow</div>
+    </section>
+    
+    <section class="scrollytelling">
+        <div class="scroll-text">
+            <div class="step" data-step="1">
+                <span class="step-number">1</span>
+                <h3>User Queries Table</h3>
+                <p>
+                    <span class="highlight">Alice</span> runs a query: <code>SELECT * FROM sales_data</code>
+                </p>
+                <p>
+                    She wants to see sales records, but the table contains data from <span class="highlight">all sales reps</span>.
+                </p>
+            </div>
+            
+            <div class="step" data-step="2">
+                <span class="step-number">2</span>
+                <h3>All Data Exists</h3>
+                <p>
+                    The table contains records owned by <span class="highlight">Alice, Bob, and Carol</span>.
+                </p>
+                <p>
+                    Without row filters, Alice would see everyone's data — a security problem!
+                </p>
+            </div>
+            
+            <div class="step" data-step="3">
+                <span class="step-number">3</span>
+                <h3>Row Filter Evaluates</h3>
+                <p>
+                    Unity Catalog applies the <span class="highlight">row filter function</span>:
+                </p>
+                <p>
+                    <code>WHERE owner = current_user()</code>
+                </p>
+                <p>
+                    For Alice, this becomes: <code>WHERE owner = 'alice@company.com'</code>
+                </p>
+            </div>
+            
+            <div class="step" data-step="4">
+                <span class="step-number">4</span>
+                <h3>Non-Matching Rows Hidden</h3>
+                <p>
+                    Bob's and Carol's rows <span class="highlight">fail the filter</span> — they simply don't exist in Alice's results.
+                </p>
+                <p>
+                    Alice never knows these rows exist. She sees a complete-looking dataset.
+                </p>
+            </div>
+            
+            <div class="step" data-step="5">
+                <span class="step-number">5</span>
+                <h3>Alice Sees Her Data</h3>
+                <p>
+                    Alice receives <span class="highlight">only her rows</span>. Same query, different user, different results.
+                </p>
+                <p>
+                    If Bob runs the same query, he sees only his rows. <span class="highlight">Zero code changes needed.</span>
+                </p>
+            </div>
+        </div>
+        
+        <div class="sticky-visual">
+            <div class="diagram-container">
+                <div class="diagram-box user-box" id="box-user" style="left: 20px; top: 30px;">
+                    <div class="box-icon">👤</div>
+                    <div class="box-label">Alice</div>
+                    <div class="box-sublabel">alice@company.com</div>
+                </div>
+                
+                <div class="diagram-box query-box" id="box-query" style="left: 180px; top: 30px;">
+                    <div class="box-icon">📝</div>
+                    <div class="box-label">SELECT *</div>
+                    <div class="box-sublabel">FROM sales_data</div>
+                </div>
+                
+                <div class="diagram-box filter-box" id="box-filter" style="right: 30px; top: 160px;">
+                    <div class="box-icon">🔍</div>
+                    <div class="box-label">Row Filter</div>
+                    <div class="box-sublabel">owner = current_user()</div>
+                </div>
+                
+                <div class="diagram-box table-box" id="box-table" style="left: 30px; top: 160px;">
+                    <div class="box-icon">📊</div>
+                    <div class="box-label">sales_data</div>
+                    <div class="box-sublabel">All records</div>
+                </div>
+                
+                <!-- Data Rows Visualization -->
+                <div class="data-rows" id="all-rows" style="left: 30px; top: 260px;">
+                    <div class="data-row alice" id="row-alice-1">👤 Alice | $50,000 | Q4</div>
+                    <div class="data-row bob" id="row-bob-1">👤 Bob | $30,000 | Q4</div>
+                    <div class="data-row alice" id="row-alice-2">👤 Alice | $25,000 | Q3</div>
+                    <div class="data-row carol" id="row-carol-1">👤 Carol | $45,000 | Q4</div>
+                    <div class="data-row bob" id="row-bob-2">👤 Bob | $20,000 | Q3</div>
+                    <div class="data-row alice" id="row-alice-3">👤 Alice | $15,000 | Q3</div>
+                </div>
+                
+                <div class="diagram-box result-box" id="box-result" style="left: 180px; bottom: 20px;">
+                    <div class="box-icon">✅</div>
+                    <div class="box-label">Alice's Results</div>
+                    <div class="box-sublabel">3 rows returned</div>
+                </div>
+                
+                <div class="arrow" id="arrow-1" style="left: 130px; top: 55px;">→</div>
+                <div class="arrow" id="arrow-2" style="left: 140px; top: 180px;">→</div>
+                <div class="arrow" id="arrow-3" style="left: 230px; bottom: 90px;">↓</div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="summary">
+        <h2>Key Takeaways</h2>
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h4>🔍 Automatic Filtering</h4>
+                <p>Row filters are applied automatically by UC — no app code changes needed.</p>
+            </div>
+            <div class="summary-card">
+                <h4>👤 User-Specific Results</h4>
+                <p>Same query returns different data based on who's asking.</p>
+            </div>
+            <div class="summary-card">
+                <h4>🔒 Invisible Rows</h4>
+                <p>Users don't know filtered rows exist — complete isolation.</p>
+            </div>
+            <div class="summary-card">
+                <h4>⚡ current_user() Magic</h4>
+                <p>UC function returns the authenticated user's identity automatically.</p>
+            </div>
+        </div>
+        <a href="../02-AUTHORIZATION-WITH-UC.md" class="back-link">← Back to Documentation</a>
+    </section>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        gsap.to("#progressBar", {
+            width: "100%",
+            ease: "none",
+            scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: true }
+        });
+        
+        const steps = document.querySelectorAll('.step');
+        
+        function updateDiagram(stepNum) {
+            // Reset all boxes
+            document.querySelectorAll('.diagram-box').forEach(box => box.classList.remove('visible'));
+            document.querySelectorAll('.arrow').forEach(arrow => arrow.classList.remove('visible'));
+            document.getElementById('all-rows').classList.remove('visible');
+            
+            // Reset all data rows
+            document.querySelectorAll('.data-row').forEach(row => {
+                row.classList.remove('filtered', 'hidden');
+            });
+            
+            switch(stepNum) {
+                case 1:
+                    document.getElementById('box-user').classList.add('visible');
+                    document.getElementById('box-query').classList.add('visible');
+                    document.getElementById('arrow-1').classList.add('visible');
+                    break;
+                    
+                case 2:
+                    document.getElementById('box-user').classList.add('visible');
+                    document.getElementById('box-query').classList.add('visible');
+                    document.getElementById('box-table').classList.add('visible');
+                    document.getElementById('all-rows').classList.add('visible');
+                    document.getElementById('arrow-1').classList.add('visible');
+                    break;
+                    
+                case 3:
+                    document.getElementById('box-table').classList.add('visible');
+                    document.getElementById('box-filter').classList.add('visible');
+                    document.getElementById('all-rows').classList.add('visible');
+                    document.getElementById('arrow-2').classList.add('visible');
+                    break;
+                    
+                case 4:
+                    document.getElementById('box-table').classList.add('visible');
+                    document.getElementById('box-filter').classList.add('visible');
+                    document.getElementById('all-rows').classList.add('visible');
+                    // Show filtering animation
+                    document.getElementById('row-bob-1').classList.add('filtered');
+                    document.getElementById('row-bob-2').classList.add('filtered');
+                    document.getElementById('row-carol-1').classList.add('filtered');
+                    break;
+                    
+                case 5:
+                    document.getElementById('box-user').classList.add('visible');
+                    document.getElementById('box-result').classList.add('visible');
+                    document.getElementById('all-rows').classList.add('visible');
+                    document.getElementById('arrow-3').classList.add('visible');
+                    // Hide non-Alice rows completely
+                    document.getElementById('row-bob-1').classList.add('hidden');
+                    document.getElementById('row-bob-2').classList.add('hidden');
+                    document.getElementById('row-carol-1').classList.add('hidden');
+                    break;
+            }
+        }
+        
+        steps.forEach((step, index) => {
+            ScrollTrigger.create({
+                trigger: step,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => { steps.forEach(s => s.classList.remove('active')); step.classList.add('active'); updateDiagram(index + 1); },
+                onEnterBack: () => { steps.forEach(s => s.classList.remove('active')); step.classList.add('active'); updateDiagram(index + 1); }
+            });
+        });
+        
+        setTimeout(() => { steps[0].classList.add('active'); updateDiagram(1); }, 500);
+    </script>
+</body>
+</html>

@@ -35,6 +35,8 @@ This guide primarily links to **AWS Databricks documentation** for consistency. 
 
 **Unity Catalog (UC)** is Databricks' unified governance layer that enforces authorization policies for all data access, regardless of which AI product or compute resource accesses the data.
 
+> 📺 **[View interactive access control flow →](interactive/uc-access-control-layers.html)**
+
 ### Key Principles
 
 1. **Separation of Concerns:**
@@ -50,12 +52,18 @@ This guide primarily links to **AWS Databricks documentation** for consistency. 
    - **Pattern 2 (User Auth):** UC evaluates user permissions + row filters + column masks
    - **Pattern 3 (Manual Credentials):** UC not involved (external services)
 
-4. **Fine-Grained Control:**
-   - **Object-level:** Catalog, schema, table permissions (GRANTs)
-   - **Row-level:** Filter which rows users can see
-   - **Column-level:** Mask sensitive column values
+### Four Layers of Access Control
 
-### How UC Works with Authentication Patterns
+Access control in Unity Catalog is built on **four complementary layers** that work together to enforce secure, fine-grained access:
+
+| Layer | Question Answered | Mechanisms |
+|-------|-------------------|------------|
+| **1. Workspace Restrictions** | WHERE can users access data? | Workspace bindings on catalogs, external locations, storage credentials |
+| **2. Privileges & Ownership** | WHO can access WHAT? | GRANTs (SELECT, MODIFY, etc.), object ownership, admin roles |
+| **3. ABAC Policies** | WHAT data based on tags? | Governed tags + policies with UDFs for dynamic enforcement |
+| **4. Table-Level Filtering** | WHAT rows/columns visible? | Row filters, column masks, dynamic views |
+
+### How the Four Layers Work Together
 
 ```mermaid
 flowchart TB
@@ -70,10 +78,11 @@ flowchart TB
         App[Databricks Apps]
     end
     
-    subgraph UC["Unity Catalog Authorization Layer"]
-        Grants[Object Permissions<br/>GRANTs on Catalog/Schema/Table]
-        RowFilters[Row Filters<br/>current_user evaluation]
-        ColMasks[Column Masks<br/>is_member evaluation]
+    subgraph UC["Unity Catalog: Four Authorization Layers"]
+        Layer1["Layer 1: Workspace Restrictions<br/>WHERE can they access?"]
+        Layer2["Layer 2: Privileges & Ownership<br/>WHO can access WHAT?"]
+        Layer3["Layer 3: ABAC Policies<br/>WHAT data based on tags?"]
+        Layer4["Layer 4: Table-Level Filtering<br/>WHAT rows/columns?"]
     end
     
     subgraph Data["Data Resources"]
@@ -83,21 +92,25 @@ flowchart TB
     User -->|Authenticated request| Products
     SP -->|Authenticated request| Products
     
-    Products -->|Query data| Grants
+    Products -->|Query data| Layer1
     
-    Grants -->|Check permissions| RowFilters
-    RowFilters -->|Filter rows| ColMasks
-    ColMasks -->|Mask columns| Tables
+    Layer1 -->|Workspace OK| Layer2
+    Layer2 -->|Has GRANTs| Layer3
+    Layer3 -->|Tags match policy| Layer4
+    Layer4 -->|Filter & mask| Tables
     
     Tables -->|Return governed data| Products
     
     style UC fill:#e8f8f5,stroke:#1abc9c,stroke-width:3px
-    style Grants fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
-    style RowFilters fill:#fef5e7,stroke:#f39c12,stroke-width:2px
-    style ColMasks fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style Layer1 fill:#cffafe,stroke:#06b6d4,stroke-width:2px
+    style Layer2 fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
+    style Layer3 fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style Layer4 fill:#ffedd5,stroke:#f97316,stroke-width:2px
 ```
 
-**Documentation:** [Unity Catalog Overview](https://docs.databricks.com/aws/en/data-governance/unity-catalog/index.html)
+**Official Documentation:** 
+- [Access Control in Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/access-control)
+- [Unity Catalog Overview](https://docs.databricks.com/aws/en/data-governance/unity-catalog/index.html)
 
 ---
 
@@ -248,6 +261,8 @@ GRANT SELECT ON TABLE finance_prod.accounting.transactions TO `analysts`;
 
 Row filters restrict **which rows** users can see in a table based on their identity or group membership.
 
+> 📺 **[View interactive row filters flow →](interactive/uc-row-filters.html)**
+
 ### Concept
 
 When a row filter is applied to a table:
@@ -366,6 +381,8 @@ ALTER TABLE catalog.schema.table_name DROP ROW FILTER;
 ## 🔒 Column-Level Security: Column Masks
 
 Column masks control **what values** users see in specific columns based on their identity or group membership.
+
+> 📺 **[View interactive column masks flow →](interactive/uc-column-masks.html)**
 
 ### Concept
 
@@ -501,104 +518,136 @@ ALTER TABLE catalog.schema.table_name
 
 ## 🏷️ Attribute-Based Access Control (ABAC)
 
-ABAC combines **multiple attributes** (user identity, group membership, data classification, time, location) to make fine-grained authorization decisions.
+> **Preview Feature:** ABAC is currently in Public Preview.
+>
+> 📺 **[View interactive ABAC + Governed Tags flow →](interactive/uc-abac-governed-tags.html)**
 
-### Concept
+ABAC is a **centralized, tag-based policy framework** for enforcing access control in Unity Catalog. It enables admins to define scalable policies that apply dynamically across catalogs, schemas, and tables based on **governed tags**. Databricks recommends using ABAC for centralized and scalable governance, rather than applying filters or masks individually on each table.
 
-Instead of simple rules ("user X can access table Y"), ABAC evaluates:
-- **Who** is the user? (`current_user()`)
-- **What groups** are they in? (`is_member()`)
-- **What data** are they accessing? (column values like `department`, `region`, `sensitivity`)
-- **When** are they accessing? (`current_timestamp()`)
-- **From where**? (if using network policies)
+### ABAC vs Table-Level Filtering
 
-### ABAC Row Filter Example
+| Aspect | ABAC (Recommended) | Table-Level Row/Column Filters |
+|--------|-------------------|-------------------------------|
+| **Scope** | Centralized, tag-driven | Per-table configuration |
+| **Scalability** | Define once → apply to 1000s of tables | Must configure each table |
+| **Management** | Policies reference governed tags | UDFs directly on tables |
+| **Updates** | Change tag → access changes instantly | Must update each table |
+| **Use When** | Centralized governance at scale | Per-table logic needed |
 
-```sql
--- ABAC filter combining multiple attributes
-CREATE FUNCTION data.filters.abac_filter(
-    data_department STRING,
-    data_region STRING,
-    data_sensitivity STRING,
-    data_classification STRING
-)
-RETURNS BOOLEAN
-RETURN 
-    CASE
-        -- Admins bypass all checks
-        WHEN is_member('admins') THEN TRUE
-        
-        -- Must be in data's department
-        WHEN NOT is_member(data_department) THEN FALSE
-        
-        -- Regional restrictions
-        WHEN data_region = 'EMEA' AND NOT is_member('emea-users') THEN FALSE
-        WHEN data_region = 'AMER' AND NOT is_member('amer-users') THEN FALSE
-        WHEN data_region = 'APAC' AND NOT is_member('apac-users') THEN FALSE
-        
-        -- Sensitivity-based restrictions
-        WHEN data_sensitivity = 'high' AND NOT is_member('managers') THEN FALSE
-        WHEN data_sensitivity = 'critical' AND NOT is_member('executives') THEN FALSE
-        
-        -- Classification-based restrictions
-        WHEN data_classification = 'pii' AND NOT is_member('pii-authorized') THEN FALSE
-        WHEN data_classification = 'financial' AND NOT is_member('finance-team') THEN FALSE
-        
-        -- Default: allow if all checks pass
-        ELSE TRUE
-    END;
+### Governed Tags: The Foundation
 
--- Apply ABAC filter
-ALTER TABLE corp.data.sensitive_records
-  SET ROW FILTER data.filters.abac_filter 
-  ON (department, region, sensitivity_level, classification);
+**[Governed Tags](https://docs.databricks.com/aws/en/admin/governed-tags/)** are account-level tags with enforced rules for consistency. They classify data assets with standardized attributes:
+
+```
+sensitivity=high
+region=EMEA
+domain=finance
+classification=pii
 ```
 
-### ABAC Decision Flow
+**Key Characteristics:**
+- Defined at **account level** with allowed values
+- Applied to **catalogs, schemas, or tables** (inherit downward)
+- Control **who can assign tags** and **what values** are allowed
+- Tags alone **don't enforce access** — ABAC policies do the enforcement
+
+### How ABAC Works with Governed Tags
 
 ```mermaid
-flowchart TD
-    Start[User queries table]
+flowchart TB
+    subgraph Tags["Governed Tags (Classification)"]
+        TagDef["Account-level tag definitions<br/>sensitivity: [low, medium, high, critical]<br/>region: [EMEA, AMER, APAC]"]
+        TagAssign["Tags applied to tables<br/>customer_data: sensitivity=high, region=EMEA"]
+    end
     
-    CheckAdmin{Is user<br/>admin?}
-    CheckDept{Is user in<br/>data's department?}
-    CheckRegion{Is user in<br/>data's region?}
-    CheckSensitivity{Does user have<br/>sensitivity clearance?}
-    CheckClassification{Does user have<br/>classification access?}
+    subgraph ABAC["ABAC Policies (Enforcement)"]
+        Policy["Policy: If sensitivity=high<br/>THEN require compliance-team"]
+        UDF["UDF: filter_by_region()<br/>Row filter logic"]
+    end
     
-    Allow[Allow access<br/>Return TRUE]
-    Deny[Deny access<br/>Return FALSE]
+    subgraph Query["Query Execution"]
+        User["User: alice@company.com<br/>Groups: compliance-team"]
+        Eval["UC evaluates:<br/>1. Table has sensitivity=high<br/>2. Policy requires compliance-team<br/>3. Alice is in compliance-team"]
+        Result["✅ Access granted<br/>with policy filters applied"]
+    end
     
-    Start --> CheckAdmin
+    TagDef --> TagAssign
+    TagAssign --> Policy
+    Policy --> UDF
+    User --> Eval
+    Eval --> Result
     
-    CheckAdmin -->|Yes| Allow
-    CheckAdmin -->|No| CheckDept
-    
-    CheckDept -->|No| Deny
-    CheckDept -->|Yes| CheckRegion
-    
-    CheckRegion -->|No| Deny
-    CheckRegion -->|Yes| CheckSensitivity
-    
-    CheckSensitivity -->|No| Deny
-    CheckSensitivity -->|Yes| CheckClassification
-    
-    CheckClassification -->|No| Deny
-    CheckClassification -->|Yes| Allow
-    
-    style Allow fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
-    style Deny fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    style Tags fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style ABAC fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style Query fill:#d1fae5,stroke:#10b981,stroke-width:2px
 ```
+
+### ABAC Policy Types
+
+Two types of ABAC policies are supported:
+
+| Policy Type | Purpose | Example Use Case |
+|-------------|---------|------------------|
+| **Row Filter Policies** | Restrict access to rows based on data content | Only show rows where `region=EMEA` to users with EMEA access |
+| **Column Mask Policies** | Control what values users see in columns | Mask phone numbers unless table is tagged `sensitivity=low` |
+
+### ABAC Policy Example
+
+```sql
+-- Example: ABAC row filter policy referencing governed tags
+-- (Conceptual - actual syntax may vary per feature release)
+
+-- 1. Define governed tag at account level
+CREATE TAG POLICY sensitivity
+  ALLOWED_VALUES = ['low', 'medium', 'high', 'critical'];
+
+-- 2. Apply tag to tables
+ALTER TABLE customer.data.transactions
+  SET TAG sensitivity = 'high';
+
+-- 3. Create UDF for filtering logic
+CREATE FUNCTION security.filters.require_compliance()
+RETURNS BOOLEAN
+RETURN is_member('compliance-team') OR is_member('admins');
+
+-- 4. Create ABAC policy referencing tag and UDF
+-- Policy: Tables tagged sensitivity=high require compliance-team membership
+CREATE POLICY high_sensitivity_access
+  ON TAG sensitivity = 'high'
+  USING security.filters.require_compliance();
+```
+
+### Benefits of ABAC with Governed Tags
+
+| Benefit | Description |
+|---------|-------------|
+| **Scalability** | Manage access at scale by leveraging tags instead of per-table permissions |
+| **Flexibility** | Adjust governance by updating tags or policies without modifying each table |
+| **Centralized Governance** | Single policy framework spans catalogs, schemas, and tables |
+| **Dynamic Enforcement** | Access decisions evaluated in real-time based on tags and user context |
+| **Instant Updates** | Change a tag → access changes immediately across all affected tables |
+| **Auditability** | Full visibility into data access through audit logs |
 
 ### ABAC Best Practices
 
-1. **Fail secure:** Default to `FALSE` (deny) if conditions aren't met
-2. **Admin bypass:** Always allow admins/compliance to override for audits
-3. **Layered checks:** Evaluate cheapest conditions first (group membership before complex logic)
-4. **Clear logic:** Comment each condition in function for maintainability
-5. **Test thoroughly:** Verify with multiple user personas and data combinations
+1. **Use ABAC for centralized governance:** Apply policies at catalog/schema level for consistency
+2. **Define clear tag taxonomies:** Standardize values like `sensitivity: [low, medium, high, critical]`
+3. **Fail secure:** Default to deny if policy conditions aren't met
+4. **Admin bypass:** Allow compliance/admin roles to override for audits
+5. **Start with governed tags:** Classify data before creating policies
+6. **Test thoroughly:** Verify with multiple user personas and tag combinations
 
-**Documentation:** [Attribute-Based Access Control](https://docs.databricks.com/aws/en/data-governance/unity-catalog/row-and-column-filters.html)
+### ABAC Limitations
+
+- Requires compute on **Databricks Runtime 16.4+** or serverless
+- Cannot apply policies directly to **views** (but underlying tables are enforced)
+- Only one row filter can resolve per table per user at runtime
+- See [official documentation](https://docs.databricks.com/aws/en/data-governance/unity-catalog/abac) for complete limitations
+
+**Official Documentation:**
+- [Unity Catalog ABAC](https://docs.databricks.com/aws/en/data-governance/unity-catalog/abac)
+- [Governed Tags](https://docs.databricks.com/aws/en/admin/governed-tags/)
+- [ABAC Tutorial](https://docs.databricks.com/aws/en/data-governance/unity-catalog/abac-tutorial.html)
 
 ---
 
@@ -835,28 +884,40 @@ SELECT * FROM catalog.schema.table;
 - Use for APIs outside Databricks (OpenAI, Salesforce, etc.)
 - Data from external sources is not governed by UC until written to UC tables
 
-### 📖 Agent Framework Authentication Reference
+### 📖 Agent Bricks & Agent Framework Authentication Reference
 
-For **Agent Bricks** and **AI agents**, the authentication methods integrate with UC as follows:
+For **[Agent Bricks](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/)** and **AI agents**, the authentication methods integrate with UC as follows:
+
+#### Agent Bricks Use Cases
+
+Agent Bricks supports these production-grade AI agent templates, all of which integrate with UC for authorization:
+
+| Use Case | UC Integration | Auth Pattern |
+|----------|----------------|--------------|
+| **[Knowledge Assistant](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/knowledge-assistant)** | Vector indexes governed by UC | Pattern 1 or 2 |
+| **[Information Extraction](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/key-info-extraction)** (Beta) | Source docs and output tables | Pattern 1 or 2 |
+| **[Custom LLM](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/custom-llm)** (Beta) | Model endpoints in UC | Pattern 1 or 2 |
+| **[Multi-Agent Supervisor](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/multi-agent-supervisor)** (Beta) | Orchestrates Genie + agents | Pattern 2 (OBO) |
+| **[Code Your Own](https://docs.databricks.com/aws/en/generative-ai/agent-framework/author-agent)** | Full UC access via SDK | Pattern 1, 2, or 3 |
 
 #### Automatic Authentication Passthrough
 - **Agent Framework:** Agent runs with permissions of deployer, Databricks manages short-lived credentials
 - **UC Integration:** Service principal permissions evaluated (Pattern 1 above)
 - **When to use:** Simple agents, consistent access requirements, least-privilege automation
-- **Reference:** [Agent Authentication - Automatic Passthrough](https://learn.microsoft.com/en-us/azure/databricks/generative-ai/agent-framework/agent-authentication#automatic-authentication-passthrough)
+- **Reference:** [Agent Authentication - Automatic Passthrough](https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication#automatic-authentication-passthrough)
 
 #### On-Behalf-Of-User (OBO) Authentication
 - **Agent Framework:** Agent runs with permissions of end user making request
-- **UC Integration:** Per-user row filters and column masks apply (Pattern 2 above)
+- **UC Integration:** Per-user row filters, column masks, and ABAC policies apply (Pattern 2 above)
 - **When to use:** Per-user data access, fine-grained UC governance, user-attributed auditing
 - **Security:** Tokens are downscoped to declared API scopes, reducing risk
-- **Reference:** [Agent Authentication - OBO](https://learn.microsoft.com/en-us/azure/databricks/generative-ai/agent-framework/agent-authentication#on-behalf-of-user-authentication)
+- **Reference:** [Agent Authentication - OBO](https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication#on-behalf-of-user-authentication)
 
 **OBO Security Considerations:**
 - Agents can access sensitive resources on behalf of users
 - While scopes restrict APIs, endpoints might allow more actions than explicitly requested
 - Example: `serving.serving-endpoints` scope grants permission to run a serving endpoint, but that endpoint may access additional API scopes
-- **Always review:** [OBO Security Considerations](https://learn.microsoft.com/en-us/azure/databricks/generative-ai/agent-framework/agent-authentication#obo-security-considerations)
+- **Always review:** [OBO Security Considerations](https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication#obo-security-considerations)
 
 #### Manual Authentication (OAuth/PAT)
 - **Agent Framework:** Explicitly provide credentials via environment variables

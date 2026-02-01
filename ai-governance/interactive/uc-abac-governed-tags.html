@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UC ABAC with Governed Tags</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #a855f7; }
+        
+        .progress-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #a855f7, #6366f1);
+            width: 0%;
+            z-index: 101;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+        
+        .hero h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p { font-size: 1.3rem; color: #94a3b8; max-width: 650px; margin-bottom: 1.5rem; }
+        
+        .hero .doc-links {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .hero .doc-link {
+            padding: 0.5rem 1rem;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 6px;
+            color: #a855f7;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .hero .doc-link:hover {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: #a855f7;
+        }
+        
+        .scroll-hint { animation: bounce 2s infinite; color: #a855f7; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        .scrollytelling { display: flex; position: relative; }
+        .scroll-text { flex: 0 0 45%; padding: 0 3rem; }
+        
+        .sticky-visual {
+            flex: 0 0 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+        
+        .step.active { opacity: 1; }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #a855f7;
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #fff; }
+        .step p { color: #94a3b8; font-size: 1.1rem; margin-bottom: 1rem; }
+        .step .highlight { color: #a855f7; font-weight: 600; }
+        .step .highlight-blue { color: #6366f1; font-weight: 600; }
+        .step .highlight-green { color: #4ade80; font-weight: 600; }
+        
+        .step code {
+            background: rgba(168, 85, 247, 0.15);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            color: #a855f7;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.9rem;
+        }
+        
+        .diagram-container {
+            width: 100%;
+            max-width: 500px;
+            height: 520px;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        /* Component boxes */
+        .component-box {
+            position: absolute;
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        
+        .component-box.visible { opacity: 1; transform: scale(1); }
+        .component-box.active { transform: scale(1.05); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .component-box.dimmed { opacity: 0.35; }
+        
+        .box-icon { font-size: 1.6rem; margin-bottom: 0.3rem; }
+        .box-title { font-weight: 600; font-size: 0.9rem; }
+        .box-desc { font-size: 0.7rem; opacity: 0.8; margin-top: 0.2rem; }
+        
+        .tag-box { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
+        .policy-box { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
+        .table-box { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .user-box { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
+        .result-box { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+        
+        /* Tag badges */
+        .tag-badge {
+            display: inline-block;
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin: 0.2rem;
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+        
+        .tag-badge.visible { opacity: 1; }
+        
+        .tag-sensitivity { background: rgba(236, 72, 153, 0.2); border: 1px solid #ec4899; color: #ec4899; }
+        .tag-region { background: rgba(34, 211, 238, 0.2); border: 1px solid #22d3ee; color: #22d3ee; }
+        .tag-domain { background: rgba(251, 146, 60, 0.2); border: 1px solid #fb923c; color: #fb923c; }
+        
+        /* Tag container */
+        .tags-container {
+            position: absolute;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-width: 200px;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .tags-container.visible { opacity: 1; }
+        
+        /* Arrow/connector */
+        .connector {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0;
+            transition: all 0.5s ease;
+            color: #a855f7;
+        }
+        
+        .connector.visible { opacity: 1; }
+        
+        /* Policy evaluation box */
+        .eval-box {
+            position: absolute;
+            background: rgba(168, 85, 247, 0.1);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            font-size: 0.75rem;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            color: #c4b5fd;
+            opacity: 0;
+            transition: all 0.5s ease;
+            white-space: nowrap;
+        }
+        
+        .eval-box.visible { opacity: 1; }
+        
+        .summary {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #a855f7; }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            max-width: 850px;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+        }
+        
+        .summary-card.purple { border-left: 4px solid #a855f7; }
+        .summary-card.blue { border-left: 4px solid #6366f1; }
+        
+        .summary-card h4 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .summary-card.purple h4 { color: #a855f7; }
+        .summary-card.blue h4 { color: #6366f1; }
+        .summary-card p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .summary-card ul { color: #94a3b8; font-size: 0.85rem; padding-left: 1.2rem; }
+        
+        .doc-links-footer {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .doc-link-footer {
+            padding: 0.8rem 1.5rem;
+            background: rgba(168, 85, 247, 0.1);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            color: #a855f7;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        .doc-link-footer:hover {
+            background: #a855f7;
+            color: #1a1a2e;
+        }
+        
+        .back-link {
+            color: #a855f7;
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid #a855f7;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover { background: #a855f7; color: #1a1a2e; }
+        
+        @media (max-width: 900px) {
+            .scrollytelling { flex-direction: column; }
+            .scroll-text { flex: none; padding: 0 1.5rem; }
+            .sticky-visual { flex: none; height: 50vh; position: sticky; top: 60px; }
+            .step { min-height: 80vh; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .hero h2 { font-size: 2rem; }
+            .hero .doc-links { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏷️ Unity Catalog ABAC</h1>
+    </header>
+    
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <section class="hero">
+        <h2>ABAC with Governed Tags</h2>
+        <p>How Attribute-Based Access Control uses governed tags to enforce dynamic, scalable data access policies without per-object permissions.</p>
+        <div class="doc-links">
+            <a href="https://docs.databricks.com/aws/en/data-governance/unity-catalog/abac" target="_blank" class="doc-link">📖 ABAC Documentation</a>
+            <a href="https://docs.databricks.com/aws/en/admin/governed-tags/" target="_blank" class="doc-link">🏷️ Governed Tags Docs</a>
+        </div>
+        <div class="scroll-hint">↓ Scroll to see how it works</div>
+    </section>
+    
+    <section class="scrollytelling">
+        <div class="scroll-text">
+            <div class="step" data-step="1">
+                <span class="step-number">1</span>
+                <h3>Governed Tags: The Foundation</h3>
+                <p>
+                    <span class="highlight-blue">Governed Tags</span> are account-level tags with enforced rules for consistency. They classify data assets with attributes like:
+                </p>
+                <p>
+                    <code>sensitivity=high</code>, <code>region=EMEA</code>, <code>domain=finance</code>
+                </p>
+                <p>
+                    Tags alone <span class="highlight">don't enforce access</span> — they just classify data.
+                </p>
+            </div>
+            
+            <div class="step" data-step="2">
+                <span class="step-number">2</span>
+                <h3>Tags Applied to Tables</h3>
+                <p>
+                    Admins apply governed tags to <span class="highlight-blue">catalogs, schemas, or tables</span>. Tags inherit downward.
+                </p>
+                <p>
+                    Example: A <code>customer_data</code> table is tagged with <code>sensitivity=high</code> and <code>region=EMEA</code>.
+                </p>
+            </div>
+            
+            <div class="step" data-step="3">
+                <span class="step-number">3</span>
+                <h3>ABAC Policies Reference Tags</h3>
+                <p>
+                    <span class="highlight">ABAC Policies</span> are the enforcement layer. They define rules like:
+                </p>
+                <p>
+                    "If table has <code>sensitivity=high</code>, only <code>compliance-team</code> can SELECT"
+                </p>
+                <p>
+                    Policies use <span class="highlight">UDFs</span> for row filters and column masks.
+                </p>
+            </div>
+            
+            <div class="step" data-step="4">
+                <span class="step-number">4</span>
+                <h3>Dynamic Enforcement</h3>
+                <p>
+                    When <span class="highlight-green">Alice</span> queries the table, UC evaluates:
+                </p>
+                <p>
+                    1. What tags does this table have?<br>
+                    2. What policies match those tags?<br>
+                    3. Is Alice allowed based on policy rules?
+                </p>
+            </div>
+            
+            <div class="step" data-step="5">
+                <span class="step-number">5</span>
+                <h3>Instant Updates</h3>
+                <p>
+                    <span class="highlight">Change a tag → access changes instantly.</span>
+                </p>
+                <p>
+                    No need to update permissions on individual objects. Just:
+                </p>
+                <p>
+                    • Reassign a tag, or<br>
+                    • Update the policy definition
+                </p>
+                <p>
+                    This scales to <span class="highlight-green">thousands of tables</span> with minimal admin effort.
+                </p>
+            </div>
+        </div>
+        
+        <div class="sticky-visual">
+            <div class="diagram-container">
+                <!-- Governed Tags Definition -->
+                <div class="component-box tag-box" id="tag-def" style="left: 30px; top: 30px; width: 180px;">
+                    <div class="box-icon">🏷️</div>
+                    <div class="box-title">Governed Tags</div>
+                    <div class="box-desc">Account-level definitions</div>
+                </div>
+                
+                <!-- Tag badges -->
+                <div class="tags-container" id="tag-badges" style="left: 30px; top: 130px;">
+                    <span class="tag-badge tag-sensitivity" id="tag-1">sensitivity=high</span>
+                    <span class="tag-badge tag-region" id="tag-2">region=EMEA</span>
+                    <span class="tag-badge tag-domain" id="tag-3">domain=finance</span>
+                </div>
+                
+                <!-- Table with tags -->
+                <div class="component-box table-box" id="table-box" style="left: 30px; top: 200px; width: 180px;">
+                    <div class="box-icon">📊</div>
+                    <div class="box-title">customer_data</div>
+                    <div class="box-desc">Tagged table</div>
+                </div>
+                
+                <!-- ABAC Policy -->
+                <div class="component-box policy-box" id="policy-box" style="right: 30px; top: 30px; width: 180px;">
+                    <div class="box-icon">📋</div>
+                    <div class="box-title">ABAC Policy</div>
+                    <div class="box-desc">Enforcement rules</div>
+                </div>
+                
+                <!-- Policy evaluation -->
+                <div class="eval-box" id="eval-box" style="right: 30px; top: 130px;">
+                    IF sensitivity=high<br>
+                    THEN require compliance-team
+                </div>
+                
+                <!-- User -->
+                <div class="component-box user-box" id="user-box" style="left: 30px; bottom: 100px;">
+                    <div class="box-icon">👤</div>
+                    <div class="box-title">Alice</div>
+                    <div class="box-desc">compliance-team</div>
+                </div>
+                
+                <!-- Result -->
+                <div class="component-box result-box" id="result-box" style="right: 30px; bottom: 100px; width: 180px;">
+                    <div class="box-icon">✅</div>
+                    <div class="box-title">Access Granted</div>
+                    <div class="box-desc">Policy matched</div>
+                </div>
+                
+                <!-- Connectors -->
+                <div class="connector" id="conn-1" style="left: 220px; top: 60px;">→</div>
+                <div class="connector" id="conn-2" style="left: 110px; top: 175px;">↓</div>
+                <div class="connector" id="conn-3" style="right: 100px; top: 200px;">↓</div>
+                <div class="connector" id="conn-4" style="left: 50%; bottom: 180px; transform: translateX(-50%);">⟷</div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="summary">
+        <h2>Governed Tags vs. ABAC</h2>
+        <div class="summary-grid">
+            <div class="summary-card blue">
+                <h4>🏷️ Governed Tags</h4>
+                <p><strong>Role:</strong> Classification & consistency</p>
+                <ul>
+                    <li>Define allowed tag keys/values</li>
+                    <li>Control who can assign tags</li>
+                    <li>Ensure naming standards</li>
+                    <li><strong>Don't enforce access</strong></li>
+                </ul>
+            </div>
+            <div class="summary-card purple">
+                <h4>📋 UC ABAC</h4>
+                <p><strong>Role:</strong> Dynamic enforcement</p>
+                <ul>
+                    <li>Reference tags in policies</li>
+                    <li>Row filters & column masks</li>
+                    <li>Enforce access based on tags</li>
+                    <li><strong>Makes tags actionable</strong></li>
+                </ul>
+            </div>
+            <div class="summary-card blue">
+                <h4>⚡ Benefits</h4>
+                <p><strong>Why ABAC + Tags?</strong></p>
+                <ul>
+                    <li>Scalable: One policy → 1000s of tables</li>
+                    <li>Dynamic: Change tag → instant update</li>
+                    <li>Centralized: Manage policies once</li>
+                    <li>Auditable: Full logging</li>
+                </ul>
+            </div>
+            <div class="summary-card purple">
+                <h4>🔄 In Practice</h4>
+                <p><strong>How they work together:</strong></p>
+                <ul>
+                    <li>Tag tables with classifications</li>
+                    <li>Write policies referencing tags</li>
+                    <li>UC enforces automatically</li>
+                    <li>Re-tag to change access instantly</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="doc-links-footer">
+            <a href="https://docs.databricks.com/aws/en/data-governance/unity-catalog/abac" target="_blank" class="doc-link-footer">📖 ABAC Documentation</a>
+            <a href="https://docs.databricks.com/aws/en/admin/governed-tags/" target="_blank" class="doc-link-footer">🏷️ Governed Tags Docs</a>
+        </div>
+        
+        <a href="../02-AUTHORIZATION-WITH-UC.md" class="back-link">← Back to Documentation</a>
+    </section>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        gsap.to("#progressBar", {
+            width: "100%",
+            ease: "none",
+            scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: true }
+        });
+        
+        const steps = document.querySelectorAll('.step');
+        
+        function updateDiagram(stepNum) {
+            // Reset all
+            document.querySelectorAll('.component-box').forEach(box => {
+                box.classList.remove('visible', 'active', 'dimmed');
+            });
+            document.querySelectorAll('.tag-badge').forEach(tag => tag.classList.remove('visible'));
+            document.querySelectorAll('.tags-container').forEach(c => c.classList.remove('visible'));
+            document.querySelectorAll('.connector').forEach(c => c.classList.remove('visible'));
+            document.querySelectorAll('.eval-box').forEach(e => e.classList.remove('visible'));
+            
+            switch(stepNum) {
+                case 1:
+                    // Show governed tags definition
+                    document.getElementById('tag-def').classList.add('visible', 'active');
+                    document.getElementById('tag-badges').classList.add('visible');
+                    document.getElementById('tag-1').classList.add('visible');
+                    document.getElementById('tag-2').classList.add('visible');
+                    document.getElementById('tag-3').classList.add('visible');
+                    break;
+                    
+                case 2:
+                    // Show tags applied to table
+                    document.getElementById('tag-def').classList.add('visible', 'dimmed');
+                    document.getElementById('tag-badges').classList.add('visible');
+                    document.getElementById('tag-1').classList.add('visible');
+                    document.getElementById('tag-2').classList.add('visible');
+                    document.getElementById('table-box').classList.add('visible', 'active');
+                    document.getElementById('conn-2').classList.add('visible');
+                    break;
+                    
+                case 3:
+                    // Show ABAC policy
+                    document.getElementById('tag-badges').classList.add('visible');
+                    document.getElementById('tag-1').classList.add('visible');
+                    document.getElementById('table-box').classList.add('visible', 'dimmed');
+                    document.getElementById('policy-box').classList.add('visible', 'active');
+                    document.getElementById('eval-box').classList.add('visible');
+                    document.getElementById('conn-1').classList.add('visible');
+                    break;
+                    
+                case 4:
+                    // Show user query and evaluation
+                    document.getElementById('table-box').classList.add('visible');
+                    document.getElementById('tag-badges').classList.add('visible');
+                    document.getElementById('tag-1').classList.add('visible');
+                    document.getElementById('tag-2').classList.add('visible');
+                    document.getElementById('policy-box').classList.add('visible');
+                    document.getElementById('eval-box').classList.add('visible');
+                    document.getElementById('user-box').classList.add('visible', 'active');
+                    document.getElementById('conn-3').classList.add('visible');
+                    document.getElementById('conn-4').classList.add('visible');
+                    break;
+                    
+                case 5:
+                    // Show full flow with result
+                    document.getElementById('tag-def').classList.add('visible', 'dimmed');
+                    document.getElementById('tag-badges').classList.add('visible');
+                    document.getElementById('tag-1').classList.add('visible');
+                    document.getElementById('tag-2').classList.add('visible');
+                    document.getElementById('table-box').classList.add('visible');
+                    document.getElementById('policy-box').classList.add('visible');
+                    document.getElementById('user-box').classList.add('visible');
+                    document.getElementById('result-box').classList.add('visible', 'active');
+                    document.getElementById('conn-4').classList.add('visible');
+                    break;
+            }
+        }
+        
+        steps.forEach((step, index) => {
+            ScrollTrigger.create({
+                trigger: step,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => { steps.forEach(s => s.classList.remove('active')); step.classList.add('active'); updateDiagram(index + 1); },
+                onEnterBack: () => { steps.forEach(s => s.classList.remove('active')); step.classList.add('active'); updateDiagram(index + 1); }
+            });
+        });
+        
+        setTimeout(() => { steps[0].classList.add('active'); updateDiagram(1); }, 500);
+    </script>
+</body>
+</html>
