@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Visualizations - AI Governance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container { max-width: 700px; margin: 0 auto; }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: #14b8a6;
+        }
+        .subtitle { color: #94a3b8; margin-bottom: 2rem; }
+        .back-link {
+            display: inline-block;
+            color: #22d3ee;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .list { list-style: none; }
+        .list li { margin-bottom: 0.8rem; }
+        .list a {
+            display: block;
+            padding: 1rem 1.2rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #e8e8e8;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .list a:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #14b8a6;
+        }
+        .list .icon { margin-right: 0.8rem; }
+        .list .desc { color: #64748b; font-size: 0.85rem; margin-top: 0.3rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../" class="back-link">← Back to AI Governance Home</a>
+        <h1>Interactive Visualizations</h1>
+        <p class="subtitle">Scroll-based animated explainers for core concepts</p>
+        
+        <ul class="list">
+            <li>
+                <a href="uc-access-control-layers.html">
+                    <span class="icon">🛡️</span> Four Layers of Access Control
+                    <div class="desc">Workspace → Privileges → ABAC → Table Filtering</div>
+                </a>
+            </li>
+            <li>
+                <a href="uc-abac-governed-tags.html">
+                    <span class="icon">🏷️</span> ABAC + Governed Tags
+                    <div class="desc">Tag-based dynamic access control</div>
+                </a>
+            </li>
+            <li>
+                <a href="uc-row-filters.html">
+                    <span class="icon">📊</span> Row Filters
+                    <div class="desc">Row-level security with current_user()</div>
+                </a>
+            </li>
+            <li>
+                <a href="uc-column-masks.html">
+                    <span class="icon">🔒</span> Column Masks
+                    <div class="desc">Column-level security with is_member()</div>
+                </a>
+            </li>
+            <li>
+                <a href="auth-flow-obo.html">
+                    <span class="icon">👤</span> On-Behalf-Of-User (OBO)
+                    <div class="desc">Pattern 2: User authentication passthrough</div>
+                </a>
+            </li>
+            <li>
+                <a href="auth-flow-service-principal.html">
+                    <span class="icon">🤖</span> Service Principal Auth
+                    <div class="desc">Pattern 1: Automatic passthrough</div>
+                </a>
+            </li>
+            <li>
+                <a href="decision-guide.html">
+                    <span class="icon">🧭</span> Decision Guide
+                    <div class="desc">Choose the right authentication pattern</div>
+                </a>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>
