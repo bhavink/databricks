@@ -6,6 +6,7 @@
     <title>Interactive Visualizations - AI Governance</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -13,91 +14,272 @@
             min-height: 100vh;
             padding: 2rem;
         }
-        .container { max-width: 700px; margin: 0 auto; }
-        h1 {
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-            color: #14b8a6;
+        
+        .container { max-width: 800px; margin: 0 auto; }
+        
+        header {
+            margin-bottom: 2rem;
         }
-        .subtitle { color: #94a3b8; margin-bottom: 2rem; }
+        
         .back-link {
             display: inline-block;
             color: #22d3ee;
             text-decoration: none;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             font-size: 0.9rem;
         }
         .back-link:hover { text-decoration: underline; }
-        .list { list-style: none; }
-        .list li { margin-bottom: 0.8rem; }
-        .list a {
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #14b8a6, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle { color: #94a3b8; font-size: 1.1rem; }
+        
+        /* Section Styling */
+        .section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .section-header .icon { font-size: 1.3rem; }
+        
+        .section-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .section-header .count {
+            font-size: 0.75rem;
+            color: #64748b;
+            background: rgba(255,255,255,0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+        }
+        
+        /* Featured Section */
+        .section.featured .section-header {
+            border-bottom-color: #14b8a6;
+        }
+        .section.featured .section-header h2 { color: #14b8a6; }
+        
+        /* Authorization Section */
+        .section.authz .section-header {
+            border-bottom-color: #a855f7;
+        }
+        .section.authz .section-header h2 { color: #a855f7; }
+        
+        /* Authentication Section */
+        .section.authn .section-header {
+            border-bottom-color: #22d3ee;
+        }
+        .section.authn .section-header h2 { color: #22d3ee; }
+        
+        /* Card List */
+        .card-list { 
+            display: grid;
+            gap: 0.8rem;
+        }
+        
+        .card {
             display: block;
             padding: 1rem 1.2rem;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
+            border-radius: 10px;
             color: #e8e8e8;
             text-decoration: none;
             transition: all 0.2s ease;
         }
-        .list a:hover {
-            background: rgba(255,255,255,0.1);
+        
+        .card:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(4px);
+        }
+        
+        .card .title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 500;
+        }
+        
+        .card .title .icon { font-size: 1.1rem; }
+        
+        .card .desc { 
+            color: #64748b; 
+            font-size: 0.85rem; 
+            margin-top: 0.3rem;
+            margin-left: 1.7rem;
+        }
+        
+        /* Featured Card */
+        .card.featured {
+            background: rgba(20, 184, 166, 0.1);
+            border-color: rgba(20, 184, 166, 0.4);
+            padding: 1.2rem 1.4rem;
+        }
+        
+        .card.featured:hover {
+            background: rgba(20, 184, 166, 0.15);
             border-color: #14b8a6;
         }
-        .list .icon { margin-right: 0.8rem; }
-        .list .desc { color: #64748b; font-size: 0.85rem; margin-top: 0.3rem; }
+        
+        .card.featured .title {
+            font-size: 1.1rem;
+            color: #14b8a6;
+        }
+        
+        .card.featured .badge {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.5rem;
+            background: rgba(20, 184, 166, 0.3);
+            border-radius: 4px;
+            color: #14b8a6;
+            margin-left: auto;
+        }
+        
+        /* Color accents for categories */
+        .card.authz { border-left: 3px solid #a855f7; }
+        .card.authz:hover { border-color: #a855f7; }
+        
+        .card.authn { border-left: 3px solid #22d3ee; }
+        .card.authn:hover { border-color: #22d3ee; }
+        
+        /* Footer */
+        footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        
+        footer a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin: 0 0.8rem;
+        }
+        
+        footer a:hover { color: #14b8a6; }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="../" class="back-link">← Back to AI Governance Home</a>
-        <h1>Interactive Visualizations</h1>
-        <p class="subtitle">Scroll-based animated explainers for core concepts</p>
+        <header>
+            <a href="../" class="back-link">← Back to AI Governance Home</a>
+            <h1>Interactive Visualizations</h1>
+            <p class="subtitle">Scroll-based animated explainers for core governance concepts</p>
+        </header>
         
-        <ul class="list">
-            <li>
-                <a href="uc-access-control-layers.html">
-                    <span class="icon">🛡️</span> Four Layers of Access Control
+        <!-- Featured: Orchestration -->
+        <section class="section featured">
+            <div class="section-header">
+                <span class="icon">🏗️</span>
+                <h2>Orchestration Architecture</h2>
+                <span class="count">5 pages</span>
+            </div>
+            <div class="card-list">
+                <a href="orchestration/" class="card featured">
+                    <div class="title">
+                        <span class="icon">🌐</span>
+                        Governed Orchestration Hub
+                        <span class="badge">START HERE</span>
+                    </div>
+                    <div class="desc">The "mother of all" scenarios: Agent auth, External apps, MCP, AI Gateway, Lakebase</div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- Authorization (Unity Catalog) -->
+        <section class="section authz">
+            <div class="section-header">
+                <span class="icon">🛡️</span>
+                <h2>Authorization (Unity Catalog)</h2>
+                <span class="count">4 pages</span>
+            </div>
+            <div class="card-list">
+                <a href="uc-access-control-layers.html" class="card authz">
+                    <div class="title">
+                        <span class="icon">🔐</span>
+                        Four Layers of Access Control
+                    </div>
                     <div class="desc">Workspace → Privileges → ABAC → Table Filtering</div>
                 </a>
-            </li>
-            <li>
-                <a href="uc-abac-governed-tags.html">
-                    <span class="icon">🏷️</span> ABAC + Governed Tags
-                    <div class="desc">Tag-based dynamic access control</div>
+                <a href="uc-abac-governed-tags.html" class="card authz">
+                    <div class="title">
+                        <span class="icon">🏷️</span>
+                        ABAC + Governed Tags
+                    </div>
+                    <div class="desc">Tag-based dynamic access control policies</div>
                 </a>
-            </li>
-            <li>
-                <a href="uc-row-filters.html">
-                    <span class="icon">📊</span> Row Filters
+                <a href="uc-row-filters.html" class="card authz">
+                    <div class="title">
+                        <span class="icon">📊</span>
+                        Row Filters
+                    </div>
                     <div class="desc">Row-level security with current_user()</div>
                 </a>
-            </li>
-            <li>
-                <a href="uc-column-masks.html">
-                    <span class="icon">🔒</span> Column Masks
+                <a href="uc-column-masks.html" class="card authz">
+                    <div class="title">
+                        <span class="icon">🔒</span>
+                        Column Masks
+                    </div>
                     <div class="desc">Column-level security with is_member()</div>
                 </a>
-            </li>
-            <li>
-                <a href="auth-flow-obo.html">
-                    <span class="icon">👤</span> On-Behalf-Of-User (OBO)
-                    <div class="desc">Pattern 2: User authentication passthrough</div>
+            </div>
+        </section>
+        
+        <!-- Authentication Flows -->
+        <section class="section authn">
+            <div class="section-header">
+                <span class="icon">🔑</span>
+                <h2>Authentication Flows</h2>
+                <span class="count">3 pages</span>
+            </div>
+            <div class="card-list">
+                <a href="decision-guide.html" class="card authn">
+                    <div class="title">
+                        <span class="icon">🧭</span>
+                        Decision Guide
+                    </div>
+                    <div class="desc">Choose the right authentication pattern for your use case</div>
                 </a>
-            </li>
-            <li>
-                <a href="auth-flow-service-principal.html">
-                    <span class="icon">🤖</span> Service Principal Auth
-                    <div class="desc">Pattern 1: Automatic passthrough</div>
+                <a href="auth-flow-service-principal.html" class="card authn">
+                    <div class="title">
+                        <span class="icon">🤖</span>
+                        Automatic Passthrough (Service Principal)
+                    </div>
+                    <div class="desc">Pattern 1: Agent uses SP identity for resource access</div>
                 </a>
-            </li>
-            <li>
-                <a href="decision-guide.html">
-                    <span class="icon">🧭</span> Decision Guide
-                    <div class="desc">Choose the right authentication pattern</div>
+                <a href="auth-flow-obo.html" class="card authn">
+                    <div class="title">
+                        <span class="icon">👤</span>
+                        On-Behalf-Of-User (OBO)
+                    </div>
+                    <div class="desc">Pattern 2: Agent inherits end-user identity for UC ACLs</div>
                 </a>
-            </li>
-        </ul>
+            </div>
+        </section>
+        
+        <footer>
+            <a href="https://github.com/bhavink/databricks/tree/master/ai-governance" target="_blank">📂 View on GitHub</a>
+            <a href="../ORCHESTRATION-ARCHITECTURE.md" target="_blank">📄 Architecture Reference</a>
+            <a href="https://docs.databricks.com/aws/en/data-governance/unity-catalog/" target="_blank">📚 Unity Catalog Docs</a>
+        </footer>
     </div>
 </body>
 </html>

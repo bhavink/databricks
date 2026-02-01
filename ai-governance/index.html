@@ -225,6 +225,40 @@
             </p>
         </div>
         
+        <h2 class="section-title">🏗️ Orchestration Architecture</h2>
+        <div class="cards">
+            <a href="interactive/orchestration/" class="card" style="border-color: rgba(20, 184, 166, 0.5); background: rgba(20, 184, 166, 0.08);">
+                <div class="card-icon">🌐</div>
+                <h3>Governed Orchestration Hub</h3>
+                <p>The "mother of all" scenarios: Agent auth, External apps, MCP, Model Serving, AI Gateway, Lakebase — all in one place.</p>
+                <span class="card-tag" style="background: rgba(20, 184, 166, 0.25); color: #14b8a6;">START HERE</span>
+            </a>
+            <a href="interactive/orchestration/agent-auth-methods.html" class="card">
+                <div class="card-icon">🔐</div>
+                <h3>Agent Authentication Methods</h3>
+                <p>Automatic Passthrough, On-Behalf-Of-User (OBO), and Manual Authentication for Model Serving.</p>
+                <span class="card-tag auth">Model Serving</span>
+            </a>
+            <a href="interactive/orchestration/external-app-auth.html" class="card">
+                <div class="card-icon">🔄</div>
+                <h3>External App Authentication</h3>
+                <p>OAuth Token Federation for apps running outside Databricks (GitHub Actions, external orchestrators).</p>
+                <span class="card-tag auth">Token Exchange</span>
+            </a>
+            <a href="interactive/orchestration/mcp-integration.html" class="card">
+                <div class="card-icon">🔗</div>
+                <h3>MCP Integration Patterns</h3>
+                <p>Managed, External, and Custom MCP servers — authentication, scopes, and UC governance.</p>
+                <span class="card-tag uc">MCP</span>
+            </a>
+            <a href="interactive/orchestration/ai-gateway-governance.html" class="card">
+                <div class="card-icon">🌉</div>
+                <h3>AI Gateway Governance</h3>
+                <p>Rate limits, guardrails, inference tables, usage tracking for external LLM traffic.</p>
+                <span class="card-tag" style="background: rgba(249, 115, 22, 0.15); color: #f97316;">AI Gateway</span>
+            </a>
+        </div>
+        
         <h2 class="section-title">🔐 Authentication Patterns</h2>
         <div class="cards">
             <a href="interactive/auth-flow-obo.html" class="card">
@@ -277,6 +311,9 @@
         
         <h2 class="section-title">📚 Documentation (on GitHub)</h2>
         <div class="two-col">
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/ORCHESTRATION-ARCHITECTURE.md" target="_blank">
+                🏗️ Orchestration Architecture
+            </a>
             <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/01-AUTHENTICATION-PATTERNS.md" target="_blank">
                 📄 Authentication Patterns Guide
             </a>
@@ -291,9 +328,6 @@
             </a>
             <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/reference/authentication-flows.md" target="_blank">
                 📄 Auth Flow Diagrams
-            </a>
-            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/reference/authorization-flows.md" target="_blank">
-                📄 Authorization Flow Diagrams
             </a>
         </div>
         

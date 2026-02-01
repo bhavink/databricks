@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Integration Patterns - Governed Orchestration</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #22d3ee; }
+        
+        .progress-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #22d3ee, #3b82f6, #ec4899);
+            width: 0%;
+            z-index: 101;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+        
+        .hero h2 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #22d3ee, #3b82f6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 750px; margin-bottom: 1.5rem; }
+        
+        .doc-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.5rem; }
+        
+        .doc-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 6px;
+            color: #22d3ee;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .doc-link:hover { background: rgba(34, 211, 238, 0.2); border-color: #22d3ee; }
+        
+        .scroll-hint { animation: bounce 2s infinite; color: #22d3ee; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        .scrollytelling { display: flex; position: relative; }
+        .scroll-text { flex: 0 0 45%; padding: 0 3rem; }
+        
+        .sticky-visual {
+            flex: 0 0 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+        
+        .step.active { opacity: 1; }
+        
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            width: fit-content;
+        }
+        
+        .step-badge.cyan { background: rgba(34, 211, 238, 0.2); color: #22d3ee; }
+        .step-badge.blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .step-badge.pink { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+        .step-badge.purple { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+        .step-badge.teal { background: rgba(20, 184, 166, 0.2); color: #14b8a6; }
+        
+        .step h3 { font-size: 1.9rem; margin-bottom: 1rem; color: #fff; }
+        .step p { color: #94a3b8; font-size: 1.05rem; margin-bottom: 1rem; }
+        
+        .step .highlight-cyan { color: #22d3ee; font-weight: 600; }
+        .step .highlight-blue { color: #3b82f6; font-weight: 600; }
+        .step .highlight-pink { color: #ec4899; font-weight: 600; }
+        .step .highlight-purple { color: #a855f7; font-weight: 600; }
+        .step .highlight-green { color: #4ade80; font-weight: 600; }
+        
+        .step code {
+            background: rgba(34, 211, 238, 0.15);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: #22d3ee;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+        }
+        
+        .step ul {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .step ul li { margin-bottom: 0.4rem; }
+        
+        .step .key-point {
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid #22d3ee;
+            padding: 0.8rem 1rem;
+            margin-top: 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+        }
+        
+        .step .key-point.blue { border-left-color: #3b82f6; }
+        .step .key-point.pink { border-left-color: #ec4899; }
+        .step .key-point.purple { border-left-color: #a855f7; }
+        
+        /* Diagram Container */
+        .diagram-container {
+            width: 100%;
+            max-width: 520px;
+            height: 600px;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+        
+        /* Flow elements */
+        .flow-box {
+            position: absolute;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .flow-box.visible { opacity: 1; }
+        .flow-box.active { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .flow-box.dimmed { opacity: 0.3; }
+        
+        .flow-box .icon { font-size: 1.2rem; margin-bottom: 0.2rem; }
+        .flow-box .title { font-weight: 600; font-size: 0.8rem; }
+        .flow-box .desc { font-size: 0.6rem; opacity: 0.8; margin-top: 0.1rem; }
+        
+        /* Box colors */
+        .flow-box.cyan { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #1a1a2e; }
+        .flow-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .flow-box.pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+        .flow-box.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
+        .flow-box.teal { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+        .flow-box.green { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
+        .flow-box.orange { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+        .flow-box.slate { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #e8e8e8; }
+        
+        /* Arrows */
+        .flow-arrow {
+            position: absolute;
+            opacity: 0;
+            transition: all 0.5s ease;
+            font-size: 1.1rem;
+        }
+        
+        .flow-arrow.visible { opacity: 1; }
+        .flow-arrow.cyan { color: #22d3ee; }
+        .flow-arrow.blue { color: #3b82f6; }
+        .flow-arrow.pink { color: #ec4899; }
+        .flow-arrow.teal { color: #14b8a6; }
+        
+        /* Flow labels */
+        .flow-label {
+            position: absolute;
+            font-size: 0.55rem;
+            color: #94a3b8;
+            opacity: 0;
+            transition: all 0.5s ease;
+            max-width: 80px;
+            text-align: center;
+        }
+        
+        .flow-label.visible { opacity: 1; }
+        
+        /* Client icons grid */
+        .client-grid {
+            position: absolute;
+            display: flex;
+            gap: 0.8rem;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .client-grid.visible { opacity: 1; }
+        
+        .client-box {
+            padding: 0.5rem 0.7rem;
+            border-radius: 8px;
+            text-align: center;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.65rem;
+        }
+        
+        .client-box .icon { font-size: 1.1rem; margin-bottom: 0.2rem; }
+        
+        /* Summary Section */
+        .summary {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #22d3ee; }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+        }
+        
+        .summary-card.cyan { border-top: 4px solid #22d3ee; }
+        .summary-card.pink { border-top: 4px solid #ec4899; }
+        .summary-card.purple { border-top: 4px solid #a855f7; }
+        
+        .summary-card h4 { margin-bottom: 0.5rem; font-size: 1rem; }
+        .summary-card.cyan h4 { color: #22d3ee; }
+        .summary-card.pink h4 { color: #ec4899; }
+        .summary-card.purple h4 { color: #a855f7; }
+        
+        .summary-card p { color: #94a3b8; font-size: 0.8rem; margin-bottom: 0.5rem; }
+        .summary-card code { font-size: 0.65rem; }
+        .summary-card ul { color: #64748b; font-size: 0.75rem; padding-left: 1rem; }
+        .summary-card li { margin-bottom: 0.2rem; }
+        
+        .back-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .back-link {
+            color: #14b8a6;
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid #14b8a6;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover { background: #14b8a6; color: #1a1a2e; }
+        
+        @media (max-width: 900px) {
+            .scrollytelling { flex-direction: column; }
+            .scroll-text { flex: none; padding: 0 1.5rem; }
+            .sticky-visual { flex: none; height: 55vh; position: sticky; top: 60px; }
+            .step { min-height: 80vh; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .hero h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🔗 MCP Integration Patterns</h1>
+    </header>
+    
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <section class="hero">
+        <h2>MCP Integration Patterns</h2>
+        <p>
+            Model Context Protocol (MCP) enables agents to call tools in a standardized way.
+            Databricks provides Managed, External, and Custom MCP servers - all governed by Unity Catalog.
+        </p>
+        
+        <div class="doc-links">
+            <a href="https://docs.databricks.com/aws/en/generative-ai/mcp/managed-mcp" target="_blank" class="doc-link">📖 Managed MCP</a>
+            <a href="https://docs.databricks.com/aws/en/generative-ai/mcp/connect-external-services" target="_blank" class="doc-link">📖 External Services</a>
+            <a href="https://docs.databricks.com/aws/en/generative-ai/mcp/custom-mcp" target="_blank" class="doc-link">📖 Custom MCP</a>
+        </div>
+        
+        <div class="scroll-hint">↓ Scroll to explore MCP types</div>
+    </section>
+    
+    <section class="scrollytelling">
+        <div class="scroll-text">
+            <!-- Step 1: What is MCP -->
+            <div class="step" data-step="1">
+                <span class="step-badge teal">Overview</span>
+                <h3>What is MCP?</h3>
+                <p>
+                    <span class="highlight-cyan">Model Context Protocol (MCP)</span> is a standard for connecting 
+                    AI agents to tools and data sources.
+                </p>
+                <p>
+                    Instead of writing custom integrations for each tool, agents use MCP to discover and call tools through a unified interface.
+                </p>
+                <div class="key-point">
+                    MCP provides: tool discovery, standardized calling conventions, and structured responses.
+                </div>
+            </div>
+            
+            <!-- Step 2: Three MCP Types -->
+            <div class="step" data-step="2">
+                <span class="step-badge teal">MCP Types</span>
+                <h3>Three Types of MCP Servers</h3>
+                <p>
+                    Databricks supports three MCP server types:
+                </p>
+                <ul>
+                    <li><span class="highlight-cyan">Managed MCP</span> - Databricks-hosted (Genie, Vector Search, UC Functions, DBSQL)</li>
+                    <li><span class="highlight-pink">External MCP</span> - Third-party servers via UC HTTP connections</li>
+                    <li><span class="highlight-purple">Custom MCP</span> - Your own servers hosted on Databricks Apps</li>
+                </ul>
+                <p>
+                    All three are <span class="highlight-green">governed by Unity Catalog</span> - permissions enforced, scopes validated.
+                </p>
+            </div>
+            
+            <!-- Step 3: Managed MCP Intro -->
+            <div class="step" data-step="3">
+                <span class="step-badge cyan">Managed MCP</span>
+                <h3>Managed MCP Servers</h3>
+                <p>
+                    Databricks-hosted MCP servers expose core platform capabilities:
+                </p>
+                <ul>
+                    <li><span class="highlight-cyan">Genie</span> - Natural language analytics on structured data</li>
+                    <li><span class="highlight-cyan">Vector Search</span> - Retrieval across unstructured content</li>
+                    <li><span class="highlight-cyan">UC Functions</span> - Deterministic tools registered in Unity Catalog</li>
+                    <li><span class="highlight-cyan">DBSQL</span> - SQL statement execution</li>
+                </ul>
+                <div class="key-point">
+                    No setup required - these are ready to use with UC-enforced permissions.
+                </div>
+            </div>
+            
+            <!-- Step 4: Managed MCP URLs -->
+            <div class="step" data-step="4">
+                <span class="step-badge cyan">Managed MCP</span>
+                <h3>URL Patterns</h3>
+                <p>
+                    Each managed MCP server has a specific URL pattern:
+                </p>
+                <ul>
+                    <li><code>/api/2.0/mcp/genie/{space_id}</code></li>
+                    <li><code>/api/2.0/mcp/vector-search/{catalog}/{schema}</code></li>
+                    <li><code>/api/2.0/mcp/functions/{catalog}/{schema}</code></li>
+                    <li><code>/api/2.0/mcp/sql</code></li>
+                </ul>
+                <p>
+                    <strong>Note:</strong> Genie requires <span class="highlight-cyan">polling</span> for long-running queries.
+                </p>
+            </div>
+            
+            <!-- Step 5: External MCP Intro -->
+            <div class="step" data-step="5">
+                <span class="step-badge pink">External MCP</span>
+                <h3>External MCP Servers</h3>
+                <p>
+                    Connect to <span class="highlight-pink">third-party MCP servers</span> through UC HTTP connections.
+                </p>
+                <p>
+                    UC HTTP connections act as a <span class="highlight-green">secure proxy</span> - your agent calls the connection, 
+                    Databricks forwards to the external server with credentials managed in UC.
+                </p>
+                <ul>
+                    <li>External tools appear under UC governance</li>
+                    <li>Credentials stored in UC secret scopes</li>
+                    <li>Access controlled by UC permissions</li>
+                </ul>
+            </div>
+            
+            <!-- Step 6: External MCP Pattern -->
+            <div class="step" data-step="6">
+                <span class="step-badge pink">External MCP</span>
+                <h3>UC HTTP Connection Pattern</h3>
+                <p>
+                    Reference external MCP via UC connection:
+                </p>
+                <p>
+                    <code>uc://connections/{connection_name}</code>
+                </p>
+                <p>
+                    The connection stores:
+                </p>
+                <ul>
+                    <li>External MCP server URL</li>
+                    <li>Authentication credentials</li>
+                    <li>Headers and configuration</li>
+                </ul>
+                <div class="key-point pink">
+                    Your agent never sees the external credentials - UC handles the proxy securely.
+                </div>
+            </div>
+            
+            <!-- Step 7: Custom MCP Intro -->
+            <div class="step" data-step="7">
+                <span class="step-badge purple">Custom MCP</span>
+                <h3>Custom MCP Servers</h3>
+                <p>
+                    Host your own MCP servers on <span class="highlight-purple">Databricks Apps</span>.
+                </p>
+                <p>
+                    Use cases:
+                </p>
+                <ul>
+                    <li>Organization-specific tools</li>
+                    <li>Custom data transformations</li>
+                    <li>Proprietary business logic</li>
+                    <li>Internal API wrappers</li>
+                </ul>
+                <div class="key-point purple">
+                    Custom MCP servers support OAuth authentication. PAT auth is NOT supported for custom MCP.
+                </div>
+            </div>
+            
+            <!-- Step 8: Authentication for MCP -->
+            <div class="step" data-step="8">
+                <span class="step-badge teal">Authentication</span>
+                <h3>MCP Authentication</h3>
+                <p>
+                    The <span class="highlight-green">three agent auth methods</span> apply to MCP:
+                </p>
+                <ul>
+                    <li><span class="highlight-green">Automatic Passthrough</span> - Declare MCP servers at logging time, system SP handles auth</li>
+                    <li><span class="highlight-cyan">OBO</span> - Agent calls MCP with user's identity via <code>DatabricksMCPClient</code></li>
+                    <li><span class="highlight-purple">Manual</span> - Required for custom MCP (OAuth only)</li>
+                </ul>
+                <p>
+                    Declare MCP URLs and scopes when logging your agent for verification at deploy time.
+                </p>
+            </div>
+            
+            <!-- Step 9: MCP Scopes -->
+            <div class="step" data-step="9">
+                <span class="step-badge teal">Scopes</span>
+                <h3>Required OAuth Scopes</h3>
+                <p>
+                    Each MCP server type requires specific scopes:
+                </p>
+                <ul>
+                    <li><code>mcp.genie</code> - Genie spaces</li>
+                    <li><code>mcp.functions</code> - UC functions</li>
+                    <li><code>mcp.vectorsearch</code> - Vector Search</li>
+                    <li><code>mcp.sql</code> + <code>sql.warehouses</code> + <code>sql.statement-execution</code> - DBSQL</li>
+                    <li><code>mcp.external</code> - External MCP via UC connections</li>
+                </ul>
+                <div class="key-point">
+                    Minimize scopes - only request what your agent actually needs.
+                </div>
+            </div>
+            
+            <!-- Step 10: External Clients -->
+            <div class="step" data-step="10">
+                <span class="step-badge blue">External Clients</span>
+                <h3>Non-Databricks Clients</h3>
+                <p>
+                    Connect <span class="highlight-blue">external AI assistants</span> to Databricks MCP servers:
+                </p>
+                <ul>
+                    <li><span class="highlight-blue">Claude</span> - Via Claude Connectors</li>
+                    <li><span class="highlight-blue">Cursor/Windsurf</span> - Via mcp-remote</li>
+                    <li><span class="highlight-blue">ChatGPT</span> - Via Custom Apps</li>
+                    <li><span class="highlight-blue">MCP Inspector</span> - For testing</li>
+                </ul>
+                <p>
+                    Authentication options: <span class="highlight-purple">OAuth</span> (recommended) or <span class="highlight-cyan">PAT</span> (managed/external only).
+                </p>
+            </div>
+            
+            <!-- Step 11: OAuth for External Clients -->
+            <div class="step" data-step="11">
+                <span class="step-badge blue">External Clients</span>
+                <h3>OAuth Setup for Clients</h3>
+                <p>
+                    To connect external clients via OAuth:
+                </p>
+                <ol style="color: #94a3b8; padding-left: 1.5rem; font-size: 0.95rem;">
+                    <li>Create OAuth app in Account Console</li>
+                    <li>Configure redirect URLs for your client</li>
+                    <li>Set appropriate scopes</li>
+                    <li>Configure client with MCP server URL + OAuth credentials</li>
+                </ol>
+                <p style="margin-top: 1rem;">
+                    Example redirect URLs:
+                </p>
+                <ul>
+                    <li>Claude: <code>https://claude.ai/api/mcp/auth_callback</code></li>
+                    <li>MCP Inspector: <code>http://localhost:6274/oauth/callback</code></li>
+                </ul>
+            </div>
+            
+            <!-- Step 12: UC Governance -->
+            <div class="step" data-step="12">
+                <span class="step-badge teal">Governance</span>
+                <h3>Unity Catalog Governance</h3>
+                <p>
+                    All MCP types are <span class="highlight-green">governed by Unity Catalog</span>:
+                </p>
+                <ul>
+                    <li>Permissions checked before tool execution</li>
+                    <li>Scopes validated at deploy time</li>
+                    <li>Audit logs for all MCP calls</li>
+                    <li>Row filters and column masks apply to data returned</li>
+                </ul>
+                <div class="key-point">
+                    Whether Managed, External, or Custom - UC ensures your agents only access what they're authorized to.
+                </div>
+            </div>
+            
+            <!-- Step 13: Summary -->
+            <div class="step" data-step="13">
+                <span class="step-badge teal">Summary</span>
+                <h3>Key Takeaways</h3>
+                <p>
+                    <span class="highlight-cyan">Managed MCP</span>: Ready-to-use Databricks tools (Genie, VS, Functions, SQL).
+                </p>
+                <p>
+                    <span class="highlight-pink">External MCP</span>: Third-party servers via UC HTTP connections.
+                </p>
+                <p>
+                    <span class="highlight-purple">Custom MCP</span>: Your servers on Databricks Apps (OAuth only).
+                </p>
+                <p>
+                    <span class="highlight-green">All governed by UC</span> - declare dependencies, minimize scopes, permissions enforced.
+                </p>
+            </div>
+        </div>
+        
+        <div class="sticky-visual">
+            <div class="diagram-container">
+                <!-- Agent -->
+                <div class="flow-box teal" id="agent-box" style="left: 50%; transform: translateX(-50%); top: 20px; min-width: 140px;">
+                    <div class="icon">🤖</div>
+                    <div class="title">Agent</div>
+                    <div class="desc">On Model Serving</div>
+                </div>
+                
+                <!-- MCP Layer -->
+                <div class="flow-box slate" id="mcp-layer" style="left: 50%; transform: translateX(-50%); top: 100px; min-width: 300px; padding: 0.5rem;">
+                    <div class="title" style="font-size: 0.7rem; color: #94a3b8;">MCP Protocol Layer</div>
+                </div>
+                
+                <!-- Managed MCP Servers -->
+                <div class="flow-box cyan" id="genie-box" style="left: 20px; top: 170px; min-width: 90px;">
+                    <div class="icon">🔮</div>
+                    <div class="title">Genie</div>
+                    <div class="desc">Analytics</div>
+                </div>
+                
+                <div class="flow-box cyan" id="vs-box" style="left: 120px; top: 170px; min-width: 90px;">
+                    <div class="icon">🔍</div>
+                    <div class="title">Vector Search</div>
+                    <div class="desc">Retrieval</div>
+                </div>
+                
+                <div class="flow-box cyan" id="func-box" style="right: 120px; top: 170px; min-width: 90px;">
+                    <div class="icon">⚙️</div>
+                    <div class="title">UC Functions</div>
+                    <div class="desc">Tools</div>
+                </div>
+                
+                <div class="flow-box cyan" id="sql-box" style="right: 20px; top: 170px; min-width: 90px;">
+                    <div class="icon">📊</div>
+                    <div class="title">DBSQL</div>
+                    <div class="desc">Queries</div>
+                </div>
+                
+                <!-- External MCP -->
+                <div class="flow-box pink" id="ext-mcp-box" style="left: 50px; top: 280px; min-width: 130px;">
+                    <div class="icon">🌐</div>
+                    <div class="title">External MCP</div>
+                    <div class="desc">Via UC HTTP Conn</div>
+                </div>
+                
+                <!-- Custom MCP -->
+                <div class="flow-box purple" id="custom-mcp-box" style="right: 50px; top: 280px; min-width: 130px;">
+                    <div class="icon">📦</div>
+                    <div class="title">Custom MCP</div>
+                    <div class="desc">Databricks Apps</div>
+                </div>
+                
+                <!-- UC Connection proxy -->
+                <div class="flow-box slate" id="uc-conn-box" style="left: 50px; top: 380px; min-width: 130px;">
+                    <div class="icon">🔗</div>
+                    <div class="title">UC Connection</div>
+                    <div class="desc">Secure proxy</div>
+                </div>
+                
+                <!-- External Server -->
+                <div class="flow-box orange" id="ext-server-box" style="left: 50px; top: 470px; min-width: 130px;">
+                    <div class="icon">🌍</div>
+                    <div class="title">Third-Party Server</div>
+                    <div class="desc">External tools</div>
+                </div>
+                
+                <!-- Unity Catalog -->
+                <div class="flow-box green" id="uc-box" style="left: 50%; transform: translateX(-50%); bottom: 20px; min-width: 350px;">
+                    <div class="icon">🛡️</div>
+                    <div class="title">Unity Catalog Governance</div>
+                    <div class="desc">Permissions, Scopes, Audit, Row Filters, Column Masks</div>
+                </div>
+                
+                <!-- Arrows -->
+                <div class="flow-arrow cyan" id="arrow-agent-mcp" style="left: 50%; transform: translateX(-50%); top: 70px;">↓</div>
+                <div class="flow-arrow cyan" id="arrow-mcp-managed" style="left: 50%; transform: translateX(-50%); top: 140px;">↓</div>
+                <div class="flow-arrow pink" id="arrow-to-ext" style="left: 110px; top: 250px;">↓</div>
+                <div class="flow-arrow purple" id="arrow-to-custom" style="right: 110px; top: 250px;">↓</div>
+                <div class="flow-arrow pink" id="arrow-ext-conn" style="left: 110px; top: 355px;">↓</div>
+                <div class="flow-arrow pink" id="arrow-conn-server" style="left: 110px; top: 445px;">↓</div>
+                <div class="flow-arrow teal" id="arrow-to-uc" style="left: 50%; transform: translateX(-50%); top: 510px;">↓</div>
+                
+                <!-- Labels -->
+                <div class="flow-label" id="label-managed" style="left: 50%; transform: translateX(-50%); top: 245px; color: #22d3ee;">Managed MCP</div>
+                
+                <!-- External clients grid -->
+                <div class="client-grid" id="client-grid" style="left: 50%; transform: translateX(-50%); top: 120px;">
+                    <div class="client-box"><div class="icon">🤖</div>Claude</div>
+                    <div class="client-box"><div class="icon">💻</div>Cursor</div>
+                    <div class="client-box"><div class="icon">💬</div>ChatGPT</div>
+                    <div class="client-box"><div class="icon">🔧</div>Inspector</div>
+                </div>
+                
+                <!-- Auth methods overlay -->
+                <div class="flow-box green" id="auto-auth-box" style="left: 30px; top: 90px; min-width: 100px; display: none;">
+                    <div class="icon">⚡</div>
+                    <div class="title">Automatic</div>
+                    <div class="desc">System SP</div>
+                </div>
+                
+                <div class="flow-box cyan" id="obo-auth-box" style="left: 50%; transform: translateX(-50%); top: 90px; min-width: 100px; display: none;">
+                    <div class="icon">👤</div>
+                    <div class="title">OBO</div>
+                    <div class="desc">User identity</div>
+                </div>
+                
+                <div class="flow-box purple" id="manual-auth-box" style="right: 30px; top: 90px; min-width: 100px; display: none;">
+                    <div class="icon">🔑</div>
+                    <div class="title">Manual</div>
+                    <div class="desc">OAuth only</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="summary">
+        <h2>Quick Reference</h2>
+        
+        <div class="summary-grid">
+            <div class="summary-card cyan">
+                <h4>Managed MCP</h4>
+                <p><strong>Databricks-hosted tools</strong></p>
+                <ul>
+                    <li>Genie: <code>/api/2.0/mcp/genie/{id}</code></li>
+                    <li>Vector Search: <code>/api/2.0/mcp/vector-search/{cat}/{sch}</code></li>
+                    <li>UC Functions: <code>/api/2.0/mcp/functions/{cat}/{sch}</code></li>
+                    <li>DBSQL: <code>/api/2.0/mcp/sql</code></li>
+                </ul>
+                <p style="margin-top: 0.5rem; color: #22d3ee; font-size: 0.7rem;">Auth: Automatic, OBO, or PAT</p>
+            </div>
+            
+            <div class="summary-card pink">
+                <h4>External MCP</h4>
+                <p><strong>Third-party servers via UC</strong></p>
+                <ul>
+                    <li>Pattern: <code>uc://connections/{name}</code></li>
+                    <li>UC HTTP connection as proxy</li>
+                    <li>Credentials in UC secret scopes</li>
+                    <li>UC governs access</li>
+                </ul>
+                <p style="margin-top: 0.5rem; color: #ec4899; font-size: 0.7rem;">Auth: Automatic, OBO, or PAT</p>
+            </div>
+            
+            <div class="summary-card purple">
+                <h4>Custom MCP</h4>
+                <p><strong>Your servers on Databricks Apps</strong></p>
+                <ul>
+                    <li>Host on Databricks Apps</li>
+                    <li>Organization-specific tools</li>
+                    <li>OAuth authentication required</li>
+                    <li>PAT not supported</li>
+                </ul>
+                <p style="margin-top: 0.5rem; color: #a855f7; font-size: 0.7rem;">Auth: OAuth only (Manual)</p>
+            </div>
+        </div>
+        
+        <div class="back-links">
+            <a href="./" class="back-link">← Back to Orchestration Hub</a>
+            <a href="https://docs.databricks.com/aws/en/generative-ai/mcp/connect-external-services" target="_blank" class="back-link">📖 Official Docs</a>
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/ORCHESTRATION-ARCHITECTURE.md" target="_blank" class="back-link">📄 Architecture Reference</a>
+        </div>
+    </section>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        // Progress bar
+        gsap.to("#progressBar", {
+            width: "100%",
+            ease: "none",
+            scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: true }
+        });
+        
+        const steps = document.querySelectorAll('.step');
+        
+        function hideAuthOverlay() {
+            ['auto-auth-box', 'obo-auth-box', 'manual-auth-box'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+        }
+        
+        function showAuthOverlay() {
+            ['auto-auth-box', 'obo-auth-box', 'manual-auth-box'].forEach(id => {
+                document.getElementById(id).style.display = '';
+            });
+        }
+        
+        function updateDiagram(stepNum) {
+            // Reset all
+            document.querySelectorAll('.flow-box').forEach(el => {
+                el.classList.remove('visible', 'active', 'dimmed');
+            });
+            document.querySelectorAll('.flow-arrow, .flow-label').forEach(el => {
+                el.classList.remove('visible');
+            });
+            document.getElementById('client-grid').classList.remove('visible');
+            hideAuthOverlay();
+            
+            switch(stepNum) {
+                case 1: // What is MCP
+                    document.getElementById('agent-box').classList.add('visible', 'active');
+                    document.getElementById('mcp-layer').classList.add('visible');
+                    document.getElementById('arrow-agent-mcp').classList.add('visible');
+                    break;
+                    
+                case 2: // Three types
+                    ['agent-box', 'mcp-layer', 'genie-box', 'vs-box', 'func-box', 'sql-box',
+                     'ext-mcp-box', 'custom-mcp-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['arrow-agent-mcp', 'arrow-mcp-managed', 'arrow-to-ext', 'arrow-to-custom', 'arrow-to-uc'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('label-managed').classList.add('visible');
+                    break;
+                    
+                case 3: // Managed MCP intro
+                    ['agent-box', 'mcp-layer', 'genie-box', 'vs-box', 'func-box', 'sql-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['genie-box', 'vs-box', 'func-box', 'sql-box'].forEach(id => {
+                        document.getElementById(id).classList.add('active');
+                    });
+                    ['arrow-agent-mcp', 'arrow-mcp-managed', 'arrow-to-uc'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('label-managed').classList.add('visible');
+                    break;
+                    
+                case 4: // Managed MCP URLs
+                    ['agent-box', 'genie-box', 'vs-box', 'func-box', 'sql-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('genie-box').classList.add('active');
+                    ['arrow-agent-mcp', 'arrow-to-uc'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 5: // External MCP intro
+                    ['agent-box', 'ext-mcp-box', 'uc-conn-box', 'ext-server-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('ext-mcp-box').classList.add('active');
+                    ['arrow-to-ext', 'arrow-ext-conn', 'arrow-conn-server', 'arrow-to-uc'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 6: // External MCP pattern
+                    ['agent-box', 'ext-mcp-box', 'uc-conn-box', 'ext-server-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('uc-conn-box').classList.add('active');
+                    ['arrow-to-ext', 'arrow-ext-conn', 'arrow-conn-server', 'arrow-to-uc'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 7: // Custom MCP intro
+                    ['agent-box', 'custom-mcp-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('custom-mcp-box').classList.add('active');
+                    ['arrow-to-custom', 'arrow-to-uc'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 8: // Authentication
+                    document.getElementById('agent-box').classList.add('visible');
+                    showAuthOverlay();
+                    ['auto-auth-box', 'obo-auth-box', 'manual-auth-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['genie-box', 'vs-box', 'ext-mcp-box', 'custom-mcp-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible', 'dimmed');
+                    });
+                    break;
+                    
+                case 9: // Scopes
+                    ['agent-box', 'genie-box', 'vs-box', 'func-box', 'sql-box', 'ext-mcp-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('uc-box').classList.add('active');
+                    break;
+                    
+                case 10: // External clients
+                    document.getElementById('agent-box').classList.add('visible', 'dimmed');
+                    document.getElementById('client-grid').classList.add('visible');
+                    ['genie-box', 'vs-box', 'func-box', 'sql-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 11: // OAuth for external clients
+                    document.getElementById('client-grid').classList.add('visible');
+                    ['genie-box', 'vs-box', 'ext-mcp-box', 'custom-mcp-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 12: // UC Governance
+                    ['agent-box', 'genie-box', 'vs-box', 'func-box', 'sql-box',
+                     'ext-mcp-box', 'custom-mcp-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('uc-box').classList.add('active');
+                    ['arrow-to-uc'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 13: // Summary
+                    ['agent-box', 'mcp-layer', 'genie-box', 'vs-box', 'func-box', 'sql-box',
+                     'ext-mcp-box', 'custom-mcp-box', 'uc-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['arrow-agent-mcp', 'arrow-mcp-managed', 'arrow-to-ext', 'arrow-to-custom', 'arrow-to-uc'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('label-managed').classList.add('visible');
+                    break;
+            }
+        }
+        
+        steps.forEach((step, index) => {
+            ScrollTrigger.create({
+                trigger: step,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => { 
+                    steps.forEach(s => s.classList.remove('active')); 
+                    step.classList.add('active'); 
+                    updateDiagram(index + 1); 
+                },
+                onEnterBack: () => { 
+                    steps.forEach(s => s.classList.remove('active')); 
+                    step.classList.add('active'); 
+                    updateDiagram(index + 1); 
+                }
+            });
+        });
+        
+        // Initial state
+        setTimeout(() => { steps[0].classList.add('active'); updateDiagram(1); }, 500);
+    </script>
+</body>
+</html>

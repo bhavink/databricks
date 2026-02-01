@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Governed Orchestration Architecture - Databricks AI</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #14b8a6; }
+        header a { color: #22d3ee; text-decoration: none; font-size: 0.9rem; }
+        header a:hover { text-decoration: underline; }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+        
+        .hero h2 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #22d3ee, #4ade80, #a855f7, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 750px; margin-bottom: 1.5rem; }
+        
+        .hero .subtitle { font-size: 1rem; color: #64748b; margin-bottom: 2rem; }
+        
+        .doc-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; }
+        
+        .doc-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 6px;
+            color: #14b8a6;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        
+        .doc-link:hover { background: rgba(20, 184, 166, 0.2); border-color: #14b8a6; }
+        
+        .scroll-hint { animation: bounce 2s infinite; color: #14b8a6; font-size: 1.1rem; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        /* Architecture Overview Section */
+        .arch-section {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .arch-section h3 {
+            font-size: 2rem;
+            color: #14b8a6;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .arch-section .section-desc {
+            text-align: center;
+            color: #94a3b8;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+        
+        /* Architecture Diagram */
+        .arch-diagram {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .arch-row {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .arch-row.center { justify-content: center; }
+        
+        .arch-arrow {
+            display: flex;
+            justify-content: center;
+            color: #64748b;
+            font-size: 1.5rem;
+            margin: 0.5rem 0;
+        }
+        
+        .arch-box {
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 140px;
+            transition: all 0.3s ease;
+        }
+        
+        .arch-box:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        
+        .arch-box .icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+        .arch-box .title { font-weight: 600; font-size: 0.85rem; }
+        .arch-box .desc { font-size: 0.7rem; opacity: 0.8; margin-top: 0.2rem; }
+        
+        /* Color variants */
+        .arch-box.cyan { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #1a1a2e; }
+        .arch-box.green { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
+        .arch-box.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
+        .arch-box.orange { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+        .arch-box.teal { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+        .arch-box.pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+        .arch-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .arch-box.slate { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #e8e8e8; }
+        .arch-box.yellow { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1a1a2e; }
+        
+        .arch-label {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.8rem;
+        }
+        
+        .arch-divider {
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            margin: 2rem 0;
+        }
+        
+        /* Navigation Cards */
+        .nav-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .nav-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-4px);
+        }
+        
+        .nav-card .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .nav-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+        
+        .nav-card p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+        
+        .nav-card .topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .nav-card .topic {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            color: #94a3b8;
+        }
+        
+        .nav-card.cyan { border-left: 4px solid #22d3ee; }
+        .nav-card.cyan h4 { color: #22d3ee; }
+        
+        .nav-card.green { border-left: 4px solid #4ade80; }
+        .nav-card.green h4 { color: #4ade80; }
+        
+        .nav-card.purple { border-left: 4px solid #a855f7; }
+        .nav-card.purple h4 { color: #a855f7; }
+        
+        .nav-card.orange { border-left: 4px solid #f97316; }
+        .nav-card.orange h4 { color: #f97316; }
+        
+        .nav-card .coming-soon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            border-radius: 4px;
+            color: #fbbf24;
+        }
+        
+        /* Two Auth Scenarios Section */
+        .scenarios-section {
+            padding: 4rem 2rem;
+            background: rgba(0,0,0,0.2);
+        }
+        
+        .scenarios-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .scenarios-section h3 {
+            font-size: 2rem;
+            color: #14b8a6;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .scenario-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .scenario-box h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .scenario-box.external { border-top: 3px solid #a855f7; }
+        .scenario-box.external h4 { color: #a855f7; }
+        
+        .scenario-box.agent { border-top: 3px solid #4ade80; }
+        .scenario-box.agent h4 { color: #4ade80; }
+        
+        .scenario-box p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem; }
+        
+        .scenario-box ul { padding-left: 1.2rem; color: #64748b; font-size: 0.85rem; }
+        .scenario-box li { margin-bottom: 0.3rem; }
+        
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        footer .links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: #14b8a6;
+            text-decoration: none;
+            font-size: 0.95rem;
+            padding: 0.7rem 1.3rem;
+            border: 2px solid #14b8a6;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-link:hover { background: #14b8a6; color: #1a1a2e; }
+        
+        @media (max-width: 768px) {
+            .hero h2 { font-size: 2rem; }
+            .scenarios-grid { grid-template-columns: 1fr; }
+            .arch-row { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Governed Orchestration Architecture</h1>
+        <a href="../">← All Interactive Pages</a>
+    </header>
+    
+    <section class="hero">
+        <h2>Governed Orchestration Architecture</h2>
+        <p>
+            A comprehensive guide to building governed AI applications on Databricks. 
+            Understand how authentication flows, MCP integration, Model Serving, and AI Gateway 
+            work together for secure, scalable orchestration.
+        </p>
+        <p class="subtitle">
+            The "mother of all" scenarios: stitching together Databricks services with proper auth flows
+        </p>
+        
+        <div class="doc-links">
+            <a href="https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication" target="_blank" class="doc-link">Agent Authentication</a>
+            <a href="https://docs.databricks.com/aws/en/generative-ai/mcp/connect-external-services" target="_blank" class="doc-link">MCP External Services</a>
+            <a href="https://docs.databricks.com/aws/en/machine-learning/model-serving/" target="_blank" class="doc-link">Model Serving</a>
+            <a href="https://docs.databricks.com/aws/en/dev-tools/auth/oauth-federation" target="_blank" class="doc-link">OAuth Federation</a>
+            <a href="https://docs.databricks.com/aws/en/generative-ai/agent-framework/stateful-agents" target="_blank" class="doc-link">Agent Memory</a>
+        </div>
+        
+        <div class="scroll-hint">↓ Explore the architecture</div>
+    </section>
+    
+    <!-- Architecture Overview -->
+    <section class="arch-section">
+        <h3>Architecture Components</h3>
+        <p class="section-desc">
+            All the pieces that come together in a governed AI application. 
+            Each component has specific authentication requirements.
+        </p>
+        
+        <div class="arch-diagram">
+            <!-- Entry Points -->
+            <div class="arch-label">Entry Points</div>
+            <div class="arch-row">
+                <div class="arch-box purple">
+                    <div class="icon">🌐</div>
+                    <div class="title">External App</div>
+                    <div class="desc">Token Exchange</div>
+                </div>
+                <div class="arch-box cyan">
+                    <div class="icon">📱</div>
+                    <div class="title">Databricks App</div>
+                    <div class="desc">Native Auth</div>
+                </div>
+            </div>
+            
+            <div class="arch-arrow">↓</div>
+            
+            <!-- Model Serving Layer -->
+            <div class="arch-label">Model Serving (Deployment)</div>
+            <div class="arch-row">
+                <div class="arch-box green">
+                    <div class="icon">🤖</div>
+                    <div class="title">Custom Models</div>
+                    <div class="desc">Agents, MLflow</div>
+                </div>
+                <div class="arch-box green">
+                    <div class="icon">🧠</div>
+                    <div class="title">Foundation Models</div>
+                    <div class="desc">Hosted LLMs</div>
+                </div>
+                <div class="arch-box orange">
+                    <div class="icon">🌉</div>
+                    <div class="title">AI Gateway</div>
+                    <div class="desc">External LLMs</div>
+                </div>
+            </div>
+            
+            <div class="arch-divider"></div>
+            
+            <!-- Auth Methods -->
+            <div class="arch-label">Authentication Methods (Agent → Resources)</div>
+            <div class="arch-row">
+                <div class="arch-box teal">
+                    <div class="icon">⚡</div>
+                    <div class="title">Automatic</div>
+                    <div class="desc">Passthrough</div>
+                </div>
+                <div class="arch-box teal">
+                    <div class="icon">👤</div>
+                    <div class="title">OBO</div>
+                    <div class="desc">User Identity</div>
+                </div>
+                <div class="arch-box teal">
+                    <div class="icon">🔑</div>
+                    <div class="title">Manual</div>
+                    <div class="desc">Credentials</div>
+                </div>
+            </div>
+            
+            <div class="arch-arrow">↓</div>
+            
+            <!-- MCP & Resources -->
+            <div class="arch-label">MCP Servers & Resources</div>
+            <div class="arch-row">
+                <div class="arch-box blue">
+                    <div class="icon">🔮</div>
+                    <div class="title">Genie</div>
+                    <div class="desc">Analytics</div>
+                </div>
+                <div class="arch-box blue">
+                    <div class="icon">🔍</div>
+                    <div class="title">Vector Search</div>
+                    <div class="desc">Retrieval</div>
+                </div>
+                <div class="arch-box blue">
+                    <div class="icon">⚙️</div>
+                    <div class="title">UC Functions</div>
+                    <div class="desc">Tools</div>
+                </div>
+                <div class="arch-box blue">
+                    <div class="icon">📊</div>
+                    <div class="title">DBSQL</div>
+                    <div class="desc">Queries</div>
+                </div>
+            </div>
+            
+            <div class="arch-row" style="margin-top: 1rem;">
+                <div class="arch-box pink">
+                    <div class="icon">🔗</div>
+                    <div class="title">External MCP</div>
+                    <div class="desc">UC HTTP Conn</div>
+                </div>
+                <div class="arch-box pink">
+                    <div class="icon">📦</div>
+                    <div class="title">Custom MCP</div>
+                    <div class="desc">Databricks Apps</div>
+                </div>
+            </div>
+            
+            <div class="arch-row" style="margin-top: 1rem;">
+                <div class="arch-box yellow" style="min-width: 220px;">
+                    <div class="icon">🗃️</div>
+                    <div class="title">Lakebase (Postgres)</div>
+                    <div class="desc">Agent Memory • OLTP State • OAuth/Native Auth</div>
+                </div>
+            </div>
+            
+            <div class="arch-divider"></div>
+            
+            <!-- Unity Catalog -->
+            <div class="arch-label">Governance Layer</div>
+            <div class="arch-row center">
+                <div class="arch-box slate" style="min-width: 300px;">
+                    <div class="icon">🛡️</div>
+                    <div class="title">Unity Catalog</div>
+                    <div class="desc">Permissions, ABAC, Row Filters, Column Masks, Lineage</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Two Auth Scenarios -->
+    <section class="scenarios-section">
+        <div class="scenarios-container">
+            <h3>Two Authentication Scenarios</h3>
+            
+            <div class="scenarios-grid">
+                <div class="scenario-box external">
+                    <h4>Scenario A: External App → Databricks</h4>
+                    <p>Your application runs OUTSIDE Databricks and needs to call Databricks APIs.</p>
+                    <ul>
+                        <li>OAuth Token Exchange (Token Federation)</li>
+                        <li>Native OAuth with Entra (Azure)</li>
+                        <li>IdP tokens exchanged for Databricks tokens</li>
+                        <li>Server-side token handling</li>
+                    </ul>
+                </div>
+                
+                <div class="scenario-box agent">
+                    <h4>Scenario B: Agent → Resources</h4>
+                    <p>Your agent runs ON Databricks (Model Serving) and needs to access resources.</p>
+                    <ul>
+                        <li>Automatic Authentication Passthrough</li>
+                        <li>On-Behalf-Of-User (OBO)</li>
+                        <li>Manual Authentication</li>
+                        <li>Declared at logging time</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Lakebase Highlight -->
+            <div style="margin-top: 2rem; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05)); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 1.5rem;">
+                <h4 style="color: #fbbf24; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🗃️</span> Lakebase: Agent Memory & OLTP State
+                </h4>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem;">
+                    <strong>Lakebase</strong> is a fully-managed Postgres OLTP database for agent memory (short-term & long-term), 
+                    session state, and fast governed data access. Supports both <strong>OAuth</strong> and <strong>native Postgres</strong> authentication.
+                </p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem;">
+                        <div style="font-weight: 600; font-size: 0.85rem; color: #4ade80; margin-bottom: 0.5rem;">OAuth (U2M / M2M)</div>
+                        <ul style="font-size: 0.8rem; color: #94a3b8; padding-left: 1rem; margin: 0;">
+                            <li>1-hour tokens as DB password</li>
+                            <li>User, Group, or Service Principal</li>
+                            <li>Requires SSL connection</li>
+                        </ul>
+                    </div>
+                    <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem;">
+                        <div style="font-weight: 600; font-size: 0.85rem; color: #22d3ee; margin-bottom: 0.5rem;">Native Postgres Password</div>
+                        <ul style="font-size: 0.8rem; color: #94a3b8; padding-left: 1rem; margin: 0;">
+                            <li>For apps that can't rotate tokens</li>
+                            <li>Standard CREATE ROLE</li>
+                            <li>Enable via instance settings</li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                    <a href="https://docs.databricks.com/aws/en/generative-ai/agent-framework/stateful-agents" target="_blank" style="font-size: 0.8rem; color: #fbbf24; text-decoration: none; padding: 0.4rem 0.8rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">📚 Agent Memory Docs</a>
+                    <a href="https://docs.databricks.com/aws/en/oltp/instances/authentication" target="_blank" style="font-size: 0.8rem; color: #fbbf24; text-decoration: none; padding: 0.4rem 0.8rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">🔐 Lakebase Auth Docs</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Navigation Cards -->
+    <section class="arch-section">
+        <h3>Deep Dive Topics</h3>
+        <p class="section-desc">
+            Explore each aspect of the architecture with interactive scrollytelling visualizations.
+        </p>
+        
+        <div class="nav-cards">
+            <a href="agent-auth-methods.html" class="nav-card green">
+                <div class="card-icon">🔐</div>
+                <h4>Agent Authentication Methods</h4>
+                <p>How agents on Databricks authenticate to resources: Automatic Passthrough, OBO, and Manual.</p>
+                <div class="topics">
+                    <span class="topic">Automatic Passthrough</span>
+                    <span class="topic">OBO</span>
+                    <span class="topic">Manual Auth</span>
+                    <span class="topic">Model Serving</span>
+                </div>
+            </a>
+            
+            <a href="external-app-auth.html" class="nav-card purple">
+                <div class="card-icon">🌐</div>
+                <h4>External App Authentication</h4>
+                <p>Token exchange and federation for apps not running on Databricks.</p>
+                <div class="topics">
+                    <span class="topic">Token Exchange</span>
+                    <span class="topic">Federation Policy</span>
+                    <span class="topic">Entra Native OAuth</span>
+                    <span class="topic">Sequence Diagrams</span>
+                </div>
+            </a>
+            
+            <a href="mcp-integration.html" class="nav-card cyan">
+                <div class="card-icon">🔗</div>
+                <h4>MCP Integration Patterns</h4>
+                <p>Managed, External, and Custom MCP servers - authentication and governance.</p>
+                <div class="topics">
+                    <span class="topic">Managed MCP</span>
+                    <span class="topic">External MCP</span>
+                    <span class="topic">Custom MCP</span>
+                    <span class="topic">UC HTTP Connections</span>
+                </div>
+            </a>
+            
+            <a href="ai-gateway-governance.html" class="nav-card orange">
+                <div class="card-icon">🌉</div>
+                <h4>AI Gateway Governance</h4>
+                <p>Centralized governance for external LLM traffic: routing, rate limits, guardrails.</p>
+                <div class="topics">
+                    <span class="topic">Rate Limits</span>
+                    <span class="topic">Guardrails</span>
+                    <span class="topic">Inference Tables</span>
+                    <span class="topic">Query Agents API</span>
+                </div>
+            </a>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="links">
+            <a href="../" class="footer-link">← Back to Interactive Pages</a>
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/ORCHESTRATION-ARCHITECTURE.md" target="_blank" class="footer-link">📄 Architecture Reference</a>
+        </div>
+    </footer>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        // Animate architecture boxes on scroll
+        gsap.utils.toArray('.arch-box').forEach((box, i) => {
+            gsap.from(box, {
+                scrollTrigger: {
+                    trigger: box,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 0,
+                y: 30,
+                duration: 0.5,
+                delay: i * 0.05
+            });
+        });
+        
+        // Animate nav cards
+        gsap.utils.toArray('.nav-card').forEach((card, i) => {
+            gsap.from(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 0,
+                y: 40,
+                duration: 0.6,
+                delay: i * 0.1
+            });
+        });
+        
+        // Animate scenario boxes
+        gsap.utils.toArray('.scenario-box').forEach((box, i) => {
+            gsap.from(box, {
+                scrollTrigger: {
+                    trigger: box,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 0,
+                x: i === 0 ? -40 : 40,
+                duration: 0.6
+            });
+        });
+    </script>
+</body>
+</html>

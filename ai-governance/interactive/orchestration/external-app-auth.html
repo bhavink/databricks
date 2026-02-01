@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External App Authentication - Token Federation</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #a855f7; }
+        
+        .progress-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #a855f7, #ec4899, #f97316);
+            width: 0%;
+            z-index: 101;
+        }
+        
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+        
+        .hero h2 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #a855f7, #ec4899, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 750px; margin-bottom: 1.5rem; }
+        
+        .hero .subtitle {
+            font-size: 1rem;
+            color: #a855f7;
+            background: rgba(168, 85, 247, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .doc-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.5rem; }
+        
+        .doc-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 6px;
+            color: #a855f7;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .doc-link:hover { background: rgba(168, 85, 247, 0.2); border-color: #a855f7; }
+        
+        .scroll-hint { animation: bounce 2s infinite; color: #a855f7; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        .scrollytelling { display: flex; position: relative; }
+        .scroll-text { flex: 0 0 45%; padding: 0 3rem; }
+        
+        .sticky-visual {
+            flex: 0 0 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+        
+        .step.active { opacity: 1; }
+        
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            width: fit-content;
+        }
+        
+        .step-badge.purple { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+        .step-badge.pink { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+        .step-badge.orange { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+        .step-badge.teal { background: rgba(20, 184, 166, 0.2); color: #14b8a6; }
+        .step-badge.blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        
+        .step h3 { font-size: 1.9rem; margin-bottom: 1rem; color: #fff; }
+        .step p { color: #94a3b8; font-size: 1.05rem; margin-bottom: 1rem; }
+        
+        .step .highlight-purple { color: #a855f7; font-weight: 600; }
+        .step .highlight-pink { color: #ec4899; font-weight: 600; }
+        .step .highlight-orange { color: #f97316; font-weight: 600; }
+        .step .highlight-green { color: #4ade80; font-weight: 600; }
+        .step .highlight-cyan { color: #22d3ee; font-weight: 600; }
+        
+        .step code {
+            background: rgba(168, 85, 247, 0.15);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: #a855f7;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.85rem;
+        }
+        
+        .step ul {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .step ul li { margin-bottom: 0.4rem; }
+        
+        .step .key-point {
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid #a855f7;
+            padding: 0.8rem 1rem;
+            margin-top: 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+        }
+        
+        .step .key-point.pink { border-left-color: #ec4899; }
+        .step .key-point.orange { border-left-color: #f97316; }
+        .step .key-point.teal { border-left-color: #14b8a6; }
+        
+        /* Diagram Container */
+        .diagram-container {
+            width: 100%;
+            max-width: 520px;
+            height: 600px;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+        
+        /* Flow elements */
+        .flow-box {
+            position: absolute;
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .flow-box.visible { opacity: 1; }
+        .flow-box.active { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .flow-box.dimmed { opacity: 0.3; }
+        
+        .flow-box .icon { font-size: 1.3rem; margin-bottom: 0.2rem; }
+        .flow-box .title { font-weight: 600; font-size: 0.85rem; }
+        .flow-box .desc { font-size: 0.65rem; opacity: 0.8; margin-top: 0.1rem; }
+        
+        /* Box colors */
+        .flow-box.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
+        .flow-box.pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+        .flow-box.orange { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+        .flow-box.teal { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+        .flow-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .flow-box.green { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
+        .flow-box.cyan { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #1a1a2e; }
+        .flow-box.slate { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #e8e8e8; }
+        .flow-box.yellow { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1a1a2e; }
+        
+        /* Arrows */
+        .flow-arrow {
+            position: absolute;
+            opacity: 0;
+            transition: all 0.5s ease;
+            font-size: 1.2rem;
+        }
+        
+        .flow-arrow.visible { opacity: 1; }
+        .flow-arrow.purple { color: #a855f7; }
+        .flow-arrow.pink { color: #ec4899; }
+        .flow-arrow.orange { color: #f97316; }
+        .flow-arrow.teal { color: #14b8a6; }
+        .flow-arrow.green { color: #4ade80; }
+        
+        /* Flow labels */
+        .flow-label {
+            position: absolute;
+            font-size: 0.6rem;
+            color: #94a3b8;
+            opacity: 0;
+            transition: all 0.5s ease;
+            max-width: 100px;
+            text-align: center;
+        }
+        
+        .flow-label.visible { opacity: 1; }
+        .flow-label.purple { color: #a855f7; }
+        .flow-label.pink { color: #ec4899; }
+        .flow-label.teal { color: #14b8a6; }
+        
+        /* Sequence step numbers */
+        .seq-num {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .seq-num.visible { opacity: 1; }
+        .seq-num.purple { background: #a855f7; color: white; }
+        .seq-num.pink { background: #ec4899; color: white; }
+        .seq-num.orange { background: #f97316; color: white; }
+        .seq-num.teal { background: #14b8a6; color: white; }
+        
+        /* IdP logos container */
+        .idp-grid {
+            position: absolute;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .idp-grid.visible { opacity: 1; }
+        
+        .idp-box {
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            text-align: center;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+        }
+        
+        .idp-box:hover { background: rgba(255,255,255,0.1); border-color: #a855f7; }
+        .idp-box .icon { font-size: 1.2rem; margin-bottom: 0.2rem; }
+        
+        /* Summary Section */
+        .summary {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #a855f7; }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            max-width: 900px;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+        }
+        
+        .summary-card.purple { border-top: 4px solid #a855f7; }
+        .summary-card.pink { border-top: 4px solid #ec4899; }
+        .summary-card.orange { border-top: 4px solid #f97316; }
+        .summary-card.teal { border-top: 4px solid #14b8a6; }
+        
+        .summary-card h4 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .summary-card.purple h4 { color: #a855f7; }
+        .summary-card.pink h4 { color: #ec4899; }
+        .summary-card.orange h4 { color: #f97316; }
+        .summary-card.teal h4 { color: #14b8a6; }
+        
+        .summary-card p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.5rem; }
+        .summary-card ul { color: #64748b; font-size: 0.8rem; padding-left: 1.1rem; }
+        .summary-card li { margin-bottom: 0.2rem; }
+        
+        .back-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .back-link {
+            color: #14b8a6;
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid #14b8a6;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover { background: #14b8a6; color: #1a1a2e; }
+        
+        @media (max-width: 900px) {
+            .scrollytelling { flex-direction: column; }
+            .scroll-text { flex: none; padding: 0 1.5rem; }
+            .sticky-visual { flex: none; height: 55vh; position: sticky; top: 60px; }
+            .step { min-height: 80vh; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .hero h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌐 External App Authentication</h1>
+    </header>
+    
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <section class="hero">
+        <h2>External App Authentication</h2>
+        <p>
+            How applications running OUTSIDE Databricks authenticate to call Databricks APIs.
+            Bring your own Identity Provider - no Databricks secrets required.
+        </p>
+        <span class="subtitle">OAuth Token Federation</span>
+        
+        <div class="doc-links">
+            <a href="https://docs.databricks.com/aws/en/dev-tools/auth/oauth-federation" target="_blank" class="doc-link">📖 Token Federation Overview</a>
+            <a href="https://docs.databricks.com/aws/en/dev-tools/auth/oauth-federation-policy" target="_blank" class="doc-link">📖 Federation Policy Setup</a>
+            <a href="https://docs.databricks.com/aws/en/dev-tools/auth/oauth-federation-exchange" target="_blank" class="doc-link">📖 Token Exchange</a>
+        </div>
+        
+        <div class="scroll-hint">↓ Scroll to explore token federation</div>
+    </section>
+    
+    <section class="scrollytelling">
+        <div class="scroll-text">
+            <!-- Step 1: The Problem -->
+            <div class="step" data-step="1">
+                <span class="step-badge purple">The Challenge</span>
+                <h3>External Apps Need Access</h3>
+                <p>
+                    Your application runs <span class="highlight-purple">outside Databricks</span> - 
+                    maybe a web app, CI/CD pipeline, or automation tool.
+                </p>
+                <p>
+                    It needs to call Databricks APIs: query data, invoke models, access Genie, etc.
+                </p>
+                <p>
+                    Traditional approach: Create a PAT or OAuth secret, embed it in your app, manage rotation...
+                </p>
+                <div class="key-point">
+                    <strong>Problem:</strong> Secret sprawl, rotation overhead, security risk if leaked.
+                </div>
+            </div>
+            
+            <!-- Step 2: The Solution -->
+            <div class="step" data-step="2">
+                <span class="step-badge purple">The Solution</span>
+                <h3>OAuth Token Federation</h3>
+                <p>
+                    <span class="highlight-purple">Bring Your Own IdP</span> - use tokens from your existing 
+                    identity provider to access Databricks APIs.
+                </p>
+                <ul>
+                    <li><span class="highlight-green">No Databricks secrets</span> to manage or rotate</li>
+                    <li>Use your existing IdP (Okta, Entra, GitHub, etc.)</li>
+                    <li>Short-lived tokens with automatic refresh</li>
+                    <li>Centralized identity management</li>
+                </ul>
+                <div class="key-point">
+                    Your IdP mints JWT tokens → Exchange for Databricks OAuth tokens → Call APIs
+                </div>
+            </div>
+            
+            <!-- Step 3: Two Federation Types -->
+            <div class="step" data-step="3">
+                <span class="step-badge teal">Federation Types</span>
+                <h3>Two Federation Options</h3>
+                <p>
+                    Databricks supports two types of token federation:
+                </p>
+                <p>
+                    <span class="highlight-purple">Account-wide Federation</span>: All users in your Databricks account can authenticate using tokens from your corporate IdP.
+                </p>
+                <p>
+                    <span class="highlight-pink">Workload Identity Federation</span>: Automated workloads (CI/CD, external apps) authenticate as a service principal using tokens from the runtime environment.
+                </p>
+            </div>
+            
+            <!-- Step 4: Account-wide Federation -->
+            <div class="step" data-step="4">
+                <span class="step-badge purple">Account-wide</span>
+                <h3>Account-wide Token Federation</h3>
+                <p>
+                    For <span class="highlight-purple">users</span> authenticating from external applications.
+                </p>
+                <p>
+                    Configure a federation policy at the account level that specifies:
+                </p>
+                <ul>
+                    <li><strong>Issuer URL</strong> - Your IdP's OIDC endpoint</li>
+                    <li><strong>Audiences</strong> - Expected <code>aud</code> claim</li>
+                    <li><strong>Subject claim</strong> - Maps to Databricks username</li>
+                </ul>
+                <div class="key-point">
+                    All users synced via SCIM can then use their IdP tokens to access Databricks.
+                </div>
+            </div>
+            
+            <!-- Step 5: Workload Identity -->
+            <div class="step" data-step="5">
+                <span class="step-badge pink">Workload Identity</span>
+                <h3>Workload Identity Federation</h3>
+                <p>
+                    For <span class="highlight-pink">automated workloads</span> - CI/CD pipelines, external services.
+                </p>
+                <p>
+                    Create a federation policy on a <span class="highlight-pink">service principal</span> that specifies:
+                </p>
+                <ul>
+                    <li><strong>Issuer</strong> - The workload runtime (e.g., GitHub Actions)</li>
+                    <li><strong>Subject</strong> - The specific workload identity</li>
+                    <li><strong>Audiences</strong> - Expected recipients</li>
+                </ul>
+                <div class="key-point pink">
+                    Your CI/CD pipeline gets a token from its runtime → exchanges for Databricks token → no secrets needed!
+                </div>
+            </div>
+            
+            <!-- Step 6: Supported IdPs -->
+            <div class="step" data-step="6">
+                <span class="step-badge teal">Supported IdPs</span>
+                <h3>Bring Your Own IdP</h3>
+                <p>
+                    Any OIDC-compliant identity provider works:
+                </p>
+                <ul>
+                    <li><span class="highlight-purple">Corporate IdPs:</span> Okta, Microsoft Entra, Ping, Auth0</li>
+                    <li><span class="highlight-pink">CI/CD Platforms:</span> GitHub Actions, Azure DevOps, GitLab CI, CircleCI</li>
+                    <li><span class="highlight-orange">Cloud Platforms:</span> AWS IAM, GCP Workload Identity, Kubernetes</li>
+                </ul>
+                <p>
+                    If it can issue JWTs with <code>iss</code>, <code>aud</code>, and <code>sub</code> claims, it can federate with Databricks.
+                </p>
+            </div>
+            
+            <!-- Step 7: Token Exchange Flow -->
+            <div class="step" data-step="7">
+                <span class="step-badge orange">Token Exchange</span>
+                <h3>The Exchange Flow</h3>
+                <p>
+                    <strong>Step 1:</strong> Your app authenticates with your IdP and receives a JWT.
+                </p>
+                <p>
+                    <strong>Step 2:</strong> Exchange the JWT at Databricks token endpoint:
+                </p>
+                <p>
+                    <code>POST /oidc/v1/token</code> with:
+                </p>
+                <ul>
+                    <li><code>grant_type=urn:ietf:params:oauth:grant-type:token-exchange</code></li>
+                    <li><code>subject_token=&lt;your-jwt&gt;</code></li>
+                    <li><code>subject_token_type=urn:ietf:params:oauth:token-type:jwt</code></li>
+                </ul>
+            </div>
+            
+            <!-- Step 8: Exchange Response -->
+            <div class="step" data-step="8">
+                <span class="step-badge orange">Token Exchange</span>
+                <h3>Get Databricks Token</h3>
+                <p>
+                    <strong>Step 3:</strong> Databricks validates your JWT against the federation policy and returns a Databricks OAuth token.
+                </p>
+                <p>
+                    <strong>Step 4:</strong> Use the Databricks token to call APIs:
+                </p>
+                <p>
+                    <code>Authorization: Bearer &lt;databricks-oauth-token&gt;</code>
+                </p>
+                <div class="key-point orange">
+                    The Databricks token is short-lived. Your app should handle refresh by re-exchanging when needed.
+                </div>
+            </div>
+            
+            <!-- Step 9: GitHub Actions Example -->
+            <div class="step" data-step="9">
+                <span class="step-badge pink">Example</span>
+                <h3>GitHub Actions Example</h3>
+                <p>
+                    Configure a service principal federation policy:
+                </p>
+                <ul>
+                    <li><strong>Issuer:</strong> <code>https://token.actions.githubusercontent.com</code></li>
+                    <li><strong>Audience:</strong> <code>https://github.com/my-org</code></li>
+                    <li><strong>Subject:</strong> <code>repo:my-org/my-repo:environment:prod</code></li>
+                </ul>
+                <p>
+                    In your workflow, GitHub automatically provides a JWT via <code>ACTIONS_ID_TOKEN_REQUEST_TOKEN</code>.
+                </p>
+                <div class="key-point pink">
+                    Zero secrets in your repo. GitHub mints the token, Databricks validates it.
+                </div>
+            </div>
+            
+            <!-- Step 10: Native OAuth (Azure) -->
+            <div class="step" data-step="10">
+                <span class="step-badge blue">Azure Special Case</span>
+                <h3>Native OAuth with Entra</h3>
+                <p>
+                    For <span class="highlight-cyan">Azure Databricks</span>, you can use Entra tokens <strong>directly</strong> - no exchange needed.
+                </p>
+                <ul>
+                    <li><strong>U2M:</strong> Authorization Code flow with PKCE via MSAL</li>
+                    <li><strong>M2M:</strong> Client Credentials flow</li>
+                </ul>
+                <p>
+                    Request tokens with scope:
+                </p>
+                <ul>
+                    <li><code>2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/user_impersonation</code> (U2M)</li>
+                    <li><code>2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default</code> (M2M)</li>
+                </ul>
+            </div>
+            
+            <!-- Step 11: Federation Policy Config -->
+            <div class="step" data-step="11">
+                <span class="step-badge teal">Configuration</span>
+                <h3>Setting Up Federation</h3>
+                <p>
+                    <strong>Account-wide:</strong> Account Console → Settings → Authentication → Federation Policies
+                </p>
+                <p>
+                    <strong>Workload Identity:</strong> Account Console → User Management → Service Principals → Federation Policies
+                </p>
+                <p>
+                    Or use the CLI:
+                </p>
+                <p>
+                    <code>databricks account federation-policy create</code>
+                </p>
+                <p>
+                    <code>databricks account service-principal-federation-policy create</code>
+                </p>
+            </div>
+            
+            <!-- Step 12: Summary -->
+            <div class="step" data-step="12">
+                <span class="step-badge teal">Summary</span>
+                <h3>Key Takeaways</h3>
+                <p>
+                    <span class="highlight-green">No secrets to manage</span> - your IdP handles identity, Databricks validates it.
+                </p>
+                <p>
+                    <span class="highlight-purple">Account-wide</span> for users, <span class="highlight-pink">Workload Identity</span> for automation.
+                </p>
+                <p>
+                    <span class="highlight-orange">Token exchange</span> converts IdP JWTs to Databricks OAuth tokens.
+                </p>
+                <p>
+                    <span class="highlight-cyan">Azure special case</span>: Native Entra tokens work directly.
+                </p>
+                <div class="key-point teal">
+                    OAuth token federation is the recommended approach for external applications accessing Databricks.
+                </div>
+            </div>
+        </div>
+        
+        <div class="sticky-visual">
+            <div class="diagram-container">
+                <!-- External App -->
+                <div class="flow-box purple" id="app-box" style="left: 50%; transform: translateX(-50%); top: 20px; min-width: 150px;">
+                    <div class="icon">🌐</div>
+                    <div class="title">External App</div>
+                    <div class="desc">Your application</div>
+                </div>
+                
+                <!-- IdP -->
+                <div class="flow-box pink" id="idp-box" style="left: 30px; top: 140px; min-width: 130px;">
+                    <div class="icon">🔐</div>
+                    <div class="title">Your IdP</div>
+                    <div class="desc">Okta, Entra, GitHub...</div>
+                </div>
+                
+                <!-- JWT Token -->
+                <div class="flow-box yellow" id="jwt-box" style="left: 50%; transform: translateX(-50%); top: 140px; min-width: 100px;">
+                    <div class="icon">🎫</div>
+                    <div class="title">JWT Token</div>
+                    <div class="desc">From your IdP</div>
+                </div>
+                
+                <!-- Databricks Token Endpoint -->
+                <div class="flow-box orange" id="exchange-box" style="right: 30px; top: 140px; min-width: 130px;">
+                    <div class="icon">🔄</div>
+                    <div class="title">Token Exchange</div>
+                    <div class="desc">/oidc/v1/token</div>
+                </div>
+                
+                <!-- Databricks OAuth Token -->
+                <div class="flow-box teal" id="dbx-token-box" style="left: 50%; transform: translateX(-50%); top: 260px; min-width: 150px;">
+                    <div class="icon">✅</div>
+                    <div class="title">Databricks OAuth</div>
+                    <div class="desc">Short-lived token</div>
+                </div>
+                
+                <!-- Databricks APIs -->
+                <div class="flow-box blue" id="api-box" style="left: 50%; transform: translateX(-50%); top: 380px; min-width: 200px;">
+                    <div class="icon">⚡</div>
+                    <div class="title">Databricks APIs</div>
+                    <div class="desc">Genie, Model Serving, SQL, MCP...</div>
+                </div>
+                
+                <!-- Arrows -->
+                <div class="flow-arrow purple" id="arrow-app-idp" style="left: 100px; top: 80px; transform: rotate(45deg);">→</div>
+                <div class="flow-arrow pink" id="arrow-idp-jwt" style="left: 170px; top: 160px;">→</div>
+                <div class="flow-arrow orange" id="arrow-jwt-exchange" style="right: 170px; top: 160px;">→</div>
+                <div class="flow-arrow teal" id="arrow-exchange-dbx" style="left: 50%; transform: translateX(-50%); top: 220px;">↓</div>
+                <div class="flow-arrow green" id="arrow-dbx-api" style="left: 50%; transform: translateX(-50%); top: 340px;">↓</div>
+                
+                <!-- Sequence numbers -->
+                <div class="seq-num purple" id="seq-1" style="left: 80px; top: 70px;">1</div>
+                <div class="seq-num pink" id="seq-2" style="left: 185px; top: 130px;">2</div>
+                <div class="seq-num orange" id="seq-3" style="right: 185px; top: 130px;">3</div>
+                <div class="seq-num teal" id="seq-4" style="left: 50%; transform: translateX(-50%); top: 330px;">4</div>
+                
+                <!-- Labels -->
+                <div class="flow-label purple" id="label-auth" style="left: 40px; top: 85px;">Authenticate</div>
+                <div class="flow-label pink" id="label-issue" style="left: 150px; top: 180px;">Issue JWT</div>
+                <div class="flow-label orange" id="label-exchange" style="right: 150px; top: 180px;">Exchange</div>
+                <div class="flow-label teal" id="label-use" style="left: 50%; transform: translateX(-50%); top: 355px;">Call APIs</div>
+                
+                <!-- Federation Policy box -->
+                <div class="flow-box slate" id="policy-box" style="right: 20px; top: 260px; min-width: 120px;">
+                    <div class="icon">📋</div>
+                    <div class="title">Federation Policy</div>
+                    <div class="desc">Validates JWT claims</div>
+                </div>
+                
+                <!-- IdP Grid (for supported IdPs step) -->
+                <div class="idp-grid" id="idp-grid" style="left: 50%; transform: translateX(-50%); top: 120px; width: 320px;">
+                    <div class="idp-box"><div class="icon">🔵</div>Okta</div>
+                    <div class="idp-box"><div class="icon">🔷</div>Entra</div>
+                    <div class="idp-box"><div class="icon">🟣</div>Auth0</div>
+                    <div class="idp-box"><div class="icon">🐙</div>GitHub</div>
+                    <div class="idp-box"><div class="icon">🦊</div>GitLab</div>
+                    <div class="idp-box"><div class="icon">🔶</div>Azure DevOps</div>
+                    <div class="idp-box"><div class="icon">☁️</div>AWS IAM</div>
+                    <div class="idp-box"><div class="icon">🌐</div>GCP</div>
+                    <div class="idp-box"><div class="icon">☸️</div>Kubernetes</div>
+                </div>
+                
+                <!-- Account-wide vs Workload boxes -->
+                <div class="flow-box purple" id="account-wide-box" style="left: 50px; top: 250px; min-width: 140px; display: none;">
+                    <div class="icon">👥</div>
+                    <div class="title">Account-wide</div>
+                    <div class="desc">For users (SCIM synced)</div>
+                </div>
+                
+                <div class="flow-box pink" id="workload-box" style="right: 50px; top: 250px; min-width: 140px; display: none;">
+                    <div class="icon">🤖</div>
+                    <div class="title">Workload Identity</div>
+                    <div class="desc">For service principals</div>
+                </div>
+                
+                <!-- GitHub Actions specific -->
+                <div class="flow-box pink" id="github-box" style="left: 30px; top: 100px; min-width: 150px; display: none;">
+                    <div class="icon">🐙</div>
+                    <div class="title">GitHub Actions</div>
+                    <div class="desc">Workflow runtime</div>
+                </div>
+                
+                <div class="flow-box yellow" id="github-jwt-box" style="left: 50%; transform: translateX(-50%); top: 100px; min-width: 150px; display: none;">
+                    <div class="icon">🎫</div>
+                    <div class="title">OIDC Token</div>
+                    <div class="desc">Auto-provided by GitHub</div>
+                </div>
+                
+                <div class="flow-box teal" id="sp-box" style="right: 30px; top: 100px; min-width: 130px; display: none;">
+                    <div class="icon">🤖</div>
+                    <div class="title">Service Principal</div>
+                    <div class="desc">With federation policy</div>
+                </div>
+                
+                <!-- Azure Native boxes -->
+                <div class="flow-box cyan" id="entra-box" style="left: 50px; top: 120px; min-width: 140px; display: none;">
+                    <div class="icon">🔷</div>
+                    <div class="title">Microsoft Entra</div>
+                    <div class="desc">Azure AD</div>
+                </div>
+                
+                <div class="flow-box cyan" id="entra-token-box" style="left: 50%; transform: translateX(-50%); top: 120px; min-width: 130px; display: none;">
+                    <div class="icon">🎫</div>
+                    <div class="title">Entra Token</div>
+                    <div class="desc">Works directly!</div>
+                </div>
+                
+                <div class="flow-box blue" id="azure-dbx-box" style="right: 50px; top: 120px; min-width: 140px; display: none;">
+                    <div class="icon">⚡</div>
+                    <div class="title">Azure Databricks</div>
+                    <div class="desc">No exchange needed</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="summary">
+        <h2>Quick Reference</h2>
+        
+        <div class="summary-grid">
+            <div class="summary-card purple">
+                <h4>Account-wide Federation</h4>
+                <p><strong>For:</strong> Users authenticating from external apps</p>
+                <ul>
+                    <li>Configure at account level</li>
+                    <li>Maps IdP users to Databricks users</li>
+                    <li>Works with SCIM sync</li>
+                    <li>Corporate IdPs (Okta, Entra)</li>
+                </ul>
+            </div>
+            
+            <div class="summary-card pink">
+                <h4>Workload Identity Federation</h4>
+                <p><strong>For:</strong> Automated workloads, CI/CD</p>
+                <ul>
+                    <li>Configure on service principal</li>
+                    <li>Maps workload to SP</li>
+                    <li>No secrets in code</li>
+                    <li>GitHub, GitLab, Azure DevOps</li>
+                </ul>
+            </div>
+            
+            <div class="summary-card orange">
+                <h4>Token Exchange Flow</h4>
+                <p><strong>Steps:</strong></p>
+                <ul>
+                    <li>1. Get JWT from your IdP</li>
+                    <li>2. POST to /oidc/v1/token</li>
+                    <li>3. Receive Databricks OAuth token</li>
+                    <li>4. Call Databricks APIs</li>
+                </ul>
+            </div>
+            
+            <div class="summary-card teal">
+                <h4>Azure Native OAuth</h4>
+                <p><strong>Special case:</strong> No exchange needed</p>
+                <ul>
+                    <li>Entra tokens work directly</li>
+                    <li>U2M: Auth Code + PKCE</li>
+                    <li>M2M: Client Credentials</li>
+                    <li>Use MSAL library</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="back-links">
+            <a href="./" class="back-link">← Back to Orchestration Hub</a>
+            <a href="https://docs.databricks.com/aws/en/dev-tools/auth/oauth-federation" target="_blank" class="back-link">📖 Official Docs</a>
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/ORCHESTRATION-ARCHITECTURE.md" target="_blank" class="back-link">📄 Architecture Reference</a>
+        </div>
+    </section>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        // Progress bar
+        gsap.to("#progressBar", {
+            width: "100%",
+            ease: "none",
+            scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: true }
+        });
+        
+        const steps = document.querySelectorAll('.step');
+        
+        function hideSpecialBoxes() {
+            ['account-wide-box', 'workload-box', 'github-box', 'github-jwt-box', 'sp-box',
+             'entra-box', 'entra-token-box', 'azure-dbx-box'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            document.getElementById('idp-grid').classList.remove('visible');
+        }
+        
+        function showMainFlow() {
+            ['app-box', 'idp-box', 'jwt-box', 'exchange-box', 'dbx-token-box', 'api-box', 'policy-box'].forEach(id => {
+                document.getElementById(id).style.display = '';
+            });
+        }
+        
+        function hideMainFlow() {
+            ['app-box', 'idp-box', 'jwt-box', 'exchange-box', 'dbx-token-box', 'api-box', 'policy-box'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+        }
+        
+        function updateDiagram(stepNum) {
+            // Reset all
+            document.querySelectorAll('.flow-box').forEach(el => {
+                el.classList.remove('visible', 'active', 'dimmed');
+            });
+            document.querySelectorAll('.flow-arrow, .flow-label, .seq-num').forEach(el => {
+                el.classList.remove('visible');
+            });
+            
+            hideSpecialBoxes();
+            showMainFlow();
+            
+            switch(stepNum) {
+                case 1: // Problem - show app needing access
+                    document.getElementById('app-box').classList.add('visible', 'active');
+                    document.getElementById('api-box').classList.add('visible');
+                    break;
+                    
+                case 2: // Solution - show full flow overview
+                    ['app-box', 'idp-box', 'jwt-box', 'exchange-box', 'dbx-token-box', 'api-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['arrow-app-idp', 'arrow-idp-jwt', 'arrow-jwt-exchange', 'arrow-exchange-dbx', 'arrow-dbx-api'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 3: // Two types
+                    hideMainFlow();
+                    document.getElementById('app-box').style.display = '';
+                    document.getElementById('app-box').classList.add('visible');
+                    
+                    document.getElementById('account-wide-box').style.display = '';
+                    document.getElementById('account-wide-box').classList.add('visible');
+                    
+                    document.getElementById('workload-box').style.display = '';
+                    document.getElementById('workload-box').classList.add('visible');
+                    break;
+                    
+                case 4: // Account-wide
+                    hideMainFlow();
+                    document.getElementById('app-box').style.display = '';
+                    document.getElementById('app-box').classList.add('visible');
+                    
+                    document.getElementById('account-wide-box').style.display = '';
+                    document.getElementById('account-wide-box').classList.add('visible', 'active');
+                    
+                    document.getElementById('workload-box').style.display = '';
+                    document.getElementById('workload-box').classList.add('visible', 'dimmed');
+                    
+                    document.getElementById('policy-box').style.display = '';
+                    document.getElementById('policy-box').classList.add('visible');
+                    break;
+                    
+                case 5: // Workload identity
+                    hideMainFlow();
+                    document.getElementById('app-box').style.display = '';
+                    document.getElementById('app-box').classList.add('visible');
+                    
+                    document.getElementById('account-wide-box').style.display = '';
+                    document.getElementById('account-wide-box').classList.add('visible', 'dimmed');
+                    
+                    document.getElementById('workload-box').style.display = '';
+                    document.getElementById('workload-box').classList.add('visible', 'active');
+                    
+                    document.getElementById('policy-box').style.display = '';
+                    document.getElementById('policy-box').classList.add('visible');
+                    break;
+                    
+                case 6: // Supported IdPs
+                    hideMainFlow();
+                    document.getElementById('app-box').style.display = '';
+                    document.getElementById('app-box').classList.add('visible');
+                    document.getElementById('idp-grid').classList.add('visible');
+                    break;
+                    
+                case 7: // Token exchange step 1-2
+                    ['app-box', 'idp-box', 'jwt-box', 'exchange-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('exchange-box').classList.add('active');
+                    ['arrow-app-idp', 'arrow-idp-jwt', 'arrow-jwt-exchange'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['seq-1', 'seq-2', 'seq-3', 'label-auth', 'label-issue', 'label-exchange'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 8: // Token exchange step 3-4
+                    ['app-box', 'idp-box', 'jwt-box', 'exchange-box', 'dbx-token-box', 'api-box', 'policy-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    document.getElementById('dbx-token-box').classList.add('active');
+                    ['arrow-app-idp', 'arrow-idp-jwt', 'arrow-jwt-exchange', 'arrow-exchange-dbx', 'arrow-dbx-api'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['seq-1', 'seq-2', 'seq-3', 'seq-4'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+                    
+                case 9: // GitHub Actions example
+                    hideMainFlow();
+                    document.getElementById('github-box').style.display = '';
+                    document.getElementById('github-box').classList.add('visible');
+                    
+                    document.getElementById('github-jwt-box').style.display = '';
+                    document.getElementById('github-jwt-box').classList.add('visible');
+                    
+                    document.getElementById('sp-box').style.display = '';
+                    document.getElementById('sp-box').classList.add('visible');
+                    
+                    document.getElementById('dbx-token-box').style.display = '';
+                    document.getElementById('dbx-token-box').classList.add('visible');
+                    
+                    document.getElementById('api-box').style.display = '';
+                    document.getElementById('api-box').classList.add('visible');
+                    
+                    document.getElementById('policy-box').style.display = '';
+                    document.getElementById('policy-box').classList.add('visible');
+                    break;
+                    
+                case 10: // Azure Native OAuth
+                    hideMainFlow();
+                    document.getElementById('app-box').style.display = '';
+                    document.getElementById('app-box').classList.add('visible');
+                    
+                    document.getElementById('entra-box').style.display = '';
+                    document.getElementById('entra-box').classList.add('visible');
+                    
+                    document.getElementById('entra-token-box').style.display = '';
+                    document.getElementById('entra-token-box').classList.add('visible', 'active');
+                    
+                    document.getElementById('azure-dbx-box').style.display = '';
+                    document.getElementById('azure-dbx-box').classList.add('visible');
+                    break;
+                    
+                case 11: // Configuration
+                    document.getElementById('app-box').classList.add('visible');
+                    document.getElementById('policy-box').classList.add('visible', 'active');
+                    document.getElementById('idp-box').classList.add('visible');
+                    document.getElementById('dbx-token-box').classList.add('visible');
+                    break;
+                    
+                case 12: // Summary
+                    ['app-box', 'idp-box', 'jwt-box', 'exchange-box', 'dbx-token-box', 'api-box', 'policy-box'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['arrow-app-idp', 'arrow-idp-jwt', 'arrow-jwt-exchange', 'arrow-exchange-dbx', 'arrow-dbx-api'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    ['seq-1', 'seq-2', 'seq-3', 'seq-4', 'label-auth', 'label-issue', 'label-exchange', 'label-use'].forEach(id => {
+                        document.getElementById(id).classList.add('visible');
+                    });
+                    break;
+            }
+        }
+        
+        steps.forEach((step, index) => {
+            ScrollTrigger.create({
+                trigger: step,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => { 
+                    steps.forEach(s => s.classList.remove('active')); 
+                    step.classList.add('active'); 
+                    updateDiagram(index + 1); 
+                },
+                onEnterBack: () => { 
+                    steps.forEach(s => s.classList.remove('active')); 
+                    step.classList.add('active'); 
+                    updateDiagram(index + 1); 
+                }
+            });
+        });
+        
+        // Initial state
+        setTimeout(() => { steps[0].classList.add('active'); updateDiagram(1); }, 500);
+    </script>
+</body>
+</html>

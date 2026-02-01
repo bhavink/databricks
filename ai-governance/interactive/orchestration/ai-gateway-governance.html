@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Gateway Governance - Databricks</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        
+        header h1 {
+            font-size: 1.1rem;
+            color: #f97316;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        header a { color: #f97316; text-decoration: none; font-size: 0.9rem; }
+        header a:hover { text-decoration: underline; }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+            background: radial-gradient(ellipse at center, rgba(249, 115, 22, 0.1) 0%, transparent 70%);
+        }
+        
+        .hero h2 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #f97316, #fb923c, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 700px; margin-bottom: 1rem; }
+        .hero .subtitle { font-size: 1rem; color: #64748b; margin-bottom: 2rem; }
+        
+        .doc-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; }
+        
+        .doc-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 6px;
+            color: #f97316;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        
+        .doc-link:hover { background: rgba(249, 115, 22, 0.2); border-color: #f97316; }
+        
+        .scroll-hint { animation: bounce 2s infinite; color: #f97316; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+        
+        /* Main Layout */
+        .scrolly-container {
+            display: flex;
+            position: relative;
+        }
+        
+        .scroll-text {
+            width: 45%;
+            padding: 2rem;
+        }
+        
+        .scroll-step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+            opacity: 0.3;
+            transition: opacity 0.5s ease;
+        }
+        
+        .scroll-step.active { opacity: 1; }
+        
+        .scroll-step h3 {
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+            color: #f97316;
+        }
+        
+        .scroll-step p { color: #cbd5e1; margin-bottom: 1rem; font-size: 1.05rem; }
+        
+        .scroll-step ul { padding-left: 1.5rem; color: #94a3b8; }
+        .scroll-step li { margin-bottom: 0.5rem; }
+        
+        .scroll-step .highlight {
+            background: rgba(249, 115, 22, 0.15);
+            border-left: 3px solid #f97316;
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+        
+        .scroll-step .note {
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            padding: 0.8rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #22d3ee;
+            margin-top: 1rem;
+        }
+        
+        .scroll-step code {
+            background: rgba(0,0,0,0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.9rem;
+            color: #fbbf24;
+        }
+        
+        /* Visual Area */
+        .visual-area {
+            width: 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .visual-container {
+            width: 100%;
+            height: 80%;
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Visual Elements */
+        .vis-element {
+            position: absolute;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .vis-element.visible { opacity: 1; }
+        
+        /* Gateway Architecture Visual */
+        .gateway-arch {
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .arch-label {
+            text-align: center;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+        
+        .arch-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        
+        .arch-box {
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 100px;
+            transition: all 0.4s ease;
+        }
+        
+        .arch-box .icon { font-size: 1.3rem; margin-bottom: 0.3rem; }
+        .arch-box .title { font-weight: 600; font-size: 0.8rem; }
+        .arch-box .desc { font-size: 0.65rem; opacity: 0.8; }
+        
+        .arch-box.orange { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+        .arch-box.cyan { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #1a1a2e; }
+        .arch-box.green { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
+        .arch-box.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
+        .arch-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .arch-box.pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+        .arch-box.slate { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+        .arch-box.yellow { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1a1a2e; }
+        
+        .arch-box.highlight-active {
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .arch-box.dim { opacity: 0.3; }
+        
+        .arch-arrow {
+            text-align: center;
+            color: #64748b;
+            font-size: 1.2rem;
+            margin: 0.3rem 0;
+        }
+        
+        .arch-divider {
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            margin: 0.8rem 0;
+        }
+        
+        /* Feature Grid */
+        .feature-grid {
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .feature-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: all 0.4s ease;
+        }
+        
+        .feature-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .feature-card .title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
+        .feature-card .desc { font-size: 0.7rem; color: #94a3b8; }
+        
+        .feature-card.highlight-active {
+            border-color: #f97316;
+            background: rgba(249, 115, 22, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .feature-card.paid { border-color: #fbbf24; }
+        .feature-card.paid::after {
+            content: '💰';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        /* Rate Limit Visual */
+        .rate-limit-vis {
+            width: 100%;
+            height: 100%;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .rate-level {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            transition: all 0.4s ease;
+        }
+        
+        .rate-level.active {
+            border-color: #f97316;
+            background: rgba(249, 115, 22, 0.1);
+        }
+        
+        .rate-level .level-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .rate-level .level-desc { font-size: 0.8rem; color: #94a3b8; }
+        
+        .rate-meter {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin-top: 0.8rem;
+            overflow: hidden;
+        }
+        
+        .rate-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .rate-fill.green { background: linear-gradient(90deg, #4ade80, #22c55e); }
+        .rate-fill.yellow { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+        .rate-fill.red { background: linear-gradient(90deg, #f87171, #ef4444); }
+        
+        /* Guardrails Visual */
+        .guardrails-vis {
+            width: 100%;
+            height: 100%;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .guardrail-flow {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .flow-box {
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 120px;
+            transition: all 0.4s ease;
+        }
+        
+        .flow-box .icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+        .flow-box .title { font-weight: 600; font-size: 0.85rem; }
+        
+        .flow-arrow {
+            font-size: 1.5rem;
+            color: #64748b;
+        }
+        
+        .guardrail-types {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .guardrail-type {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.2rem;
+            text-align: center;
+            min-width: 140px;
+            transition: all 0.4s ease;
+        }
+        
+        .guardrail-type.active {
+            border-color: #ec4899;
+            background: rgba(236, 72, 153, 0.1);
+        }
+        
+        .guardrail-type .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .guardrail-type .title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
+        .guardrail-type .desc { font-size: 0.75rem; color: #94a3b8; }
+        
+        /* Inference Table Visual */
+        .inference-vis {
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .table-schema {
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .table-header {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            padding: 0.8rem 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .table-row {
+            display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .table-row:hover { background: rgba(255,255,255,0.03); }
+        
+        .table-cell {
+            padding: 0.6rem 1rem;
+            font-size: 0.8rem;
+        }
+        
+        .table-cell.col { width: 40%; color: #22d3ee; font-family: monospace; }
+        .table-cell.type { width: 25%; color: #a855f7; }
+        .table-cell.desc { width: 35%; color: #94a3b8; }
+        
+        /* Endpoint Support Visual */
+        .endpoint-support {
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .support-table {
+            font-size: 0.75rem;
+        }
+        
+        .support-header {
+            display: grid;
+            grid-template-columns: 2fr repeat(5, 1fr);
+            gap: 0.3rem;
+            padding: 0.8rem;
+            background: rgba(249, 115, 22, 0.2);
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .support-row {
+            display: grid;
+            grid-template-columns: 2fr repeat(5, 1fr);
+            gap: 0.3rem;
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            align-items: center;
+        }
+        
+        .support-row .feature { text-align: left; font-weight: 500; }
+        .support-row .check { text-align: center; }
+        .check.yes { color: #4ade80; }
+        .check.no { color: #64748b; }
+        
+        /* API Query Methods Visual */
+        .api-methods-vis {
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .api-method {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.4s ease;
+        }
+        
+        .api-method.highlight-active {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+        
+        .api-method .icon { font-size: 1.5rem; }
+        .api-method .content { flex: 1; }
+        .api-method .title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.2rem; }
+        .api-method .desc { font-size: 0.75rem; color: #94a3b8; }
+        .api-method .badge {
+            padding: 0.2rem 0.6rem;
+            background: rgba(74, 222, 128, 0.2);
+            border: 1px solid rgba(74, 222, 128, 0.4);
+            border-radius: 4px;
+            font-size: 0.65rem;
+            color: #4ade80;
+        }
+        
+        /* Traffic Split Visual */
+        .traffic-vis {
+            width: 100%;
+            height: 100%;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .traffic-flow {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .traffic-source {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .traffic-split {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .split-bar {
+            height: 40px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.4s ease;
+        }
+        
+        .traffic-targets {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        
+        .traffic-target {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.75rem;
+            transition: all 0.4s ease;
+        }
+        
+        .traffic-target .icon { font-size: 1.2rem; margin-bottom: 0.3rem; }
+        
+        .fallback-indicator {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        
+        /* Summary Section */
+        .summary-section {
+            padding: 4rem 2rem;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .summary-container { max-width: 1000px; margin: 0 auto; }
+        
+        .summary-section h3 {
+            text-align: center;
+            font-size: 2rem;
+            color: #f97316;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .summary-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .summary-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .summary-card ul { padding-left: 1.2rem; color: #94a3b8; font-size: 0.9rem; }
+        .summary-card li { margin-bottom: 0.5rem; }
+        
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        footer .links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+        
+        .footer-link {
+            color: #f97316;
+            text-decoration: none;
+            font-size: 0.95rem;
+            padding: 0.7rem 1.3rem;
+            border: 2px solid #f97316;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-link:hover { background: #f97316; color: #1a1a2e; }
+        
+        @media (max-width: 900px) {
+            .scrolly-container { flex-direction: column; }
+            .scroll-text { width: 100%; }
+            .visual-area { width: 100%; height: 60vh; position: relative; }
+            .hero h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌉 AI Gateway Governance</h1>
+        <a href="./">← Orchestration Hub</a>
+    </header>
+    
+    <section class="hero">
+        <h2>Mosaic AI Gateway</h2>
+        <p>
+            Centralized governance, monitoring, and production readiness for all your AI model serving endpoints.
+            Control access, enforce policies, and gain observability across Databricks and external LLMs.
+        </p>
+        <p class="subtitle">
+            Run, secure, and govern AI traffic to democratize and accelerate AI adoption
+        </p>
+        
+        <div class="doc-links">
+            <a href="https://docs.databricks.com/aws/en/ai-gateway/" target="_blank" class="doc-link">AI Gateway Intro</a>
+            <a href="https://docs.databricks.com/aws/en/ai-gateway/configure-ai-gateway-endpoints" target="_blank" class="doc-link">Configure AI Gateway</a>
+            <a href="https://docs.databricks.com/aws/en/ai-gateway/inference-tables" target="_blank" class="doc-link">Inference Tables</a>
+            <a href="https://docs.databricks.com/aws/en/generative-ai/external-models/" target="_blank" class="doc-link">External Models</a>
+            <a href="https://docs.databricks.com/aws/en/generative-ai/agent-framework/query-agent" target="_blank" class="doc-link">Query Agents</a>
+        </div>
+        
+        <div class="scroll-hint">↓ Scroll to explore AI Gateway</div>
+    </section>
+    
+    <div class="scrolly-container">
+        <div class="scroll-text">
+            <!-- Step 1: What is AI Gateway -->
+            <div class="scroll-step" data-step="1">
+                <h3>What is AI Gateway?</h3>
+                <p>
+                    <strong>Mosaic AI Gateway</strong> is Databricks' centralized service for governing and 
+                    monitoring access to generative AI models and their serving endpoints.
+                </p>
+                <div class="highlight">
+                    <strong>Key Capabilities:</strong><br>
+                    Governance, monitoring, and production readiness for model serving endpoints—whether 
+                    serving Databricks-hosted models, external LLMs, or your own custom models/agents.
+                </div>
+                <p>
+                    All telemetry data flows into <strong>Delta tables in Unity Catalog</strong>, enabling 
+                    SQL queries, notebooks, dashboards, and alerts using the full Databricks platform.
+                </p>
+            </div>
+            
+            <!-- Step 2: Supported Features -->
+            <div class="scroll-step" data-step="2">
+                <h3>AI Gateway Features</h3>
+                <p>
+                    AI Gateway provides a comprehensive set of governance and monitoring features:
+                </p>
+                <ul>
+                    <li><strong>Permission & Rate Limiting</strong> — Control who has access and how much</li>
+                    <li><strong>Payload Logging</strong> — Monitor requests/responses via inference tables</li>
+                    <li><strong>Usage Tracking</strong> — Monitor operational usage and costs via system tables</li>
+                    <li><strong>AI Guardrails</strong> — Prevent unsafe/harmful content (Public Preview)</li>
+                    <li><strong>Fallbacks</strong> — Minimize outages with automatic model failover</li>
+                    <li><strong>Traffic Splitting</strong> — Load balance traffic across models</li>
+                </ul>
+                <div class="note">
+                    💰 Paid features: Payload logging, usage tracking. Free features: Permissions, rate limiting, fallbacks, traffic splitting.
+                </div>
+            </div>
+            
+            <!-- Step 3: Endpoint Support Matrix -->
+            <div class="scroll-step" data-step="3">
+                <h3>Which Endpoints Support AI Gateway?</h3>
+                <p>
+                    AI Gateway can be configured on various Model Serving endpoint types, with different 
+                    feature availability:
+                </p>
+                <ul>
+                    <li><strong>External Models</strong> — Full support (OpenAI, Anthropic, Cohere, Bedrock, Vertex)</li>
+                    <li><strong>Foundation Model APIs (PT)</strong> — Provisioned throughput endpoints</li>
+                    <li><strong>Foundation Model APIs (Pay-per-token)</strong> — On-demand endpoints</li>
+                    <li><strong>Deployed AI Agents</strong> — Payload logging supported</li>
+                    <li><strong>Custom Model Endpoints</strong> — Most features except guardrails</li>
+                </ul>
+            </div>
+            
+            <!-- Step 4: External Models Deep Dive -->
+            <div class="scroll-step" data-step="4">
+                <h3>External Models via AI Gateway</h3>
+                <p>
+                    <strong>External models</strong> are third-party LLMs hosted outside Databricks. 
+                    AI Gateway provides a unified interface for managing multiple providers:
+                </p>
+                <ul>
+                    <li><strong>OpenAI</strong> — GPT-4, GPT-4o, embeddings</li>
+                    <li><strong>Anthropic</strong> — Claude models</li>
+                    <li><strong>Cohere</strong> — Command, embeddings</li>
+                    <li><strong>Amazon Bedrock</strong> — Claude, Titan, Llama</li>
+                    <li><strong>Google Cloud Vertex AI</strong> — Gemini, PaLM</li>
+                    <li><strong>Azure OpenAI</strong> — With Entra ID support</li>
+                    <li><strong>Custom Providers</strong> — Any OpenAI-compatible endpoint</li>
+                </ul>
+                <div class="highlight">
+                    <strong>Centralized Credential Management:</strong> API keys stored securely in one location, 
+                    never exposed in code or to end users.
+                </div>
+            </div>
+            
+            <!-- Step 5: Rate Limiting -->
+            <div class="scroll-step" data-step="5">
+                <h3>Rate Limiting</h3>
+                <p>
+                    Control request volume with <strong>Queries Per Minute (QPM)</strong> or 
+                    <strong>Tokens Per Minute (TPM)</strong> limits at multiple levels:
+                </p>
+                <ul>
+                    <li><strong>Endpoint Level</strong> — Global maximum for all traffic</li>
+                    <li><strong>User Default</strong> — Per-user limit for all users</li>
+                    <li><strong>Custom User/SP</strong> — Specific limits for individuals (overrides default)</li>
+                    <li><strong>User Groups</strong> — Shared limit across group members</li>
+                </ul>
+                <div class="note">
+                    If both QPM and TPM are specified, the more restrictive limit is enforced. 
+                    Max 20 rate limits per endpoint.
+                </div>
+            </div>
+            
+            <!-- Step 6: AI Guardrails -->
+            <div class="scroll-step" data-step="6">
+                <h3>AI Guardrails</h3>
+                <p>
+                    Enforce data compliance and block harmful content at the endpoint level:
+                </p>
+                <ul>
+                    <li><strong>Safety Filtering</strong> — Block violent, self-harm, hate speech content (powered by Meta Llama Guard 2)</li>
+                    <li><strong>PII Detection</strong> — Detect or mask sensitive data:</li>
+                    <ul>
+                        <li>Credit card numbers</li>
+                        <li>Email addresses</li>
+                        <li>Phone numbers (US)</li>
+                        <li>Bank account numbers</li>
+                        <li>Social security numbers</li>
+                    </ul>
+                </ul>
+                <div class="highlight">
+                    <strong>PII Options:</strong> <code>Block</code> (reject request), <code>Mask</code> (redact sensitive data), or <code>None</code>
+                </div>
+            </div>
+            
+            <!-- Step 7: Traffic Splitting & Fallbacks -->
+            <div class="scroll-step" data-step="7">
+                <h3>Traffic Splitting & Fallbacks</h3>
+                <p>
+                    Load balance and ensure high availability for external model endpoints:
+                </p>
+                <div class="highlight">
+                    <strong>Traffic Splitting:</strong> Route percentages of traffic to different models. 
+                    Useful for A/B testing, gradual rollouts, or cost optimization.
+                </div>
+                <p><strong>Fallbacks</strong> automatically redirect on errors:</p>
+                <ul>
+                    <li>Triggered on <code>429</code> (rate limit) or <code>5XX</code> errors</li>
+                    <li>Falls back in order of served entities</li>
+                    <li>Set 0% traffic for fallback-only models</li>
+                    <li>Maximum of 2 fallback models</li>
+                </ul>
+            </div>
+            
+            <!-- Step 8: Inference Tables -->
+            <div class="scroll-step" data-step="8">
+                <h3>Inference Tables (Payload Logging)</h3>
+                <p>
+                    Automatically log all requests and responses to <strong>Unity Catalog Delta tables</strong>:
+                </p>
+                <ul>
+                    <li><code>request</code> — Raw JSON request body</li>
+                    <li><code>response</code> — Raw JSON response</li>
+                    <li><code>status_code</code> — HTTP status</li>
+                    <li><code>execution_duration_ms</code> — Model inference time</li>
+                    <li><code>databricks_request_id</code> — Unique request ID</li>
+                    <li><code>requester</code> — User or SP who made the call</li>
+                </ul>
+                <div class="note">
+                    For AI agents, additional tables capture MLflow traces, assessment logs, and formatted request/response logs.
+                </div>
+            </div>
+            
+            <!-- Step 9: Usage Tracking -->
+            <div class="scroll-step" data-step="9">
+                <h3>Usage Tracking (System Tables)</h3>
+                <p>
+                    Monitor operational metrics and costs via system tables:
+                </p>
+                <ul>
+                    <li><code>system.serving.endpoint_usage</code> — Token counts, request times, status codes</li>
+                    <li><code>system.serving.served_entities</code> — Model metadata, configurations</li>
+                </ul>
+                <div class="highlight">
+                    <strong>Cost Attribution:</strong> Use <code>usage_context</code> parameter to track 
+                    end-user or project-specific usage for chargeback.
+                </div>
+                <p>
+                    Join these tables with inference tables for complete observability. Create dashboards, 
+                    set alerts, and optimize model performance.
+                </p>
+            </div>
+            
+            <!-- Step 10: Querying Agent Endpoints -->
+            <div class="scroll-step" data-step="10">
+                <h3>Querying Agent Endpoints (API)</h3>
+                <p>
+                    Deployed agents (Agent Bricks) are accessible as <strong>Model Serving endpoints</strong> 
+                    with multiple query methods:
+                </p>
+                <ul>
+                    <li><strong>Databricks OpenAI Client</strong> — Recommended for new apps, native integration</li>
+                    <li><strong>MLflow Deployments Client</strong> — For existing MLflow workflows</li>
+                    <li><strong>REST API</strong> — OpenAI-compatible, language-agnostic</li>
+                    <li><strong>AI Functions (ai_query)</strong> — Query from SQL</li>
+                </ul>
+                <div class="highlight">
+                    <strong>ResponsesAgent vs ChatAgent:</strong> Use <code>responses.create()</code> for new 
+                    ResponsesAgent, <code>chat.completions.create()</code> for legacy ChatAgent.
+                </div>
+            </div>
+            
+            <!-- Step 11: API Example -->
+            <div class="scroll-step" data-step="11">
+                <h3>Databricks OpenAI Client Example</h3>
+                <p>
+                    The recommended approach for querying deployed agents:
+                </p>
+                <div class="highlight">
+                    <code>from databricks.sdk import WorkspaceClient</code><br>
+                    <code>w = WorkspaceClient()</code><br>
+                    <code>client = w.serving_endpoints.get_open_ai_client()</code><br><br>
+                    <code>response = client.responses.create(</code><br>
+                    <code>&nbsp;&nbsp;model="my-agent-endpoint",</code><br>
+                    <code>&nbsp;&nbsp;input=[{"role": "user", "content": "..."}],</code><br>
+                    <code>&nbsp;&nbsp;stream=True</code><br>
+                    <code>)</code>
+                </div>
+                <p>
+                    Pass <code>custom_inputs</code> and <code>databricks_options</code> via <code>extra_body</code> 
+                    for additional parameters like <code>return_trace</code>.
+                </p>
+            </div>
+            
+            <!-- Step 12: Architecture Summary -->
+            <div class="scroll-step" data-step="12">
+                <h3>AI Gateway in the Architecture</h3>
+                <p>
+                    AI Gateway sits at the center of your AI infrastructure, providing:
+                </p>
+                <ul>
+                    <li><strong>Unified Interface</strong> — Single endpoint for multiple LLM providers</li>
+                    <li><strong>Centralized Governance</strong> — Consistent policies across all AI traffic</li>
+                    <li><strong>Observability</strong> — Complete audit trail in Unity Catalog</li>
+                    <li><strong>Production Readiness</strong> — Rate limits, fallbacks, guardrails</li>
+                </ul>
+                <div class="highlight">
+                    <strong>Best Practice:</strong> Route ALL external LLM traffic through AI Gateway to 
+                    unify governance, tracking, and cost management.
+                </div>
+            </div>
+        </div>
+        
+        <div class="visual-area">
+            <div class="visual-container">
+                <!-- Step 1: Gateway Overview -->
+                <div class="vis-element gateway-arch" id="vis-gateway-overview">
+                    <div>
+                        <div class="arch-label">Requests</div>
+                        <div class="arch-row">
+                            <div class="arch-box purple">
+                                <div class="icon">🌐</div>
+                                <div class="title">External Apps</div>
+                            </div>
+                            <div class="arch-box cyan">
+                                <div class="icon">🤖</div>
+                                <div class="title">Agents</div>
+                            </div>
+                            <div class="arch-box blue">
+                                <div class="icon">📊</div>
+                                <div class="title">Notebooks</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="arch-arrow">↓</div>
+                    
+                    <div style="padding: 1rem; background: rgba(249, 115, 22, 0.1); border-radius: 12px; border: 2px solid #f97316;">
+                        <div class="arch-label" style="color: #f97316;">Mosaic AI Gateway</div>
+                        <div class="arch-row">
+                            <div class="arch-box orange highlight-active">
+                                <div class="icon">🌉</div>
+                                <div class="title">Governance</div>
+                                <div class="desc">Unified Control</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">Rate Limits</span>
+                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">Guardrails</span>
+                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">Logging</span>
+                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">Tracking</span>
+                        </div>
+                    </div>
+                    
+                    <div class="arch-arrow">↓</div>
+                    
+                    <div>
+                        <div class="arch-label">Model Serving Endpoints</div>
+                        <div class="arch-row">
+                            <div class="arch-box green">
+                                <div class="icon">🧠</div>
+                                <div class="title">Foundation</div>
+                            </div>
+                            <div class="arch-box pink">
+                                <div class="icon">🔗</div>
+                                <div class="title">External</div>
+                            </div>
+                            <div class="arch-box blue">
+                                <div class="icon">⚙️</div>
+                                <div class="title">Custom</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="arch-divider"></div>
+                    
+                    <div class="arch-row">
+                        <div class="arch-box slate" style="min-width: 200px;">
+                            <div class="icon">🗄️</div>
+                            <div class="title">Unity Catalog</div>
+                            <div class="desc">Inference Tables • System Tables</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Feature Grid -->
+                <div class="vis-element feature-grid" id="vis-features">
+                    <div class="feature-card" data-feature="rate">
+                        <div class="icon">⚡</div>
+                        <div class="title">Rate Limiting</div>
+                        <div class="desc">QPM / TPM controls</div>
+                    </div>
+                    <div class="feature-card" data-feature="payload">
+                        <div class="icon">📝</div>
+                        <div class="title">Payload Logging</div>
+                        <div class="desc">Inference tables</div>
+                    </div>
+                    <div class="feature-card" data-feature="usage">
+                        <div class="icon">📊</div>
+                        <div class="title">Usage Tracking</div>
+                        <div class="desc">System tables</div>
+                    </div>
+                    <div class="feature-card" data-feature="guard">
+                        <div class="icon">🛡️</div>
+                        <div class="title">AI Guardrails</div>
+                        <div class="desc">Safety + PII</div>
+                    </div>
+                    <div class="feature-card" data-feature="fallback">
+                        <div class="icon">🔄</div>
+                        <div class="title">Fallbacks</div>
+                        <div class="desc">Auto failover</div>
+                    </div>
+                    <div class="feature-card" data-feature="traffic">
+                        <div class="icon">⚖️</div>
+                        <div class="title">Traffic Split</div>
+                        <div class="desc">Load balance</div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Endpoint Support Matrix -->
+                <div class="vis-element endpoint-support" id="vis-endpoint-support">
+                    <div class="support-table">
+                        <div class="support-header">
+                            <div>Feature</div>
+                            <div style="font-size: 0.6rem;">External</div>
+                            <div style="font-size: 0.6rem;">FM (PT)</div>
+                            <div style="font-size: 0.6rem;">FM (PPT)</div>
+                            <div style="font-size: 0.6rem;">Agents</div>
+                            <div style="font-size: 0.6rem;">Custom</div>
+                        </div>
+                        <div class="support-row">
+                            <div class="feature">Rate Limiting</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                            <div class="check no">—</div>
+                            <div class="check yes">✓</div>
+                        </div>
+                        <div class="support-row">
+                            <div class="feature">Payload Logging</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                        </div>
+                        <div class="support-row">
+                            <div class="feature">Usage Tracking</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                            <div class="check no">—</div>
+                            <div class="check yes">✓</div>
+                        </div>
+                        <div class="support-row">
+                            <div class="feature">AI Guardrails</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                            <div class="check no">—</div>
+                            <div class="check no">—</div>
+                        </div>
+                        <div class="support-row">
+                            <div class="feature">Fallbacks</div>
+                            <div class="check yes">✓</div>
+                            <div class="check no">—</div>
+                            <div class="check no">—</div>
+                            <div class="check no">—</div>
+                            <div class="check no">—</div>
+                        </div>
+                        <div class="support-row">
+                            <div class="feature">Traffic Split</div>
+                            <div class="check yes">✓</div>
+                            <div class="check yes">✓</div>
+                            <div class="check no">—</div>
+                            <div class="check no">—</div>
+                            <div class="check yes">✓</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 4: External Providers -->
+                <div class="vis-element" id="vis-external-providers" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem;">Supported External Model Providers</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <div class="arch-box cyan" style="text-align: center;">
+                            <div style="font-size: 1.5rem;">🤖</div>
+                            <div style="font-weight: 600; font-size: 0.8rem;">OpenAI</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">GPT-4, GPT-4o</div>
+                        </div>
+                        <div class="arch-box purple" style="text-align: center;">
+                            <div style="font-size: 1.5rem;">🧠</div>
+                            <div style="font-weight: 600; font-size: 0.8rem;">Anthropic</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Claude</div>
+                        </div>
+                        <div class="arch-box green" style="text-align: center;">
+                            <div style="font-size: 1.5rem;">💬</div>
+                            <div style="font-weight: 600; font-size: 0.8rem;">Cohere</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Command</div>
+                        </div>
+                        <div class="arch-box yellow" style="text-align: center;">
+                            <div style="font-size: 1.5rem;">☁️</div>
+                            <div style="font-weight: 600; font-size: 0.8rem;">Amazon Bedrock</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Claude, Titan</div>
+                        </div>
+                        <div class="arch-box blue" style="text-align: center;">
+                            <div style="font-size: 1.5rem;">🌐</div>
+                            <div style="font-weight: 600; font-size: 0.8rem;">Google Vertex</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Gemini, PaLM</div>
+                        </div>
+                        <div class="arch-box pink" style="text-align: center;">
+                            <div style="font-size: 1.5rem;">🔷</div>
+                            <div style="font-weight: 600; font-size: 0.8rem;">Azure OpenAI</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">+ Entra ID</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 1.5rem;">
+                        <div class="arch-box slate" style="display: inline-block;">
+                            <div style="font-size: 1.2rem;">⚙️</div>
+                            <div style="font-weight: 600; font-size: 0.8rem;">Custom Provider</div>
+                            <div style="font-size: 0.65rem; opacity: 0.8;">Any OpenAI-compatible API</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 5: Rate Limiting -->
+                <div class="vis-element rate-limit-vis" id="vis-rate-limits">
+                    <div class="rate-level active">
+                        <div class="level-title">🌐 Endpoint Level</div>
+                        <div class="level-desc">Global maximum for ALL traffic (e.g., 10,000 TPM)</div>
+                        <div class="rate-meter"><div class="rate-fill green" style="width: 60%;"></div></div>
+                    </div>
+                    <div class="rate-level">
+                        <div class="level-title">👤 User Default</div>
+                        <div class="level-desc">Per-user limit for all users (e.g., 1,000 TPM)</div>
+                        <div class="rate-meter"><div class="rate-fill yellow" style="width: 45%;"></div></div>
+                    </div>
+                    <div class="rate-level">
+                        <div class="level-title">⭐ Custom User/SP</div>
+                        <div class="level-desc">Specific limits that override defaults (e.g., 5,000 TPM)</div>
+                        <div class="rate-meter"><div class="rate-fill green" style="width: 80%;"></div></div>
+                    </div>
+                    <div class="rate-level">
+                        <div class="level-title">👥 User Groups</div>
+                        <div class="level-desc">Shared limit across group members (e.g., 3,000 TPM total)</div>
+                        <div class="rate-meter"><div class="rate-fill red" style="width: 90%;"></div></div>
+                    </div>
+                </div>
+                
+                <!-- Step 6: Guardrails -->
+                <div class="vis-element guardrails-vis" id="vis-guardrails">
+                    <div class="guardrail-flow">
+                        <div class="flow-box" style="background: linear-gradient(135deg, #a855f7, #7c3aed); color: white;">
+                            <div class="icon">📨</div>
+                            <div class="title">Request</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box" style="background: linear-gradient(135deg, #ec4899, #db2777); color: white;">
+                            <div class="icon">🛡️</div>
+                            <div class="title">Guardrails</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white;">
+                            <div class="icon">🤖</div>
+                            <div class="title">Model</div>
+                        </div>
+                    </div>
+                    
+                    <div class="guardrail-types">
+                        <div class="guardrail-type active">
+                            <div class="icon">⚠️</div>
+                            <div class="title">Safety Filter</div>
+                            <div class="desc">Block harmful content<br>(Llama Guard 2)</div>
+                        </div>
+                        <div class="guardrail-type">
+                            <div class="icon">🔐</div>
+                            <div class="title">PII Detection</div>
+                            <div class="desc">Block or Mask<br>sensitive data</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
+                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 4px; color: #ef4444;">Violence</span>
+                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 4px; color: #ef4444;">Hate Speech</span>
+                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 4px; color: #fbbf24;">Credit Cards</span>
+                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 4px; color: #fbbf24;">SSN</span>
+                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 4px; color: #fbbf24;">Emails</span>
+                    </div>
+                </div>
+                
+                <!-- Step 7: Traffic & Fallbacks -->
+                <div class="vis-element traffic-vis" id="vis-traffic">
+                    <div class="traffic-flow">
+                        <div class="traffic-source">
+                            <div style="font-size: 1.2rem;">📨</div>
+                            <div style="font-weight: 600;">Incoming Requests</div>
+                        </div>
+                        
+                        <div style="text-align: center; color: #64748b; font-size: 0.8rem; margin-bottom: 0.5rem;">Traffic Split</div>
+                        
+                        <div class="traffic-split">
+                            <div class="split-bar" style="width: 60%; background: linear-gradient(135deg, #22d3ee, #06b6d4);">60%</div>
+                            <div class="split-bar" style="width: 30%; background: linear-gradient(135deg, #a855f7, #7c3aed);">30%</div>
+                            <div class="split-bar" style="width: 10%; background: rgba(255,255,255,0.1); color: #64748b;">10%</div>
+                        </div>
+                        
+                        <div class="traffic-targets">
+                            <div class="traffic-target" style="background: rgba(34, 211, 238, 0.2); border: 1px solid rgba(34, 211, 238, 0.4);">
+                                <div class="icon">🤖</div>
+                                <div>GPT-4o</div>
+                                <div style="color: #22d3ee;">Primary</div>
+                            </div>
+                            <div class="traffic-target" style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4);">
+                                <div class="icon">🧠</div>
+                                <div>Claude</div>
+                                <div style="color: #a855f7;">Secondary</div>
+                            </div>
+                            <div class="traffic-target" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);">
+                                <div class="icon">🔄</div>
+                                <div>Backup</div>
+                                <div style="color: #64748b;">Fallback Only</div>
+                            </div>
+                        </div>
+                        
+                        <div class="fallback-indicator">
+                            <strong>🔄 Fallback Flow:</strong> On 429/5XX → Try next model in order
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 8: Inference Tables -->
+                <div class="vis-element inference-vis" id="vis-inference">
+                    <div class="table-schema">
+                        <div class="table-header">
+                            <span>📝</span> AI Gateway Inference Table Schema
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell col">databricks_request_id</div>
+                            <div class="table-cell type">STRING</div>
+                            <div class="table-cell desc">Unique request ID</div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell col">request</div>
+                            <div class="table-cell type">STRING</div>
+                            <div class="table-cell desc">Raw JSON request</div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell col">response</div>
+                            <div class="table-cell type">STRING</div>
+                            <div class="table-cell desc">Raw JSON response</div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell col">status_code</div>
+                            <div class="table-cell type">INT</div>
+                            <div class="table-cell desc">HTTP status code</div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell col">execution_duration_ms</div>
+                            <div class="table-cell type">BIGINT</div>
+                            <div class="table-cell desc">Inference time</div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell col">requester</div>
+                            <div class="table-cell type">STRING</div>
+                            <div class="table-cell desc">User or SP ID</div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell col">request_time</div>
+                            <div class="table-cell type">TIMESTAMP</div>
+                            <div class="table-cell desc">When received</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 9: Usage Tracking -->
+                <div class="vis-element" id="vis-usage-tracking" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 12px; padding: 1rem;">
+                            <div style="color: #22d3ee; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.85rem;">📊 endpoint_usage</div>
+                            <div style="font-size: 0.75rem; color: #94a3b8;">
+                                • input_token_count<br>
+                                • output_token_count<br>
+                                • request_time<br>
+                                • status_code<br>
+                                • usage_context
+                            </div>
+                        </div>
+                        <div style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 1rem;">
+                            <div style="color: #a855f7; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.85rem;">🔧 served_entities</div>
+                            <div style="font-size: 0.75rem; color: #94a3b8;">
+                                • endpoint_name<br>
+                                • entity_type<br>
+                                • model config<br>
+                                • task type<br>
+                                • provider info
+                            </div>
+                        </div>
+                    </div>
+                    <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+                        <div style="font-weight: 600; color: #f97316; margin-bottom: 0.5rem;">Cost Attribution with usage_context</div>
+                        <div style="font-size: 0.8rem; color: #94a3b8;">
+                            <code style="background: rgba(0,0,0,0.3); padding: 0.2rem 0.4rem; border-radius: 4px;">{"project": "proj1", "end_user": "abc123"}</code>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 10: API Methods -->
+                <div class="vis-element api-methods-vis" id="vis-api-methods">
+                    <div style="text-align: center; margin-bottom: 1rem; color: #64748b; font-size: 0.8rem;">
+                        Query Deployed Agents via API
+                    </div>
+                    <div class="api-method highlight-active">
+                        <div class="icon">🐍</div>
+                        <div class="content">
+                            <div class="title">Databricks OpenAI Client</div>
+                            <div class="desc">Native SDK integration, streaming support</div>
+                        </div>
+                        <div class="badge">Recommended</div>
+                    </div>
+                    <div class="api-method">
+                        <div class="icon">🔄</div>
+                        <div class="content">
+                            <div class="title">MLflow Deployments Client</div>
+                            <div class="desc">Existing MLflow workflows, experiment tracking</div>
+                        </div>
+                    </div>
+                    <div class="api-method">
+                        <div class="icon">🌐</div>
+                        <div class="content">
+                            <div class="title">REST API</div>
+                            <div class="desc">OpenAI-compatible, language-agnostic</div>
+                        </div>
+                    </div>
+                    <div class="api-method">
+                        <div class="icon">📊</div>
+                        <div class="content">
+                            <div class="title">AI Functions (ai_query)</div>
+                            <div class="desc">Query agents directly from SQL</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 11: Code Example -->
+                <div class="vis-element" id="vis-code-example" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="background: rgba(74, 222, 128, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #4ade80; font-weight: 600;">
+                            Databricks OpenAI Client
+                        </div>
+                        <div style="padding: 1rem; font-family: 'SF Mono', Monaco, monospace; font-size: 0.75rem; line-height: 1.6;">
+                            <div style="color: #a855f7;">from</div> <span style="color: #22d3ee;">databricks.sdk</span> <span style="color: #a855f7;">import</span> <span style="color: #4ade80;">WorkspaceClient</span>
+                            <br><br>
+                            <span style="color: #e8e8e8;">w = WorkspaceClient()</span>
+                            <br>
+                            <span style="color: #e8e8e8;">client = w.serving_endpoints.get_open_ai_client()</span>
+                            <br><br>
+                            <span style="color: #64748b;"># ResponsesAgent (recommended)</span>
+                            <br>
+                            <span style="color: #e8e8e8;">response = client.<span style="color: #f97316;">responses.create</span>(</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;model=<span style="color: #fbbf24;">"my-agent"</span>,</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;input=[{<span style="color: #fbbf24;">"role"</span>: <span style="color: #fbbf24;">"user"</span>, ...}],</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;stream=<span style="color: #22d3ee;">True</span>,</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;extra_body={<span style="color: #fbbf24;">"databricks_options"</span>: ...}</span>
+                            <br>
+                            <span style="color: #e8e8e8;">)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 12: Architecture Summary -->
+                <div class="vis-element gateway-arch" id="vis-arch-summary">
+                    <div>
+                        <div class="arch-label">Your Applications</div>
+                        <div class="arch-row">
+                            <div class="arch-box purple dim">
+                                <div class="icon">🌐</div>
+                                <div class="title">External Apps</div>
+                            </div>
+                            <div class="arch-box cyan dim">
+                                <div class="icon">🤖</div>
+                                <div class="title">Agents</div>
+                            </div>
+                            <div class="arch-box blue dim">
+                                <div class="icon">📊</div>
+                                <div class="title">Notebooks</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="arch-arrow">↓</div>
+                    
+                    <div style="padding: 1.2rem; background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(251, 191, 36, 0.1)); border-radius: 12px; border: 2px solid #f97316;">
+                        <div style="text-align: center; font-weight: 600; color: #f97316; margin-bottom: 0.8rem;">🌉 Mosaic AI Gateway</div>
+                        <div style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap;">
+                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px; min-width: 70px;">
+                                <div style="font-size: 1rem;">⚡</div>
+                                <div style="font-size: 0.6rem;">Rate Limits</div>
+                            </div>
+                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px; min-width: 70px;">
+                                <div style="font-size: 1rem;">🛡️</div>
+                                <div style="font-size: 0.6rem;">Guardrails</div>
+                            </div>
+                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px; min-width: 70px;">
+                                <div style="font-size: 1rem;">📝</div>
+                                <div style="font-size: 0.6rem;">Logging</div>
+                            </div>
+                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px; min-width: 70px;">
+                                <div style="font-size: 1rem;">📊</div>
+                                <div style="font-size: 0.6rem;">Tracking</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="arch-arrow">↓</div>
+                    
+                    <div>
+                        <div class="arch-label">All AI Traffic</div>
+                        <div class="arch-row">
+                            <div class="arch-box green">
+                                <div class="icon">🧠</div>
+                                <div class="title">Foundation</div>
+                            </div>
+                            <div class="arch-box pink">
+                                <div class="icon">🔗</div>
+                                <div class="title">External LLMs</div>
+                            </div>
+                            <div class="arch-box blue">
+                                <div class="icon">⚙️</div>
+                                <div class="title">Custom/Agents</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary Section -->
+    <section class="summary-section">
+        <div class="summary-container">
+            <h3>Quick Reference</h3>
+            
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h4 style="color: #f97316;">🌉 What is AI Gateway?</h4>
+                    <ul>
+                        <li>Centralized governance for AI model endpoints</li>
+                        <li>Rate limiting, guardrails, logging, tracking</li>
+                        <li>Unified interface for all LLM providers</li>
+                        <li>All data logged to Unity Catalog Delta tables</li>
+                    </ul>
+                </div>
+                
+                <div class="summary-card">
+                    <h4 style="color: #22d3ee;">🔧 Supported Endpoints</h4>
+                    <ul>
+                        <li><strong>External Models</strong> — Full feature support</li>
+                        <li><strong>Foundation Models</strong> — PT and pay-per-token</li>
+                        <li><strong>Custom Models</strong> — Most features</li>
+                        <li><strong>Deployed Agents</strong> — Payload logging</li>
+                    </ul>
+                </div>
+                
+                <div class="summary-card">
+                    <h4 style="color: #ec4899;">🛡️ Governance Features</h4>
+                    <ul>
+                        <li><strong>Rate Limiting</strong> — QPM/TPM at multiple levels</li>
+                        <li><strong>AI Guardrails</strong> — Safety + PII detection</li>
+                        <li><strong>Traffic Splitting</strong> — Load balance across models</li>
+                        <li><strong>Fallbacks</strong> — Auto failover on errors</li>
+                    </ul>
+                </div>
+                
+                <div class="summary-card">
+                    <h4 style="color: #4ade80;">📊 Observability</h4>
+                    <ul>
+                        <li><strong>Inference Tables</strong> — Request/response logging</li>
+                        <li><strong>System Tables</strong> — Usage and cost tracking</li>
+                        <li><strong>usage_context</strong> — Custom cost attribution</li>
+                        <li>SQL queries, dashboards, alerts</li>
+                    </ul>
+                </div>
+                
+                <div class="summary-card">
+                    <h4 style="color: #a855f7;">🔗 External Providers</h4>
+                    <ul>
+                        <li>OpenAI, Anthropic, Cohere</li>
+                        <li>Amazon Bedrock, Google Vertex AI</li>
+                        <li>Azure OpenAI (with Entra ID)</li>
+                        <li>Custom OpenAI-compatible providers</li>
+                    </ul>
+                </div>
+                
+                <div class="summary-card">
+                    <h4 style="color: #fbbf24;">📡 Query Methods</h4>
+                    <ul>
+                        <li><strong>Databricks OpenAI Client</strong> — Recommended</li>
+                        <li><strong>MLflow Deployments</strong> — MLflow workflows</li>
+                        <li><strong>REST API</strong> — OpenAI-compatible</li>
+                        <li><strong>ai_query()</strong> — SQL-based</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="links">
+            <a href="./" class="footer-link">← Orchestration Hub</a>
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/ORCHESTRATION-ARCHITECTURE.md" target="_blank" class="footer-link">📄 Architecture Reference</a>
+            <a href="https://docs.databricks.com/aws/en/ai-gateway/" target="_blank" class="footer-link">📚 Official Docs</a>
+        </div>
+    </footer>
+    
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        const steps = document.querySelectorAll('.scroll-step');
+        const visuals = {
+            1: 'vis-gateway-overview',
+            2: 'vis-features',
+            3: 'vis-endpoint-support',
+            4: 'vis-external-providers',
+            5: 'vis-rate-limits',
+            6: 'vis-guardrails',
+            7: 'vis-traffic',
+            8: 'vis-inference',
+            9: 'vis-usage-tracking',
+            10: 'vis-api-methods',
+            11: 'vis-code-example',
+            12: 'vis-arch-summary'
+        };
+        
+        // Hide all visuals initially except first
+        document.querySelectorAll('.vis-element').forEach(el => {
+            el.classList.remove('visible');
+        });
+        document.getElementById('vis-gateway-overview').classList.add('visible');
+        
+        steps.forEach((step, index) => {
+            ScrollTrigger.create({
+                trigger: step,
+                start: "top center",
+                end: "bottom center",
+                onEnter: () => activateStep(index + 1),
+                onEnterBack: () => activateStep(index + 1)
+            });
+        });
+        
+        function activateStep(stepNum) {
+            // Update step opacity
+            steps.forEach((step, i) => {
+                step.classList.toggle('active', i === stepNum - 1);
+            });
+            
+            // Show correct visual
+            document.querySelectorAll('.vis-element').forEach(el => {
+                el.classList.remove('visible');
+            });
+            
+            const visualId = visuals[stepNum];
+            if (visualId) {
+                const visual = document.getElementById(visualId);
+                if (visual) {
+                    visual.classList.add('visible');
+                    animateVisual(stepNum);
+                }
+            }
+        }
+        
+        function animateVisual(stepNum) {
+            // Custom animations for specific steps
+            if (stepNum === 2) {
+                // Animate feature cards
+                gsap.from('#vis-features .feature-card', {
+                    opacity: 0,
+                    y: 20,
+                    stagger: 0.1,
+                    duration: 0.4
+                });
+            } else if (stepNum === 5) {
+                // Animate rate limit bars
+                gsap.from('#vis-rate-limits .rate-fill', {
+                    width: 0,
+                    stagger: 0.2,
+                    duration: 0.6,
+                    ease: "power2.out"
+                });
+            } else if (stepNum === 7) {
+                // Animate traffic split
+                gsap.from('#vis-traffic .split-bar', {
+                    scaleX: 0,
+                    stagger: 0.15,
+                    duration: 0.5,
+                    transformOrigin: "left center"
+                });
+            } else if (stepNum === 8) {
+                // Animate table rows
+                gsap.from('#vis-inference .table-row', {
+                    opacity: 0,
+                    x: -20,
+                    stagger: 0.1,
+                    duration: 0.3
+                });
+            } else if (stepNum === 10) {
+                // Animate API methods
+                gsap.from('#vis-api-methods .api-method', {
+                    opacity: 0,
+                    x: -30,
+                    stagger: 0.15,
+                    duration: 0.4
+                });
+            }
+        }
+        
+        // Activate first step
+        steps[0].classList.add('active');
+    </script>
+</body>
+</html>

@@ -94,9 +94,22 @@ Agent Bricks offers pre-configured templates for production-grade AI agents ([do
 
 ## 📚 Reference Materials
 
+- **[Orchestration Architecture](ORCHESTRATION-ARCHITECTURE.md)** - Comprehensive guide to governed AI orchestration
 - **[Authentication Flows](reference/authentication-flows.md)** - Visual Mermaid diagrams of auth patterns
 - **[Authorization Flows](reference/authorization-flows.md)** - Visual diagrams of UC four-layer access control
 - **[Interactive Visualizations](https://bhavink.github.io/databricks/ai-governance/interactive/)** - Scrollytelling explainers for core concepts
+
+### 🏗️ Orchestration Architecture (NEW)
+
+The "mother of all" scenarios — how to build governed AI applications that orchestrate across Model Serving, MCP, AI Gateway, and Lakebase.
+
+| Page | Topic | Description |
+|------|-------|-------------|
+| [Orchestration Hub](https://bhavink.github.io/databricks/ai-governance/interactive/orchestration/) | Overview | Architecture components, two auth scenarios, Lakebase |
+| [Agent Auth Methods](https://bhavink.github.io/databricks/ai-governance/interactive/orchestration/agent-auth-methods.html) | Model Serving | Automatic Passthrough, OBO, Manual Authentication |
+| [External App Auth](https://bhavink.github.io/databricks/ai-governance/interactive/orchestration/external-app-auth.html) | Token Federation | OAuth exchange for apps outside Databricks |
+| [MCP Integration](https://bhavink.github.io/databricks/ai-governance/interactive/orchestration/mcp-integration.html) | MCP Servers | Managed, External, Custom MCP patterns |
+| [AI Gateway](https://bhavink.github.io/databricks/ai-governance/interactive/orchestration/ai-gateway-governance.html) | Governance | Rate limits, guardrails, inference tables |
 
 ### Interactive Visualizations
 
