@@ -1,0 +1,558 @@
+/**
+ * Databricks AI Governance - Global Theme
+ * 
+ * Brand colors based on Databricks design system.
+ * All interactive visualizations should import this file.
+ * 
+ * Usage: <link rel="stylesheet" href="../styles/theme.css">
+ *   or:  <link rel="stylesheet" href="styles/theme.css">
+ */
+
+:root {
+    /* ========================================
+       DATABRICKS BRAND COLORS
+       ======================================== */
+    
+    /* Primary - Databricks Red/Orange */
+    --dbx-primary: #CE4A2C;
+    --dbx-primary-light: #ED431D;
+    --dbx-primary-bright: #FF4C24;
+    
+    /* Success - Green */
+    --dbx-success: #008558;
+    --dbx-success-light: #00A870;
+    --dbx-success-bright: #22C38E;
+    
+    /* Warning - Yellow/Gold */
+    --dbx-warning: #FFAA00;
+    --dbx-warning-light: #F4AF25;
+    
+    /* Info - Cyan/Blue */
+    --dbx-info: #669ECC;
+    --dbx-info-light: #7AB8E0;
+    
+    /* Purple - Accent */
+    --dbx-purple: #AD5CD6;
+    --dbx-purple-light: #B34DB3;
+    
+    /* ========================================
+       DARK THEME (Default for visualizations)
+       ======================================== */
+    
+    /* Backgrounds */
+    --bg-primary: #11181C;
+    --bg-secondary: #171F26;
+    --bg-tertiary: #1B252C;
+    --bg-elevated: #1F2A33;
+    --bg-card: #252F37;
+    --bg-hover: rgba(255, 255, 255, 0.05);
+    --bg-active: rgba(255, 255, 255, 0.08);
+    
+    /* Text */
+    --text-primary: #E9EDF1;
+    --text-secondary: #DAE0E7;
+    --text-muted: #A7B3BE;
+    --text-dim: #6B7A86;
+    
+    /* Borders */
+    --border-primary: #2D3943;
+    --border-secondary: #34414B;
+    --border-subtle: rgba(255, 255, 255, 0.1);
+    
+    /* ========================================
+       SEMANTIC COLORS (for components)
+       ======================================== */
+    
+    /* Status colors */
+    --color-success: var(--dbx-success-bright);
+    --color-warning: var(--dbx-warning);
+    --color-error: #D92626;
+    --color-info: var(--dbx-info);
+    
+    /* Accent colors for visual variety */
+    --accent-red: var(--dbx-primary-bright);
+    --accent-orange: #f97316;
+    --accent-yellow: var(--dbx-warning);
+    --accent-green: var(--dbx-success-bright);
+    --accent-teal: #14b8a6;
+    --accent-cyan: #22d3ee;
+    --accent-blue: #3b82f6;
+    --accent-purple: var(--dbx-purple);
+    --accent-pink: #ec4899;
+    
+    /* ========================================
+       COMPONENT TOKENS
+       ======================================== */
+    
+    /* Cards */
+    --card-bg: var(--bg-secondary);
+    --card-border: var(--border-subtle);
+    --card-hover-bg: var(--bg-tertiary);
+    --card-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    --card-shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.4);
+    
+    /* Buttons */
+    --btn-primary-bg: var(--dbx-primary);
+    --btn-primary-hover: var(--dbx-primary-light);
+    --btn-primary-text: var(--text-primary);
+    
+    /* Links */
+    --link-color: var(--accent-cyan);
+    --link-hover: var(--dbx-primary-bright);
+    
+    /* Progress bar gradient */
+    --progress-gradient: linear-gradient(90deg, var(--dbx-primary-bright), var(--dbx-warning), var(--dbx-success-bright));
+    
+    /* Hero gradient */
+    --hero-gradient: linear-gradient(135deg, var(--dbx-primary-bright), var(--dbx-warning), var(--dbx-success-bright));
+    
+    /* ========================================
+       FLOW DIAGRAM COLORS
+       ======================================== */
+    
+    /* Box backgrounds (gradients) */
+    --flow-red: linear-gradient(135deg, var(--dbx-primary), #a83820);
+    --flow-orange: linear-gradient(135deg, #f97316, #ea580c);
+    --flow-yellow: linear-gradient(135deg, #fbbf24, #f59e0b);
+    --flow-green: linear-gradient(135deg, var(--dbx-success-bright), var(--dbx-success));
+    --flow-teal: linear-gradient(135deg, #14b8a6, #0d9488);
+    --flow-cyan: linear-gradient(135deg, #22d3ee, #06b6d4);
+    --flow-blue: linear-gradient(135deg, #3b82f6, #2563eb);
+    --flow-purple: linear-gradient(135deg, var(--dbx-purple), #7c3aed);
+    --flow-pink: linear-gradient(135deg, #ec4899, #db2777);
+    --flow-slate: rgba(255, 255, 255, 0.1);
+    
+    /* ========================================
+       TYPOGRAPHY
+       ======================================== */
+    
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    
+    --font-size-xs: 0.65rem;
+    --font-size-sm: 0.8rem;
+    --font-size-base: 0.95rem;
+    --font-size-lg: 1.1rem;
+    --font-size-xl: 1.5rem;
+    --font-size-2xl: 2rem;
+    --font-size-3xl: 2.8rem;
+    
+    --line-height: 1.6;
+    
+    /* ========================================
+       SPACING & LAYOUT
+       ======================================== */
+    
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    
+    /* ========================================
+       TRANSITIONS
+       ======================================== */
+    
+    --transition-fast: 0.2s ease;
+    --transition-base: 0.3s ease;
+    --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    color: var(--text-primary);
+    line-height: var(--line-height);
+}
+
+/* ========================================
+   COMMON COMPONENTS
+   ======================================== */
+
+/* Header */
+.dbx-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: rgba(17, 24, 28, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.dbx-header h1 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--dbx-primary-bright);
+}
+
+/* Progress bar */
+.dbx-progress {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    height: 3px;
+    background: var(--progress-gradient);
+    width: 0%;
+    z-index: 101;
+}
+
+/* Hero section */
+.dbx-hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: var(--spacing-xl);
+    padding-top: 80px;
+}
+
+.dbx-hero h2 {
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--spacing-md);
+    background: var(--hero-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.dbx-hero p {
+    font-size: var(--font-size-lg);
+    color: var(--text-muted);
+    max-width: 700px;
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Doc links */
+.dbx-doc-links {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.dbx-doc-link {
+    display: inline-block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: rgba(206, 74, 44, 0.1);
+    border: 1px solid rgba(206, 74, 44, 0.3);
+    border-radius: var(--radius-sm);
+    color: var(--dbx-primary-bright);
+    text-decoration: none;
+    font-size: var(--font-size-base);
+    transition: all var(--transition-base);
+}
+
+.dbx-doc-link:hover {
+    background: rgba(206, 74, 44, 0.2);
+    border-color: var(--dbx-primary-bright);
+}
+
+/* Scroll hint */
+.dbx-scroll-hint {
+    animation: dbx-bounce 2s infinite;
+    color: var(--dbx-primary-bright);
+}
+
+@keyframes dbx-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
+}
+
+/* ========================================
+   SCROLLYTELLING LAYOUT
+   ======================================== */
+
+.dbx-scrollytelling {
+    display: flex;
+    position: relative;
+}
+
+.dbx-scroll-text {
+    flex: 0 0 45%;
+    padding: 0 var(--spacing-2xl);
+}
+
+.dbx-sticky-visual {
+    flex: 0 0 55%;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+}
+
+.dbx-step {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--spacing-xl) 0;
+    opacity: 0.3;
+    transition: opacity 0.4s ease;
+}
+
+.dbx-step.active {
+    opacity: 1;
+}
+
+/* Step badges */
+.dbx-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+    width: fit-content;
+}
+
+.dbx-badge.red { background: rgba(206, 74, 44, 0.2); color: var(--dbx-primary-bright); }
+.dbx-badge.orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+.dbx-badge.yellow { background: rgba(255, 170, 0, 0.2); color: var(--dbx-warning); }
+.dbx-badge.green { background: rgba(0, 133, 88, 0.2); color: var(--dbx-success-bright); }
+.dbx-badge.teal { background: rgba(20, 184, 166, 0.2); color: var(--accent-teal); }
+.dbx-badge.cyan { background: rgba(34, 211, 238, 0.2); color: var(--accent-cyan); }
+.dbx-badge.blue { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+.dbx-badge.purple { background: rgba(173, 92, 214, 0.2); color: var(--dbx-purple); }
+.dbx-badge.pink { background: rgba(236, 72, 153, 0.2); color: var(--accent-pink); }
+
+/* Step content */
+.dbx-step h3 {
+    font-size: 1.9rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.dbx-step p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.dbx-step ul {
+    color: var(--text-muted);
+    font-size: var(--font-size-base);
+    padding-left: var(--spacing-lg);
+    margin-top: var(--spacing-sm);
+}
+
+.dbx-step ul li {
+    margin-bottom: 0.4rem;
+}
+
+.dbx-step code {
+    background: rgba(206, 74, 44, 0.15);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    color: var(--dbx-primary-bright);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+/* Highlight classes */
+.highlight-red { color: var(--dbx-primary-bright); font-weight: 600; }
+.highlight-orange { color: var(--accent-orange); font-weight: 600; }
+.highlight-yellow { color: var(--dbx-warning); font-weight: 600; }
+.highlight-green { color: var(--dbx-success-bright); font-weight: 600; }
+.highlight-teal { color: var(--accent-teal); font-weight: 600; }
+.highlight-cyan { color: var(--accent-cyan); font-weight: 600; }
+.highlight-blue { color: var(--accent-blue); font-weight: 600; }
+.highlight-purple { color: var(--dbx-purple); font-weight: 600; }
+.highlight-pink { color: var(--accent-pink); font-weight: 600; }
+
+/* Key point callouts */
+.dbx-key-point {
+    background: var(--bg-hover);
+    border-left: 3px solid var(--dbx-primary-bright);
+    padding: 0.8rem 1rem;
+    margin-top: var(--spacing-md);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    font-size: var(--font-size-base);
+}
+
+.dbx-key-point.green { border-left-color: var(--dbx-success-bright); }
+.dbx-key-point.cyan { border-left-color: var(--accent-cyan); }
+.dbx-key-point.purple { border-left-color: var(--dbx-purple); }
+.dbx-key-point.orange { border-left-color: var(--accent-orange); }
+
+/* ========================================
+   DIAGRAM COMPONENTS
+   ======================================== */
+
+.dbx-diagram {
+    width: 100%;
+    max-width: 520px;
+    height: 600px;
+    position: relative;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+}
+
+.dbx-flow-box {
+    position: absolute;
+    padding: 0.8rem 1.2rem;
+    border-radius: var(--radius-md);
+    text-align: center;
+    opacity: 0;
+    transition: all var(--transition-slow);
+    box-shadow: var(--card-shadow);
+}
+
+.dbx-flow-box.visible { opacity: 1; }
+.dbx-flow-box.active { transform: scale(1.05); box-shadow: var(--card-shadow-hover); }
+.dbx-flow-box.dimmed { opacity: 0.3; }
+
+.dbx-flow-box .icon { font-size: 1.3rem; margin-bottom: 0.2rem; }
+.dbx-flow-box .title { font-weight: 600; font-size: 0.85rem; }
+.dbx-flow-box .desc { font-size: 0.65rem; opacity: 0.8; margin-top: 0.1rem; }
+
+/* Flow box color variants */
+.dbx-flow-box.red { background: var(--flow-red); color: white; }
+.dbx-flow-box.orange { background: var(--flow-orange); color: white; }
+.dbx-flow-box.yellow { background: var(--flow-yellow); color: var(--bg-primary); }
+.dbx-flow-box.green { background: var(--flow-green); color: var(--bg-primary); }
+.dbx-flow-box.teal { background: var(--flow-teal); color: white; }
+.dbx-flow-box.cyan { background: var(--flow-cyan); color: var(--bg-primary); }
+.dbx-flow-box.blue { background: var(--flow-blue); color: white; }
+.dbx-flow-box.purple { background: var(--flow-purple); color: white; }
+.dbx-flow-box.pink { background: var(--flow-pink); color: white; }
+.dbx-flow-box.slate { background: var(--flow-slate); border: 1px solid var(--border-secondary); color: var(--text-primary); }
+
+/* Flow arrows */
+.dbx-flow-arrow {
+    position: absolute;
+    opacity: 0;
+    transition: all var(--transition-slow);
+    color: var(--text-dim);
+    font-size: 1.2rem;
+}
+
+.dbx-flow-arrow.visible { opacity: 1; }
+.dbx-flow-arrow.red { color: var(--dbx-primary-bright); }
+.dbx-flow-arrow.green { color: var(--dbx-success-bright); }
+.dbx-flow-arrow.cyan { color: var(--accent-cyan); }
+
+/* Flow labels */
+.dbx-flow-label {
+    position: absolute;
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0;
+    transition: all var(--transition-slow);
+}
+
+.dbx-flow-label.visible { opacity: 1; }
+
+/* ========================================
+   FOOTER
+   ======================================== */
+
+.dbx-footer {
+    padding: var(--spacing-2xl) var(--spacing-xl);
+    text-align: center;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.dbx-footer h3 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-md);
+    color: var(--dbx-primary-bright);
+}
+
+.dbx-footer p {
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto var(--spacing-xl);
+}
+
+.dbx-footer-links {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.dbx-footer-link {
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all var(--transition-base);
+}
+
+.dbx-footer-link.primary {
+    background: var(--dbx-primary);
+    color: white;
+}
+
+.dbx-footer-link.primary:hover {
+    background: var(--dbx-primary-light);
+}
+
+.dbx-footer-link.secondary {
+    border: 1px solid rgba(206, 74, 44, 0.3);
+    color: var(--dbx-primary-bright);
+}
+
+.dbx-footer-link.secondary:hover {
+    background: rgba(206, 74, 44, 0.1);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 900px) {
+    .dbx-scrollytelling {
+        flex-direction: column;
+    }
+    
+    .dbx-scroll-text {
+        flex: none;
+        padding: 0 var(--spacing-lg);
+    }
+    
+    .dbx-sticky-visual {
+        position: relative;
+        height: 50vh;
+        flex: none;
+    }
+    
+    .dbx-step {
+        min-height: 60vh;
+    }
+    
+    .dbx-hero h2 {
+        font-size: var(--font-size-2xl);
+    }
+}

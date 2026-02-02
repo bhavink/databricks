@@ -5,17 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Governed Orchestration Architecture - Databricks AI</title>
     
+    <!-- Global Databricks Theme -->
+    <link rel="stylesheet" href="../styles/theme.css">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        /* Page-specific overrides */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #e8e8e8;
-            line-height: 1.6;
             min-height: 100vh;
         }
         
@@ -25,17 +23,17 @@
             left: 0;
             right: 0;
             padding: 1rem 2rem;
-            background: rgba(26, 26, 46, 0.95);
+            background: rgba(17, 24, 28, 0.95);
             backdrop-filter: blur(10px);
             z-index: 100;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
-        header h1 { font-size: 1.2rem; font-weight: 600; color: #14b8a6; }
-        header a { color: #22d3ee; text-decoration: none; font-size: 0.9rem; }
+        header h1 { font-size: 1.2rem; font-weight: 600; color: var(--dbx-primary-bright); }
+        header a { color: var(--accent-cyan); text-decoration: none; font-size: 0.9rem; }
         header a:hover { text-decoration: underline; }
         
         .hero {
@@ -52,7 +50,7 @@
         .hero h2 {
             font-size: 2.8rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #22d3ee, #4ade80, #a855f7, #f97316);
+            background: linear-gradient(135deg, var(--dbx-primary-bright), var(--dbx-warning), var(--dbx-success-bright));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -60,25 +58,25 @@
         
         .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 750px; margin-bottom: 1.5rem; }
         
-        .hero .subtitle { font-size: 1rem; color: #64748b; margin-bottom: 2rem; }
+        .hero .subtitle { font-size: 1rem; color: var(--text-dim); margin-bottom: 2rem; }
         
         .doc-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; }
         
         .doc-link {
             display: inline-block;
             padding: 0.5rem 1rem;
-            background: rgba(20, 184, 166, 0.1);
-            border: 1px solid rgba(20, 184, 166, 0.3);
+            background: rgba(206, 74, 44, 0.1);
+            border: 1px solid rgba(206, 74, 44, 0.3);
             border-radius: 6px;
-            color: #14b8a6;
+            color: var(--dbx-primary-bright);
             text-decoration: none;
             font-size: 0.85rem;
             transition: all 0.3s ease;
         }
         
-        .doc-link:hover { background: rgba(20, 184, 166, 0.2); border-color: #14b8a6; }
+        .doc-link:hover { background: rgba(206, 74, 44, 0.2); border-color: var(--dbx-primary-bright); }
         
-        .scroll-hint { animation: bounce 2s infinite; color: #14b8a6; font-size: 1.1rem; }
+        .scroll-hint { animation: bounce 2s infinite; color: var(--dbx-primary-bright); font-size: 1.1rem; }
         
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
@@ -94,7 +92,7 @@
         
         .arch-section h3 {
             font-size: 2rem;
-            color: #14b8a6;
+            color: var(--dbx-primary-bright);
             text-align: center;
             margin-bottom: 1rem;
         }
@@ -148,15 +146,16 @@
         .arch-box .desc { font-size: 0.7rem; opacity: 0.8; margin-top: 0.2rem; }
         
         /* Color variants */
-        .arch-box.cyan { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #1a1a2e; }
-        .arch-box.green { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
-        .arch-box.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
+        .arch-box.red { background: linear-gradient(135deg, var(--dbx-primary), #a83820); color: white; }
+        .arch-box.cyan { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: var(--bg-primary); }
+        .arch-box.green { background: linear-gradient(135deg, var(--dbx-success-bright), var(--dbx-success)); color: var(--bg-primary); }
+        .arch-box.purple { background: linear-gradient(135deg, var(--dbx-purple), #7c3aed); color: white; }
         .arch-box.orange { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
         .arch-box.teal { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
         .arch-box.pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
         .arch-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-        .arch-box.slate { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #e8e8e8; }
-        .arch-box.yellow { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1a1a2e; }
+        .arch-box.slate { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: var(--text-primary); }
+        .arch-box.yellow { background: linear-gradient(135deg, var(--dbx-warning), #f59e0b); color: var(--bg-primary); }
         
         .arch-label {
             text-align: center;
@@ -229,19 +228,22 @@
             color: #94a3b8;
         }
         
-        .nav-card.cyan { border-left: 4px solid #22d3ee; }
-        .nav-card.cyan h4 { color: #22d3ee; }
+        .nav-card.red { border-left: 4px solid var(--dbx-primary-bright); }
+        .nav-card.red h4 { color: var(--dbx-primary-bright); }
         
-        .nav-card.green { border-left: 4px solid #4ade80; }
-        .nav-card.green h4 { color: #4ade80; }
+        .nav-card.cyan { border-left: 4px solid var(--accent-cyan); }
+        .nav-card.cyan h4 { color: var(--accent-cyan); }
         
-        .nav-card.purple { border-left: 4px solid #a855f7; }
-        .nav-card.purple h4 { color: #a855f7; }
+        .nav-card.green { border-left: 4px solid var(--dbx-success-bright); }
+        .nav-card.green h4 { color: var(--dbx-success-bright); }
         
-        .nav-card.orange { border-left: 4px solid #f97316; }
-        .nav-card.orange h4 { color: #f97316; }
-        .nav-card.pink { border-left: 4px solid #ec4899; }
-        .nav-card.pink h4 { color: #ec4899; }
+        .nav-card.purple { border-left: 4px solid var(--dbx-purple); }
+        .nav-card.purple h4 { color: var(--dbx-purple); }
+        
+        .nav-card.orange { border-left: 4px solid var(--accent-orange); }
+        .nav-card.orange h4 { color: var(--accent-orange); }
+        .nav-card.pink { border-left: 4px solid var(--accent-pink); }
+        .nav-card.pink h4 { color: var(--accent-pink); }
         
         .nav-card .coming-soon {
             position: absolute;
@@ -268,7 +270,7 @@
         
         .scenarios-section h3 {
             font-size: 2rem;
-            color: #14b8a6;
+            color: var(--dbx-primary-bright);
             text-align: center;
             margin-bottom: 2rem;
         }
@@ -295,11 +297,14 @@
             margin-bottom: 0.5rem;
         }
         
-        .scenario-box.external { border-top: 3px solid #a855f7; }
-        .scenario-box.external h4 { color: #a855f7; }
+        .scenario-box.external { border-top: 3px solid var(--dbx-purple); }
+        .scenario-box.external h4 { color: var(--dbx-purple); }
         
-        .scenario-box.agent { border-top: 3px solid #4ade80; }
-        .scenario-box.agent h4 { color: #4ade80; }
+        .scenario-box.agent { border-top: 3px solid var(--dbx-success-bright); }
+        .scenario-box.agent h4 { color: var(--dbx-success-bright); }
+        
+        .scenario-box.dbxapp { border-top: 3px solid var(--dbx-primary-bright); }
+        .scenario-box.dbxapp h4 { color: var(--dbx-primary-bright); }
         
         .scenario-box p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem; }
         
@@ -321,16 +326,16 @@
         }
         
         .footer-link {
-            color: #14b8a6;
+            color: var(--dbx-primary-bright);
             text-decoration: none;
             font-size: 0.95rem;
             padding: 0.7rem 1.3rem;
-            border: 2px solid #14b8a6;
+            border: 2px solid var(--dbx-primary-bright);
             border-radius: 8px;
             transition: all 0.3s ease;
         }
         
-        .footer-link:hover { background: #14b8a6; color: #1a1a2e; }
+        .footer-link:hover { background: var(--dbx-primary-bright); color: var(--bg-primary); }
         
         @media (max-width: 768px) {
             .hero h2 { font-size: 2rem; }
