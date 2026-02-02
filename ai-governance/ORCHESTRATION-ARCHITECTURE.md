@@ -85,12 +85,12 @@ flowchart TB
 
 Your application runs **outside** Databricks and needs to call Databricks APIs.
 
-**Solution: OAuth Token Federation**
-- Exchange IdP tokens (Okta, Entra) for Databricks OAuth tokens
-- Server-side token handling (never expose on client)
+**Solution: OAuth Token Federation (RFC 8693)**
+- Exchange IdP tokens (Okta, Entra, GitHub) for Databricks OAuth tokens
+- **Server-side only** — Token exchange and API calls must happen on your backend; never expose tokens to browser/client
 - Two federation types:
   - **Account-wide** — Maps IdP users to Databricks users
-  - **Workload Identity** — Maps to Databricks Service Principals
+  - **Workload Identity** — Maps to Databricks Service Principals (e.g., GitHub Actions, Azure Pipelines)
 
 ```mermaid
 sequenceDiagram

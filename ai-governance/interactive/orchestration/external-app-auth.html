@@ -542,7 +542,8 @@
                     <code>Authorization: Bearer &lt;databricks-oauth-token&gt;</code>
                 </p>
                 <div class="key-point orange">
-                    The Databricks token is short-lived. Your app should handle refresh by re-exchanging when needed.
+                    <strong>Security:</strong> Handle tokens <strong>server-side only</strong>. Never expose IdP or Databricks tokens 
+                    to the browser — API calls should originate from your backend. Tokens are short-lived; re-exchange when needed.
                 </div>
             </div>
             
@@ -612,16 +613,19 @@
                 <span class="step-badge teal">Summary</span>
                 <h3>Key Takeaways</h3>
                 <p>
-                    <span class="highlight-green">No secrets to manage</span> - your IdP handles identity, Databricks validates it.
+                    <span class="highlight-green">No secrets to manage</span> — your IdP handles identity, Databricks validates it.
                 </p>
                 <p>
                     <span class="highlight-purple">Account-wide</span> for users, <span class="highlight-pink">Workload Identity</span> for automation.
                 </p>
                 <p>
-                    <span class="highlight-orange">Token exchange</span> converts IdP JWTs to Databricks OAuth tokens.
+                    <span class="highlight-orange">Token exchange</span> — IdP JWT → Databricks OAuth token (RFC 8693).
                 </p>
                 <p>
-                    <span class="highlight-cyan">Azure special case</span>: Native Entra tokens work directly.
+                    <span class="highlight-cyan">Azure special case</span> — Native Entra tokens work directly (no exchange).
+                </p>
+                <p>
+                    <span class="highlight-pink">Server-side only</span> — tokens must be handled on your backend, never in the browser.
                 </p>
                 <div class="key-point teal">
                     OAuth token federation is the recommended approach for external applications accessing Databricks.

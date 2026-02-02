@@ -507,10 +507,9 @@
                     <h4>Scenario A: External App → Databricks</h4>
                     <p>Your application runs OUTSIDE Databricks and needs to call Databricks APIs.</p>
                     <ul>
-                        <li>OAuth Token Exchange (Token Federation)</li>
-                        <li>Native OAuth with Entra (Azure)</li>
-                        <li>IdP tokens exchanged for Databricks tokens</li>
-                        <li>Server-side token handling</li>
+                        <li><strong>OAuth Token Exchange</strong> — IdP token → Databricks token (requires Federation Policy)</li>
+                        <li><strong>Native OAuth with Entra</strong> — Azure AD direct integration</li>
+                        <li><strong>Server-side handling</strong> — Tokens managed on backend, never exposed to browser</li>
                     </ul>
                 </div>
                 
