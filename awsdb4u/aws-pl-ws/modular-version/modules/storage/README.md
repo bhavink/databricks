@@ -1,31 +1,31 @@
-***REMOVED*** Storage Module
+# Storage Module
 
 This module provisions all S3 buckets for Databricks workspace and Unity Catalog.
 
-***REMOVED******REMOVED*** Resources Created
+## Resources Created
 
-***REMOVED******REMOVED******REMOVED*** 1. Workspace Root Storage Bucket
+### 1. Workspace Root Storage Bucket
 - DBFS root storage for the workspace
 - Versioning enabled
 - Server-side encryption (AES256 or KMS)
 - Databricks-generated bucket policy for access
 
-***REMOVED******REMOVED******REMOVED*** 2. Unity Catalog Metastore Bucket
+### 2. Unity Catalog Metastore Bucket
 - Storage for UC metastore metadata
 - Versioning enabled
 - Server-side encryption
 
-***REMOVED******REMOVED******REMOVED*** 3. Unity Catalog External Location Bucket
+### 3. Unity Catalog External Location Bucket
 - Storage for external data
 - Used by workspace catalog's external location
 - Versioning enabled
 
-***REMOVED******REMOVED******REMOVED*** 4. Unity Catalog Root Storage Bucket
+### 4. Unity Catalog Root Storage Bucket
 - Dedicated storage for workspace catalog
 - Primary data storage for workspace catalog
 - Versioning enabled
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 ```hcl
 module "storage" {
@@ -51,7 +51,7 @@ module "storage" {
 }
 ```
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -60,7 +60,7 @@ module "storage" {
 | `unity_catalog_external_bucket` | UC external location bucket name |
 | `unity_catalog_root_storage_bucket` | UC root storage bucket name |
 
-***REMOVED******REMOVED*** Features
+## Features
 
 - ✅ All buckets have versioning enabled
 - ✅ Public access blocked on all buckets

@@ -1,4 +1,4 @@
-***REMOVED*** Deployment Guide: Using This Databricks Private Link Implementation
+# Deployment Guide: Using This Databricks Private Link Implementation
 
 > **Related Documentation:**
 > - 🚀 [docs/QUICK_START.md](docs/QUICK_START.md) - Quick deployment for first-time users
@@ -14,25 +14,25 @@ This guide explains how to use the optional VPC endpoint implementation in diffe
 
 ---
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-1. [Deploy to Another AWS Account/Region](***REMOVED***scenario-1-deploy-to-another-aws-accountregion)
-2. [Adapt to Azure Databricks](***REMOVED***scenario-2-adapt-to-azure-databricks)
-3. [Adapt to GCP Databricks](***REMOVED***scenario-3-adapt-to-gcp-databricks)
-4. [Use Architecture Diagrams Only](***REMOVED***scenario-4-just-use-the-architecture-diagrams)
-5. [Quick Reference Checklist](***REMOVED***quick-reference-checklist)
-6. [Key Files to Reference](***REMOVED***key-files-to-reference)
-7. [Common Pitfalls to Avoid](***REMOVED***common-pitfalls-to-avoid)
+1. [Deploy to Another AWS Account/Region](#scenario-1-deploy-to-another-aws-accountregion)
+2. [Adapt to Azure Databricks](#scenario-2-adapt-to-azure-databricks)
+3. [Adapt to GCP Databricks](#scenario-3-adapt-to-gcp-databricks)
+4. [Use Architecture Diagrams Only](#scenario-4-just-use-the-architecture-diagrams)
+5. [Quick Reference Checklist](#quick-reference-checklist)
+6. [Key Files to Reference](#key-files-to-reference)
+7. [Common Pitfalls to Avoid](#common-pitfalls-to-avoid)
 
 ---
 
-***REMOVED******REMOVED*** Scenario 1: Deploy to Another AWS Account/Region
+## Scenario 1: Deploy to Another AWS Account/Region
 
-***REMOVED******REMOVED******REMOVED*** Steps:
+### Steps:
 
 **1. Copy the Terraform Code:**
 ```bash
-***REMOVED*** Copy the entire modular-version3 directory
+# Copy the entire modular-version3 directory
 cp -r modular-version3 my-new-workspace
 cd my-new-workspace
 ```
@@ -41,26 +41,26 @@ cd my-new-workspace
 
 **`terraform.tfvars`:**
 ```hcl
-***REMOVED*** Update with your specific values
+# Update with your specific values
 databricks_account_id = "YOUR-ACCOUNT-ID"
 databricks_client_id            = "YOUR-SERVICE-PRINCIPAL-CLIENT-ID"
 databricks_client_secret        = "YOUR-SERVICE-PRINCIPAL-SECRET"
 aws_account_id       = "YOUR-AWS-ACCOUNT-ID"
 aws_profile          = "YOUR-AWS-PROFILE"
 
-***REMOVED*** Choose your region (VPC endpoints auto-detected!)
-region = "us-east-1"  ***REMOVED*** or any supported region
+# Choose your region (VPC endpoints auto-detected!)
+region = "us-east-1"  # or any supported region
 
-***REMOVED*** Update VPC CIDR to avoid conflicts
+# Update VPC CIDR to avoid conflicts
 vpc_cidr = "10.1.0.0/22"
 private_subnet_cidrs = ["10.1.1.0/24", "10.1.2.0/24"]
 privatelink_subnet_cidrs = ["10.1.3.0/26", "10.1.3.64/26"]
 public_subnet_cidrs = ["10.1.0.0/26", "10.1.0.64/26"]
 
-***REMOVED*** Private Link configuration (true = enabled, false = disabled)
-enable_private_link = true  ***REMOVED*** Your choice
+# Private Link configuration (true = enabled, false = disabled)
+enable_private_link = true  # Your choice
 
-***REMOVED*** Unique S3 bucket names (random suffix added automatically)
+# Unique S3 bucket names (random suffix added automatically)
 root_storage_bucket_name = "my-company-root"
 unity_catalog_bucket_name = "my-company-uc-metastore"
 ```
@@ -76,32 +76,32 @@ terraform apply
 
 **First workspace:**
 ```hcl
-existing_private_access_settings_id = ""  ***REMOVED*** Creates new PAS
+existing_private_access_settings_id = ""  # Creates new PAS
 ```
 
 After apply, note the output:
 ```bash
 terraform output private_access_settings_id
-***REMOVED*** Output: "pas-abc123456"
+# Output: "pas-abc123456"
 ```
 
 **Second workspace in same account:**
 ```hcl
-existing_private_access_settings_id = "pas-abc123456"  ***REMOVED*** Reuses PAS
+existing_private_access_settings_id = "pas-abc123456"  # Reuses PAS
 ```
 
 ---
 
-***REMOVED******REMOVED*** Scenario 2: Adapt to Azure Databricks
+## Scenario 2: Adapt to Azure Databricks
 
-***REMOVED******REMOVED******REMOVED*** Steps:
+### Steps:
 
 **1. Create New Azure Project Structure:**
 ```bash
 mkdir azure-databricks-privatelink
 cd azure-databricks-privatelink
 
-***REMOVED*** Create module structure
+# Create module structure
 mkdir -p modules/{networking,databricks_workspace,unity_catalog}
 ```
 
@@ -148,13 +148,13 @@ Reference the plan's Azure section for complete mappings:
 
 **VPC Endpoints → Private Endpoints:**
 ```hcl
-***REMOVED*** AWS (from plan)
+# AWS (from plan)
 resource "aws_vpc_endpoint" "workspace" {
   count = local.any_databricks_vpce_enabled ? 1 : 0
-  ***REMOVED*** ...
+  # ...
 }
 
-***REMOVED*** Azure equivalent
+# Azure equivalent
 resource "azurerm_private_endpoint" "databricks_frontend" {
   count = var.enable_frontend_privatelink ? 1 : 0
   name                = "${var.prefix}-databricks-frontend-pe"
@@ -173,17 +173,17 @@ resource "azurerm_private_endpoint" "databricks_frontend" {
 
 **Security Groups → NSG Rules:**
 ```hcl
-***REMOVED*** AWS (from plan)
+# AWS (from plan)
 resource "aws_security_group_rule" "workspace_egress_control_plane" {
   type        = "egress"
   from_port   = 8443
   to_port     = 8451
   protocol    = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
-  ***REMOVED*** ...
+  # ...
 }
 
-***REMOVED*** Azure equivalent
+# Azure equivalent
 resource "azurerm_network_security_rule" "workspace_outbound_control_plane" {
   name                        = "AllowControlPlaneOutbound"
   priority                    = 200
@@ -194,7 +194,7 @@ resource "azurerm_network_security_rule" "workspace_outbound_control_plane" {
   destination_port_ranges     = ["8443-8451"]
   source_address_prefix       = "VirtualNetwork"
   destination_address_prefix  = "AzureDatabricks"
-  ***REMOVED*** ...
+  # ...
 }
 ```
 
@@ -226,9 +226,9 @@ variable "resource_group_name" {
 
 ---
 
-***REMOVED******REMOVED*** Scenario 3: Adapt to GCP Databricks
+## Scenario 3: Adapt to GCP Databricks
 
-***REMOVED******REMOVED******REMOVED*** Steps:
+### Steps:
 
 **1. Create New GCP Project Structure:**
 ```bash
@@ -264,7 +264,7 @@ provider "databricks" {
   alias      = "account"
   host       = "https://accounts.gcp.databricks.com"
   account_id = var.databricks_account_id
-  ***REMOVED*** Use Google service account for auth
+  # Use Google service account for auth
   google_service_account = var.google_service_account
 }
 ```
@@ -273,13 +273,13 @@ provider "databricks" {
 
 **VPC Endpoints → PSC Forwarding Rules:**
 ```hcl
-***REMOVED*** AWS (from plan)
+# AWS (from plan)
 resource "aws_vpc_endpoint" "workspace" {
   count = local.any_databricks_vpce_enabled ? 1 : 0
-  ***REMOVED*** ...
+  # ...
 }
 
-***REMOVED*** GCP equivalent
+# GCP equivalent
 resource "google_compute_forwarding_rule" "databricks_frontend" {
   count                 = var.enable_frontend_psc ? 1 : 0
   name                  = "${var.prefix}-databricks-frontend-psc"
@@ -294,15 +294,15 @@ resource "google_compute_forwarding_rule" "databricks_frontend" {
 
 **Security Groups → Firewall Rules:**
 ```hcl
-***REMOVED*** AWS (from plan)
+# AWS (from plan)
 resource "aws_security_group_rule" "workspace_egress_control_plane" {
   type        = "egress"
   from_port   = 8443
   to_port     = 8451
-  ***REMOVED*** ...
+  # ...
 }
 
-***REMOVED*** GCP equivalent
+# GCP equivalent
 resource "google_compute_firewall" "workspace_egress_control_plane" {
   name    = "${var.prefix}-workspace-egress-control-plane"
   network = var.network_name
@@ -330,7 +330,7 @@ resource "google_compute_firewall" "workspace_egress_control_plane" {
 
 ---
 
-***REMOVED******REMOVED*** Scenario 4: Just Use the Architecture Diagrams
+## Scenario 4: Just Use the Architecture Diagrams
 
 **If you just want to understand the architecture without Terraform:**
 
@@ -358,9 +358,9 @@ resource "google_compute_firewall" "workspace_egress_control_plane" {
 
 ---
 
-***REMOVED******REMOVED*** Quick Reference Checklist
+## Quick Reference Checklist
 
-***REMOVED******REMOVED******REMOVED*** Before You Start:
+### Before You Start:
 
 - [ ] **Understand your deployment scenario:**
   - Full Private Link (both)
@@ -376,7 +376,7 @@ resource "google_compute_firewall" "workspace_egress_control_plane" {
   - Service principal (client ID + secret)
   - Cloud provider credentials (AWS/Azure/GCP)
 
-***REMOVED******REMOVED******REMOVED*** During Implementation:
+### During Implementation:
 
 - [ ] **Update all hardcoded values:**
   - Account IDs
@@ -396,7 +396,7 @@ resource "google_compute_firewall" "workspace_egress_control_plane" {
   - Add backend Private Link
   - Validate at each step
 
-***REMOVED******REMOVED******REMOVED*** After Deployment:
+### After Deployment:
 
 - [ ] **Verify connectivity:**
   - Can you access workspace UI?
@@ -412,7 +412,7 @@ resource "google_compute_firewall" "workspace_egress_control_plane" {
 
 ---
 
-***REMOVED******REMOVED*** Key Files to Reference
+## Key Files to Reference
 
 1. **`ARCHITECTURE.md`** - Visual diagrams and traffic flows
 2. **`resilient-twirling-umbrella.md`** (in `~/.claude/plans/`) - Complete implementation plan with Azure/GCP guides
@@ -422,9 +422,9 @@ resource "google_compute_firewall" "workspace_egress_control_plane" {
 
 ---
 
-***REMOVED******REMOVED*** Common Pitfalls to Avoid
+## Common Pitfalls to Avoid
 
-***REMOVED******REMOVED******REMOVED*** ❌ Don't:
+### ❌ Don't:
 
 - **Forget to create workspace endpoint for backend-only scenarios**
   - Backend Private Link needs BOTH workspace + relay endpoints
@@ -447,7 +447,7 @@ resource "google_compute_firewall" "workspace_egress_control_plane" {
   - Test backend VPC endpoint is working
   - Then switch to "ENDPOINT" to route through private relay
 
-***REMOVED******REMOVED******REMOVED*** ✅ Do:
+### ✅ Do:
 
 - **Read `ARCHITECTURE.md` first to understand traffic flows**
   - Visual diagrams show exactly how traffic routes
@@ -471,7 +471,7 @@ resource "google_compute_firewall" "workspace_egress_control_plane" {
 
 ---
 
-***REMOVED******REMOVED*** Cross-Cloud Architecture Comparison
+## Cross-Cloud Architecture Comparison
 
 | Aspect | AWS | Azure | GCP |
 |--------|-----|-------|-----|
@@ -494,12 +494,12 @@ All three clouds follow the same pattern:
 
 ---
 
-***REMOVED******REMOVED*** Deployment Scenario Summary
+## Deployment Scenario Summary
 
-***REMOVED******REMOVED******REMOVED*** Private Link Enabled
+### Private Link Enabled
 ```hcl
 enable_private_link   = true
-public_access_enabled = false  ***REMOVED*** Recommended for maximum security
+public_access_enabled = false  # Recommended for maximum security
 ```
 - **Use Case:** Production workloads requiring maximum security
 - **User Access:** Via Private Link (or optionally public if public_access_enabled=true)
@@ -508,7 +508,7 @@ public_access_enabled = false  ***REMOVED*** Recommended for maximum security
 - **Cost:** Higher (~$29/month for VPC endpoints)
 - **Security:** Highest - all Databricks traffic private
 
-***REMOVED******REMOVED******REMOVED*** Private Link Disabled
+### Private Link Disabled
 ```hcl
 enable_private_link = false
 ```
@@ -522,7 +522,7 @@ enable_private_link = false
 
 ---
 
-***REMOVED******REMOVED*** Port Reference
+## Port Reference
 
 All scenarios require these ports for cluster communication:
 
@@ -539,7 +539,7 @@ All scenarios require these ports for cluster communication:
 
 ---
 
-***REMOVED******REMOVED*** Need Help?
+## Need Help?
 
 - **Architecture questions:** See `ARCHITECTURE.md` for visual diagrams
 - **Implementation details:** See `resilient-twirling-umbrella.md` plan file

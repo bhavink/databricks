@@ -1,8 +1,8 @@
-***REMOVED*** Databricks Workspace Module
+# Databricks Workspace Module
 
 This module creates the Databricks workspace and all required MWS (Multi-Workspace Services) configurations.
 
-***REMOVED******REMOVED*** Features
+## Features
 
 - ✅ MWS credentials configuration
 - ✅ MWS storage configuration  
@@ -11,7 +11,7 @@ This module creates the Databricks workspace and all required MWS (Multi-Workspa
 - ✅ Databricks workspace creation
 - ✅ Workspace admin user assignment
 
-***REMOVED******REMOVED*** Resources Created
+## Resources Created
 
 | Resource | Description |
 |----------|-------------|
@@ -22,7 +22,7 @@ This module creates the Databricks workspace and all required MWS (Multi-Workspa
 | `databricks_mws_workspaces` | Databricks workspace |
 | `databricks_mws_permission_assignment` | Workspace admin permissions |
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 ```hcl
 module "databricks_workspace" {
@@ -55,14 +55,14 @@ module "databricks_workspace" {
 }
 ```
 
-***REMOVED******REMOVED*** Requirements
+## Requirements
 
 - Databricks provider with account-level authentication
 - AWS networking resources (VPC, subnets, security groups, VPC endpoints)
 - AWS IAM cross-account role
 - AWS S3 root storage bucket
 
-***REMOVED******REMOVED*** Inputs
+## Inputs
 
 | Name | Description | Type | Required |
 |------|-------------|------|----------|
@@ -79,7 +79,7 @@ module "databricks_workspace" {
 | root_storage_bucket | Root storage bucket name | string | yes |
 | cross_account_role_arn | Cross-account role ARN | string | yes |
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Name | Description |
 |------|-------------|
@@ -88,14 +88,14 @@ module "databricks_workspace" {
 | workspace_status | Workspace status |
 | deployment_name | Deployment name |
 
-***REMOVED******REMOVED*** Dependencies
+## Dependencies
 
 This module depends on:
 - Networking module (VPC, subnets, security groups, VPC endpoints)
 - Storage module (root storage bucket)
 - IAM module (cross-account role)
 
-***REMOVED******REMOVED*** Notes
+## Notes
 
 - The workspace takes ~5-10 minutes to provision
 - Wait 20 minutes after creation before creating clusters (backend Private Link stabilization)

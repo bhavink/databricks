@@ -1,8 +1,8 @@
-***REMOVED*** 03 - Network Security & Encryption
+# 03 - Network Security & Encryption
 
 > **Network Guide**: Traffic flows, security groups, and encryption layers visualized.
 
-***REMOVED******REMOVED*** Quick Reference
+## Quick Reference
 
 ```
 🔒 2 Encryption Layers (Independent):
@@ -21,9 +21,9 @@
 
 ---
 
-***REMOVED******REMOVED*** 1. Traffic Flow Patterns
+## 1. Traffic Flow Patterns
 
-***REMOVED******REMOVED******REMOVED*** 1.1 Databricks API Call Flow (Private Link)
+### 1.1 Databricks API Call Flow (Private Link)
 
 ```mermaid
 %%{init: {'theme': 'base'}}%%
@@ -56,7 +56,7 @@ sequenceDiagram
 
 **Docs**: [Private Link Architecture](https://docs.databricks.com/aws/en/security/network/classic/privatelink.html)
 
-***REMOVED******REMOVED******REMOVED*** 1.2 S3 Access Flow
+### 1.2 S3 Access Flow
 
 ```mermaid
 %%{init: {'theme': 'base'}}%%
@@ -68,21 +68,21 @@ flowchart LR
     KMS -->|5. Decrypted data| S3
     S3 -->|6. Response| C
     
-    style GW fill:***REMOVED***569A31,color:***REMOVED***fff
-    style KMS fill:***REMOVED***FF9900,color:***REMOVED***000
+    style GW fill:#569A31
+    style KMS fill:#FF9900
 ```
 
 **Always FREE - No data transfer charges!**
 
 ---
 
-***REMOVED******REMOVED*** 2. Security Group Rules
+## 2. Security Group Rules
 
-***REMOVED******REMOVED******REMOVED*** 2.1 Workspace Security Group (Cluster Nodes)
+### 2.1 Workspace Security Group (Cluster Nodes)
 
 **Attached To**: EC2 instances in private subnets
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Egress Rules (Outbound)
+#### Egress Rules (Outbound)
 ```
 Rule 1: Cluster to Cluster Communication
 ├── Protocol: TCP
@@ -121,7 +121,7 @@ Rule 6: Public Internet (if needed)
 └── Purpose: Maven, PyPI, DNS
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Ingress Rules (Inbound)
+#### Ingress Rules (Inbound)
 ```
 Rule 1: TCP from Clusters
 ├── Protocol: TCP
@@ -138,11 +138,11 @@ Rule 2: UDP from Clusters
 
 **Docs**: [Security Groups](https://docs.databricks.com/aws/en/security/network/classic/security-groups.html)
 
-***REMOVED******REMOVED******REMOVED*** 2.2 VPC Endpoint Security Group
+### 2.2 VPC Endpoint Security Group
 
 **Attached To**: Databricks VPC endpoints (workspace + relay)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Egress Rules
+#### Egress Rules
 ```
 Rule 1: Allow All Outbound
 ├── Protocol: All
@@ -151,7 +151,7 @@ Rule 1: Allow All Outbound
 └── Purpose: VPCE to Databricks
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Ingress Rules
+#### Ingress Rules
 ```
 Rule 1: From Workspace SG (8443-8451)
 ├── Protocol: TCP
@@ -168,12 +168,12 @@ Rule 2: From Workspace SG (6666)
 
 ---
 
-***REMOVED******REMOVED*** 3. Encryption Layers
+## 3. Encryption Layers
 
-***REMOVED******REMOVED******REMOVED*** 3.1 Dual Encryption Architecture
+### 3.1 Dual Encryption Architecture
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     subgraph "Layer 1: S3 Bucket Encryption"
         KMS1["KMS Key<br/>S3 Encryption"]
@@ -191,8 +191,8 @@ flowchart TD
         KMS2 -->|Encrypts| MS
     end
     
-    style KMS1 fill:***REMOVED***569A31,color:***REMOVED***fff
-    style KMS2 fill:***REMOVED***FF9900,color:***REMOVED***000
+    style KMS1 fill:#569A31
+    style KMS2 fill:#FF9900
 ```
 
 **Independent Configuration:**
@@ -203,7 +203,7 @@ flowchart TD
 
 **Docs**: [Customer-Managed Keys](https://docs.databricks.com/aws/en/security/keys/customer-managed-keys-managed-services-aws.html)
 
-***REMOVED******REMOVED******REMOVED*** 3.2 KMS Key Usage
+### 3.2 KMS Key Usage
 
 ```
 Layer 1 - S3 Bucket Encryption:
@@ -219,7 +219,7 @@ Layer 2 - Workspace CMK:
 └── Permissions: In KMS key policy (Databricks service principal)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3.3 Key Rotation
+### 3.3 Key Rotation
 
 ```
 AWS Automatic Rotation (Enabled by default):
@@ -234,16 +234,16 @@ Manual Rotation to Different Key:
 └── S3 Bucket keys: ✅ Update S3 bucket config
 ```
 
-**Docs**: [Key Rotation](https://docs.databricks.com/aws/en/security/keys/configure-customer-managed-keys***REMOVED***rotate-an-existing-key)
+**Docs**: [Key Rotation](https://docs.databricks.com/aws/en/security/keys/configure-customer-managed-keys#rotate-an-existing-key)
 
 ---
 
-***REMOVED******REMOVED*** 4. Network Scenarios
+## 4. Network Scenarios
 
-***REMOVED******REMOVED******REMOVED*** 4.1 Private Link vs Public Internet
+### 4.1 Private Link vs Public Internet
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     START["enable_private_link"] -->|true| PL["Private Link Path"]
     START -->|false| PUB["Public Internet Path"]
@@ -257,8 +257,8 @@ flowchart TD
     NAT --> IGW["Internet<br/>Gateway"]
     IGW --> PUBDB["Databricks<br/>Public Internet"]
     
-    style PL fill:***REMOVED***569A31,color:***REMOVED***fff
-    style PUB fill:***REMOVED***FF9900,color:***REMOVED***000
+    style PL fill:#569A31
+    style PUB fill:#FF9900
 ```
 
 **Comparison:**
@@ -273,9 +273,9 @@ flowchart TD
 
 ---
 
-***REMOVED******REMOVED*** 5. Port Requirements
+## 5. Port Requirements
 
-***REMOVED******REMOVED******REMOVED*** 5.1 Critical Ports
+### 5.1 Critical Ports
 
 ```
 Databricks Control Plane:
@@ -292,7 +292,7 @@ Public Internet (via NAT Gateway):
 └── 53: DNS resolution
 ```
 
-***REMOVED******REMOVED******REMOVED*** 5.2 Port 8443-8451 Range Explained
+### 5.2 Port 8443-8451 Range Explained
 
 ```
 Why 9 ports (8443-8451)?
@@ -305,13 +305,13 @@ All 9 ports required for full functionality!
 
 **Warning**: Restricting to only 8443 will break WebSocket features
 
-**Docs**: [Port Requirements](https://docs.databricks.com/aws/en/security/network/classic/privatelink.html***REMOVED***ports)
+**Docs**: [Port Requirements](https://docs.databricks.com/aws/en/security/network/classic/privatelink.html#ports)
 
 ---
 
-***REMOVED******REMOVED*** 6. DNS Resolution
+## 6. DNS Resolution
 
-***REMOVED******REMOVED******REMOVED*** 6.1 Private DNS for VPC Endpoints
+### 6.1 Private DNS for VPC Endpoints
 
 ```mermaid
 %%{init: {'theme': 'base'}}%%
@@ -338,9 +338,9 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** 7. Regional Endpoint Configuration (Recommended)
+## 7. Regional Endpoint Configuration (Recommended)
 
-***REMOVED******REMOVED******REMOVED*** 7.1 Why Use Regional Endpoints?
+### 7.1 Why Use Regional Endpoints?
 
 ✅ **Already Configured**: This deployment uses regional VPC endpoints for all AWS services:
 - **S3**: `com.amazonaws.${region}.s3` (Gateway endpoint - FREE)
@@ -353,15 +353,15 @@ sequenceDiagram
 - **Better security**: Traffic stays within your region
 - **No internet exposure**: All AWS service traffic via VPC endpoints
 
-**Docs**: [Configure Regional Endpoints](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc***REMOVED***recommended-configure-regional-endpoints)
+**Docs**: [Configure Regional Endpoints](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc#recommended-configure-regional-endpoints)
 
-***REMOVED******REMOVED******REMOVED*** 7.2 Spark Configuration for Regional Endpoints (Optional)
+### 7.2 Spark Configuration for Regional Endpoints (Optional)
 
 While VPC endpoints handle AWS service traffic automatically, you may optionally configure Spark to use regional S3/STS endpoints explicitly. This is useful for enforcing data residency requirements.
 
 ⚠️ **Important**: This configuration prevents cross-region S3 access. Only apply if all your S3 buckets are in the same region.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Option A: Notebook-Level Configuration
+#### Option A: Notebook-Level Configuration
 
 Add to the beginning of your notebook:
 
@@ -381,7 +381,7 @@ spark.conf.set("fs.s3a.endpoint", "https://s3.<region>.amazonaws.com")
 
 Replace `<region>` with your AWS region (e.g., `us-west-2`).
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Option B: Cluster-Level Configuration
+#### Option B: Cluster-Level Configuration
 
 Add to cluster **Spark config** (Cluster → Edit → Advanced Options → Spark):
 
@@ -390,7 +390,7 @@ spark.hadoop.fs.s3a.endpoint https://s3.<region>.amazonaws.com
 spark.hadoop.fs.s3a.stsAssumeRole.stsEndpoint https://sts.<region>.amazonaws.com
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Option C: Cluster Policy (Recommended for All Clusters)
+#### Option C: Cluster Policy (Recommended for All Clusters)
 
 Create or update your cluster policy to enforce regional endpoints for all clusters:
 
@@ -407,21 +407,21 @@ Create or update your cluster policy to enforce regional endpoints for all clust
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 7.3 When to Apply Spark Regional Configuration
+### 7.3 When to Apply Spark Regional Configuration
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** ✅ Apply When:
+#### ✅ Apply When:
 - All your S3 buckets are in the **same region** as the workspace
 - You want to explicitly **prevent cross-region** S3 access
 - You're following **strict data residency** requirements (e.g., GDPR, compliance)
 - You want to **enforce** regional-only access via cluster policies
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** ❌ Do NOT Apply When:
+#### ❌ Do NOT Apply When:
 - You access S3 buckets in **multiple regions** (most common)
 - You need **cross-region data replication** or disaster recovery
 - You use **global S3 URLs** or multi-region applications
 - You're **uncertain** about your S3 bucket locations
 
-***REMOVED******REMOVED******REMOVED*** 7.4 How Regional Endpoints Work
+### 7.4 How Regional Endpoints Work
 
 ```mermaid
 %%{init: {'theme': 'base'}}%%
@@ -452,25 +452,25 @@ sequenceDiagram
 - **Without Spark config**: VPC endpoint routes to regional service automatically, but allows cross-region access via global URL
 - **With Spark config**: Explicitly enforces regional-only access by using regional URLs
 
-***REMOVED******REMOVED******REMOVED*** 7.5 Troubleshooting Regional Endpoints
+### 7.5 Troubleshooting Regional Endpoints
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: "Access Denied" after applying Spark config
+#### Issue: "Access Denied" after applying Spark config
 **Cause**: S3 bucket is in a different region than the workspace  
 **Solution**: Either move bucket to workspace region, or remove Spark regional config
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: Cross-region replication stopped working
+#### Issue: Cross-region replication stopped working
 **Cause**: Regional endpoint config blocks cross-region S3 access  
 **Solution**: Remove `fs.s3a.endpoint` and `fs.s3a.stsAssumeRole.stsEndpoint` from Spark config
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Issue: Can't access buckets with global S3 URLs
+#### Issue: Can't access buckets with global S3 URLs
 **Cause**: Regional config enforces regional URLs only  
 **Solution**: Update S3 paths to use regional format: `s3://bucket/path` (Spark handles conversion)
 
-**Docs**: [Troubleshoot Regional Endpoints](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc***REMOVED***troubleshoot-regional-endpoints)
+**Docs**: [Troubleshoot Regional Endpoints](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc#troubleshoot-regional-endpoints)
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 ✅ Network security understood → [04-QUICK-START.md](04-QUICK-START.md) - Deploy now!
 

@@ -1,8 +1,8 @@
-***REMOVED*** 00 - Prerequisites & System Setup
+# 00 - Prerequisites & System Setup
 
 > **Before You Begin**: This guide ensures your system is properly configured for Databricks deployment.
 
-***REMOVED******REMOVED*** Quick Reference
+## Quick Reference
 
 ```
 ✅ Databricks Account (E2 Enterprise)
@@ -14,21 +14,21 @@
 
 ---
 
-***REMOVED******REMOVED*** 1. Databricks Requirements
+## 1. Databricks Requirements
 
-***REMOVED******REMOVED******REMOVED*** 1.1 Databricks Account
+### 1.1 Databricks Account
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart LR
     A["Databricks E2<br/>Enterprise Account"] --> B["Account Console<br/>accounts.cloud.databricks.com"]
     B --> C["Service Principal<br/>(OAuth Credentials)"]
     C --> D["Client ID"]
     C --> E["Client Secret"]
     
-    style A fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style B fill:***REMOVED***FF9900,color:***REMOVED***fff
-    style C fill:***REMOVED***569A31,color:***REMOVED***fff
+    style A fill:#FF3621
+    style B fill:#FF9900
+    style C fill:#569A31
 ```
 
 **Required Access:**
@@ -38,13 +38,13 @@ flowchart LR
 
 **Docs**: [Databricks Account Console](https://docs.databricks.com/aws/en/administration-guide/account-settings-e2/index.html)
 
-***REMOVED******REMOVED******REMOVED*** 1.2 Create Service Principal
+### 1.2 Create Service Principal
 
 ```bash
-***REMOVED*** Navigate to Account Console → User Management → Service Principals
-***REMOVED*** Click "Add Service Principal"
-***REMOVED*** Name: "terraform-deployment" (or your preference)
-***REMOVED*** Copy the generated credentials immediately (shown only once!)
+# Navigate to Account Console → User Management → Service Principals
+# Click "Add Service Principal"
+# Name: "terraform-deployment" (or your preference)
+# Copy the generated credentials immediately (shown only once!)
 ```
 
 **Save these values** (needed for Step 4):
@@ -58,12 +58,12 @@ DATABRICKS_ACCOUNT_ID=<your-account-id>
 
 ---
 
-***REMOVED******REMOVED*** 2. AWS Requirements
+## 2. AWS Requirements
 
-***REMOVED******REMOVED******REMOVED*** 2.1 AWS Account Access
+### 2.1 AWS Account Access
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     A["AWS Account"] --> B{Authentication Method}
     B -->|Option 1| C["AWS CLI Profile"]
@@ -76,7 +76,7 @@ flowchart TD
     E --> I["AWS_ACCESS_KEY_ID<br/>AWS_SECRET_ACCESS_KEY"]
     F --> I
     
-    style A fill:***REMOVED***FF9900,color:***REMOVED***fff
+    style A fill:#FF9900
 ```
 
 **Required Permissions:**
@@ -86,28 +86,28 @@ flowchart TD
 
 **Verify Access:**
 ```bash
-***REMOVED*** Test AWS authentication
+# Test AWS authentication
 aws sts get-caller-identity --profile your-profile
-***REMOVED*** Output should show your AWS account ID
+# Output should show your AWS account ID
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2.2 AWS Authentication Setup
+### 2.2 AWS Authentication Setup
 
 Choose ONE option:
 
 **Option 1: Named Profile (Recommended)**
 ```bash
 aws configure --profile databricks-deploy
-***REMOVED*** AWS Access Key ID: <your-key>
-***REMOVED*** AWS Secret Access Key: <your-secret>
-***REMOVED*** Default region: us-west-2
-***REMOVED*** Default output format: json
+# AWS Access Key ID: <your-key>
+# AWS Secret Access Key: <your-secret>
+# Default region: us-west-2
+# Default output format: json
 ```
 
 **Option 2: AWS SSO**
 ```bash
 aws configure sso
-***REMOVED*** Follow prompts to set up SSO profile
+# Follow prompts to set up SSO profile
 aws sso login --profile your-profile
 ```
 
@@ -121,76 +121,76 @@ export AWS_DEFAULT_REGION="us-west-2"
 **Option 4: Default Credentials**
 ```bash
 aws configure
-***REMOVED*** Uses ~/.aws/credentials [default] profile
+# Uses ~/.aws/credentials [default] profile
 ```
 
 ---
 
-***REMOVED******REMOVED*** 3. Required Tools
+## 3. Required Tools
 
-***REMOVED******REMOVED******REMOVED*** 3.1 Install Terraform
+### 3.1 Install Terraform
 
 ```bash
-***REMOVED*** macOS (Homebrew)
+# macOS (Homebrew)
 brew tap hashicorp/tap
 brew install hashicorp/tap/terraform
 
-***REMOVED*** Linux
+# Linux
 wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
 unzip terraform_1.6.0_linux_amd64.zip
 sudo mv terraform /usr/local/bin/
 
-***REMOVED*** Verify
+# Verify
 terraform --version
-***REMOVED*** Required: >= 1.0.0
+# Required: >= 1.0.0
 ```
 
 **Docs**: [Terraform Installation](https://developer.hashicorp.com/terraform/install)
 
-***REMOVED******REMOVED******REMOVED*** 3.2 Install AWS CLI
+### 3.2 Install AWS CLI
 
 ```bash
-***REMOVED*** macOS
+# macOS
 brew install awscli
 
-***REMOVED*** Linux
+# Linux
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 
-***REMOVED*** Verify
+# Verify
 aws --version
-***REMOVED*** Required: >= 2.0
+# Required: >= 2.0
 ```
 
 **Docs**: [AWS CLI Installation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 ---
 
-***REMOVED******REMOVED*** 4. Environment Configuration
+## 4. Environment Configuration
 
-***REMOVED******REMOVED******REMOVED*** 4.1 Terraform Provider Authentication
+### 4.1 Terraform Provider Authentication
 
 **Method 1: ~/.zshrc (Recommended for Security)**
 
 ```bash
-***REMOVED*** Edit ~/.zshrc
+# Edit ~/.zshrc
 nano ~/.zshrc
 
-***REMOVED*** Add these lines (replace with your actual values)
+# Add these lines (replace with your actual values)
 export TF_VAR_databricks_client_id="<your-sp-client-id>"
 export TF_VAR_databricks_client_secret="<your-sp-secret>"
 export TF_VAR_databricks_account_id="<your-account-id>"
 export TF_VAR_aws_account_id="<your-aws-account-id>"
 
-***REMOVED*** Reload
+# Reload
 source ~/.zshrc
 ```
 
 **Method 2: .env.local File (Alternative)**
 
 ```bash
-***REMOVED*** Create .env.local in project root (NEVER commit this!)
+# Create .env.local in project root (NEVER commit this!)
 cat > .env.local << 'EOF'
 export TF_VAR_databricks_client_id="<your-sp-client-id>"
 export TF_VAR_databricks_client_secret="<your-sp-secret>"
@@ -198,21 +198,21 @@ export TF_VAR_databricks_account_id="<your-account-id>"
 export TF_VAR_aws_account_id="<your-aws-account-id>"
 EOF
 
-***REMOVED*** Load before each session
+# Load before each session
 source .env.local
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4.2 Verify Environment
+### 4.2 Verify Environment
 
 ```bash
-***REMOVED*** Check Terraform variables are set
+# Check Terraform variables are set
 echo $TF_VAR_databricks_client_id
 echo $TF_VAR_databricks_account_id
 
-***REMOVED*** Verify AWS credentials
+# Verify AWS credentials
 aws sts get-caller-identity --profile your-profile
 
-***REMOVED*** Test Databricks authentication
+# Test Databricks authentication
 curl -X GET \
   -H "Authorization: Bearer $(echo -n $TF_VAR_databricks_client_id:$TF_VAR_databricks_client_secret | base64)" \
   https://accounts.cloud.databricks.com/api/2.0/accounts/$TF_VAR_databricks_account_id/workspaces
@@ -220,29 +220,29 @@ curl -X GET \
 
 ---
 
-***REMOVED******REMOVED*** 5. Pre-Flight Checklist
+## 5. Pre-Flight Checklist
 
 Run these commands to verify everything is ready:
 
 ```bash
-***REMOVED*** ✅ Terraform installed
+# ✅ Terraform installed
 terraform --version
 
-***REMOVED*** ✅ AWS CLI installed  
+# ✅ AWS CLI installed  
 aws --version
 
-***REMOVED*** ✅ AWS authentication works
+# ✅ AWS authentication works
 aws sts get-caller-identity --profile your-profile
 
-***REMOVED*** ✅ Environment variables set
+# ✅ Environment variables set
 echo "Client ID: ${TF_VAR_databricks_client_id:0:8}..."
 echo "Account ID: $TF_VAR_databricks_account_id"
 
-***REMOVED*** ✅ Check current directory
+# ✅ Check current directory
 pwd
-***REMOVED*** Should be in project root: databricks-aws-production
+# Should be in project root: databricks-aws-production
 
-***REMOVED*** ✅ Verify example configuration exists
+# ✅ Verify example configuration exists
 ls terraform.tfvars.example
 ```
 
@@ -250,9 +250,9 @@ ls terraform.tfvars.example
 
 ---
 
-***REMOVED******REMOVED*** 6. Security Best Practices
+## 6. Security Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 6.1 Credential Management
+### 6.1 Credential Management
 
 ```
 ❌ NEVER commit credentials to Git
@@ -262,7 +262,7 @@ ls terraform.tfvars.example
 ✅ Add sensitive files to .gitignore
 ```
 
-***REMOVED******REMOVED******REMOVED*** 6.2 Files to Protect
+### 6.2 Files to Protect
 
 Ensure these patterns are in `.gitignore`:
 ```
@@ -278,12 +278,12 @@ Ensure these patterns are in `.gitignore`:
 
 ---
 
-***REMOVED******REMOVED*** 7. Optional: Multi-Account Setup
+## 7. Optional: Multi-Account Setup
 
 If deploying to multiple AWS accounts:
 
 ```bash
-***REMOVED*** ~/.aws/config
+# ~/.aws/config
 [profile account-dev]
 region = us-west-2
 output = json
@@ -292,13 +292,13 @@ output = json
 region = us-east-1
 output = json
 
-***REMOVED*** ~/.zshrc - Use different variables per account
-export TF_VAR_aws_profile="account-dev"  ***REMOVED*** or "account-prod"
+# ~/.zshrc - Use different variables per account
+export TF_VAR_aws_profile="account-dev"  # or "account-prod"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 ✅ Prerequisites complete → [01-ARCHITECTURE.md](01-ARCHITECTURE.md) - Understand the deployment architecture
 
@@ -306,7 +306,7 @@ export TF_VAR_aws_profile="account-dev"  ***REMOVED*** or "account-prod"
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|

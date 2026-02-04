@@ -1,6 +1,6 @@
-***REMOVED*** Workspace Admin Assignment - Deployment Order Fix
+# Workspace Admin Assignment - Deployment Order Fix
 
-***REMOVED******REMOVED*** The Problem
+## The Problem
 
 The permission assignment was failing because Unity Catalog had not been assigned to the workspace yet.
 
@@ -8,9 +8,9 @@ The permission assignment was failing because Unity Catalog had not been assigne
 ERROR: Permission assignment APIs are not available for this workspace.
 ```
 
-***REMOVED******REMOVED*** Understanding the Issue
+## Understanding the Issue
 
-***REMOVED******REMOVED******REMOVED*** ❌ **What Was Happening (WRONG)**
+### ❌ **What Was Happening (WRONG)**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -34,7 +34,7 @@ ERROR: Permission assignment APIs are not available for this workspace.
 
 **Problem**: Both modules depend on the workspace, so they run in parallel. The admin assignment tries to run before UC assignment completes.
 
-***REMOVED******REMOVED******REMOVED*** ✅ **What Should Happen (CORRECT)**
+### ✅ **What Should Happen (CORRECT)**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -56,20 +56,20 @@ ERROR: Permission assignment APIs are not available for this workspace.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-***REMOVED******REMOVED*** The Fix
+## The Fix
 
-***REMOVED******REMOVED******REMOVED*** File Changes
+### File Changes
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Removed from `modules/databricks_workspace/main.tf`
+#### 1. Removed from `modules/databricks_workspace/main.tf`
 ```hcl
-***REMOVED*** Removed (lines 125-141):
-***REMOVED*** - data "databricks_user" "workspace_admin"
-***REMOVED*** - resource "databricks_mws_permission_assignment" "workspace_admin"
+# Removed (lines 125-141):
+# - data "databricks_user" "workspace_admin"
+# - resource "databricks_mws_permission_assignment" "workspace_admin"
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Added to `modules/unity_catalog/01-metastore.tf`
+#### 2. Added to `modules/unity_catalog/01-metastore.tf`
 ```hcl
-***REMOVED*** After metastore assignment (lines 75-99):
+# After metastore assignment (lines 75-99):
 
 data "databricks_user" "workspace_admin" {
   provider  = databricks.account
@@ -83,7 +83,7 @@ resource "databricks_mws_permission_assignment" "workspace_admin" {
   permissions  = ["ADMIN"]
 
   depends_on = [databricks_metastore_assignment.workspace_assignment]
-  ***REMOVED*** ☝️ THIS IS THE KEY: Wait for UC assignment before admin assignment
+  # ☝️ THIS IS THE KEY: Wait for UC assignment before admin assignment
 
   lifecycle {
     ignore_changes = [principal_id]
@@ -91,16 +91,16 @@ resource "databricks_mws_permission_assignment" "workspace_admin" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Updated `main.tf`
+#### 3. Updated `main.tf`
 ```hcl
-***REMOVED*** Updated Databricks provider version:
+# Updated Databricks provider version:
 databricks = {
   source  = "databricks/databricks"
-  version = "~> 1.50"  ***REMOVED*** Was: ~> 1.0
+  version = "~> 1.50"  # Was: ~> 1.0
 }
 ```
 
-***REMOVED******REMOVED*** Why This Works
+## Why This Works
 
 The `databricks_mws_permission_assignment` API is **only available after Unity Catalog is assigned** to a workspace. By moving the admin assignment to the Unity Catalog module and making it depend on the metastore assignment, we ensure:
 
@@ -109,22 +109,22 @@ The `databricks_mws_permission_assignment` API is **only available after Unity C
 3. ✅ Permission assignment APIs become available
 4. ✅ Workspace admin is assigned successfully
 
-***REMOVED******REMOVED*** Deployment Commands
+## Deployment Commands
 
 ```bash
 cd /Users/bhavin.kukadia/Downloads/0-projects/aws/modular-version
 
-***REMOVED*** Upgrade to the new provider version
+# Upgrade to the new provider version
 terraform init -upgrade
 
-***REMOVED*** Review the changes
+# Review the changes
 terraform plan
 
-***REMOVED*** Apply the deployment
+# Apply the deployment
 terraform apply
 ```
 
-***REMOVED******REMOVED*** Key Takeaway
+## Key Takeaway
 
 🔑 **The permission assignment APIs are enabled by Unity Catalog assignment, not by workspace creation alone.**
 

@@ -1,4 +1,4 @@
-***REMOVED*** 04 - Quick Start (5 Minutes)
+# 04 - Quick Start (5 Minutes)
 
 > **Deploy Fast**: Minimal steps to get your workspace running.
 
@@ -8,7 +8,7 @@
 
 ---
 
-***REMOVED******REMOVED*** Prerequisites Complete?
+## Prerequisites Complete?
 
 ✅ [00-PREREQUISITES.md](00-PREREQUISITES.md) - System configured  
 ✅ `TF_VAR_*` environment variables set  
@@ -18,57 +18,57 @@
 
 ---
 
-***REMOVED******REMOVED*** Step 1: Create Configuration File (2 minutes)
+## Step 1: Create Configuration File (2 minutes)
 
-***REMOVED******REMOVED******REMOVED*** 1.1 Copy Example Configuration
+### 1.1 Copy Example Configuration
 
 ```bash
-***REMOVED*** Navigate to project directory
+# Navigate to project directory
 cd databricks-aws-production
 
-***REMOVED*** Copy example file to create your configuration
+# Copy example file to create your configuration
 cp terraform.tfvars.example terraform.tfvars
 ```
 
 **Important**: `terraform.tfvars` is git-ignored for security (never commit credentials!)
 
-***REMOVED******REMOVED******REMOVED*** 1.2 Edit Configuration
+### 1.2 Edit Configuration
 
 Open `terraform.tfvars` and update these values:
 
 ```hcl
-***REMOVED*** ============================================================================
-***REMOVED*** REQUIRED: Change These Values
-***REMOVED*** ============================================================================
+# ============================================================================
+# REQUIRED: Change These Values
+# ============================================================================
 
-***REMOVED*** Workspace
+# Workspace
 workspace_name = "my-prod-workspace"
 prefix         = "dbx"
 region         = "us-west-1"
 
-***REMOVED*** S3 Buckets (must be globally unique!)
+# S3 Buckets (must be globally unique!)
 root_storage_bucket_name               = "mycompany-dbx-root-storage"
 unity_catalog_bucket_name              = "mycompany-dbx-uc-metastore"
 unity_catalog_root_storage_bucket_name = "mycompany-dbx-uc-root-storage"
 unity_catalog_external_bucket_name     = "mycompany-dbx-uc-external"
 
-***REMOVED*** Unity Catalog
+# Unity Catalog
 workspace_catalog_name = "prod"
 
-***REMOVED*** ============================================================================
-***REMOVED*** OPTIONAL: Review & Adjust
-***REMOVED*** ============================================================================
+# ============================================================================
+# OPTIONAL: Review & Adjust
+# ============================================================================
 
-***REMOVED*** Network (defaults are production-ready)
+# Network (defaults are production-ready)
 vpc_cidr                 = "10.0.0.0/22"
 private_subnet_cidrs     = ["10.0.1.0/24", "10.0.2.0/24"]
 privatelink_subnet_cidrs = ["10.0.3.0/26", "10.0.3.64/26"]
 public_subnet_cidrs      = ["10.0.0.0/26", "10.0.0.64/26"]
 
-***REMOVED*** Security
-enable_private_link  = true   ***REMOVED*** Private Link (recommended for production)
-enable_encryption    = true   ***REMOVED*** S3 KMS encryption
-enable_workspace_cmk = false  ***REMOVED*** Workspace CMK (DBFS/EBS/MS) - set to true for full encryption
+# Security
+enable_private_link  = true   # Private Link (recommended for production)
+enable_encryption    = true   # S3 KMS encryption
+enable_workspace_cmk = false  # Workspace CMK (DBFS/EBS/MS) - set to true for full encryption
 ```
 
 **Note**: Credentials are set via environment variables (see Prerequisites)  
@@ -76,37 +76,37 @@ enable_workspace_cmk = false  ***REMOVED*** Workspace CMK (DBFS/EBS/MS) - set to
 
 ---
 
-***REMOVED******REMOVED*** Step 2: Deploy (3 minutes)
+## Step 2: Deploy (3 minutes)
 
 ```bash
-***REMOVED*** Initialize Terraform (first time only)
+# Initialize Terraform (first time only)
 terraform init
 
-***REMOVED*** Review what will be created (optional but recommended)
+# Review what will be created (optional but recommended)
 terraform plan
 
-***REMOVED*** Deploy everything
+# Deploy everything
 terraform apply
-***REMOVED*** Review the plan, then type: yes
+# Review the plan, then type: yes
 ```
 
 ⏱️ **Wait**: 15-20 minutes for deployment
 
 ---
 
-***REMOVED******REMOVED*** Step 3: Get Workspace URL
+## Step 3: Get Workspace URL
 
 ```bash
-***REMOVED*** View deployment summary
+# View deployment summary
 terraform output deployment_summary
 
-***REMOVED*** Or just the URL
+# Or just the URL
 terraform output workspace_url
 ```
 
 ---
 
-***REMOVED******REMOVED*** Step 4: Access Workspace
+## Step 4: Access Workspace
 
 1. **Open workspace URL** from output
 2. **Log in** with your Databricks account credentials
@@ -116,28 +116,28 @@ terraform output workspace_url
 
 ---
 
-***REMOVED******REMOVED*** Common Customizations
+## Common Customizations
 
-***REMOVED******REMOVED******REMOVED*** Disable Private Link (Lowest Cost)
+### Disable Private Link (Lowest Cost)
 
 ```hcl
 enable_private_link = false
 ```
 
-***REMOVED******REMOVED******REMOVED*** Enable S3 Encryption
+### Enable S3 Encryption
 
 ```hcl
 enable_encryption = true
 ```
 
-***REMOVED******REMOVED******REMOVED*** Enable Full CMK Encryption
+### Enable Full CMK Encryption
 
 ```hcl
-enable_encryption    = true  ***REMOVED*** S3 buckets
-enable_workspace_cmk = true  ***REMOVED*** DBFS/EBS/MS
+enable_encryption    = true  # S3 buckets
+enable_workspace_cmk = true  # DBFS/EBS/MS
 ```
 
-***REMOVED******REMOVED******REMOVED*** Different Region
+### Different Region
 
 ```hcl
 region = "us-east-1"
@@ -147,7 +147,7 @@ VPC endpoint service names auto-detected ✅
 
 ---
 
-***REMOVED******REMOVED*** What Gets Created?
+## What Gets Created?
 
 ```
 65-70 Resources:
@@ -167,18 +167,18 @@ VPC endpoint service names auto-detected ✅
 
 ---
 
-***REMOVED******REMOVED*** Clean Up
+## Clean Up
 
 ```bash
 terraform destroy
-***REMOVED*** Type: yes
+# Type: yes
 ```
 
-**Issues?** See [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md***REMOVED***destroy-issues)
+**Issues?** See [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md#destroy-issues)
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 ✅ **Understand architecture** → [01-ARCHITECTURE.md](01-ARCHITECTURE.md)  
 ✅ **Learn IAM roles** → [02-IAM-SECURITY.md](02-IAM-SECURITY.md)  
@@ -187,7 +187,7 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** Quick Troubleshooting
+## Quick Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
@@ -195,7 +195,7 @@ terraform destroy
 | AWS auth error | `aws sso login --profile your-profile` |
 | Can't access workspace | Wait 20 minutes after deployment |
 | Provider errors | Run `terraform init` |
-| Terraform not found | Install: [Prerequisites](00-PREREQUISITES.md***REMOVED***31-install-terraform) |
+| Terraform not found | Install: [Prerequisites](00-PREREQUISITES.md#31-install-terraform) |
 
 **More Help**: [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md)
 

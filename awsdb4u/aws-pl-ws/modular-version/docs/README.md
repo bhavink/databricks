@@ -1,116 +1,116 @@
-***REMOVED*** AWS Databricks Private Link - Modular Version
+# AWS Databricks Private Link - Modular Version
 
 This is the **modular version** of the AWS Databricks Private Link deployment. It uses Terraform modules for better organization, reusability, and maintainability.
 
-***REMOVED******REMOVED*** 📁 Directory Structure
+## 📁 Directory Structure
 
 ```
 modular-version/
-├── main.tf                 ***REMOVED*** Orchestrates all modules
-├── variables.tf            ***REMOVED*** Root-level variables
-├── outputs.tf              ***REMOVED*** Root-level outputs
-├── terraform.tfvars        ***REMOVED*** Your configuration values
+├── main.tf                 # Orchestrates all modules
+├── variables.tf            # Root-level variables
+├── outputs.tf              # Root-level outputs
+├── terraform.tfvars        # Your configuration values
 │
 └── modules/
-    ├── networking/         ***REMOVED*** VPC, subnets, security groups, VPC endpoints
-    ├── storage/            ***REMOVED*** S3 buckets for workspace and Unity Catalog
-    ├── iam/                ***REMOVED*** IAM roles and policies
-    ├── kms/                ***REMOVED*** Optional KMS encryption keys
-    ├── unity_catalog/      ***REMOVED*** Unity Catalog metastore, catalogs, grants
-    └── databricks_workspace/ ***REMOVED*** Workspace creation and configuration
+    ├── networking/         # VPC, subnets, security groups, VPC endpoints
+    ├── storage/            # S3 buckets for workspace and Unity Catalog
+    ├── iam/                # IAM roles and policies
+    ├── kms/                # Optional KMS encryption keys
+    ├── unity_catalog/      # Unity Catalog metastore, catalogs, grants
+    └── databricks_workspace/ # Workspace creation and configuration
 ```
 
-***REMOVED******REMOVED*** 🚀 Quick Start
+## 🚀 Quick Start
 
-***REMOVED******REMOVED******REMOVED*** 1. Prerequisites
+### 1. Prerequisites
 
 - Terraform >= 1.0
 - AWS CLI configured with appropriate credentials
 - Databricks account with service principal (client ID and secret)
 
-***REMOVED******REMOVED******REMOVED*** 2. AWS Authentication Setup
+### 2. AWS Authentication Setup
 
 You have two options for AWS authentication:
 
 **Option A: Named AWS Profile** (recommended for local development)
 ```bash
-***REMOVED*** Configure AWS CLI with your profile
+# Configure AWS CLI with your profile
 aws configure --profile your-profile-name
 
-***REMOVED*** Set profile in terraform.tfvars
+# Set profile in terraform.tfvars
 aws_profile = "your-profile-name"
 ```
 
 **Option B: Default Credentials or Environment Variables**
 ```bash
-***REMOVED*** Use AWS CLI default credentials
+# Use AWS CLI default credentials
 aws configure
 
-***REMOVED*** OR use AWS SSO
+# OR use AWS SSO
 aws sso login
 
-***REMOVED*** OR set environment variables
+# OR set environment variables
 export AWS_ACCESS_KEY_ID="your-key"
 export AWS_SECRET_ACCESS_KEY="your-secret"
-export AWS_SESSION_TOKEN="your-token"  ***REMOVED*** if using temporary credentials
+export AWS_SESSION_TOKEN="your-token"  # if using temporary credentials
 
-***REMOVED*** Then comment out 'profile' line in main.tf provider block
-***REMOVED*** or leave aws_profile empty in terraform.tfvars
+# Then comment out 'profile' line in main.tf provider block
+# or leave aws_profile empty in terraform.tfvars
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Configure Variables
+### 3. Configure Variables
 
 Edit `terraform.tfvars` with your values:
 
 ```hcl
-***REMOVED*** Databricks Account Configuration
+# Databricks Account Configuration
 client_id             = "your-service-principal-id"
 client_secret         = "your-service-principal-secret"
 databricks_account_id = "your-databricks-account-id"
 
-***REMOVED*** AWS Configuration
+# AWS Configuration
 aws_account_id = "your-aws-account-id"
-aws_profile    = "your-aws-profile"  ***REMOVED*** Use named profile (Option A)
-***REMOVED*** aws_profile  = ""                  ***REMOVED*** Leave empty for default credentials (Option B)
+aws_profile    = "your-aws-profile"  # Use named profile (Option A)
+# aws_profile  = ""                  # Leave empty for default credentials (Option B)
 
-***REMOVED*** Workspace Configuration
+# Workspace Configuration
 workspace_name        = "my-workspace"
 workspace_admin_email = "admin@company.com"
 prefix                = "dbx"
 region                = "us-west-2"
 
-***REMOVED*** Network Configuration
+# Network Configuration
 vpc_cidr                 = "10.0.0.0/16"
 private_subnet_cidrs     = ["10.0.1.0/24", "10.0.2.0/24"]
 privatelink_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]
 public_subnet_cidrs      = ["10.0.101.0/24", "10.0.102.0/24"]
 availability_zones       = ["us-west-2a", "us-west-2b"]
 
-***REMOVED*** S3 Bucket Names (must be globally unique)
+# S3 Bucket Names (must be globally unique)
 root_storage_bucket_name                = "my-root"
 unity_catalog_bucket_name               = "my-uc-metastore"
 unity_catalog_external_bucket_name      = "my-uc-external"
 unity_catalog_root_storage_bucket_name  = "my-uc-root-storage"
 
-***REMOVED*** Optional Features
+# Optional Features
 enable_encryption        = false
 create_workspace_catalog = true
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Initialize Terraform
+### 4. Initialize Terraform
 
 ```bash
 cd modular-version
 terraform init
 ```
 
-***REMOVED******REMOVED******REMOVED*** 5. Plan Deployment
+### 5. Plan Deployment
 
 ```bash
 terraform plan
 ```
 
-***REMOVED******REMOVED******REMOVED*** 6. Deploy
+### 6. Deploy
 
 ```bash
 terraform apply
@@ -118,9 +118,9 @@ terraform apply
 
 **⏰ Important:** After deployment, wait 20 minutes for backend Private Link to stabilize before creating clusters.
 
-***REMOVED******REMOVED*** 📦 Modules Overview
+## 📦 Modules Overview
 
-***REMOVED******REMOVED******REMOVED*** 1. Networking Module
+### 1. Networking Module
 
 Creates AWS networking infrastructure:
 - VPC with DNS support
@@ -129,7 +129,7 @@ Creates AWS networking infrastructure:
 - Security groups for workspace and VPC endpoints
 - VPC endpoints (Workspace, Relay, S3, STS, Kinesis)
 
-***REMOVED******REMOVED******REMOVED*** 2. Storage Module
+### 2. Storage Module
 
 Creates S3 buckets:
 - **Root Storage**: Workspace DBFS storage
@@ -143,21 +143,21 @@ All buckets have:
 - Optional KMS encryption
 - Force destroy enabled for cleanup
 
-***REMOVED******REMOVED******REMOVED*** 3. IAM Module
+### 3. IAM Module
 
 Creates IAM roles and policies:
 - **Cross-Account Role**: For Databricks control plane
 - **UC Metastore Role**: For Unity Catalog access
 - **Instance Profile**: For Databricks cluster compute
 
-***REMOVED******REMOVED******REMOVED*** 4. KMS Module (Optional)
+### 4. KMS Module (Optional)
 
 Creates encryption keys when `enable_encryption = true`:
 - Customer-managed KMS key
 - Key rotation enabled
 - Proper policies for Databricks and S3
 
-***REMOVED******REMOVED******REMOVED*** 5. Unity Catalog Module
+### 5. Unity Catalog Module
 
 Creates Unity Catalog resources:
 - Metastore (account-level)
@@ -167,7 +167,7 @@ Creates Unity Catalog resources:
 - Workspace catalog
 - Grants and permissions
 
-***REMOVED******REMOVED******REMOVED*** 6. Databricks Workspace Module
+### 6. Databricks Workspace Module
 
 Creates the Databricks workspace:
 - MWS credentials
@@ -177,7 +177,7 @@ Creates the Databricks workspace:
 - Workspace creation
 - Workspace admin assignment
 
-***REMOVED******REMOVED*** 🔄 Module Dependencies
+## 🔄 Module Dependencies
 
 ```
 Networking ─┐
@@ -189,7 +189,7 @@ IAM ────────┤
 KMS ────────┘
 ```
 
-***REMOVED******REMOVED*** 📝 Outputs
+## 📝 Outputs
 
 After deployment, Terraform provides:
 
@@ -205,25 +205,25 @@ View outputs:
 terraform output
 ```
 
-***REMOVED******REMOVED*** 🔧 Customization
+## 🔧 Customization
 
-***REMOVED******REMOVED******REMOVED*** Enable KMS Encryption
+### Enable KMS Encryption
 
 ```hcl
 enable_encryption = true
 ```
 
-***REMOVED******REMOVED******REMOVED*** Disable Workspace Catalog Creation
+### Disable Workspace Catalog Creation
 
 ```hcl
 create_workspace_catalog = false
 ```
 
-***REMOVED******REMOVED******REMOVED*** Modify Network CIDR Blocks
+### Modify Network CIDR Blocks
 
 Edit the CIDR blocks in `terraform.tfvars` to match your requirements.
 
-***REMOVED******REMOVED*** 🧹 Clean Destruction
+## 🧹 Clean Destruction
 
 To cleanly destroy all resources:
 
@@ -242,7 +242,7 @@ To cleanly destroy all resources:
    terraform destroy
    ```
 
-***REMOVED******REMOVED*** 🆚 vs. Root Version
+## 🆚 vs. Root Version
 
 | Aspect | Modular Version | Root Version |
 |--------|----------------|--------------|
@@ -252,7 +252,7 @@ To cleanly destroy all resources:
 | Maintenance | ✅ Easy | Moderate |
 | Complexity | Moderate | Simple |
 
-***REMOVED******REMOVED*** 📚 Module Documentation
+## 📚 Module Documentation
 
 Each module has its own README with:
 - Detailed resource descriptions
@@ -263,7 +263,7 @@ Each module has its own README with:
 
 See `modules/*/README.md` for module-specific documentation.
 
-***REMOVED******REMOVED*** 🔐 Security Best Practices
+## 🔐 Security Best Practices
 
 ✅ All S3 buckets have public access blocked
 ✅ VPC endpoints for private connectivity
@@ -272,28 +272,28 @@ See `modules/*/README.md` for module-specific documentation.
 ✅ Optional KMS encryption for data at rest
 ✅ Unity Catalog for data governance
 
-***REMOVED******REMOVED*** 🐛 Troubleshooting
+## 🐛 Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Issue: Terraform can't find modules
+### Issue: Terraform can't find modules
 
 **Solution:** Run `terraform init` to download modules.
 
-***REMOVED******REMOVED******REMOVED*** Issue: Workspace not accessible
+### Issue: Workspace not accessible
 
 **Solution:** Wait 20 minutes after deployment for Private Link stabilization.
 
-***REMOVED******REMOVED******REMOVED*** Issue: Unity Catalog permissions error
+### Issue: Unity Catalog permissions error
 
 **Solution:** Verify workspace admin email is correct and service principal has account admin role.
 
-***REMOVED******REMOVED*** 📞 Support
+## 📞 Support
 
 For issues or questions:
 1. Check module READMEs for specific module documentation
 2. Review Databricks documentation: https://docs.databricks.com
 3. Check Terraform AWS provider docs: https://registry.terraform.io/providers/hashicorp/aws
 
-***REMOVED******REMOVED*** 🎯 Next Steps
+## 🎯 Next Steps
 
 After successful deployment:
 

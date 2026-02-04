@@ -1,11 +1,11 @@
-***REMOVED*** Workspace Admin Assignment - Deployment Order Fix
+# Workspace Admin Assignment - Deployment Order Fix
 
 > **Related Documentation:**
 > - 📐 [ARCHITECTURE.md](../ARCHITECTURE.md) - Understand the complete architecture
 > - 🚀 [QUICK_START.md](QUICK_START.md) - Deploy your workspace quickly
 > - 📁 [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) - See where user_assignment module is located
 
-***REMOVED******REMOVED*** The Problem
+## The Problem
 
 Workspace admin permission assignment would fail if attempted before Unity Catalog was assigned to the workspace:
 
@@ -13,9 +13,9 @@ Workspace admin permission assignment would fail if attempted before Unity Catal
 ERROR: Permission assignment APIs are not available for this workspace.
 ```
 
-***REMOVED******REMOVED*** Understanding the Issue
+## Understanding the Issue
 
-***REMOVED******REMOVED******REMOVED*** ❌ **What Was Happening (WRONG - Early Implementation)**
+### ❌ **What Was Happening (WRONG - Early Implementation)**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -39,7 +39,7 @@ ERROR: Permission assignment APIs are not available for this workspace.
 
 **Problem**: Both modules depend on the workspace, so they run in parallel. The admin assignment would try to run before Unity Catalog metastore assignment completes.
 
-***REMOVED******REMOVED******REMOVED*** ✅ **Current Implementation (CORRECT)**
+### ✅ **Current Implementation (CORRECT)**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -66,9 +66,9 @@ ERROR: Permission assignment APIs are not available for this workspace.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-***REMOVED******REMOVED*** Current Implementation
+## Current Implementation
 
-***REMOVED******REMOVED******REMOVED*** Architecture
+### Architecture
 
 The current implementation uses a **separate `user_assignment` module** that explicitly depends on Unity Catalog metastore assignment:
 
@@ -86,21 +86,21 @@ module "user_assignment" {
   }
 
   depends_on = [
-    module.unity_catalog.metastore_assignment_id  ***REMOVED*** ← KEY: Waits for UC assignment!
+    module.unity_catalog.metastore_assignment_id  # ← KEY: Waits for UC assignment!
   ]
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Module Structure
+### Module Structure
 
 **File:** `modules/user_assignment/main.tf`
 ```hcl
-***REMOVED*** Look up the workspace admin user from account console
+# Look up the workspace admin user from account console
 data "databricks_user" "workspace_access" {
   user_name = var.user_name
 }
 
-***REMOVED*** Assign user as workspace admin
+# Assign user as workspace admin
 resource "databricks_mws_permission_assignment" "workspace_access" {
   workspace_id = var.workspace_id
   principal_id = data.databricks_user.workspace_access.id
@@ -118,7 +118,7 @@ resource "databricks_mws_permission_assignment" "workspace_access" {
 - ✅ Conditional creation (only if `workspace_admin_email` is provided)
 - ✅ Uses account-level provider for permission management
 
-***REMOVED******REMOVED*** Why This Works
+## Why This Works
 
 The `databricks_mws_permission_assignment` API is **only available after Unity Catalog is assigned** to a workspace.
 
@@ -129,7 +129,7 @@ By using a separate module with explicit `depends_on`, we ensure:
 3. ✅ Permission assignment APIs become available
 4. ✅ Workspace admin is assigned successfully (`user_assignment` module)
 
-***REMOVED******REMOVED*** Deployment Order Visualization
+## Deployment Order Visualization
 
 ```mermaid
 graph TD
@@ -141,22 +141,22 @@ graph TD
     B --> F[unity_catalog module]
     F --> G[user_assignment module]
 
-    style G fill:***REMOVED***90EE90
-    style F fill:***REMOVED***87CEEB
-    style B fill:***REMOVED***FFB6C1
+    style G fill:#90EE90
+    style F fill:#87CEEB
+    style B fill:#FFB6C1
 ```
 
 **Green:** User Assignment (depends on Unity Catalog)
 **Blue:** Unity Catalog (depends on Workspace)
 **Pink:** Workspace (depends on Infrastructure)
 
-***REMOVED******REMOVED*** Key Takeaway
+## Key Takeaway
 
 🔑 **The permission assignment APIs are enabled by Unity Catalog metastore assignment, not by workspace creation alone.**
 
 **Best Practice:** Always use the `user_assignment` module after Unity Catalog is assigned, or ensure explicit `depends_on` relationship if implementing custom user assignment logic.
 
-***REMOVED******REMOVED*** Reference
+## Reference
 
 - **User Assignment Module:** `modules/user_assignment/`
 - **Databricks SRA Pattern:** https://github.com/databricks/terraform-databricks-sra/tree/main/aws/tf/modules/databricks_account/user_assignment

@@ -1,8 +1,8 @@
-***REMOVED*** Unity Catalog Module
+# Unity Catalog Module
 
 This module provisions Unity Catalog resources for Databricks, including metastore, storage credentials, external locations, and workspace catalog.
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
 This module follows the Databricks Security Reference Architecture (SRA) pattern for Unity Catalog setup:
 
@@ -14,20 +14,20 @@ This module follows the Databricks Security Reference Architecture (SRA) pattern
 6. **Workspace Catalog** (Creates catalog using root storage)
 7. **Grants** (Assigns permissions to workspace admin and users)
 
-***REMOVED******REMOVED*** Resources Created
+## Resources Created
 
-***REMOVED******REMOVED******REMOVED*** Account-Level
+### Account-Level
 - Unity Catalog Metastore
 - Metastore assignment to workspace
 
-***REMOVED******REMOVED******REMOVED*** Workspace-Level
+### Workspace-Level
 - **Root Storage**: Credential, IAM role/policy, external location
 - **External Storage**: Credential, IAM role/policy, external location
 - Workspace catalog (using root storage)
 - Default namespace setting
 - Grants and permissions
 
-***REMOVED******REMOVED*** Key Features
+## Key Features
 
 - ✅ Follows SRA best practices
 - ✅ Dynamic external_id generation
@@ -36,7 +36,7 @@ This module follows the Databricks Security Reference Architecture (SRA) pattern
 - ✅ Proper dependency management
 - ✅ Clean destroy capability
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 ```hcl
 module "unity_catalog" {
@@ -66,13 +66,13 @@ module "unity_catalog" {
 }
 ```
 
-***REMOVED******REMOVED*** Required Providers
+## Required Providers
 
 This module requires TWO Databricks providers:
 - `databricks.account` - For account-level resources (metastore)
 - `databricks.workspace` - For workspace-level resources (catalog, credentials)
 
-***REMOVED******REMOVED*** Storage Architecture
+## Storage Architecture
 
 ```
 Unity Catalog
@@ -90,7 +90,7 @@ Unity Catalog
     └── Purpose: External data access
 ```
 
-***REMOVED******REMOVED*** Deployment Sequence
+## Deployment Sequence
 
 1. Metastore created (independent of workspace)
 2. Workspace created (separate module)
@@ -102,7 +102,7 @@ Unity Catalog
 8. Workspace catalog created (using root storage)
 9. Grants applied
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -111,7 +111,7 @@ Unity Catalog
 | `root_storage_location_url` | Root storage S3 URL |
 | `external_location_url` | External storage S3 URL |
 
-***REMOVED******REMOVED*** Notes
+## Notes
 
 - Set `create_workspace_catalog = false` before destroying to cleanly remove resources
 - IAM propagation delays are handled automatically

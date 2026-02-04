@@ -1,8 +1,8 @@
-***REMOVED*** Databricks AWS Deployment - Documentation Index
+# Databricks AWS Deployment - Documentation Index
 
 > **Start Here**: Complete visual guide for deploying secure Databricks workspaces on AWS.
 
-***REMOVED******REMOVED*** 📚 Documentation Structure
+## 📚 Documentation Structure
 
 ```
 Visual-First Documentation:
@@ -22,7 +22,7 @@ Archived Documentation (Advanced Reference):
 
 ---
 
-***REMOVED******REMOVED*** 🚀 Quick Navigation
+## 🚀 Quick Navigation
 
 **First Time User?**
 1. [00-PREREQUISITES.md](00-PREREQUISITES.md) - Set up your system
@@ -39,9 +39,9 @@ Archived Documentation (Advanced Reference):
 
 ---
 
-***REMOVED******REMOVED*** 📖 Document Summaries
+## 📖 Document Summaries
 
-***REMOVED******REMOVED******REMOVED*** [00-PREREQUISITES.md](00-PREREQUISITES.md)
+### [00-PREREQUISITES.md](00-PREREQUISITES.md)
 **Before You Begin**: System requirements, tool installation, credential configuration
 - Databricks E2 account setup
 - Service Principal creation
@@ -50,7 +50,7 @@ Archived Documentation (Advanced Reference):
 - Environment variable configuration
 - Pre-flight checklist
 
-***REMOVED******REMOVED******REMOVED*** [01-ARCHITECTURE.md](01-ARCHITECTURE.md)
+### [01-ARCHITECTURE.md](01-ARCHITECTURE.md)
 **Architecture Overview**: Complete system design with modular visual diagrams
 - High-level architecture (VPC, subnets, endpoints)
 - Module dependency flow (7 modules)
@@ -59,7 +59,7 @@ Archived Documentation (Advanced Reference):
 - Resource breakdown (65-70 resources)
 - Configuration scenarios
 
-***REMOVED******REMOVED******REMOVED*** [02-IAM-SECURITY.md](02-IAM-SECURITY.md)
+### [02-IAM-SECURITY.md](02-IAM-SECURITY.md)
 **IAM & Security**: Roles, policies, and permissions categorized by creation order
 - IAM role hierarchy & trust relationships
 - Cross-account role (Databricks control plane)
@@ -69,7 +69,7 @@ Archived Documentation (Advanced Reference):
 - Pre-creation guide
 - Security best practices
 
-***REMOVED******REMOVED******REMOVED*** [03-NETWORK-ENCRYPTION.md](03-NETWORK-ENCRYPTION.md)
+### [03-NETWORK-ENCRYPTION.md](03-NETWORK-ENCRYPTION.md)
 **Network & Encryption**: Traffic flows, security groups, encryption layers
 - Traffic flow patterns (sequences)
 - Security group rules (workspace + VPCE)
@@ -78,7 +78,7 @@ Archived Documentation (Advanced Reference):
 - Port requirements (8443-8451, 6666)
 - DNS resolution logic
 
-***REMOVED******REMOVED******REMOVED*** [04-QUICK-START.md](04-QUICK-START.md)
+### [04-QUICK-START.md](04-QUICK-START.md)
 **Quick Deployment**: Minimal steps to get running fast
 - 3-step deployment process
 - Configuration examples
@@ -87,7 +87,7 @@ Archived Documentation (Advanced Reference):
 - Clean up instructions
 - Quick troubleshooting table
 
-***REMOVED******REMOVED******REMOVED*** [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md)
+### [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md)
 **Problem Solving**: Common issues, error messages, solutions
 - Setup issues (Terraform, AWS CLI, credentials)
 - Terraform errors (validation, arguments)
@@ -99,26 +99,26 @@ Archived Documentation (Advanced Reference):
 
 ---
 
-***REMOVED******REMOVED*** 🎯 Use Cases
+## 🎯 Use Cases
 
-***REMOVED******REMOVED******REMOVED*** "I just want to deploy quickly"
+### "I just want to deploy quickly"
 → [04-QUICK-START.md](04-QUICK-START.md)
 
-***REMOVED******REMOVED******REMOVED*** "I need to understand how it works"
+### "I need to understand how it works"
 → [01-ARCHITECTURE.md](01-ARCHITECTURE.md)
 
-***REMOVED******REMOVED******REMOVED*** "I'm getting an error"
+### "I'm getting an error"
 → [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md)
 
-***REMOVED******REMOVED******REMOVED*** "I need to explain this to my security team"
+### "I need to explain this to my security team"
 → [02-IAM-SECURITY.md](02-IAM-SECURITY.md) + [03-NETWORK-ENCRYPTION.md](03-NETWORK-ENCRYPTION.md)
 
-***REMOVED******REMOVED******REMOVED*** "I'm setting up my laptop"
+### "I'm setting up my laptop"
 → [00-PREREQUISITES.md](00-PREREQUISITES.md)
 
 ---
 
-***REMOVED******REMOVED*** 🔗 Related Documentation
+## 🔗 Related Documentation
 
 **External Links**:
 - [Databricks AWS Documentation](https://docs.databricks.com/aws/en/)
@@ -134,7 +134,7 @@ Archived Documentation (Advanced Reference):
 
 ---
 
-***REMOVED******REMOVED*** 📝 Documentation Updates
+## 📝 Documentation Updates
 
 **Latest Changes**:
 - ✅ Visual-first approach with modular Mermaid diagrams
@@ -149,7 +149,7 @@ Archived Documentation (Advanced Reference):
 
 ---
 
-***REMOVED******REMOVED*** 💡 Best Practices
+## 💡 Best Practices
 
 1. **Read Prerequisites First**: Don't skip [00-PREREQUISITES.md](00-PREREQUISITES.md)
 2. **Use Quick Start for First Deploy**: [04-QUICK-START.md](04-QUICK-START.md)
@@ -159,7 +159,7 @@ Archived Documentation (Advanced Reference):
 
 ---
 
-***REMOVED******REMOVED*** 🤝 Contributing
+## 🤝 Contributing
 
 Found an issue or have a suggestion?
 - Document problems in [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md)

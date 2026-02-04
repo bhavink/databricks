@@ -1,32 +1,32 @@
-***REMOVED*** Networking Module
+# Networking Module
 
 This module provisions AWS networking resources for Databricks workspace with Private Link.
 
-***REMOVED******REMOVED*** Resources Created
+## Resources Created
 
-***REMOVED******REMOVED******REMOVED*** VPC and Subnets
+### VPC and Subnets
 - 1 VPC with DNS support enabled
 - 2 Public subnets (for NAT Gateways)
 - 2 Private subnets (for Databricks clusters)
 - 2 PrivateLink subnets (for VPC endpoints)
 
-***REMOVED******REMOVED******REMOVED*** Internet Connectivity
+### Internet Connectivity
 - 1 Internet Gateway
 - 2 NAT Gateways (high availability across AZs)
 - Route tables for public, private, and PrivateLink subnets
 
-***REMOVED******REMOVED******REMOVED*** Security Groups
+### Security Groups
 - Workspace security group (for Databricks clusters)
 - VPC Endpoint security group (for Private Link)
 
-***REMOVED******REMOVED******REMOVED*** VPC Endpoints
+### VPC Endpoints
 - **Workspace Endpoint** (Frontend - UI/API access)
 - **Relay Endpoint** (Backend - Secure Cluster Connectivity)
 - **S3 Gateway Endpoint** (cost-effective S3 access)
 - **STS Interface Endpoint** (IAM role assumption)
 - **Kinesis Interface Endpoint** (logging and lineage)
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 ```hcl
 module "networking" {
@@ -47,7 +47,7 @@ module "networking" {
 }
 ```
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -59,7 +59,7 @@ module "networking" {
 | `workspace_vpce_id` | Workspace VPC endpoint ID |
 | `relay_vpce_id` | Relay VPC endpoint ID |
 
-***REMOVED******REMOVED*** Network Architecture
+## Network Architecture
 
 ```
                                  Internet
@@ -85,7 +85,7 @@ module "networking" {
               (Frontend)       (Backend)
 ```
 
-***REMOVED******REMOVED*** Security
+## Security
 
 - Private subnets have internet access via NAT Gateways (for library downloads)
 - PrivateLink subnets are isolated (no internet access)

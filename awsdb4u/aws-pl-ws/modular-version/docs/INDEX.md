@@ -1,19 +1,19 @@
-***REMOVED*** 📚 Modular Version - Documentation Index
+# 📚 Modular Version - Documentation Index
 
 Welcome to the modular version of AWS Databricks Private Link deployment!
 
-***REMOVED******REMOVED*** 🎯 Start Here
+## 🎯 Start Here
 
-***REMOVED******REMOVED******REMOVED*** New to This Project?
+### New to This Project?
 1. 📘 **[README.md](README.md)** - Start here for architecture overview
 2. 🚀 **[QUICK_START.md](QUICK_START.md)** - Deploy in 5 minutes
 3. 📊 **[ROOT_VS_MODULAR.md](ROOT_VS_MODULAR.md)** - Understand the differences
 
-***REMOVED******REMOVED******REMOVED*** Ready to Deploy?
+### Ready to Deploy?
 1. 📖 **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - Complete step-by-step guide
 2. 📁 **[DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md)** - Understand the layout
 
-***REMOVED******REMOVED*** 📖 Main Documentation
+## 📖 Main Documentation
 
 | Document | Description | When to Read |
 |----------|-------------|--------------|
@@ -23,11 +23,11 @@ Welcome to the modular version of AWS Databricks Private Link deployment!
 | **ROOT_VS_MODULAR.md** | Comparison with root version | Decision making |
 | **DIRECTORY_STRUCTURE.md** | File structure and organization | Understanding layout |
 
-***REMOVED******REMOVED*** 🗂️ Module Documentation
+## 🗂️ Module Documentation
 
 Each module has its own README with detailed documentation:
 
-***REMOVED******REMOVED******REMOVED*** Infrastructure Modules
+### Infrastructure Modules
 
 | Module | Documentation | What It Does |
 |--------|---------------|--------------|
@@ -36,16 +36,16 @@ Each module has its own README with detailed documentation:
 | **iam/** | [README](modules/iam/README.md) | IAM roles and policies |
 | **kms/** | [README](modules/kms/README.md) | Encryption keys (optional) |
 
-***REMOVED******REMOVED******REMOVED*** Databricks Modules
+### Databricks Modules
 
 | Module | Documentation | What It Does |
 |--------|---------------|--------------|
 | **databricks_workspace/** | [README](modules/databricks_workspace/README.md) | Workspace creation and MWS resources |
 | **unity_catalog/** | [README](modules/unity_catalog/README.md) | Unity Catalog, metastore, catalogs, grants |
 
-***REMOVED******REMOVED*** 🚀 Quick Navigation
+## 🚀 Quick Navigation
 
-***REMOVED******REMOVED******REMOVED*** I want to...
+### I want to...
 
 **Deploy for the first time**
 → [QUICK_START.md](QUICK_START.md)
@@ -71,7 +71,7 @@ Each module has its own README with detailed documentation:
 **Understand IAM roles**
 → [modules/iam/README.md](modules/iam/README.md)
 
-***REMOVED******REMOVED*** 📋 Deployment Checklist
+## 📋 Deployment Checklist
 
 - [ ] Read README.md for overview
 - [ ] Check prerequisites in QUICK_START.md
@@ -83,24 +83,24 @@ Each module has its own README with detailed documentation:
 - [ ] Wait 20 minutes for Private Link
 - [ ] Access workspace and verify
 
-***REMOVED******REMOVED*** 🎓 Learning Path
+## 🎓 Learning Path
 
-***REMOVED******REMOVED******REMOVED*** Beginner
+### Beginner
 1. Read **README.md** - Understand what's being built
 2. Follow **QUICK_START.md** - Deploy your first workspace
 3. Explore **DIRECTORY_STRUCTURE.md** - See how it's organized
 
-***REMOVED******REMOVED******REMOVED*** Intermediate
+### Intermediate
 1. Study **USAGE_GUIDE.md** - Learn detailed deployment
 2. Review **ROOT_VS_MODULAR.md** - Understand design choices
 3. Read module READMEs - Deep dive into components
 
-***REMOVED******REMOVED******REMOVED*** Advanced
+### Advanced
 1. Customize modules for your needs
 2. Create new modules
 3. Build your own deployment patterns
 
-***REMOVED******REMOVED*** 🔧 Configuration Files
+## 🔧 Configuration Files
 
 | File | Purpose |
 |------|---------|
@@ -109,19 +109,19 @@ Each module has its own README with detailed documentation:
 | `outputs.tf` | Defines all outputs |
 | `terraform.tfvars` | Your configuration values |
 
-***REMOVED******REMOVED*** 🏗️ Module Structure
+## 🏗️ Module Structure
 
 ```
 Each module follows this pattern:
 modules/<module-name>/
-├── README.md           ***REMOVED*** Module documentation
-├── main.tf            ***REMOVED*** Primary resources (or multiple *.tf files)
-├── variables.tf       ***REMOVED*** Input variables
-├── outputs.tf         ***REMOVED*** Output values
-└── locals.tf          ***REMOVED*** Local variables (if needed)
+├── README.md           # Module documentation
+├── main.tf            # Primary resources (or multiple *.tf files)
+├── variables.tf       # Input variables
+├── outputs.tf         # Output values
+└── locals.tf          # Local variables (if needed)
 ```
 
-***REMOVED******REMOVED*** 📊 What Gets Created
+## 📊 What Gets Created
 
 When you run `terraform apply`, you'll create:
 
@@ -141,7 +141,7 @@ When you run `terraform apply`, you'll create:
 
 **Total:** ~65-70 resources
 
-***REMOVED******REMOVED*** ⏱️ Time Estimates
+## ⏱️ Time Estimates
 
 | Task | Time |
 |------|------|
@@ -153,7 +153,7 @@ When you run `terraform apply`, you'll create:
 | Wait for Private Link | 20 min |
 | **Total** | **~75-95 min** |
 
-***REMOVED******REMOVED*** 🐛 Troubleshooting
+## 🐛 Troubleshooting
 
 Having issues? Check these resources:
 
@@ -163,7 +163,7 @@ Having issues? Check these resources:
 4. **AWS Console** - Verify resource creation
 5. **Databricks Console** - Check workspace status
 
-***REMOVED******REMOVED*** 🎯 Next Steps After Deployment
+## 🎯 Next Steps After Deployment
 
 1. ✅ Access workspace (see outputs for URL)
 2. ✅ Verify Unity Catalog
@@ -173,14 +173,14 @@ Having issues? Check these resources:
 6. ✅ Create additional catalogs
 7. ✅ Set up data pipelines
 
-***REMOVED******REMOVED*** 📞 Support
+## 📞 Support
 
 - **Databricks Docs:** https://docs.databricks.com
 - **Terraform AWS Provider:** https://registry.terraform.io/providers/hashicorp/aws
 - **Terraform Databricks Provider:** https://registry.terraform.io/providers/databricks/databricks
 - **Databricks SRA:** https://github.com/databricks/terraform-databricks-sra
 
-***REMOVED******REMOVED*** 💡 Tips
+## 💡 Tips
 
 - Always run `terraform plan` before `apply`
 - Keep `terraform.tfvars` secure (contains secrets)

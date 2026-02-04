@@ -1,8 +1,8 @@
-***REMOVED*** 02 - IAM Roles, Policies & Security
+# 02 - IAM Roles, Policies & Security
 
 > **Security Reference**: Complete guide to IAM roles, policies, and when they're created.
 
-***REMOVED******REMOVED*** Quick Reference
+## Quick Reference
 
 ```
 5 IAM Roles Created:
@@ -17,24 +17,24 @@ All roles can be pre-created ✅
 
 ---
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-1. [IAM Architecture](***REMOVED***1-iam-architecture)
-2. [Cross-Account Role](***REMOVED***2-cross-account-role)
-3. [Storage Configuration Role](***REMOVED***3-storage-configuration-role)
-4. [Unity Catalog Roles](***REMOVED***4-unity-catalog-roles)
-5. [Instance Profile Role](***REMOVED***5-instance-profile-role)
-6. [KMS Encryption Policies](***REMOVED***6-kms-encryption-policies)
-7. [Pre-Creation Guide](***REMOVED***7-pre-creation-guide)
+1. [IAM Architecture](#1-iam-architecture)
+2. [Cross-Account Role](#2-cross-account-role)
+3. [Storage Configuration Role](#3-storage-configuration-role)
+4. [Unity Catalog Roles](#4-unity-catalog-roles)
+5. [Instance Profile Role](#5-instance-profile-role)
+6. [KMS Encryption Policies](#6-kms-encryption-policies)
+7. [Pre-Creation Guide](#7-pre-creation-guide)
 
 ---
 
-***REMOVED******REMOVED*** 1. IAM Architecture
+## 1. IAM Architecture
 
-***REMOVED******REMOVED******REMOVED*** 1.1 Role Hierarchy & Purpose
+### 1.1 Role Hierarchy & Purpose
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     subgraph "Databricks Control Plane"
         CP["Databricks SaaS<br/>414351767826"]
@@ -85,17 +85,17 @@ flowchart TD
     UCMETA -->|Decrypt/Encrypt| KMS
     UCEXT -->|Decrypt/Encrypt| KMS
     
-    style CP fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style CROSS fill:***REMOVED***FF9900,color:***REMOVED***000
-    style STORAGE fill:***REMOVED***FF9900,color:***REMOVED***000
-    style UCMETA fill:***REMOVED***1B72E8,color:***REMOVED***fff
-    style UCEXT fill:***REMOVED***1B72E8,color:***REMOVED***fff
-    style KMS fill:***REMOVED***569A31,color:***REMOVED***fff
+    style CP fill:#FF3621
+    style CROSS fill:#FF9900
+    style STORAGE fill:#FF9900
+    style UCMETA fill:#1B72E8
+    style UCEXT fill:#1B72E8
+    style KMS fill:#569A31
 ```
 
 **Docs**: [Databricks IAM Roles](https://docs.databricks.com/aws/en/administration-guide/cloud-configurations/aws/iam-roles.html)
 
-***REMOVED******REMOVED******REMOVED*** 1.2 Role Creation Timeline
+### 1.2 Role Creation Timeline
 
 ```mermaid
 %%{init: {'theme': 'base'}}%%
@@ -136,24 +136,24 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** 2. Cross-Account Role
+## 2. Cross-Account Role
 
-***REMOVED******REMOVED******REMOVED*** 2.1 Purpose & Trust Policy
+### 2.1 Purpose & Trust Policy
 
 **Role Name**: `{prefix}-cross-account-role`  
 **Created By**: IAM module  
 **Can Be Pre-Created**: ✅ Yes
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart LR
     DB["Databricks<br/>Control Plane<br/>414351767826"] -.->|AssumeRole| ROLE["Cross-Account<br/>Role"]
     ROLE -->|Launch| EC2["EC2 Instances<br/>Clusters"]
     ROLE -->|Attach| ENI["Network<br/>Interfaces"]
     ROLE -->|Configure| VPC["VPC/Subnets<br/>Security Groups"]
     
-    style DB fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style ROLE fill:***REMOVED***FF9900,color:***REMOVED***000
+    style DB fill:#FF3621
+    style ROLE fill:#FF9900
 ```
 
 **Trust Policy** (Who can assume):
@@ -186,13 +186,13 @@ Generated dynamically by Databricks provider: `databricks_aws_crossaccount_polic
 
 **Note**: This role does **not** directly access S3. S3 access is handled by the Storage Configuration Role.
 
-**Docs**: [Cross-Account IAM Role](https://docs.databricks.com/aws/en/administration-guide/cloud-configurations/aws/iam-roles.html***REMOVED***step-1-create-a-cross-account-iam-role)
+**Docs**: [Cross-Account IAM Role](https://docs.databricks.com/aws/en/administration-guide/cloud-configurations/aws/iam-roles.html#step-1-create-a-cross-account-iam-role)
 
 ---
 
-***REMOVED******REMOVED*** 3. Storage Configuration Role
+## 3. Storage Configuration Role
 
-***REMOVED******REMOVED******REMOVED*** 3.1 Purpose & Architecture
+### 3.1 Purpose & Architecture
 
 **Role Name**: `{prefix}-storage-role`  
 **Created By**: IAM module  
@@ -200,7 +200,7 @@ Generated dynamically by Databricks provider: `databricks_aws_crossaccount_polic
 **Scope**: DBFS root bucket access for workspace
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     DB["Databricks<br/>Control Plane<br/>414351767826"] -.->|AssumeRole| ROLE["Storage Config<br/>Role"]
     ROLE -->|Read/Write| DBFS["DBFS Root<br/>S3 Bucket"]
@@ -218,9 +218,9 @@ flowchart TD
     DBFS -->|Contains| LOGS
     DBFS -->|Contains| DATA
     
-    style DB fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style ROLE fill:***REMOVED***FF9900,color:***REMOVED***000
-    style KMS fill:***REMOVED***569A31,color:***REMOVED***fff
+    style DB fill:#FF3621
+    style ROLE fill:#FF9900
+    style KMS fill:#569A31
 ```
 
 **What This Role Controls:**
@@ -241,9 +241,9 @@ flowchart TD
 | **VPC Permissions** | ✅ Yes (configure, attach) | ❌ No |
 | **Created By** | IAM module | IAM module |
 
-**Docs**: [Storage Configuration](https://docs.databricks.com/aws/en/admin/workspace/create-uc-workspace?language=Customer-managed%C2%A0VPC%C2%A0with%C2%A0default%C2%A0restrictions***REMOVED***create-a-storage-configuration)
+**Docs**: [Storage Configuration](https://docs.databricks.com/aws/en/admin/workspace/create-uc-workspace?language=Customer-managed%C2%A0VPC%C2%A0with%C2%A0default%C2%A0restrictions#create-a-storage-configuration)
 
-***REMOVED******REMOVED******REMOVED*** 3.2 Trust Policy
+### 3.2 Trust Policy
 
 **Trust Policy** (Who can assume):
 ```json
@@ -264,7 +264,7 @@ flowchart TD
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3.3 Permissions Policy
+### 3.3 Permissions Policy
 
 **Basic S3 Access Policy**:
 ```json
@@ -394,9 +394,9 @@ This optional policy grants Databricks permission to configure file events on th
 
 **Note**: If you don't grant file events permissions, you must configure them manually for each location, and some future Databricks features may not be available.
 
-**Docs**: [File Events Policy](https://docs.databricks.com/aws/en/admin/workspace/create-uc-workspace?language=Customer-managed%C2%A0VPC%C2%A0with%C2%A0default%C2%A0restrictions***REMOVED***step-2-create-a-separate-iam-policy-for-file-events)
+**Docs**: [File Events Policy](https://docs.databricks.com/aws/en/admin/workspace/create-uc-workspace?language=Customer-managed%C2%A0VPC%C2%A0with%C2%A0default%C2%A0restrictions#step-2-create-a-separate-iam-policy-for-file-events)
 
-***REMOVED******REMOVED******REMOVED*** 3.4 S3 Bucket Configuration
+### 3.4 S3 Bucket Configuration
 
 **Bucket Policy** (Applied to DBFS root bucket):
 ```json
@@ -438,7 +438,7 @@ databricks-workspace-{workspace-id}
 - ✅ Public Access: Blocked (all settings)
 - ✅ Lifecycle Policy: Optional (for log retention)
 
-***REMOVED******REMOVED******REMOVED*** 3.5 Creation Timeline & Dependencies
+### 3.5 Creation Timeline & Dependencies
 
 **When It's Created**:
 1. **Early** in IAM module (Step 1) alongside cross-account role
@@ -453,16 +453,16 @@ flowchart LR
     BUCKET --> POLICY["Bucket Policy<br/>Applied"]
     POLICY --> WORKSPACE["Workspace<br/>Created"]
     
-    style IAM fill:***REMOVED***FF9900,color:***REMOVED***000
-    style WORKSPACE fill:***REMOVED***1B72E8,color:***REMOVED***fff
+    style IAM fill:#FF9900
+    style WORKSPACE fill:#1B72E8
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3.6 Pre-Creation Guide
+### 3.6 Pre-Creation Guide
 
 **Manual Creation Steps**:
 
 ```bash
-***REMOVED*** 1. Create trust policy file
+# 1. Create trust policy file
 cat > storage-trust.json << EOF
 {
   "Version": "2012-10-17",
@@ -481,12 +481,12 @@ cat > storage-trust.json << EOF
 }
 EOF
 
-***REMOVED*** 2. Create role
+# 2. Create role
 aws iam create-role \
   --role-name my-databricks-storage-role \
   --assume-role-policy-document file://storage-trust.json
 
-***REMOVED*** 3. Create permissions policy file
+# 3. Create permissions policy file
 cat > storage-policy.json << EOF
 {
   "Version": "2012-10-17",
@@ -512,16 +512,16 @@ cat > storage-policy.json << EOF
 }
 EOF
 
-***REMOVED*** 4. Attach policy to role
+# 4. Attach policy to role
 aws iam put-role-policy \
   --role-name my-databricks-storage-role \
   --policy-name databricks-storage-policy \
   --policy-document file://storage-policy.json
 
-***REMOVED*** 5. Create DBFS root bucket
+# 5. Create DBFS root bucket
 aws s3 mb s3://my-dbfs-root-bucket --region us-west-2
 
-***REMOVED*** 6. Apply bucket policy
+# 6. Apply bucket policy
 cat > bucket-policy.json << EOF
 {
   "Version": "2012-10-17",
@@ -554,18 +554,18 @@ aws s3api put-bucket-policy \
 **Import to Terraform**:
 
 ```hcl
-***REMOVED*** Import existing role
+# Import existing role
 terraform import module.iam.aws_iam_role.storage_role my-databricks-storage-role
 
-***REMOVED*** Import existing bucket
+# Import existing bucket
 terraform import module.storage.aws_s3_bucket.dbfs_root my-dbfs-root-bucket
 ```
 
 ---
 
-***REMOVED******REMOVED*** 4. Unity Catalog Roles
+## 4. Unity Catalog Roles
 
-***REMOVED******REMOVED******REMOVED*** 4.1 Metastore Role (Shared)
+### 4.1 Metastore Role (Shared)
 
 **Role Name**: `{prefix}-unity-catalog-role`  
 **Created By**: IAM module  
@@ -573,14 +573,14 @@ terraform import module.storage.aws_s3_bucket.dbfs_root my-dbfs-root-bucket
 **Scope**: Shared across all workspaces using same metastore
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     UC["Unity Catalog<br/>Service Principal<br/>414351767826"] -.->|AssumeRole| ROLE["UC Metastore<br/>Role"]
     ROLE -->|Read/Write| META["UC Metastore<br/>S3 Bucket"]
     ROLE -->|Decrypt/Encrypt| KMS["KMS Key<br/>if encryption enabled"]
     
-    style UC fill:***REMOVED***1B72E8,color:***REMOVED***fff
-    style ROLE fill:***REMOVED***FF9900,color:***REMOVED***000
+    style UC fill:#1B72E8
+    style ROLE fill:#FF9900
 ```
 
 **Trust Policy**:
@@ -638,9 +638,9 @@ flowchart TD
 
 **Note**: KMS statement only added when `enable_encryption=true`
 
-**Docs**: [Unity Catalog Storage](https://docs.databricks.com/aws/en/data-governance/unity-catalog/create-metastore.html***REMOVED***create-an-iam-role-for-unity-catalog)
+**Docs**: [Unity Catalog Storage](https://docs.databricks.com/aws/en/data-governance/unity-catalog/create-metastore.html#create-an-iam-role-for-unity-catalog)
 
-***REMOVED******REMOVED******REMOVED*** 4.2 External Location Role (Per-Workspace)
+### 4.2 External Location Role (Per-Workspace)
 
 **Role Name**: `{prefix}-catalog-{workspace-id}`  
 **Created By**: Unity Catalog module  
@@ -648,7 +648,7 @@ flowchart TD
 **Scope**: Specific to one workspace
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     UC["Unity Catalog<br/>Service Principal"] -.->|AssumeRole| ROLE["UC External<br/>Role"]
     ROLE -.->|AssumeRole Self| ROLE
@@ -656,8 +656,8 @@ flowchart TD
     ROLE -->|Read/Write| CAT["Workspace Catalog<br/>S3 Location"]
     ROLE -->|Decrypt/Encrypt| KMS["KMS Key<br/>if encryption enabled"]
     
-    style UC fill:***REMOVED***1B72E8,color:***REMOVED***fff
-    style ROLE fill:***REMOVED***FF9900,color:***REMOVED***000
+    style UC fill:#1B72E8
+    style ROLE fill:#FF9900
 ```
 
 **Trust Policy** (Self-assuming + UC):
@@ -706,28 +706,28 @@ Generated by Databricks provider: `databricks_aws_unity_catalog_policy` + KMS pe
 - Catalog storage locations
 - Data access for specific workspace
 
-**Docs**: [External Locations](https://docs.databricks.com/aws/en/data-governance/unity-catalog/create-tables.html***REMOVED***create-an-external-location)
+**Docs**: [External Locations](https://docs.databricks.com/aws/en/data-governance/unity-catalog/create-tables.html#create-an-external-location)
 
 ---
 
-***REMOVED******REMOVED*** 5. Instance Profile Role
+## 5. Instance Profile Role
 
-***REMOVED******REMOVED******REMOVED*** 5.1 Cluster Compute Access
+### 5.1 Cluster Compute Access
 
 **Role Name**: `{prefix}-instance-profile-role`  
 **Created By**: IAM module  
 **Can Be Pre-Created**: ✅ Yes
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart LR
     CLUSTER["Databricks<br/>Cluster<br/>EC2 Instances"] -->|Attached| PROFILE["Instance<br/>Profile"]
     PROFILE -->|Contains| ROLE["Instance Profile<br/>Role"]
     ROLE -->|Read/Write| S3["External Data<br/>S3 Buckets"]
     ROLE -->|Optional| OTHER["Additional<br/>AWS Services"]
     
-    style CLUSTER fill:***REMOVED***569A31,color:***REMOVED***fff
-    style ROLE fill:***REMOVED***FF9900,color:***REMOVED***000
+    style CLUSTER fill:#569A31
+    style ROLE fill:#FF9900
 ```
 
 **Trust Policy** (EC2 service):
@@ -774,14 +774,14 @@ flowchart LR
 
 ---
 
-***REMOVED******REMOVED*** 6. KMS Encryption Policies
+## 6. KMS Encryption Policies
 
-***REMOVED******REMOVED******REMOVED*** 6.1 KMS Policy Architecture
+### 6.1 KMS Policy Architecture
 
 When `enable_encryption=true`, three additional inline IAM policies are created:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     subgraph "KMS Module"
         KMS["KMS Key<br/>S3 Encryption"]
@@ -806,13 +806,13 @@ flowchart TD
     META -->|Uses| KMS
     EXT -->|Uses| KMS
     
-    style KMS fill:***REMOVED***569A31,color:***REMOVED***fff
-    style POL1 fill:***REMOVED***FF9900,color:***REMOVED***000
-    style POL2 fill:***REMOVED***FF9900,color:***REMOVED***000
-    style POL3 fill:***REMOVED***FF9900,color:***REMOVED***000
+    style KMS fill:#569A31
+    style POL1 fill:#FF9900
+    style POL2 fill:#FF9900
+    style POL3 fill:#FF9900
 ```
 
-***REMOVED******REMOVED******REMOVED*** 6.2 KMS Permissions
+### 6.2 KMS Permissions
 
 All three roles (Storage Config, UC Metastore, UC External) receive the same KMS permissions:
 
@@ -843,9 +843,9 @@ All three roles (Storage Config, UC Metastore, UC External) receive the same KMS
 
 ---
 
-***REMOVED******REMOVED*** 7. Pre-Creation Guide
+## 7. Pre-Creation Guide
 
-***REMOVED******REMOVED******REMOVED*** 7.1 Roles That Can Be Pre-Created
+### 7.1 Roles That Can Be Pre-Created
 
 ```
 ✅ Cross-Account Role
@@ -855,12 +855,12 @@ All three roles (Storage Config, UC Metastore, UC External) receive the same KMS
 ⚠️ UC External Role (requires workspace ID - cannot pre-create)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 7.2 Pre-Creation Steps
+### 7.2 Pre-Creation Steps
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Step 1: Create Cross-Account Role Manually
+#### Step 1: Create Cross-Account Role Manually
 
 ```bash
-***REMOVED*** 1. Create trust policy file
+# 1. Create trust policy file
 cat > cross-account-trust.json << EOF
 {
   "Version": "2012-10-17",
@@ -879,23 +879,23 @@ cat > cross-account-trust.json << EOF
 }
 EOF
 
-***REMOVED*** 2. Create role
+# 2. Create role
 aws iam create-role \
   --role-name my-databricks-cross-account-role \
   --assume-role-policy-document file://cross-account-trust.json
 
-***REMOVED*** 3. Get policy from Databricks provider (run terraform plan to see it)
-***REMOVED*** 4. Attach the policy
+# 3. Get policy from Databricks provider (run terraform plan to see it)
+# 4. Attach the policy
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Step 2: Import to Terraform
+#### Step 2: Import to Terraform
 
 ```hcl
-***REMOVED*** Import existing role
+# Import existing role
 terraform import module.iam.aws_iam_role.cross_account_role my-databricks-cross-account-role
 ```
 
-***REMOVED******REMOVED******REMOVED*** 7.3 When NOT to Pre-Create
+### 7.3 When NOT to Pre-Create
 
 **Don't pre-create if:**
 - First deployment (let Terraform manage everything)
@@ -909,9 +909,9 @@ terraform import module.iam.aws_iam_role.cross_account_role my-databricks-cross-
 
 ---
 
-***REMOVED******REMOVED*** 8. Security Best Practices
+## 8. Security Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 8.1 Least Privilege Principle
+### 8.1 Least Privilege Principle
 
 ```
 ✅ Each role has minimal required permissions
@@ -920,7 +920,7 @@ terraform import module.iam.aws_iam_role.cross_account_role my-databricks-cross-
 ✅ Instance profile has no default permissions (must configure)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 8.2 Role Name Uniqueness
+### 8.2 Role Name Uniqueness
 
 ```
 Role Name Pattern:
@@ -934,7 +934,7 @@ Examples:
 └── dbx-prod-catalog-7474654592998885 (workspace-specific)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 8.3 IAM Propagation Wait Time
+### 8.3 IAM Propagation Wait Time
 
 ```mermaid
 %%{init: {'theme': 'base'}}%%
@@ -960,10 +960,10 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 ✅ IAM security understood → [03-NETWORK-ENCRYPTION.md](03-NETWORK-ENCRYPTION.md) - Network & encryption flows
 
 ✅ Ready to deploy → [04-QUICK-START.md](04-QUICK-START.md) - 5-minute deployment
 
-**Docs**: [Databricks IAM Best Practices](https://docs.databricks.com/aws/en/administration-guide/cloud-configurations/aws/iam-roles.html***REMOVED***best-practices)
+**Docs**: [Databricks IAM Best Practices](https://docs.databricks.com/aws/en/administration-guide/cloud-configurations/aws/iam-roles.html#best-practices)

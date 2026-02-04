@@ -1,23 +1,23 @@
-***REMOVED*** ⚡ Quick Start Guide
+# ⚡ Quick Start Guide
 
 Get up and running in 5 minutes!
 
-***REMOVED******REMOVED*** 1. Prerequisites Check
+## 1. Prerequisites Check
 
 ```bash
-***REMOVED*** Check Terraform
-terraform --version  ***REMOVED*** Should be >= 1.0
+# Check Terraform
+terraform --version  # Should be >= 1.0
 
-***REMOVED*** Check AWS CLI
+# Check AWS CLI
 aws --version
 
-***REMOVED*** Check AWS credentials (use your profile or default)
+# Check AWS credentials (use your profile or default)
 aws sts get-caller-identity --profile your-profile-name
-***REMOVED*** OR for default credentials:
-***REMOVED*** aws sts get-caller-identity
+# OR for default credentials:
+# aws sts get-caller-identity
 ```
 
-***REMOVED******REMOVED*** 2. AWS Authentication
+## 2. AWS Authentication
 
 Choose one option:
 
@@ -29,79 +29,79 @@ aws configure --profile your-profile-name
 **Option B: Default Credentials**
 ```bash
 aws configure
-***REMOVED*** OR
+# OR
 aws sso login
 ```
 
-***REMOVED******REMOVED*** 3. Configure
+## 3. Configure
 
 Edit `terraform.tfvars`:
 
 ```hcl
-***REMOVED*** Required minimum configuration
+# Required minimum configuration
 client_id             = "your-sp-client-id"
 client_secret         = "your-sp-secret"
 databricks_account_id = "your-account-id"
 aws_account_id        = "123456789012"
-aws_profile           = "your-profile-name"  ***REMOVED*** or leave empty for default
+aws_profile           = "your-profile-name"  # or leave empty for default
 workspace_name        = "my-workspace"
 workspace_admin_email = "admin@company.com"
 
-***REMOVED*** Customize S3 bucket names (must be globally unique)
+# Customize S3 bucket names (must be globally unique)
 root_storage_bucket_name                = "mycompany-dbx-root"
 unity_catalog_bucket_name               = "mycompany-dbx-uc-metastore"
 unity_catalog_external_bucket_name      = "mycompany-dbx-uc-external"
 unity_catalog_root_storage_bucket_name  = "mycompany-dbx-uc-root-storage"
 ```
 
-***REMOVED******REMOVED*** 4. Deploy
+## 4. Deploy
 
 ```bash
 cd modular-version
 
-***REMOVED*** Initialize
+# Initialize
 terraform init
 
-***REMOVED*** Plan (optional but recommended)
+# Plan (optional but recommended)
 terraform plan
 
-***REMOVED*** Deploy
+# Deploy
 terraform apply
-***REMOVED*** Type 'yes' when prompted
+# Type 'yes' when prompted
 ```
 
 ⏰ **Wait:** 10-15 minutes for deployment to complete.
 
-***REMOVED******REMOVED*** 5. Access
+## 5. Access
 
 ```bash
-***REMOVED*** Get workspace URL
+# Get workspace URL
 terraform output workspace_url
 
-***REMOVED*** Get deployment summary
+# Get deployment summary
 terraform output deployment_summary
 ```
 
 ⏰ **IMPORTANT:** Wait 20 minutes before creating clusters!
 
-***REMOVED******REMOVED*** 6. Verify
+## 6. Verify
 
 1. Open workspace URL in browser
 2. Log in with your admin email
 3. Navigate to "Data" → See your catalog
 4. Create a test cluster (after 20 min wait)
 
-***REMOVED******REMOVED*** 7. Clean Up (When Done)
+## 7. Clean Up (When Done)
 
 ```bash
-***REMOVED*** Quick destroy
+# Quick destroy
 terraform destroy
-***REMOVED*** Type 'yes' when prompted
+# Type 'yes' when prompted
 ```
 
 ---
 
-***REMOVED******REMOVED*** 📁 What You Get
+## 📁 What You Get
 
 - ✅ Fully private Databricks workspace
 - ✅ VPC with 3 subnet tiers (public, private, privatelink)
@@ -113,22 +113,22 @@ terraform destroy
 - ✅ External location for data access
 - ✅ Workspace admin with full privileges
 
-***REMOVED******REMOVED*** 🔧 Common Customizations
+## 🔧 Common Customizations
 
-***REMOVED******REMOVED******REMOVED*** Use Different Region
+### Use Different Region
 
 ```hcl
 region = "us-east-1"
 availability_zones = ["us-east-1a", "us-east-1b"]
 ```
 
-***REMOVED******REMOVED******REMOVED*** Enable KMS Encryption
+### Enable KMS Encryption
 
 ```hcl
 enable_encryption = true
 ```
 
-***REMOVED******REMOVED******REMOVED*** Customize VPC CIDR
+### Customize VPC CIDR
 
 ```hcl
 vpc_cidr                 = "172.16.0.0/16"
@@ -137,7 +137,7 @@ privatelink_subnet_cidrs = ["172.16.3.0/24", "172.16.4.0/24"]
 public_subnet_cidrs      = ["172.16.101.0/24", "172.16.102.0/24"]
 ```
 
-***REMOVED******REMOVED*** 🐛 Quick Troubleshooting
+## 🐛 Quick Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
@@ -146,7 +146,7 @@ public_subnet_cidrs      = ["172.16.101.0/24", "172.16.102.0/24"]
 | Can't access workspace | Wait 20 minutes for Private Link |
 | Provider errors | Run `terraform init` |
 
-***REMOVED******REMOVED*** 📚 More Details
+## 📚 More Details
 
 For detailed instructions, see:
 - `USAGE_GUIDE.md` - Complete step-by-step guide

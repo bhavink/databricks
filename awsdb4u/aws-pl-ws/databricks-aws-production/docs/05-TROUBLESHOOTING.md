@@ -1,10 +1,10 @@
-***REMOVED*** 05 - Troubleshooting & Common Issues
+# 05 - Troubleshooting & Common Issues
 
 > **Problem Solver**: Quick fixes for common deployment issues.
 
 ---
 
-***REMOVED******REMOVED*** Quick Issue Lookup
+## Quick Issue Lookup
 
 ```
 🔍 Use Ctrl+F to find your error message
@@ -12,67 +12,67 @@
 
 | Category | Jump To |
 |----------|---------|
-| Prerequisites | [Setup Issues](***REMOVED***1-setup-issues) |
-| Terraform Errors | [Terraform Issues](***REMOVED***2-terraform-issues) |
-| AWS Errors | [AWS Issues](***REMOVED***3-aws-issues) |
-| Databricks Errors | [Databricks Issues](***REMOVED***4-databricks-issues) |
-| KMS/Encryption | [Encryption Issues](***REMOVED***5-encryption-issues) |
-| Destroy Problems | [Destroy Issues](***REMOVED***6-destroy-issues) |
+| Prerequisites | [Setup Issues](#1-setup-issues) |
+| Terraform Errors | [Terraform Issues](#2-terraform-issues) |
+| AWS Errors | [AWS Issues](#3-aws-issues) |
+| Databricks Errors | [Databricks Issues](#4-databricks-issues) |
+| KMS/Encryption | [Encryption Issues](#5-encryption-issues) |
+| Destroy Problems | [Destroy Issues](#6-destroy-issues) |
 
 ---
 
-***REMOVED******REMOVED*** 1. Setup Issues
+## 1. Setup Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: `terraform: command not found`
+### Issue: `terraform: command not found`
 
 **Solution**:
 ```bash
-***REMOVED*** Install Terraform
-brew install terraform  ***REMOVED*** macOS
-***REMOVED*** or download from https://terraform.io
+# Install Terraform
+brew install terraform  # macOS
+# or download from https://terraform.io
 ```
 
-**Docs**: [Install Terraform](00-PREREQUISITES.md***REMOVED***31-install-terraform)
+**Docs**: [Install Terraform](00-PREREQUISITES.md#31-install-terraform)
 
-***REMOVED******REMOVED******REMOVED*** Issue: `Unable to locate credentials`
+### Issue: `Unable to locate credentials`
 
 **Solution**:
 ```bash
-***REMOVED*** Check AWS credentials
+# Check AWS credentials
 aws sts get-caller-identity --profile your-profile
 
-***REMOVED*** If fails, configure:
+# If fails, configure:
 aws configure --profile your-profile
-***REMOVED*** or
+# or
 aws sso login --profile your-profile
 ```
 
-**Docs**: [AWS Auth](00-PREREQUISITES.md***REMOVED***22-aws-authentication-setup)
+**Docs**: [AWS Auth](00-PREREQUISITES.md#22-aws-authentication-setup)
 
-***REMOVED******REMOVED******REMOVED*** Issue: Environment variables not set
+### Issue: Environment variables not set
 
 **Symptom**: Terraform asks for `databricks_client_id` input
 
 **Solution**:
 ```bash
-***REMOVED*** Check variables
+# Check variables
 echo $TF_VAR_databricks_client_id
 
-***REMOVED*** If empty, set in ~/.zshrc:
+# If empty, set in ~/.zshrc:
 export TF_VAR_databricks_client_id="your-id"
 export TF_VAR_databricks_client_secret="your-secret"
 
-***REMOVED*** Reload
+# Reload
 source ~/.zshrc
 ```
 
-**Docs**: [Environment Setup](00-PREREQUISITES.md***REMOVED***41-terraform-provider-authentication)
+**Docs**: [Environment Setup](00-PREREQUISITES.md#41-terraform-provider-authentication)
 
 ---
 
-***REMOVED******REMOVED*** 2. Terraform Issues
+## 2. Terraform Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: `Error: Missing required argument`
+### Issue: `Error: Missing required argument`
 
 **Full Error**:
 ```
@@ -85,7 +85,7 @@ The argument "databricks_client_id" is required, but no definition was found.
 
 **Solution**: Set environment variables (see issue above)
 
-***REMOVED******REMOVED******REMOVED*** Issue: `Error: Unsupported argument`
+### Issue: `Error: Unsupported argument`
 
 **Full Error**:
 ```
@@ -100,14 +100,14 @@ An argument named "client_id" is not expected here.
 
 **Solution**:
 ```bash
-***REMOVED*** Pull latest code
+# Pull latest code
 git pull
 
-***REMOVED*** Re-initialize
+# Re-initialize
 terraform init -upgrade
 ```
 
-***REMOVED******REMOVED******REMOVED*** Issue: `Error: Invalid reference in variable validation`
+### Issue: `Error: Invalid reference in variable validation`
 
 **Full Error**:
 ```
@@ -121,9 +121,9 @@ The condition for variable "existing_workspace_cmk_key_alias" can only refer to 
 
 ---
 
-***REMOVED******REMOVED*** 3. AWS Issues
+## 3. AWS Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: S3 bucket already exists
+### Issue: S3 bucket already exists
 
 **Full Error**:
 ```
@@ -132,14 +132,14 @@ Error: creating S3 Bucket (mycompany-dbx-root): BucketAlreadyExists
 
 **Solution**:
 ```hcl
-***REMOVED*** Change bucket names in terraform.tfvars
+# Change bucket names in terraform.tfvars
 root_storage_bucket_name = "mycompany-dbx-root-v2"
-***REMOVED*** or add different prefix
+# or add different prefix
 ```
 
 **Tip**: Random suffix is added automatically, but base name must be unique
 
-***REMOVED******REMOVED******REMOVED*** Issue: `MalformedPolicyDocumentException: Policy contains invalid principals`
+### Issue: `MalformedPolicyDocumentException: Policy contains invalid principals`
 
 **Full Error**:
 ```
@@ -152,7 +152,7 @@ Error: creating KMS Key: MalformedPolicyDocumentException: Policy contains a sta
 
 **Details**: [KMS Unity Catalog Fix](KMS_UNITY_CATALOG_FIX.md)
 
-***REMOVED******REMOVED******REMOVED*** Issue: VPC endpoint service name not found
+### Issue: VPC endpoint service name not found
 
 **Full Error**:
 ```
@@ -173,9 +173,9 @@ relay_vpce_service     = "com.amazonaws.vpce.us-west-1.vpce-svc-actual-id"
 
 ---
 
-***REMOVED******REMOVED*** 4. Databricks Issues
+## 4. Databricks Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: Cannot create external location - KMS permissions
+### Issue: Cannot create external location - KMS permissions
 
 **Full Error**:
 ```
@@ -190,12 +190,12 @@ User: arn:aws:sts::account:assumed-role/dbx-catalog-xxx/databricks is not author
 **IAM Propagation**: If still fails, wait 60 seconds and retry:
 ```bash
 terraform apply
-***REMOVED*** Wait appears in plan, policy created but not propagated yet
+# Wait appears in plan, policy created but not propagated yet
 ```
 
 **Details**: [KMS Fix Documentation](KMS_UNITY_CATALOG_FIX.md)
 
-***REMOVED******REMOVED******REMOVED*** Issue: 401 Unauthorized from Databricks API
+### Issue: 401 Unauthorized from Databricks API
 
 **Full Error**:
 ```
@@ -204,11 +204,11 @@ Error: cannot authenticate Databricks account: 401 Unauthorized
 
 **Solution**:
 ```bash
-***REMOVED*** Verify Service Principal credentials
+# Verify Service Principal credentials
 echo $TF_VAR_databricks_client_id
 echo $TF_VAR_databricks_account_id
 
-***REMOVED*** Test authentication
+# Test authentication
 curl -X GET \
   -u "$TF_VAR_databricks_client_id:$TF_VAR_databricks_client_secret" \
   https://accounts.cloud.databricks.com/api/2.0/accounts/$TF_VAR_databricks_account_id/workspaces
@@ -216,7 +216,7 @@ curl -X GET \
 
 **Check**: Service Principal has Account Admin role
 
-***REMOVED******REMOVED******REMOVED*** Issue: Cannot access workspace after deployment
+### Issue: Cannot access workspace after deployment
 
 **Symptom**: Workspace URL loads but can't create clusters
 
@@ -226,16 +226,16 @@ curl -X GET \
 
 **Verify**:
 ```bash
-***REMOVED*** Check workspace status
+# Check workspace status
 terraform output workspace_status
-***REMOVED*** Should show: RUNNING
+# Should show: RUNNING
 ```
 
 ---
 
-***REMOVED******REMOVED*** 5. Encryption Issues
+## 5. Encryption Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: `enable_encryption` vs `enable_workspace_cmk` confusion
+### Issue: `enable_encryption` vs `enable_workspace_cmk` confusion
 
 **Question**: Which encryption should I use?
 
@@ -258,9 +258,9 @@ You can enable:
 - Both simultaneously ✅
 ```
 
-**Docs**: [Encryption Layers](03-NETWORK-ENCRYPTION.md***REMOVED***3-encryption-layers)
+**Docs**: [Encryption Layers](03-NETWORK-ENCRYPTION.md#3-encryption-layers)
 
-***REMOVED******REMOVED******REMOVED*** Issue: Key rotation concerns
+### Issue: Key rotation concerns
 
 **Question**: How does key rotation work?
 
@@ -278,13 +278,13 @@ Manual Rotation to Different Key:
 ✅ S3 Bucket keys: Update bucket config
 ```
 
-**Databricks Docs**: [Key Rotation](https://docs.databricks.com/aws/en/security/keys/configure-customer-managed-keys***REMOVED***rotate-an-existing-key)
+**Databricks Docs**: [Key Rotation](https://docs.databricks.com/aws/en/security/keys/configure-customer-managed-keys#rotate-an-existing-key)
 
 ---
 
-***REMOVED******REMOVED*** 6. Destroy Issues
+## 6. Destroy Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: Subnet/VPC cannot be deleted - has dependencies
+### Issue: Subnet/VPC cannot be deleted - has dependencies
 
 **Full Error**:
 ```
@@ -303,14 +303,14 @@ VPC_ID=$(terraform output -raw vpc_id)
 
 **Step 2**: Terminate EC2 instances
 ```bash
-***REMOVED*** Find instances
+# Find instances
 aws ec2 describe-instances \
   --filters "Name=vpc-id,Values=$VPC_ID" \
             "Name=instance-state-name,Values=running" \
   --query 'Reservations[*].Instances[*].[InstanceId,State.Name]' \
   --output table
 
-***REMOVED*** Terminate
+# Terminate
 INSTANCE_IDS=$(aws ec2 describe-instances \
   --filters "Name=vpc-id,Values=$VPC_ID" \
             "Name=instance-state-name,Values=running,stopped" \
@@ -319,7 +319,7 @@ INSTANCE_IDS=$(aws ec2 describe-instances \
 
 aws ec2 terminate-instances --instance-ids $INSTANCE_IDS
 
-***REMOVED*** Wait
+# Wait
 aws ec2 wait instance-terminated --instance-ids $INSTANCE_IDS
 ```
 
@@ -343,9 +343,9 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** 7. Module-Specific Issues
+## 7. Module-Specific Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: User assignment fails with "resource not found"
+### Issue: User assignment fails with "resource not found"
 
 **Full Error**:
 ```
@@ -358,20 +358,20 @@ Error: cannot create permission assignment: resource not found
 
 **Workaround** (if needed):
 ```bash
-***REMOVED*** Create everything except user assignment
+# Create everything except user assignment
 terraform apply -target=module.unity_catalog
 
-***REMOVED*** Then create user assignment
+# Then create user assignment
 terraform apply
 ```
 
-***REMOVED******REMOVED******REMOVED*** Issue: Metastore already exists
+### Issue: Metastore already exists
 
 **Symptom**: Want to use existing metastore instead of creating new one
 
 **Solution**:
 ```hcl
-***REMOVED*** In terraform.tfvars
+# In terraform.tfvars
 metastore_id = "your-existing-metastore-id"
 ```
 
@@ -379,9 +379,9 @@ This skips metastore creation, only assigns workspace to existing metastore
 
 ---
 
-***REMOVED******REMOVED*** 8. Performance Issues
+## 8. Performance Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: Terraform apply is slow
+### Issue: Terraform apply is slow
 
 **Symptom**: Deployment takes > 30 minutes
 
@@ -401,9 +401,9 @@ This skips metastore creation, only assigns workspace to existing metastore
 
 ---
 
-***REMOVED******REMOVED*** 9. Validation Errors
+## 9. Validation Errors
 
-***REMOVED******REMOVED******REMOVED*** Issue: VPC CIDR validation fails
+### Issue: VPC CIDR validation fails
 
 **Full Error**:
 ```
@@ -420,17 +420,17 @@ Error: Invalid value for variable "vpc_cidr": VPC CIDR overlaps with Databricks 
 
 **Solution**:
 ```hcl
-***REMOVED*** Use different CIDR
-vpc_cidr = "10.0.0.0/22"  ***REMOVED*** ✅ Good
-vpc_cidr = "172.16.0.0/16" ***REMOVED*** ✅ Good
-vpc_cidr = "192.168.0.0/16" ***REMOVED*** ✅ Good (avoid .216 subnet)
+# Use different CIDR
+vpc_cidr = "10.0.0.0/22"  # ✅ Good
+vpc_cidr = "172.16.0.0/16" # ✅ Good
+vpc_cidr = "192.168.0.0/16" # ✅ Good (avoid .216 subnet)
 ```
 
 ---
 
-***REMOVED******REMOVED*** 10. Getting More Help
+## 10. Getting More Help
 
-***REMOVED******REMOVED******REMOVED*** Enable Terraform Debug Logging
+### Enable Terraform Debug Logging
 
 ```bash
 export TF_LOG=DEBUG
@@ -438,29 +438,29 @@ export TF_LOG_PATH=terraform-debug.log
 terraform apply
 ```
 
-***REMOVED******REMOVED******REMOVED*** Check AWS CloudTrail
+### Check AWS CloudTrail
 
 ```bash
-***REMOVED*** Recent API calls
+# Recent API calls
 aws cloudtrail lookup-events \
   --lookup-attributes AttributeKey=EventName,AttributeValue=CreateVpc \
   --max-results 10
 ```
 
-***REMOVED******REMOVED******REMOVED*** Databricks Support
+### Databricks Support
 
 1. Get workspace ID: `terraform output workspace_id`
 2. Get deployment logs: `cat terraform-debug.log`
 3. Contact: [Databricks Support](https://help.databricks.com)
 
-***REMOVED******REMOVED******REMOVED*** Community Resources
+### Community Resources
 
 - [Databricks Community](https://community.databricks.com/)
 - [Terraform Databricks Provider Issues](https://github.com/databricks/terraform-provider-databricks/issues)
 
 ---
 
-***REMOVED******REMOVED*** Common Error Patterns
+## Common Error Patterns
 
 | Error Pattern | Typical Cause | Solution |
 |---------------|---------------|----------|

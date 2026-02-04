@@ -1,8 +1,8 @@
-***REMOVED*** 01 - Architecture & Deployment Flow
+# 01 - Architecture & Deployment Flow
 
 > **Visual Guide**: Understand the complete deployment architecture through modular diagrams.
 
-***REMOVED******REMOVED*** Quick Reference
+## Quick Reference
 
 ```
 📦 7 Terraform Modules → 65-70 AWS/Databricks Resources
@@ -12,22 +12,22 @@
 
 ---
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-1. [High-Level Architecture](***REMOVED***1-high-level-architecture)
-2. [Module Dependency Flow](***REMOVED***2-module-dependency-flow)
-3. [VPC & Network Layout](***REMOVED***3-vpc--network-layout)
-4. [Deployment Sequence](***REMOVED***4-deployment-sequence)
-5. [Resource Breakdown](***REMOVED***5-resource-breakdown)
+1. [High-Level Architecture](#1-high-level-architecture)
+2. [Module Dependency Flow](#2-module-dependency-flow)
+3. [VPC & Network Layout](#3-vpc--network-layout)
+4. [Deployment Sequence](#4-deployment-sequence)
+5. [Resource Breakdown](#5-resource-breakdown)
 
 ---
 
-***REMOVED******REMOVED*** 1. High-Level Architecture
+## 1. High-Level Architecture
 
-***REMOVED******REMOVED******REMOVED*** 1.1 Complete System Overview
+### 1.1 Complete System Overview
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 %%{init: {'flowchart': {'htmlLabels': false}}}%%
 graph TB
     subgraph "AWS Account"
@@ -78,10 +78,10 @@ graph TB
     CONTROL -->|Provisions| UC
     UC -->|Stores Metadata| S3
     
-    style CONTROL fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style S3 fill:***REMOVED***569A31,color:***REMOVED***fff
-    style VPCE fill:***REMOVED***FF9900,color:***REMOVED***fff
-    style UC fill:***REMOVED***1B72E8,color:***REMOVED***fff
+    style CONTROL fill:#FF3621
+    style S3 fill:#569A31
+    style VPCE fill:#FF9900
+    style UC fill:#1B72E8
 ```
 
 **Key Components:**
@@ -93,12 +93,12 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED*** 2. Module Dependency Flow
+## 2. Module Dependency Flow
 
-***REMOVED******REMOVED******REMOVED*** 2.1 Terraform Module Execution Order
+### 2.1 Terraform Module Execution Order
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     START["terraform apply"] --> NET["1. Networking Module<br/>VPC, Subnets, Security Groups<br/>VPC Endpoints"]
     NET --> IAM["2. IAM Module<br/>Cross-Account Role<br/>UC Metastore Role<br/>Instance Profile"]
@@ -109,10 +109,10 @@ flowchart TD
     UC --> USER["7. User Assignment<br/>Workspace Admin<br/>Permissions"]
     USER --> END["Deployment Complete"]
     
-    style START fill:***REMOVED***569A31,color:***REMOVED***fff
-    style END fill:***REMOVED***1B72E8,color:***REMOVED***fff
-    style KMS fill:***REMOVED***FF9900,color:***REMOVED***000
-    style UC fill:***REMOVED***FF3621,color:***REMOVED***fff
+    style START fill:#569A31
+    style END fill:#1B72E8
+    style KMS fill:#FF9900
+    style UC fill:#FF3621
 ```
 
 **Critical Dependencies:**
@@ -126,12 +126,12 @@ flowchart TD
 
 ---
 
-***REMOVED******REMOVED*** 3. VPC & Network Layout
+## 3. VPC & Network Layout
 
-***REMOVED******REMOVED******REMOVED*** 3.1 Subnet Architecture
+### 3.1 Subnet Architecture
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 graph TB
     subgraph "VPC 10.0.0.0/22 1024 IPs"
         subgraph "AZ-1 us-west-1a"
@@ -152,10 +152,10 @@ graph TB
     PRIV1 -->|via| PUB1
     PRIV2 -->|via| PUB2
     
-    style PRIV1 fill:***REMOVED***569A31,color:***REMOVED***fff
-    style PRIV2 fill:***REMOVED***569A31,color:***REMOVED***fff
-    style PL1 fill:***REMOVED***FF9900,color:***REMOVED***fff
-    style PL2 fill:***REMOVED***FF9900,color:***REMOVED***fff
+    style PRIV1 fill:#569A31
+    style PRIV2 fill:#569A31
+    style PL1 fill:#FF9900
+    style PL2 fill:#FF9900
 ```
 
 **IP Allocation:**
@@ -166,7 +166,7 @@ graph TB
 
 **Docs**: [VPC and Subnets](https://docs.databricks.com/aws/en/administration-guide/cloud-configurations/aws/customer-managed-vpc.html)
 
-***REMOVED******REMOVED******REMOVED*** 3.2 Route Table Logic
+### 3.2 Route Table Logic
 
 ```
 Private Subnet Route Table:
@@ -187,9 +187,9 @@ PrivateLink Subnet Route Table:
 
 ---
 
-***REMOVED******REMOVED*** 4. Deployment Sequence
+## 4. Deployment Sequence
 
-***REMOVED******REMOVED******REMOVED*** 4.1 End-to-End Flow (Cluster Launch)
+### 4.1 End-to-End Flow (Cluster Launch)
 
 ```mermaid
 %%{init: {'theme': 'base'}}%%
@@ -225,10 +225,10 @@ sequenceDiagram
 
 **Docs**: [Cluster Creation](https://docs.databricks.com/aws/en/clusters/index.html)
 
-***REMOVED******REMOVED******REMOVED*** 4.2 Traffic Path Decision Tree
+### 4.2 Traffic Path Decision Tree
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     START["Cluster Node<br/>Initiates Traffic"] --> DNS{DNS Query<br/>What is destination?}
     
@@ -243,9 +243,9 @@ flowchart TD
     PRIV --> CONTROL["Databricks<br/>Control Plane"]
     NATPATH --> INTERNET["Public Internet<br/>Maven, PyPI, etc"]
     
-    style S3PATH fill:***REMOVED***569A31,color:***REMOVED***fff
-    style PRIV fill:***REMOVED***FF9900,color:***REMOVED***fff
-    style NATPATH fill:***REMOVED***FF3621,color:***REMOVED***fff
+    style S3PATH fill:#569A31
+    style PRIV fill:#FF9900
+    style NATPATH fill:#FF3621
 ```
 
 **Key Decision Points:**
@@ -255,12 +255,12 @@ flowchart TD
 
 ---
 
-***REMOVED******REMOVED*** 5. Resource Breakdown
+## 5. Resource Breakdown
 
-***REMOVED******REMOVED******REMOVED*** 5.1 Resources by Category
+### 5.1 Resources by Category
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 pie title "Resource Distribution 70 Total"
     "Networking 30" : 30
     "IAM/Security 12" : 12
@@ -270,9 +270,9 @@ pie title "Resource Distribution 70 Total"
     "Optional CMK 3" : 3
 ```
 
-***REMOVED******REMOVED******REMOVED*** 5.2 Detailed Resource List
+### 5.2 Detailed Resource List
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Networking Module (30 resources)
+#### Networking Module (30 resources)
 ```
 VPC & Subnets (9):
 ├── 1 VPC
@@ -305,7 +305,7 @@ Security Groups (8):
 
 **Docs**: [VPC Requirements](https://docs.databricks.com/aws/en/administration-guide/cloud-configurations/aws/customer-managed-vpc.html)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** IAM Module (12 resources)
+#### IAM Module (12 resources)
 ```
 Cross-Account Role (3):
 ├── IAM role
@@ -330,7 +330,7 @@ UC External Location Role (3):
 
 **Docs**: [IAM Roles](https://docs.databricks.com/aws/en/administration-guide/cloud-configurations/aws/iam-roles.html)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** KMS Module (3 resources - optional)
+#### KMS Module (3 resources - optional)
 ```
 S3 Bucket Encryption:
 ├── KMS key
@@ -349,7 +349,7 @@ IAM Policies:
 
 **Docs**: [Customer-Managed Keys](https://docs.databricks.com/aws/en/security/keys/customer-managed-keys-managed-services-aws.html)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Storage Module (4 resources)
+#### Storage Module (4 resources)
 ```
 S3 Buckets:
 ├── DBFS Root bucket
@@ -360,7 +360,7 @@ S3 Buckets:
 
 **Docs**: [S3 Bucket Configuration](https://docs.databricks.com/aws/en/administration-guide/cloud-configurations/aws/configure-s3-access.html)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Databricks Workspace Module (15 resources)
+#### Databricks Workspace Module (15 resources)
 ```
 MWS Resources:
 ├── Credentials configuration
@@ -376,7 +376,7 @@ Private Access Settings:
 
 **Docs**: [Workspace Configuration](https://docs.databricks.com/aws/en/getting-started/create-workspace.html)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Unity Catalog Module (6+ resources)
+#### Unity Catalog Module (6+ resources)
 ```
 Metastore:
 ├── Metastore (or use existing)
@@ -398,7 +398,7 @@ Workspace Catalog:
 
 **Docs**: [Unity Catalog Setup](https://docs.databricks.com/aws/en/data-governance/unity-catalog/create-metastore.html)
 
-***REMOVED******REMOVED******REMOVED*** 5.3 Optional vs Required Resources
+### 5.3 Optional vs Required Resources
 
 ```
 Always Created (55):
@@ -426,12 +426,12 @@ Optional based on existing_private_access_settings_id (1):
 
 ---
 
-***REMOVED******REMOVED*** 6. Configuration Options
+## 6. Configuration Options
 
-***REMOVED******REMOVED******REMOVED*** 6.1 Deployment Scenarios
+### 6.1 Deployment Scenarios
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '***REMOVED***e1e1e1'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart LR
     START["Configuration<br/>Choice"] --> PL{enable_private_link}
     
@@ -450,9 +450,9 @@ flowchart LR
     WCMK -->|true| FULLCMK["+ Workspace CMK<br/>DBFS/EBS/MS Encryption"]
     WCMK -->|false| NOWCMK["Standard Encryption"]
     
-    style FULL fill:***REMOVED***569A31,color:***REMOVED***fff
-    style PUBLIC fill:***REMOVED***FF9900,color:***REMOVED***000
-    style FULLCMK fill:***REMOVED***1B72E8,color:***REMOVED***fff
+    style FULL fill:#569A31
+    style PUBLIC fill:#FF9900
+    style FULLCMK fill:#1B72E8
 ```
 
 **Configuration Matrix:**
@@ -466,7 +466,7 @@ flowchart LR
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 ✅ Architecture understood → [02-IAM-SECURITY.md](02-IAM-SECURITY.md) - IAM roles and policies
 

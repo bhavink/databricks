@@ -1,4 +1,4 @@
-***REMOVED*** Terraform Destroy Guide
+# Terraform Destroy Guide
 
 > **Related Documentation:**
 > - 🚀 [QUICK_START.md](QUICK_START.md) - Quick deployment reference
@@ -7,7 +7,7 @@
 
 This guide helps you safely destroy your Databricks Private Link infrastructure without encountering dependency issues.
 
-***REMOVED******REMOVED*** The Problem
+## The Problem
 
 When destroying Databricks infrastructure, you may encounter errors like:
 - `The subnet has dependencies and cannot be deleted`
@@ -19,19 +19,19 @@ When destroying Databricks infrastructure, you may encounter errors like:
 
 ---
 
-***REMOVED******REMOVED*** Solution Options
+## Solution Options
 
-***REMOVED******REMOVED******REMOVED*** Option 1: Automated Pre-Destroy Script (Recommended)
+### Option 1: Automated Pre-Destroy Script (Recommended)
 
 If you have a pre-destroy cleanup script, use it to automatically clean up Databricks-managed resources:
 
 ```bash
 cd /path/to/modular-version3
 
-***REMOVED*** Run pre-destroy cleanup (if available)
+# Run pre-destroy cleanup (if available)
 ./scripts/pre-destroy.sh --profile your-aws-profile --region us-west-2
 
-***REMOVED*** Then destroy
+# Then destroy
 terraform destroy
 ```
 
@@ -46,15 +46,15 @@ The script would:
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Option 2: Manual Cleanup (If Script Fails)
+### Option 2: Manual Cleanup (If Script Fails)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Step 1: Find Resources in Your VPC
+#### Step 1: Find Resources in Your VPC
 
 ```bash
-***REMOVED*** Get VPC ID from Terraform
+# Get VPC ID from Terraform
 VPC_ID=$(terraform output -raw vpc_id)
 
-***REMOVED*** OR get it from AWS
+# OR get it from AWS
 VPC_ID=$(aws ec2 describe-vpcs \
   --filters "Name=tag:Name,Values=*databricks*" \
   --query 'Vpcs[0].VpcId' \
@@ -65,10 +65,10 @@ VPC_ID=$(aws ec2 describe-vpcs \
 echo "VPC ID: $VPC_ID"
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Step 2: Terminate EC2 Instances
+#### Step 2: Terminate EC2 Instances
 
 ```bash
-***REMOVED*** Find running instances
+# Find running instances
 aws ec2 describe-instances \
   --filters "Name=vpc-id,Values=$VPC_ID" \
             "Name=instance-state-name,Values=running,pending,stopping,stopped" \
@@ -77,7 +77,7 @@ aws ec2 describe-instances \
   --profile your-profile \
   --region your-region
 
-***REMOVED*** Terminate all instances
+# Terminate all instances
 INSTANCE_IDS=$(aws ec2 describe-instances \
   --filters "Name=vpc-id,Values=$VPC_ID" \
             "Name=instance-state-name,Values=running,pending,stopping,stopped" \
@@ -92,7 +92,7 @@ if [ -n "$INSTANCE_IDS" ]; then
     --profile your-profile \
     --region your-region
   
-  ***REMOVED*** Wait for termination
+  # Wait for termination
   aws ec2 wait instance-terminated \
     --instance-ids $INSTANCE_IDS \
     --profile your-profile \
@@ -100,10 +100,10 @@ if [ -n "$INSTANCE_IDS" ]; then
 fi
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Step 3: Delete Unattached ENIs
+#### Step 3: Delete Unattached ENIs
 
 ```bash
-***REMOVED*** Find unattached ENIs
+# Find unattached ENIs
 aws ec2 describe-network-interfaces \
   --filters "Name=vpc-id,Values=$VPC_ID" \
             "Name=status,Values=available" \
@@ -112,7 +112,7 @@ aws ec2 describe-network-interfaces \
   --profile your-profile \
   --region your-region
 
-***REMOVED*** Delete them
+# Delete them
 ENI_IDS=$(aws ec2 describe-network-interfaces \
   --filters "Name=vpc-id,Values=$VPC_ID" \
             "Name=status,Values=available" \
@@ -130,7 +130,7 @@ for ENI in $ENI_IDS; do
 done
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Step 4: Run Terraform Destroy
+#### Step 4: Run Terraform Destroy
 
 ```bash
 terraform destroy
@@ -138,39 +138,39 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Option 3: Force Remove from Terraform State
+### Option 3: Force Remove from Terraform State
 
 If AWS resources are already deleted but Terraform state is stuck:
 
 ```bash
-***REMOVED*** Remove specific resources from state
+# Remove specific resources from state
 terraform state rm aws_subnet.private[0]
 terraform state rm aws_subnet.private[1]
 terraform state rm aws_security_group.workspace_sg
 terraform state rm aws_vpc.databricks_vpc
 
-***REMOVED*** Then manually delete in AWS Console or CLI
+# Then manually delete in AWS Console or CLI
 ```
 
 ---
 
-***REMOVED******REMOVED*** Prevention: Best Practices
+## Prevention: Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 1. Destroy in Reverse Order (Targeted Destroy)
+### 1. Destroy in Reverse Order (Targeted Destroy)
 
 Always destroy Databricks resources before AWS infrastructure:
 
 ```bash
-***REMOVED*** Step 1: Destroy user assignment (workspace admin)
+# Step 1: Destroy user assignment (workspace admin)
 terraform destroy -target=module.user_assignment
 
-***REMOVED*** Step 2: Destroy Unity Catalog resources
+# Step 2: Destroy Unity Catalog resources
 terraform destroy -target=module.unity_catalog
 
-***REMOVED*** Step 3: Destroy Databricks workspace
+# Step 3: Destroy Databricks workspace
 terraform destroy -target=module.databricks_workspace
 
-***REMOVED*** Step 4: Destroy AWS infrastructure (storage, IAM, networking)
+# Step 4: Destroy AWS infrastructure (storage, IAM, networking)
 terraform destroy
 ```
 
@@ -180,7 +180,7 @@ terraform destroy
 - Workspace depends on networking/storage/IAM
 - See [DEPLOYMENT_ORDER_FIX.md](DEPLOYMENT_ORDER_FIX.md) for dependency details
 
-***REMOVED******REMOVED******REMOVED*** 2. Disable Workspace Before Destroying
+### 2. Disable Workspace Before Destroying
 
 In the Databricks account console:
 1. Go to **Workspaces**
@@ -189,15 +189,15 @@ In the Databricks account console:
 4. Wait for all clusters to terminate
 5. Then run `terraform destroy`
 
-***REMOVED******REMOVED******REMOVED*** 3. Check for Running Clusters
+### 3. Check for Running Clusters
 
 Before destroying, verify no clusters are running:
 
 ```bash
-***REMOVED*** Via Databricks CLI (if configured)
+# Via Databricks CLI (if configured)
 databricks clusters list --profile your-databricks-profile
 
-***REMOVED*** Via AWS
+# Via AWS
 aws ec2 describe-instances \
   --filters "Name=vpc-id,Values=$VPC_ID" \
             "Name=instance-state-name,Values=running" \
@@ -207,47 +207,47 @@ aws ec2 describe-instances \
 
 ---
 
-***REMOVED******REMOVED*** Common Errors and Solutions
+## Common Errors and Solutions
 
-***REMOVED******REMOVED******REMOVED*** Error: "Network interface is currently in use"
+### Error: "Network interface is currently in use"
 
 **Solution**: The ENI is attached to a running EC2 instance. Terminate the instance first.
 
 ```bash
-***REMOVED*** Find what the ENI is attached to
+# Find what the ENI is attached to
 aws ec2 describe-network-interfaces \
   --network-interface-ids eni-xxxxxxxxx \
   --query 'NetworkInterfaces[0].Attachment.InstanceId'
 
-***REMOVED*** Terminate that instance
+# Terminate that instance
 aws ec2 terminate-instances --instance-ids i-xxxxxxxxx
 ```
 
-***REMOVED******REMOVED******REMOVED*** Error: "Subnet has dependencies"
+### Error: "Subnet has dependencies"
 
 **Solution**: There are ENIs or instances still in the subnet.
 
 ```bash
-***REMOVED*** Find ENIs in the subnet
+# Find ENIs in the subnet
 aws ec2 describe-network-interfaces \
   --filters "Name=subnet-id,Values=subnet-xxxxxxxxx" \
   --query 'NetworkInterfaces[*].[NetworkInterfaceId,Status,Description]' \
   --output table
 ```
 
-***REMOVED******REMOVED******REMOVED*** Error: "Security group is in use"
+### Error: "Security group is in use"
 
 **Solution**: Security group is attached to running instances or ENIs.
 
 ```bash
-***REMOVED*** Find what's using the security group
+# Find what's using the security group
 aws ec2 describe-network-interfaces \
   --filters "Name=group-id,Values=sg-xxxxxxxxx" \
   --query 'NetworkInterfaces[*].[NetworkInterfaceId,Description]' \
   --output table
 ```
 
-***REMOVED******REMOVED******REMOVED*** Error: "Cannot delete external location" (Unity Catalog)
+### Error: "Cannot delete external location" (Unity Catalog)
 
 **Error Message:**
 ```
@@ -267,8 +267,8 @@ managed storage data under this location cannot be purged by Unity Catalog anymo
 **Add this parameter:**
 ```hcl
 resource "databricks_external_location" "external_location" {
-  ***REMOVED*** ... other parameters ...
-  force_destroy = true  ***REMOVED*** Allow deletion even with dependent tables
+  # ... other parameters ...
+  force_destroy = true  # Allow deletion even with dependent tables
 }
 ```
 
@@ -284,44 +284,44 @@ terraform destroy
 - S3 data deletion is controlled by S3 bucket `force_destroy` setting (separate)
 - Safe for dev/test environments, use with caution in production
 
-***REMOVED******REMOVED******REMOVED*** Error: "Cannot resolve ec2.us-west-2.amazonaws.com"
+### Error: "Cannot resolve ec2.us-west-2.amazonaws.com"
 
 **Solution**: DNS/network connectivity issue.
 
 ```bash
-***REMOVED*** Check DNS
+# Check DNS
 nslookup ec2.us-west-2.amazonaws.com
 
-***REMOVED*** Check AWS connectivity
+# Check AWS connectivity
 aws sts get-caller-identity
 
-***REMOVED*** Check if VPN/proxy is blocking
+# Check if VPN/proxy is blocking
 ping 8.8.8.8
 ```
 
 ---
 
-***REMOVED******REMOVED*** Complete Cleanup Workflow
+## Complete Cleanup Workflow
 
 Here's the complete step-by-step process:
 
 ```bash
-***REMOVED*** 1. Navigate to project
+# 1. Navigate to project
 cd /path/to/modular-version3
 
-***REMOVED*** 2. Get VPC ID (for verification later)
+# 2. Get VPC ID (for verification later)
 VPC_ID=$(terraform output -raw vpc_id)
 
-***REMOVED*** 3. Optional: Run pre-destroy script (if available)
-***REMOVED*** ./scripts/pre-destroy.sh --profile your-aws-profile --region us-west-2
+# 3. Optional: Run pre-destroy script (if available)
+# ./scripts/pre-destroy.sh --profile your-aws-profile --region us-west-2
 
-***REMOVED*** 4. Destroy in reverse dependency order
+# 4. Destroy in reverse dependency order
 terraform destroy -target=module.user_assignment
 terraform destroy -target=module.unity_catalog
 terraform destroy -target=module.databricks_workspace
-terraform destroy  ***REMOVED*** Destroys remaining: KMS, IAM, storage, networking
+terraform destroy  # Destroys remaining: KMS, IAM, storage, networking
 
-***REMOVED*** 5. Verify cleanup (should return "VPC not found")
+# 5. Verify cleanup (should return "VPC not found")
 aws ec2 describe-vpcs --vpc-ids $VPC_ID --profile your-aws-profile --region your-region
 ```
 
@@ -336,7 +336,7 @@ aws ec2 describe-vpcs --vpc-ids $VPC_ID --profile your-aws-profile --region your
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting Tips
+## Troubleshooting Tips
 
 1. **Always check Terraform output first**: `terraform output`
 2. **Use AWS Console**: Visual interface can help identify stuck resources
@@ -346,7 +346,7 @@ aws ec2 describe-vpcs --vpc-ids $VPC_ID --profile your-aws-profile --region your
 
 ---
 
-***REMOVED******REMOVED*** Need Help?
+## Need Help?
 
 If you continue to have issues:
 

@@ -159,10 +159,10 @@ graph TB
     PRIV2 -->|S3 Access| S3GW
     S3GW --> S3
     
-    style CONTROL fill:#FF3621,color:#fff
-    style S3 fill:#569A31,color:#fff
-    style VPCE1 fill:#FF9900,color:#fff
-    style VPCE2 fill:#FF9900,color:#fff
+    style CONTROL fill:#FF3621
+    style S3 fill:#569A31
+    style VPCE1 fill:#FF9900
+    style VPCE2 fill:#FF9900
 ```
 
 ---
@@ -949,7 +949,7 @@ graph TD
     style M fill:#bbf,stroke:#333
     style S fill:#bfb,stroke:#333
     style Y fill:#fbb,stroke:#333
-    style R fill:#FF3621,color:#fff
+    style R fill:#FF3621
 ```
 
 ### Deployment Sequence

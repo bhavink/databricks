@@ -1,17 +1,17 @@
-***REMOVED*** User Assignment Module
+# User Assignment Module
 
 This module assigns an existing Databricks account user as a workspace administrator.
 
-***REMOVED******REMOVED*** Reference
+## Reference
 
 Based on the [Databricks SRA User Assignment Module](https://github.com/databricks/terraform-databricks-sra/tree/main/aws/tf/modules/databricks_account/user_assignment).
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
 1. **User must already exist** in the Databricks account console
 2. **Workspace must be assigned** to a Unity Catalog metastore before running this module
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 ```hcl
 module "user_assignment" {
@@ -30,14 +30,14 @@ module "user_assignment" {
 }
 ```
 
-***REMOVED******REMOVED*** Inputs
+## Inputs
 
 | Name | Description | Type | Required |
 |------|-------------|------|----------|
 | `user_name` | Email address of the user to assign as workspace admin | `string` | Yes |
 | `workspace_id` | Databricks workspace ID | `string` | Yes |
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Name | Description |
 |------|-------------|
@@ -45,13 +45,13 @@ module "user_assignment" {
 | `permission_assignment_id` | ID of the workspace permission assignment |
 | `user_name` | Email address of the workspace admin |
 
-***REMOVED******REMOVED*** Important Notes
+## Important Notes
 
 - The user must already exist in the Databricks account console before running this module
 - This module uses `databricks_mws_permission_assignment` which requires the workspace to have Unity Catalog enabled and assigned
 - The `lifecycle { ignore_changes = [principal_id] }` prevents Terraform from trying to update the assignment if the user ID changes
 
-***REMOVED******REMOVED*** Dependencies
+## Dependencies
 
 This module should be applied **after**:
 1. Workspace creation
