@@ -1,5 +1,82 @@
 # Databricks IP Range Extractor
 
+A Python utility to extract and filter Databricks IP ranges for egress allowlisting in firewalls and network appliances.
+
+## How It Works
+
+```mermaid
+flowchart LR
+    subgraph Input
+        URL[Public URL]
+        FILE[Local JSON File]
+    end
+    
+    subgraph Processing
+        LOAD[Load IP Ranges]
+        FILTER[Apply Filters]
+        FORMAT[Format Output]
+    end
+    
+    subgraph Output
+        JSON[JSON Array]
+        CSV[CSV File]
+        SIMPLE[CIDR List]
+    end
+    
+    URL --> LOAD
+    FILE --> LOAD
+    LOAD --> FILTER
+    FILTER --> FORMAT
+    FORMAT --> JSON
+    FORMAT --> CSV
+    FORMAT --> SIMPLE
+    
+    style LOAD fill:#4285F4
+    style FILTER fill:#EA4335
+    style FORMAT fill:#34A853
+```
+
+---
+
+## Filtering Pipeline
+
+The tool applies filters sequentially to narrow down IP ranges:
+
+```mermaid
+flowchart TB
+    INPUT[("All Prefixes<br/>~1000+ entries")]
+    
+    CLOUD{--cloud<br/>aws/azure/gcp}
+    REGION{--region<br/>us-east-1, etc.}
+    IPV{--ipv4-only<br/>--ipv6-only}
+    SVC{--service<br/>serverless-egress}
+    ACTIVE{--active-only<br/>exclude deprecated}
+    
+    OUTPUT[("Filtered Results<br/>Ready for firewall")]
+    
+    INPUT --> CLOUD
+    CLOUD -->|Match| REGION
+    CLOUD -->|No match| X1[Excluded]
+    REGION -->|Match| IPV
+    REGION -->|No match| X2[Excluded]
+    IPV -->|Match| SVC
+    IPV -->|No match| X3[Excluded]
+    SVC -->|Match| ACTIVE
+    SVC -->|No match| X4[Excluded]
+    ACTIVE -->|Match| OUTPUT
+    ACTIVE -->|No match| X5[Excluded]
+    
+    style INPUT fill:#FDD835
+    style OUTPUT fill:#34A853
+    style CLOUD fill:#4285F4
+    style REGION fill:#4285F4
+    style IPV fill:#4285F4
+    style SVC fill:#4285F4
+    style ACTIVE fill:#4285F4
+```
+
+---
+
 ## Prerequisites
 
 - Python 3.7 or higher
@@ -85,6 +162,80 @@ python extract-databricks-ips.py --source https://<insert-url-here> --cloud aws
 
 ## Output Schema
 
+### JSON Structure Overview
+
+```mermaid
+flowchart TB
+    subgraph Source["Source JSON Structure"]
+        ROOT["{ }"]
+        META["metadata"]
+        PREFIXES["prefixes[ ]"]
+        
+        ROOT --> META
+        ROOT --> PREFIXES
+        
+        ENTRY1["Entry 1"]
+        ENTRY2["Entry 2"]
+        ENTRYN["Entry N..."]
+        
+        PREFIXES --> ENTRY1
+        PREFIXES --> ENTRY2
+        PREFIXES --> ENTRYN
+    end
+    
+    subgraph Entry["Each Prefix Entry"]
+        CIDR["cidr: 3.15.8.0/24"]
+        IPV["ipVersion: ipv4"]
+        CP["cloudProvider: aws"]
+        REG["region: us-east-1"]
+        SVC["service: serverless-egress"]
+        DATES["activeAfter / deprecatedAfter"]
+    end
+    
+    ENTRY1 -.-> CIDR
+    ENTRY1 -.-> IPV
+    ENTRY1 -.-> CP
+    ENTRY1 -.-> REG
+    ENTRY1 -.-> SVC
+    ENTRY1 -.-> DATES
+    
+    style ROOT fill:#FDD835
+    style PREFIXES fill:#4285F4
+    style ENTRY1 fill:#34A853
+```
+
+### Output Format Comparison
+
+```mermaid
+flowchart LR
+    FILTERED[Filtered<br/>Entries]
+    
+    subgraph Formats["--format options"]
+        JSON["json<br/>Array of objects"]
+        CSV["csv<br/>Header + rows"]
+        SIMPLE["simple<br/>One CIDR per line"]
+    end
+    
+    FILTERED --> JSON
+    FILTERED --> CSV
+    FILTERED --> SIMPLE
+    
+    subgraph Examples
+        J_OUT["[{cidr, region...}]"]
+        C_OUT["cidr,region,...<br/>3.15.8.0/24,us-east-1"]
+        S_OUT["3.15.8.0/24<br/>52.27.216.0/23"]
+    end
+    
+    JSON --> J_OUT
+    CSV --> C_OUT
+    SIMPLE --> S_OUT
+    
+    style FILTERED fill:#EA4335
+    style JSON fill:#4285F4
+    style CSV fill:#34A853
+    style SIMPLE fill:#FF9800
+```
+
 Both JSON and CSV use the same flat structure:
 
 **JSON:**
@@ -117,6 +268,39 @@ cidr,ipVersion,cloudProvider,region,service
 ---
 
 ## Automation Example
+
+### Typical Automation Workflow
+
+```mermaid
+flowchart TB
+    subgraph Schedule["Scheduled Trigger"]
+        CRON["Cron Job<br/>Weekly/Daily"]
+    end
+    
+    subgraph Extract["IP Extraction"]
+        FETCH["Fetch from<br/>Databricks URL"]
+        FILTER["Filter by<br/>Cloud & Region"]
+        SAVE["Save to<br/>Allowlist File"]
+    end
+    
+    subgraph Apply["Firewall Update"]
+        RELOAD["Reload<br/>Firewall Rules"]
+        VERIFY["Verify<br/>Connectivity"]
+    end
+    
+    CRON --> FETCH
+    FETCH --> FILTER
+    FILTER --> SAVE
+    SAVE --> RELOAD
+    RELOAD --> VERIFY
+    
+    style CRON fill:#FF9800
+    style FETCH fill:#4285F4
+    style FILTER fill:#4285F4
+    style SAVE fill:#34A853
+    style RELOAD fill:#EA4335
+    style VERIFY fill:#34A853
+```
 
 ### Weekly Cron Job
 
