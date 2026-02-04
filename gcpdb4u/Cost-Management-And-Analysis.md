@@ -40,12 +40,12 @@ graph TB
     POOL --> COMPUTE
     SPOT --> COMPUTE
     
-    style UI fill:"#1E88E5"
-    style ST fill:"#1E88E5"
-    style GCP fill:"#4285F4"
-    style DASH fill:"#43A047"
-    style BUDGET fill:"#FF6F00"
-    style DBU fill:"#FDD835"
+    style UI fill:#1E88E5
+    style ST fill:#1E88E5
+    style GCP fill:#4285F4
+    style DASH fill:#43A047
+    style BUDGET fill:#FF6F00
+    style DBU fill:#FDD835
 ```
 
 ### Table of Contents
@@ -190,12 +190,12 @@ graph TB
     GCS_COST --> BILL
     NET_COST --> BILL
     
-    style BILL fill:"#4285F4"
-    style BQ fill:"#4285F4"
-    style QUERY fill:"#1E88E5"
-    style VIZ fill:"#43A047"
-    style ALERT fill:"#FF6F00"
-    style DBU_COST fill:"#FDD835"
+    style BILL fill:#4285F4
+    style BQ fill:#4285F4
+    style QUERY fill:#1E88E5
+    style VIZ fill:#43A047
+    style ALERT fill:#FF6F00
+    style DBU_COST fill:#FDD835
 ```
 
 ### Using Budget Policies for Cost Control
@@ -324,14 +324,14 @@ graph TB
     QUOTA --> SCHEDULE
     TAG --> CACHE
     
-    style AUTO_TERM fill:"#43A047"
-    style SPOT fill:"#43A047"
-    style RIGHT_SIZE fill:"#43A047"
-    style BUDGET fill:"#FF6F00"
-    style QUOTA fill:"#FF6F00"
-    style TAG fill:"#FF6F00"
-    style SPOT_FALL fill:"#1E88E5"
-    style CACHE fill:"#1E88E5"
+    style AUTO_TERM fill:#43A047
+    style SPOT fill:#43A047
+    style RIGHT_SIZE fill:#43A047
+    style BUDGET fill:#FF6F00
+    style QUOTA fill:#FF6F00
+    style TAG fill:#FF6F00
+    style SPOT_FALL fill:#1E88E5
+    style CACHE fill:#1E88E5
 ```
 
 For more details, refer to the official documentation:

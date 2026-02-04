@@ -97,12 +97,12 @@ graph TB
     GCE1 -.resides in.-> VPC1
     GCE2 -.resides in.-> VPC2
     
-    style DBA fill:"#1E88E5"
-    style WS1 fill:"#1E88E5"
-    style WS2 fill:"#1E88E5"
-    style SCP fill:"#43A047"
-    style BA fill:"#FF6F00"
-    style SUB fill:"#FDD835"
+    style DBA fill:#1E88E5
+    style WS1 fill:#1E88E5
+    style WS2 fill:#1E88E5
+    style SCP fill:#43A047
+    style BA fill:#FF6F00
+    style SUB fill:#FDD835
 ```
 
 ## Availability Regions
@@ -141,10 +141,10 @@ graph TB
     GCPC --> NET[Networking<br/>Egress/VPC]
     GCPC --> OTHER[Other Services<br/>BigQuery, etc.]
     
-    style TC fill:"#FF6F00"
-    style DBC fill:"#1E88E5"
-    style GCPC fill:"#4285F4"
-    style DBU fill:"#FDD835"
+    style TC fill:#FF6F00
+    style DBC fill:#1E88E5
+    style GCPC fill:#4285F4
+    style DBU fill:#FDD835
 ```
 
 ### Subscription Tiers
@@ -164,10 +164,10 @@ graph LR
     PREMIUM -.applies to.-> WS1
     ENTERPRISE -.applies to.-> WS1
     
-    style STANDARD fill:"#90CAF9"
-    style PREMIUM fill:"#1E88E5"
-    style ENTERPRISE fill:"#0D47A1"
-    style WS1 fill:"#FDD835"
+    style STANDARD fill:#90CAF9
+    style PREMIUM fill:#1E88E5
+    style ENTERPRISE fill:#0D47A1
+    style WS1 fill:#FDD835
 ```
 
 ## Recommendations
@@ -264,13 +264,13 @@ graph TB
         O3SV -.attached.-> O3SP3
     end
     
-    style O1P1 fill:"#4285F4"
-    style O1P2 fill:"#4285F4"
-    style O2P fill:"#4285F4"
-    style O3HP fill:"#EA4335"
-    style O3SP1 fill:"#4285F4"
-    style O3SP2 fill:"#4285F4"
-    style O3SP3 fill:"#4285F4"
+    style O1P1 fill:#4285F4
+    style O1P2 fill:#4285F4
+    style O2P fill:#4285F4
+    style O3HP fill:#EA4335
+    style O3SP1 fill:#4285F4
+    style O3SP2 fill:#4285F4
+    style O3SP3 fill:#4285F4
 ```
 
 * Option 1:

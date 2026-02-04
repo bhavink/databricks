@@ -57,13 +57,13 @@ graph TB
     DATA --> UC
     DATA --> AUDIT
     
-    style VPC_SC fill:"#E53935"
-    style FW fill:"#E53935"
-    style NS1 fill:"#1E88E5"
-    style NS2 fill:"#1E88E5"
-    style NS3 fill:"#1E88E5"
-    style CMEK fill:"#8E24AA"
-    style UC fill:"#8E24AA"
+    style VPC_SC fill:#E53935
+    style FW fill:#E53935
+    style NS1 fill:#1E88E5
+    style NS2 fill:#1E88E5
+    style NS3 fill:#1E88E5
+    style CMEK fill:#8E24AA
+    style UC fill:#8E24AA
 ```
 
 ### Optionally
@@ -106,18 +106,18 @@ graph LR
     P3_3 --> P4_1
     P4_1 --> P4_2 --> P4_3
     
-    style P1_1 fill:"#4285F4"
-    style P1_2 fill:"#4285F4"
-    style P1_3 fill:"#4285F4"
-    style P2_1 fill:"#FF6F00"
-    style P2_2 fill:"#FF6F00"
-    style P2_3 fill:"#FF6F00"
-    style P3_1 fill:"#E53935"
-    style P3_2 fill:"#E53935"
-    style P3_3 fill:"#E53935"
-    style P4_1 fill:"#8E24AA"
-    style P4_2 fill:"#8E24AA"
-    style P4_3 fill:"#8E24AA"
+    style P1_1 fill:#4285F4
+    style P1_2 fill:#4285F4
+    style P1_3 fill:#4285F4
+    style P2_1 fill:#FF6F00
+    style P2_2 fill:#FF6F00
+    style P2_3 fill:#FF6F00
+    style P3_1 fill:#E53935
+    style P3_2 fill:#E53935
+    style P3_3 fill:#E53935
+    style P4_1 fill:#8E24AA
+    style P4_2 fill:#8E24AA
+    style P4_3 fill:#8E24AA
 ```
 
 ### Cluster-to-Cluster Isolation

@@ -50,11 +50,11 @@ graph TB
     AUDIT --> REVIEW
     REVIEW --> REVOKE
     
-    style IDP fill:"#4285F4"
-    style SCIM fill:"#43A047"
-    style GROUPS fill:"#1E88E5"
-    style SP fill:"#FF6F00"
-    style AUDIT fill:"#8E24AA"
+    style IDP fill:#4285F4
+    style SCIM fill:#43A047
+    style GROUPS fill:#1E88E5
+    style SP fill:#FF6F00
+    style AUDIT fill:#8E24AA
 ```
 
 ### Table of Contents
@@ -125,11 +125,11 @@ graph TB
     DATA_ANAL --> CLUSTER_ATTACH
     DATA_ANAL --> DATA_READ
     
-    style ADMIN fill:"#E53935"
-    style DATA_ENG fill:"#1E88E5"
-    style DATA_SCI fill:"#43A047"
-    style DATA_ANAL fill:"#FF6F00"
-    style WS_ADMIN fill:"#FDD835"
+    style ADMIN fill:#E53935
+    style DATA_ENG fill:#1E88E5
+    style DATA_SCI fill:#43A047
+    style DATA_ANAL fill:#FF6F00
+    style WS_ADMIN fill:#FDD835
 ```
 
 ### Manage Service Principals for Automation
@@ -275,12 +275,12 @@ graph TB
     PRIVESC --> REVIEW
     EXFIL --> TICKET
     
-    style LOGS fill:"#1E88E5"
-    style ANOM fill:"#FF6F00"
-    style FAILED fill:"#E53935"
-    style PRIVESC fill:"#E53935"
-    style EXFIL fill:"#E53935"
-    style NOTIFY fill:"#FDD835"
+    style LOGS fill:#1E88E5
+    style ANOM fill:#FF6F00
+    style FAILED fill:#E53935
+    style PRIVESC fill:#E53935
+    style EXFIL fill:#E53935
+    style NOTIFY fill:#FDD835
 ```
 
 For more details, refer to the official [Databricks Users and Groups Best Practices](https://docs.databricks.com/gcp/en/admin/users-groups/best-practices).
