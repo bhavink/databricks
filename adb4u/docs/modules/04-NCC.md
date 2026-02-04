@@ -1,4 +1,4 @@
-***REMOVED*** Network Connectivity Configuration (NCC) Module
+# Network Connectivity Configuration (NCC) Module
 
 **Module Path**: `modules/ncc`  
 **Status**: ✅ **Production Ready**  
@@ -6,18 +6,18 @@
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The Network Connectivity Configuration (NCC) module creates and manages the **Network Connectivity Configuration** for Azure Databricks serverless compute.
 
-***REMOVED******REMOVED******REMOVED*** What is NCC?
+### What is NCC?
 
 NCC enables **serverless compute** (SQL Warehouses, Serverless Notebooks) to securely connect to customer Azure resources:
 - Unity Catalog storage accounts
 - External customer storage (ADLS Gen2)
 - Other Azure services (Key Vault, Event Hub, etc.)
 
-***REMOVED******REMOVED******REMOVED*** Why is NCC Mandatory?
+### Why is NCC Mandatory?
 
 Just like Unity Catalog, NCC is a **required component** for modern Databricks workspaces:
 - ✅ Enables serverless compute capabilities
@@ -27,9 +27,9 @@ Just like Unity Catalog, NCC is a **required component** for modern Databricks w
 
 ---
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** How NCC Works
+### How NCC Works
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -70,9 +70,9 @@ Just like Unity Catalog, NCC is a **required component** for modern Databricks w
 
 ---
 
-***REMOVED******REMOVED*** Module Components
+## Module Components
 
-***REMOVED******REMOVED******REMOVED*** Resources Created
+### Resources Created
 
 The NCC module creates **2 resources**:
 
@@ -85,7 +85,7 @@ The NCC module creates **2 resources**:
    - Binds NCC to specific workspace
    - One binding per workspace
 
-***REMOVED******REMOVED******REMOVED*** Resources NOT Created
+### Resources NOT Created
 
 The module **does NOT create**:
 - ❌ `databricks_mws_ncc_private_endpoint_rule` - Private Endpoint rules
@@ -97,9 +97,9 @@ The module **does NOT create**:
 
 ---
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Basic Usage (All Deployments)
+### Basic Usage (All Deployments)
 
 ```hcl
 module "ncc" {
@@ -109,7 +109,7 @@ module "ncc" {
     databricks.account = databricks.account
   }
 
-  ***REMOVED*** Required
+  # Required
   workspace_id_numeric = module.workspace.workspace_id_numeric
   workspace_prefix     = var.workspace_prefix
   location             = var.location
@@ -118,7 +118,7 @@ module "ncc" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Outputs
+### Outputs
 
 ```hcl
 output "ncc_id" {
@@ -134,9 +134,9 @@ output "ncc_name" {
 
 ---
 
-***REMOVED******REMOVED*** Variables
+## Variables
 
-***REMOVED******REMOVED******REMOVED*** Required Variables
+### Required Variables
 
 | Variable | Type | Description |
 |----------|------|-------------|
@@ -144,13 +144,13 @@ output "ncc_name" {
 | `workspace_prefix` | `string` | Prefix for resource naming (lowercase alphanumeric, max 12 chars) |
 | `location` | `string` | Azure region for NCC configuration |
 
-***REMOVED******REMOVED******REMOVED*** Optional Variables
+### Optional Variables
 
 None. The module has minimal configuration by design.
 
 ---
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Output | Type | Description |
 |--------|------|-------------|
@@ -159,17 +159,17 @@ None. The module has minimal configuration by design.
 
 ---
 
-***REMOVED******REMOVED*** Post-Deployment Setup
+## Post-Deployment Setup
 
-***REMOVED******REMOVED******REMOVED*** Classic Clusters
+### Classic Clusters
 
 ✅ **No setup required** - Classic clusters work immediately using VNet connectivity.
 
-***REMOVED******REMOVED******REMOVED*** Serverless Compute
+### Serverless Compute
 
 ⏸️ **Manual setup required** - Choose one of two options:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Option A: Service Endpoints** (Recommended for Non-PL)
+#### **Option A: Service Endpoints** (Recommended for Non-PL)
 
 **When to Use**:
 - Non-Private Link deployments
@@ -186,7 +186,7 @@ None. The module has minimal configuration by design.
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Option B: Private Link** (Mandatory for Full-Private)
+#### **Option B: Private Link** (Mandatory for Full-Private)
 
 **When to Use**:
 - Full Private deployments (mandatory)
@@ -204,12 +204,12 @@ None. The module has minimal configuration by design.
 
 ---
 
-***REMOVED******REMOVED*** Deployment Patterns
+## Deployment Patterns
 
-***REMOVED******REMOVED******REMOVED*** Non-PL Pattern
+### Non-PL Pattern
 
 ```hcl
-***REMOVED*** NCC created automatically (mandatory)
+# NCC created automatically (mandatory)
 module "ncc" {
   source = "../../modules/ncc"
   
@@ -229,10 +229,10 @@ module "ncc" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Full-Private Pattern
+### Full-Private Pattern
 
 ```hcl
-***REMOVED*** NCC created automatically (mandatory)
+# NCC created automatically (mandatory)
 module "ncc" {
   source = "../../modules/ncc"
   
@@ -252,23 +252,23 @@ module "ncc" {
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Issue: NCC Not Found in Outputs
+### Issue: NCC Not Found in Outputs
 
 **Symptoms**:
 ```bash
 terraform output ncc_id
-***REMOVED*** Error: Output not found
+# Error: Output not found
 ```
 
 **Cause**: Module not included in deployment (legacy configuration)
 
-**Solution**: Add NCC module to `main.tf` (see [Usage](***REMOVED***usage))
+**Solution**: Add NCC module to `main.tf` (see [Usage](#usage))
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Issue: Cannot Create NCC
+### Issue: Cannot Create NCC
 
 **Error**:
 ```
@@ -279,7 +279,7 @@ Error: cannot create network connectivity config: Unauthorized
 
 **Solution**:
 ```hcl
-***REMOVED*** Ensure account provider is configured
+# Ensure account provider is configured
 terraform {
   required_providers {
     databricks = {
@@ -289,7 +289,7 @@ terraform {
   }
 }
 
-***REMOVED*** In providers.tf
+# In providers.tf
 provider "databricks" {
   alias      = "account"
   host       = "https://accounts.azuredatabricks.net"
@@ -299,7 +299,7 @@ provider "databricks" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Issue: NCC Binding Fails
+### Issue: NCC Binding Fails
 
 **Error**:
 ```
@@ -311,14 +311,14 @@ Error: cannot bind ncc to workspace: Workspace not found
 **Solution**: Ensure `depends_on` includes workspace and Unity Catalog:
 ```hcl
 module "ncc" {
-  ***REMOVED*** ...
-  depends_on = [module.unity_catalog]  ***REMOVED*** UC depends on workspace
+  # ...
+  depends_on = [module.unity_catalog]  # UC depends on workspace
 }
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Issue: Cannot Delete NCC (Attached to Workspace)
+### Issue: Cannot Delete NCC (Attached to Workspace)
 
 **Error**:
 ```
@@ -339,15 +339,15 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 1. Always Include NCC
+### 1. Always Include NCC
 
 ✅ **DO**: Include NCC in all deployments
 ```hcl
 module "ncc" {
   source = "../../modules/ncc"
-  ***REMOVED*** ...
+  # ...
 }
 ```
 
@@ -357,12 +357,12 @@ module "ncc" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 2. Depend on Unity Catalog
+### 2. Depend on Unity Catalog
 
 ✅ **DO**: Add dependency on Unity Catalog
 ```hcl
 module "ncc" {
-  ***REMOVED*** ...
+  # ...
   depends_on = [module.unity_catalog]
 }
 ```
@@ -373,12 +373,12 @@ module "ncc" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 3. Don't Create PE Rules in Terraform
+### 3. Don't Create PE Rules in Terraform
 
 ✅ **DO**: Leave PE rules for manual setup
 ```hcl
-***REMOVED*** NCC module creates config + binding only
-***REMOVED*** NO databricks_mws_ncc_private_endpoint_rule resources
+# NCC module creates config + binding only
+# NO databricks_mws_ncc_private_endpoint_rule resources
 ```
 
 ❌ **DON'T**: Try to automate PE rule creation
@@ -387,7 +387,7 @@ module "ncc" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 4. Document Serverless Setup
+### 4. Document Serverless Setup
 
 ✅ **DO**: Provide clear serverless setup documentation
 ```markdown
@@ -400,20 +400,20 @@ Post-deployment: See docs/SERVERLESS-SETUP.md for enabling serverless compute
 
 ---
 
-***REMOVED******REMOVED*** Examples
+## Examples
 
-***REMOVED******REMOVED******REMOVED*** Example: Non-PL Deployment
+### Example: Non-PL Deployment
 
 ```hcl
-***REMOVED*** main.tf
+# main.tf
 module "workspace" {
   source = "../../modules/workspace"
-  ***REMOVED*** ... workspace config
+  # ... workspace config
 }
 
 module "unity_catalog" {
   source = "../../modules/unity-catalog"
-  ***REMOVED*** ... UC config
+  # ... UC config
   depends_on = [module.workspace]
 }
 
@@ -431,7 +431,7 @@ module "ncc" {
   depends_on = [module.unity_catalog]
 }
 
-***REMOVED*** Outputs
+# Outputs
 output "ncc_status" {
   value = {
     ncc_id   = module.ncc.ncc_id
@@ -443,19 +443,19 @@ output "ncc_status" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Example: Full-Private Deployment
+### Example: Full-Private Deployment
 
 ```hcl
-***REMOVED*** main.tf
+# main.tf
 module "workspace" {
   source = "../../modules/workspace"
-  ***REMOVED*** ... workspace config with Private Link
+  # ... workspace config with Private Link
   enable_private_link = true
 }
 
 module "unity_catalog" {
   source = "../../modules/unity-catalog"
-  ***REMOVED*** ... UC config with Private Endpoints
+  # ... UC config with Private Endpoints
   enable_private_link_storage = true
   depends_on = [module.workspace]
 }
@@ -474,7 +474,7 @@ module "ncc" {
   depends_on = [module.unity_catalog]
 }
 
-***REMOVED*** Outputs
+# Outputs
 output "serverless_setup_required" {
   value = "Private Link approval required for serverless. See docs/04-SERVERLESS-SETUP.md"
 }
@@ -482,7 +482,7 @@ output "serverless_setup_required" {
 
 ---
 
-***REMOVED******REMOVED*** References
+## References
 
 **Azure Databricks Documentation**:
 - [Serverless Network Security](https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/)

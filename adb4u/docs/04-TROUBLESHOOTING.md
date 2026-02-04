@@ -1,24 +1,24 @@
-***REMOVED*** Troubleshooting Guide
+# Troubleshooting Guide
 
 This document contains solutions to common issues encountered during deployment, updates, and destruction of Azure Databricks workspaces.
 
 ---
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-1. [Destroy & Cleanup Issues](***REMOVED***destroy--cleanup-issues)
-2. [Unity Catalog Issues](***REMOVED***unity-catalog-issues)
-3. [Network Configuration Issues](***REMOVED***network-configuration-issues)
-4. [Authentication Issues](***REMOVED***authentication-issues)
-5. [Storage Account Access](***REMOVED***storage-account-access)
-6. [Quick Reference Commands](***REMOVED***quick-reference-commands)
-7. [Debugging Tips](***REMOVED***debugging-tips)
+1. [Destroy & Cleanup Issues](#destroy--cleanup-issues)
+2. [Unity Catalog Issues](#unity-catalog-issues)
+3. [Network Configuration Issues](#network-configuration-issues)
+4. [Authentication Issues](#authentication-issues)
+5. [Storage Account Access](#storage-account-access)
+6. [Quick Reference Commands](#quick-reference-commands)
+7. [Debugging Tips](#debugging-tips)
 
 ---
 
-***REMOVED******REMOVED*** Destroy & Cleanup Issues
+## Destroy & Cleanup Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: Service Endpoint Policy Cannot Be Deleted
+### Issue: Service Endpoint Policy Cannot Be Deleted
 
 **Error Message**:
 ```
@@ -33,12 +33,12 @@ Azure prevents deletion of a Service Endpoint Policy while it's still referenced
 
 **For New Deployments** (created after graceful destroy fix):
 ```bash
-terraform destroy  ***REMOVED*** Automatic cleanup
+terraform destroy  # Automatic cleanup
 ```
 
 **For Existing Deployments** (created before graceful destroy fix):
 ```bash
-***REMOVED*** Step 1: Remove SEP from subnets manually
+# Step 1: Remove SEP from subnets manually
 az network vnet subnet update \
   --resource-group <RG_NAME> \
   --vnet-name <VNET_NAME> \
@@ -51,7 +51,7 @@ az network vnet subnet update \
   --name <PRIVATE_SUBNET_NAME> \
   --remove serviceEndpointPolicies
 
-***REMOVED*** Step 2: Destroy
+# Step 2: Destroy
 terraform destroy
 ```
 
@@ -63,7 +63,7 @@ terraform output -raw resources | jq -r '.network.subnet_names'
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Issue: Network Connectivity Config Cannot Be Deleted
+### Issue: Network Connectivity Config Cannot Be Deleted
 
 **Error Message**:
 ```
@@ -76,10 +76,10 @@ NCC binding removal has propagation delay; API still sees it as "attached" when 
 
 **Solution**:
 ```bash
-***REMOVED*** Remove NCC from state (workspace deletion will clean it up)
+# Remove NCC from state (workspace deletion will clean it up)
 terraform state rm module.ncc.databricks_mws_network_connectivity_config.this
 
-***REMOVED*** Continue with destroy
+# Continue with destroy
 terraform destroy
 ```
 
@@ -90,9 +90,9 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** Unity Catalog Issues
+## Unity Catalog Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: Cannot Delete Metastore Data Access
+### Issue: Cannot Delete Metastore Data Access
 
 **Error Message**:
 ```
@@ -105,23 +105,23 @@ Unity Catalog protects the root storage credential from deletion to prevent data
 
 **Solution**:
 ```bash
-***REMOVED*** Remove metastore resources from state
+# Remove metastore resources from state
 terraform state rm module.unity_catalog.databricks_metastore_data_access.this
 terraform state rm module.unity_catalog.databricks_metastore.this
 
-***REMOVED*** Continue with destroy
+# Continue with destroy
 terraform destroy
 ```
 
 **Prevention** (for new deployments):
 ```hcl
-***REMOVED*** modules/unity-catalog/main.tf
+# modules/unity-catalog/main.tf
 resource "databricks_metastore" "this" {
   provider      = databricks.account
   name          = var.metastore_name
   storage_root  = "abfss://..."
   region        = var.location
-  force_destroy = true  ***REMOVED*** Set on initial creation
+  force_destroy = true  # Set on initial creation
 }
 ```
 
@@ -132,7 +132,7 @@ resource "databricks_metastore" "this" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Issue: Metastore Update Validation Error
+### Issue: Metastore Update Validation Error
 
 **Error Message**:
 ```
@@ -153,9 +153,9 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** Network Configuration Issues
+## Network Configuration Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: NSG Rule Conflicts with Databricks
+### Issue: NSG Rule Conflicts with Databricks
 
 **Error Message**:
 ```
@@ -170,10 +170,10 @@ In Non-PL deployments, Databricks automatically creates NSG rules. Custom rules 
 NSG rule creation is already conditional - only for Private Link deployments:
 
 ```hcl
-***REMOVED*** modules/networking/nsg-rules.tf
+# modules/networking/nsg-rules.tf
 resource "azurerm_network_security_rule" "inbound_vnet_to_vnet" {
   count = var.enable_private_link && !var.enable_public_network_access ? 1 : 0
-  ***REMOVED*** ...
+  # ...
 }
 ```
 
@@ -183,9 +183,9 @@ resource "azurerm_network_security_rule" "inbound_vnet_to_vnet" {
 
 ---
 
-***REMOVED******REMOVED*** Authentication Issues
+## Authentication Issues
 
-***REMOVED******REMOVED******REMOVED*** Issue: Failed to Retrieve Tenant ID
+### Issue: Failed to Retrieve Tenant ID
 
 **Error Message**:
 ```
@@ -199,20 +199,20 @@ Missing `DATABRICKS_AZURE_TENANT_ID` environment variable for Databricks account
 Export required environment variables:
 
 ```bash
-***REMOVED*** Azure Authentication
+# Azure Authentication
 export ARM_SUBSCRIPTION_ID="your-subscription-id"
 export ARM_TENANT_ID="your-tenant-id"
-export ARM_CLIENT_ID="your-client-id"          ***REMOVED*** If using service principal
-export ARM_CLIENT_SECRET="your-client-secret"  ***REMOVED*** If using service principal
+export ARM_CLIENT_ID="your-client-id"          # If using service principal
+export ARM_CLIENT_SECRET="your-client-secret"  # If using service principal
 
-***REMOVED*** Databricks Authentication
+# Databricks Authentication
 export DATABRICKS_ACCOUNT_ID="your-account-id"
 export DATABRICKS_AZURE_TENANT_ID="$ARM_TENANT_ID"
 ```
 
 **Provider Configuration**:
 ```hcl
-***REMOVED*** deployments/*/providers.tf
+# deployments/*/providers.tf
 provider "databricks" {
   alias             = "account"
   host              = "https://accounts.azuredatabricks.net"
@@ -225,9 +225,9 @@ provider "databricks" {
 
 ---
 
-***REMOVED******REMOVED*** Storage Account Access
+## Storage Account Access
 
-***REMOVED******REMOVED******REMOVED*** Issue: 403 Authorization Error During Container Creation
+### Issue: 403 Authorization Error During Container Creation
 
 **Error Message**:
 ```
@@ -242,7 +242,7 @@ Storage account created with `default_action = "Deny"` in network rules, prevent
 Use `default_action = "Allow"` during initial deployment:
 
 ```hcl
-***REMOVED*** modules/unity-catalog/main.tf
+# modules/unity-catalog/main.tf
 resource "azurerm_storage_account" "metastore" {
   name                     = local.metastore_storage_name
   resource_group_name      = var.resource_group_name
@@ -252,7 +252,7 @@ resource "azurerm_storage_account" "metastore" {
   is_hns_enabled          = true
   
   network_rules {
-    default_action = "Allow"  ***REMOVED*** Required for initial container creation
+    default_action = "Allow"  # Required for initial container creation
     bypass         = ["AzureServices"]
   }
 }
@@ -263,9 +263,9 @@ After successful deployment, you can manually update to deny default access and 
 
 ---
 
-***REMOVED******REMOVED*** Quick Reference Commands
+## Quick Reference Commands
 
-***REMOVED******REMOVED******REMOVED*** Clean Destroy Sequence
+### Clean Destroy Sequence
 
 **For New Deployments** (automatic cleanup):
 ```bash
@@ -274,62 +274,62 @@ terraform destroy
 
 **For Existing Deployments** (manual cleanup):
 ```bash
-***REMOVED*** 1. Start destroy
+# 1. Start destroy
 terraform destroy
 
-***REMOVED*** 2. If SEP errors occur, remove from subnets
+# 2. If SEP errors occur, remove from subnets
 az network vnet subnet update \
   --resource-group <RG_NAME> \
   --vnet-name <VNET_NAME> \
   --name <SUBNET_NAME> \
   --remove serviceEndpointPolicies
 
-***REMOVED*** 3. If NCC errors occur, remove from state
+# 3. If NCC errors occur, remove from state
 terraform state rm module.ncc.databricks_mws_network_connectivity_config.this
 
-***REMOVED*** 4. If metastore errors occur, remove from state
+# 4. If metastore errors occur, remove from state
 terraform state rm module.unity_catalog.databricks_metastore_data_access.this
 terraform state rm module.unity_catalog.databricks_metastore.this
 
-***REMOVED*** 5. Complete destroy
+# 5. Complete destroy
 terraform destroy
 ```
 
-***REMOVED******REMOVED******REMOVED*** Verify Configuration
+### Verify Configuration
 
 ```bash
-***REMOVED*** Validate Terraform configuration
+# Validate Terraform configuration
 terraform validate
 
-***REMOVED*** Plan without applying
+# Plan without applying
 terraform plan
 
-***REMOVED*** Check authentication
+# Check authentication
 az account show
 databricks auth env --profile account
 ```
 
-***REMOVED******REMOVED******REMOVED*** State Management
+### State Management
 
 ```bash
-***REMOVED*** List resources in state
+# List resources in state
 terraform state list
 
-***REMOVED*** Show specific resource
+# Show specific resource
 terraform state show 'module.unity_catalog.databricks_metastore.this'
 
-***REMOVED*** Remove resource from state (does not delete in cloud)
+# Remove resource from state (does not delete in cloud)
 terraform state rm 'resource.address'
 
-***REMOVED*** Import existing resource
+# Import existing resource
 terraform import 'resource.address' 'resource-id'
 ```
 
 ---
 
-***REMOVED******REMOVED*** Debugging Tips
+## Debugging Tips
 
-***REMOVED******REMOVED******REMOVED*** Enable Detailed Logging
+### Enable Detailed Logging
 
 **Terraform Debug Logs**:
 ```bash
@@ -345,19 +345,19 @@ export DATABRICKS_DEBUG_HEADERS=true
 terraform apply 2>&1 | tee apply-debug.log
 ```
 
-***REMOVED******REMOVED******REMOVED*** Check Resource State
+### Check Resource State
 
 **Azure Resources**:
 ```bash
-***REMOVED*** List resource group contents
+# List resource group contents
 az resource list --resource-group <RG_NAME> --output table
 
-***REMOVED*** Check workspace status
+# Check workspace status
 az databricks workspace show \
   --name <WORKSPACE_NAME> \
   --resource-group <RG_NAME>
 
-***REMOVED*** Check storage account
+# Check storage account
 az storage account show \
   --name <STORAGE_NAME> \
   --resource-group <RG_NAME>
@@ -365,48 +365,48 @@ az storage account show \
 
 **Databricks Resources**:
 ```bash
-***REMOVED*** List metastores (requires account admin)
+# List metastores (requires account admin)
 databricks metastores list --account-id <ACCOUNT_ID>
 
-***REMOVED*** Show workspace details
+# Show workspace details
 databricks workspace get --workspace-id <WORKSPACE_ID>
 ```
 
 ---
 
-***REMOVED******REMOVED*** Prevention Best Practices
+## Prevention Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 1. Set `force_destroy = true` for Metastores
+### 1. Set `force_destroy = true` for Metastores
 
 ```hcl
 resource "databricks_metastore" "this" {
   provider      = databricks.account
   name          = var.metastore_name
-  force_destroy = true  ***REMOVED*** Essential for clean destroy
+  force_destroy = true  # Essential for clean destroy
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Use Conditional NSG Rules
+### 2. Use Conditional NSG Rules
 
 ```hcl
 resource "azurerm_network_security_rule" "example" {
-  count = var.enable_private_link ? 1 : 0  ***REMOVED*** Only for Private Link
-  ***REMOVED*** ...
+  count = var.enable_private_link ? 1 : 0  # Only for Private Link
+  # ...
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Allow Initial Storage Access
+### 3. Allow Initial Storage Access
 
 ```hcl
 resource "azurerm_storage_account" "example" {
   network_rules {
-    default_action = "Allow"  ***REMOVED*** Required initially
+    default_action = "Allow"  # Required initially
     bypass         = ["AzureServices"]
   }
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Tag All Resources
+### 4. Tag All Resources
 
 ```hcl
 locals {
@@ -417,31 +417,31 @@ locals {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 5. Test Destroy in Non-Production
+### 5. Test Destroy in Non-Production
 
 ```bash
-***REMOVED*** Always test the full lifecycle
+# Always test the full lifecycle
 terraform apply
 terraform destroy
 
-***REMOVED*** If successful, apply to production
+# If successful, apply to production
 ```
 
 ---
 
-***REMOVED******REMOVED*** Getting Help
+## Getting Help
 
-***REMOVED******REMOVED******REMOVED*** Documentation
+### Documentation
 - [Quickstart Guide](01-QUICKSTART.md)
 - [Deployment Patterns](patterns/)
 - [Module Reference](modules/)
 
-***REMOVED******REMOVED******REMOVED*** External Resources
+### External Resources
 - [Azure Databricks Documentation](https://learn.microsoft.com/en-us/azure/databricks/)
 - [Databricks Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
 - [Azure Terraform Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 
-***REMOVED******REMOVED******REMOVED*** Support Channels
+### Support Channels
 1. Check this troubleshooting guide first
 2. Review checkpoint documents for similar issues
 3. Check provider documentation for recent changes

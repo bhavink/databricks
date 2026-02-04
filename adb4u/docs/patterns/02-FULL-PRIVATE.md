@@ -1,11 +1,11 @@
-***REMOVED*** Full Private (Air-Gapped) Deployment Pattern
+# Full Private (Air-Gapped) Deployment Pattern
 
 **Pattern**: `deployments/full-private`  
 **Status**: ✅ **Production Ready**
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The Full Private (Air-Gapped) pattern provides a **fully isolated** Azure Databricks deployment with:
 - **Private Link for Control Plane** (UI/API via Private Endpoints)
@@ -16,7 +16,7 @@ The Full Private (Air-Gapped) pattern provides a **fully isolated** Azure Databr
 - **Network Connectivity Configuration (NCC)** for serverless compute
 - **Customer-Managed Keys (CMK)** enabled by default
 
-***REMOVED******REMOVED******REMOVED*** Use Cases
+### Use Cases
 
 ✅ **Highly regulated industries** (Financial services, Healthcare)  
 ✅ **Zero-trust network architectures**  
@@ -26,9 +26,9 @@ The Full Private (Air-Gapped) pattern provides a **fully isolated** Azure Databr
 
 ---
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** **High-Level Design**
+### **High-Level Design**
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -101,7 +101,7 @@ The Full Private (Air-Gapped) pattern provides a **fully isolated** Azure Databr
 
 ---
 
-***REMOVED******REMOVED*** Key Differences from Non-PL
+## Key Differences from Non-PL
 
 | Feature | Non-PL | Full Private |
 |---------|--------|--------------|
@@ -115,9 +115,9 @@ The Full Private (Air-Gapped) pattern provides a **fully isolated** Azure Databr
 
 ---
 
-***REMOVED******REMOVED*** Traffic Flow: Cluster Startup Sequence
+## Traffic Flow: Cluster Startup Sequence
 
-***REMOVED******REMOVED******REMOVED*** High-Level Flow
+### High-Level Flow
 
 ```mermaid
 sequenceDiagram
@@ -149,9 +149,9 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Detailed Phase Breakdown
+### Detailed Phase Breakdown
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 1: User Access** (Prerequisites)
+#### **Phase 1: User Access** (Prerequisites)
 
 ```
 User → VPN/ExpressRoute → Private Link Subnet → Private Endpoint → Databricks UI
@@ -169,7 +169,7 @@ Requirements:
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 2: Cluster Request** (T+0s)
+#### **Phase 2: Cluster Request** (T+0s)
 
 ```
 User → Private Endpoint (UI/API) → Databricks Control Plane
@@ -182,7 +182,7 @@ User → Private Endpoint (UI/API) → Databricks Control Plane
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 3: VM Provisioning** (T+0s to T+2min)
+#### **Phase 3: VM Provisioning** (T+0s to T+2min)
 
 ```mermaid
 sequenceDiagram
@@ -205,7 +205,7 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 4: Control Plane Tunnel** (T+2min to T+3min)
+#### **Phase 4: Control Plane Tunnel** (T+2min to T+3min)
 
 ```
 Cluster VMs → Private Endpoint (Backend) → Control Plane SCC Relay
@@ -223,7 +223,7 @@ Routing: Private Link (NOT via public internet)
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 5: Storage Access** (T+2min onwards)
+#### **Phase 5: Storage Access** (T+2min onwards)
 
 ```mermaid
 graph LR
@@ -241,8 +241,8 @@ graph LR
     PE --> UC
     PE --> ExtLoc
     
-    style PE fill:***REMOVED***e8f5e9
-    style Storage fill:***REMOVED***fff9c4
+    style PE fill:#e8f5e9
+    style Storage fill:#fff9c4
 ```
 
 **Access Pattern**:
@@ -254,7 +254,7 @@ graph LR
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 6: Package Management** (Air-Gapped)
+#### **Phase 6: Package Management** (Air-Gapped)
 
 ```
 ❌ NO internet access for packages
@@ -268,21 +268,21 @@ Customer Responsibilities:
 
 **Example Init Script**:
 ```bash
-***REMOVED***!/bin/bash
-***REMOVED*** Configure pip to use internal PyPI mirror
+#!/bin/bash
+# Configure pip to use internal PyPI mirror
 cat > /etc/pip.conf << EOF
 [global]
 index-url = https://pypi.company.internal/simple
 trusted-host = pypi.company.internal
 EOF
 
-***REMOVED*** Install common libraries from internal mirror
+# Install common libraries from internal mirror
 pip install pandas numpy scikit-learn
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Network Routing Summary
+### Network Routing Summary
 
 | Traffic Type | Source | Destination | Path | Authentication |
 |--------------|--------|-------------|------|----------------|
@@ -302,9 +302,9 @@ pip install pandas numpy scikit-learn
 
 ---
 
-***REMOVED******REMOVED*** Features
+## Features
 
-***REMOVED******REMOVED******REMOVED*** Included Features
+### Included Features
 
 | Feature | Status | Details |
 |---------|--------|---------|
@@ -320,7 +320,7 @@ pip install pandas numpy scikit-learn
 | **Service Endpoint Policy (SEP)** | ✅ Optional | Storage egress control for classic compute |
 | **NCC (Serverless)** | ✅ Optional | Private Link for serverless compute |
 
-***REMOVED******REMOVED******REMOVED*** Not Included
+### Not Included
 
 | Feature | Status | Reason | Alternative |
 |---------|--------|--------|-------------|
@@ -330,9 +330,9 @@ pip install pandas numpy scikit-learn
 
 ---
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 **Required**:
 - Azure subscription with appropriate permissions
@@ -350,27 +350,27 @@ pip install pandas numpy scikit-learn
 - Private Subnet: `/26` minimum (64 IPs)
 - Private Link Subnet: `/27` minimum (32 IPs)
 
-***REMOVED******REMOVED******REMOVED*** Quick Deploy
+### Quick Deploy
 
 ```bash
-***REMOVED*** 1. Navigate to deployment folder
+# 1. Navigate to deployment folder
 cd deployments/full-private
 
-***REMOVED*** 2. Copy and configure variables
+# 2. Copy and configure variables
 cp terraform.tfvars.example terraform.tfvars
 vim terraform.tfvars
 
-***REMOVED*** 3. Initialize Terraform
+# 3. Initialize Terraform
 terraform init
 
-***REMOVED*** 4. Review deployment plan
+# 4. Review deployment plan
 terraform plan
 
-***REMOVED*** 5. Deploy
+# 5. Deploy
 terraform apply
 ```
 
-***REMOVED******REMOVED******REMOVED*** Deployment Time
+### Deployment Time
 
 - **Initial deployment**: 20-30 minutes
 - **Subsequent deployments**: 15-20 minutes
@@ -378,13 +378,13 @@ terraform apply
 
 ---
 
-***REMOVED******REMOVED*** Private DNS Configuration
+## Private DNS Configuration
 
-***REMOVED******REMOVED******REMOVED*** Overview
+### Overview
 
 Full-Private deployments rely on **Azure Private DNS zones** to resolve Private Endpoint FQDNs to private IP addresses within your VNet. This ensures all traffic stays on the Azure backbone and never traverses the public internet.
 
-***REMOVED******REMOVED******REMOVED*** DNS Architecture
+### DNS Architecture
 
 ```mermaid
 graph TB
@@ -412,11 +412,11 @@ graph TB
     VNet -->|4. Connect via Private IP| UIPE
     VNet -->|4. Connect via Private IP| DBFSPE
     
-    style DBDNSZone fill:***REMOVED***e1f5fe
-    style DFSDNSZone fill:***REMOVED***e1f5fe
-    style BlobDNSZone fill:***REMOVED***e1f5fe
-    style UIPE fill:***REMOVED***c8e6c9
-    style AuthPE fill:***REMOVED***c8e6c9
+    style DBDNSZone fill:#e1f5fe
+    style DFSDNSZone fill:#e1f5fe
+    style BlobDNSZone fill:#e1f5fe
+    style UIPE fill:#c8e6c9
+    style AuthPE fill:#c8e6c9
 ```
 
 **Key Components**:
@@ -427,7 +427,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** DNS Zones Created
+### DNS Zones Created
 
 This deployment automatically creates and configures three Private DNS zones:
 
@@ -445,11 +445,11 @@ This deployment automatically creates and configures three Private DNS zones:
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Databricks Sub-Resource Types
+### Databricks Sub-Resource Types
 
 Databricks Private Link uses two distinct **sub-resource types** for different access patterns:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. `databricks_ui_api` (Workspace-Specific)
+#### 1. `databricks_ui_api` (Workspace-Specific)
 
 **Purpose**: Direct workspace access for UI, REST API, and data plane communication (SCC)
 
@@ -471,17 +471,17 @@ adb-<workspace-id>.<random-id>.azuredatabricks.net
 
 **Example**:
 ```bash
-***REMOVED*** Workspace URL
+# Workspace URL
 https://adb-1234567890123456.12.azuredatabricks.net
 
-***REMOVED*** DNS Resolution (via Private Link)
+# DNS Resolution (via Private Link)
 nslookup adb-1234567890123456.12.azuredatabricks.net
-***REMOVED*** Answer: 10.178.2.10 (Private IP in Private Link subnet)
+# Answer: 10.178.2.10 (Private IP in Private Link subnet)
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. `browser_authentication` (Regional, Shared)
+#### 2. `browser_authentication` (Regional, Shared)
 
 **Purpose**: Azure AD authentication redirect for browser-based login
 
@@ -502,19 +502,19 @@ adb-<workspace-id>.azuredatabricks.net  (no random-id)
 
 **Example**:
 ```bash
-***REMOVED*** Auth URL (during Azure AD login)
+# Auth URL (during Azure AD login)
 https://adb-1234567890123456.azuredatabricks.net/login.html
 
-***REMOVED*** DNS Resolution (via Private Link)
+# DNS Resolution (via Private Link)
 nslookup adb-1234567890123456.azuredatabricks.net
-***REMOVED*** Answer: 10.178.2.11 (Private IP in Private Link subnet)
+# Answer: 10.178.2.11 (Private IP in Private Link subnet)
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** DNS Resolution Flow
+### DNS Resolution Flow
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **User Access to Workspace UI**
+#### **User Access to Workspace UI**
 
 ```mermaid
 sequenceDiagram
@@ -563,9 +563,9 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Multi-Workspace Scenarios
+### Multi-Workspace Scenarios
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Single Region, Multiple Workspaces**
+#### **Single Region, Multiple Workspaces**
 
 ```
 Region: East US 2
@@ -589,7 +589,7 @@ Workspace B:
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Multi-Region Deployment**
+#### **Multi-Region Deployment**
 
 ```
 Region: East US 2
@@ -617,9 +617,9 @@ DNS Zone: privatelink.azuredatabricks.net (linked to VNet)
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Storage DNS Resolution
+### Storage DNS Resolution
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **DBFS and Unity Catalog Storage**
+#### **DBFS and Unity Catalog Storage**
 
 ```
 Storage Account: <workspace-prefix>dbfs<suffix>.dfs.core.windows.net
@@ -646,95 +646,95 @@ DNS Resolution Flow:
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** DNS Configuration Verification
+### DNS Configuration Verification
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Check DNS Zone Creation**
+#### **Check DNS Zone Creation**
 
 ```bash
-***REMOVED*** List all Private DNS zones
+# List all Private DNS zones
 az network private-dns zone list \
   --resource-group <rg-name> \
   --output table
 
-***REMOVED*** Expected output:
-***REMOVED*** Name                                   ResourceGroup         Location
-***REMOVED*** -------------------------------------  -------------------   --------
-***REMOVED*** privatelink.azuredatabricks.net        <rg-name>             global
-***REMOVED*** privatelink.dfs.core.windows.net       <rg-name>             global
-***REMOVED*** privatelink.blob.core.windows.net      <rg-name>             global
+# Expected output:
+# Name                                   ResourceGroup         Location
+# -------------------------------------  -------------------   --------
+# privatelink.azuredatabricks.net        <rg-name>             global
+# privatelink.dfs.core.windows.net       <rg-name>             global
+# privatelink.blob.core.windows.net      <rg-name>             global
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Verify VNet Links**
+#### **Verify VNet Links**
 
 ```bash
-***REMOVED*** Check VNet links for Databricks DNS zone
+# Check VNet links for Databricks DNS zone
 az network private-dns link vnet list \
   --resource-group <rg-name> \
   --zone-name privatelink.azuredatabricks.net \
   --output table
 
-***REMOVED*** Expected: VNet should be linked with registrationEnabled=false
+# Expected: VNet should be linked with registrationEnabled=false
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Test DNS Resolution**
+#### **Test DNS Resolution**
 
 **From within VNet** (via VPN, bastion, or VM):
 
 ```bash
-***REMOVED*** Test Databricks workspace resolution
+# Test Databricks workspace resolution
 nslookup adb-<workspace-id>.<random-id>.azuredatabricks.net
 
-***REMOVED*** Expected Output:
-***REMOVED*** Server:  <dns-server>
-***REMOVED*** Address: <dns-server-ip>
-***REMOVED***
-***REMOVED*** Non-authoritative answer:
-***REMOVED*** Name:    adb-<workspace-id>.<random-id>.azuredatabricks.net
-***REMOVED*** Address: 10.178.2.10  ← Private IP (not public)
+# Expected Output:
+# Server:  <dns-server>
+# Address: <dns-server-ip>
+#
+# Non-authoritative answer:
+# Name:    adb-<workspace-id>.<random-id>.azuredatabricks.net
+# Address: 10.178.2.10  ← Private IP (not public)
 
 
-***REMOVED*** Test storage resolution
+# Test storage resolution
 nslookup <storage-account>.dfs.core.windows.net
 
-***REMOVED*** Expected Output:
-***REMOVED*** Name:    <storage-account>.privatelink.dfs.core.windows.net
-***REMOVED*** Address: 10.178.2.20  ← Private IP
+# Expected Output:
+# Name:    <storage-account>.privatelink.dfs.core.windows.net
+# Address: 10.178.2.20  ← Private IP
 ```
 
 **Important**: DNS resolution must return **private IPs** (10.x.x.x), not public IPs. If you see public IPs, the Private DNS zone is not correctly linked to your VNet.
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Verify A Records**
+#### **Verify A Records**
 
 ```bash
-***REMOVED*** List A records in Databricks DNS zone
+# List A records in Databricks DNS zone
 az network private-dns record-set a list \
   --resource-group <rg-name> \
   --zone-name privatelink.azuredatabricks.net \
   --output table
 
-***REMOVED*** Expected: A records for workspace UI/API and browser auth
+# Expected: A records for workspace UI/API and browser auth
 
 
-***REMOVED*** List A records in DFS DNS zone
+# List A records in DFS DNS zone
 az network private-dns record-set a list \
   --resource-group <rg-name> \
   --zone-name privatelink.dfs.core.windows.net \
   --output table
 
-***REMOVED*** Expected: A records for DBFS, UC metastore, UC external storage
+# Expected: A records for DBFS, UC metastore, UC external storage
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Troubleshooting DNS Issues
+### Troubleshooting DNS Issues
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Issue**: Workspace URL Not Resolving
+#### **Issue**: Workspace URL Not Resolving
 
 **Symptoms**:
 ```bash
@@ -752,18 +752,18 @@ Address: <dns-server-ip>
 
 **Solution**:
 ```bash
-***REMOVED*** 1. Verify Private DNS zone exists
+# 1. Verify Private DNS zone exists
 az network private-dns zone show \
   --resource-group <rg-name> \
   --name privatelink.azuredatabricks.net
 
-***REMOVED*** 2. Check VNet link
+# 2. Check VNet link
 az network private-dns link vnet show \
   --resource-group <rg-name> \
   --zone-name privatelink.azuredatabricks.net \
   --name <link-name>
 
-***REMOVED*** 3. Verify Private Endpoint DNS integration
+# 3. Verify Private Endpoint DNS integration
 az network private-endpoint show \
   --resource-group <rg-name> \
   --name <pe-name> \
@@ -772,7 +772,7 @@ az network private-endpoint show \
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Issue**: Resolves to Public IP Instead of Private IP
+#### **Issue**: Resolves to Public IP Instead of Private IP
 
 **Symptoms**:
 ```bash
@@ -788,25 +788,25 @@ Address: 20.62.x.x  ← Public IP (WRONG!)
 
 **Solution**:
 ```bash
-***REMOVED*** Ensure you're connected via VPN/ExpressRoute
-***REMOVED*** Verify DNS resolver is set to Azure DNS
+# Ensure you're connected via VPN/ExpressRoute
+# Verify DNS resolver is set to Azure DNS
 
-***REMOVED*** Windows:
+# Windows:
 ipconfig /all
-***REMOVED*** Check DNS Servers: Should include 168.63.129.16 or VNet DNS
+# Check DNS Servers: Should include 168.63.129.16 or VNet DNS
 
-***REMOVED*** Linux:
+# Linux:
 cat /etc/resolv.conf
-***REMOVED*** nameserver 168.63.129.16 (or VNet DNS)
+# nameserver 168.63.129.16 (or VNet DNS)
 
-***REMOVED*** macOS:
+# macOS:
 scutil --dns
-***REMOVED*** Should route through VPN DNS
+# Should route through VPN DNS
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Issue**: Storage Access Fails After Private Link Enablement
+#### **Issue**: Storage Access Fails After Private Link Enablement
 
 **Symptoms**:
 ```
@@ -820,53 +820,53 @@ Error: abfss://<container>@<storage-account>.dfs.core.windows.net: Name or servi
 
 **Solution**:
 ```bash
-***REMOVED*** 1. Verify storage Private Endpoint
+# 1. Verify storage Private Endpoint
 az network private-endpoint list \
   --resource-group <rg-name> \
   --query "[?contains(name, 'dbfs') || contains(name, 'uc')].{Name:name, State:privateLinkServiceConnections[0].privateLinkServiceConnectionState.status}" \
   --output table
 
-***REMOVED*** Expected: All endpoints in "Approved" state
+# Expected: All endpoints in "Approved" state
 
-***REMOVED*** 2. Test DNS resolution
+# 2. Test DNS resolution
 nslookup <storage-account>.dfs.core.windows.net
-***REMOVED*** Should return private IP (10.x.x.x)
+# Should return private IP (10.x.x.x)
 
-***REMOVED*** 3. Check storage firewall rules
+# 3. Check storage firewall rules
 az storage account show \
   --name <storage-account> \
   --resource-group <rg-name> \
   --query networkRuleSet.defaultAction
   
-***REMOVED*** If "Deny", ensure Private Endpoint is approved
+# If "Deny", ensure Private Endpoint is approved
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** DNS Best Practices
+### DNS Best Practices
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Planning**
+#### **Planning**
 
 - ✅ **Document FQDNs**: Maintain a list of all Private Endpoint FQDNs for your workspaces
 - ✅ **IP Address Planning**: Reserve IP range in Private Link subnet (min /27)
 - ✅ **DNS Forwarding**: Configure on-premises DNS to forward `*.azuredatabricks.net` to Azure DNS
 - ✅ **Multi-Region**: Use consistent DNS zone naming across regions
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Security**
+#### **Security**
 
 - ✅ **Private DNS Only**: Never expose `privatelink.*` zones to public DNS
 - ✅ **VNet Isolation**: Only link Private DNS zones to authorized VNets
 - ✅ **Access Control**: Use Azure RBAC to restrict DNS zone modifications
 - ✅ **Audit Logging**: Enable diagnostic logs for DNS zones
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Operations**
+#### **Operations**
 
 - ✅ **Monitor DNS Queries**: Track query volumes and failures
 - ✅ **TTL Configuration**: Use default 10s TTL for fast failover
 - ✅ **Automation**: Use Terraform for consistent DNS configuration
 - ✅ **Documentation**: Keep runbooks for DNS troubleshooting
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Testing**
+#### **Testing**
 
 - ✅ **Pre-Deployment**: Test DNS resolution from all user locations
 - ✅ **Post-Deployment**: Verify A records auto-created for all Private Endpoints
@@ -875,7 +875,7 @@ az storage account show \
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** DNS Reference Architecture
+### DNS Reference Architecture
 
 For detailed network architecture including DNS flow for multi-workspace hub-and-spoke deployments, see:
 - [Azure Databricks Data Exfiltration Protection](https://techcommunity.microsoft.com/t5/azure-architecture-blog/data-exfiltration-protection-with-azure-databricks/ba-p/2334376)
@@ -883,14 +883,14 @@ For detailed network architecture including DNS flow for multi-workspace hub-and
 
 ---
 
-***REMOVED******REMOVED*** Post-Deployment Steps
+## Post-Deployment Steps
 
-***REMOVED******REMOVED******REMOVED*** **Critical**: Lock Down Public Access
+### **Critical**: Lock Down Public Access
 
 After successful deployment, **disable public network access**:
 
 ```hcl
-***REMOVED*** terraform.tfvars
+# terraform.tfvars
 enable_public_network_access = false
 ```
 
@@ -902,15 +902,15 @@ This enforces **Private Link only** access (no public internet).
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Configure Private DNS
+### Configure Private DNS
 
 Ensure Private DNS zones are linked to your VNet:
 
 ```bash
-***REMOVED*** List Private DNS zones
+# List Private DNS zones
 az network private-dns zone list --output table
 
-***REMOVED*** Link to VNet (if not auto-linked)
+# Link to VNet (if not auto-linked)
 az network private-dns link vnet create \
   --resource-group <rg-name> \
   --zone-name privatelink.azuredatabricks.net \
@@ -921,7 +921,7 @@ az network private-dns link vnet create \
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Setup Internal Package Repositories
+### Setup Internal Package Repositories
 
 **Required for air-gapped deployments**:
 
@@ -931,17 +931,17 @@ az network private-dns link vnet create \
 
 **Configure Init Scripts**:
 ```bash
-***REMOVED*** /dbfs/init-scripts/configure-repos.sh
-***REMOVED***!/bin/bash
+# /dbfs/init-scripts/configure-repos.sh
+#!/bin/bash
 
-***REMOVED*** Configure pip
+# Configure pip
 cat > /etc/pip.conf << EOF
 [global]
 index-url = https://pypi.company.internal/simple
 trusted-host = pypi.company.internal
 EOF
 
-***REMOVED*** Configure Maven
+# Configure Maven
 mkdir -p /home/ubuntu/.m2
 cat > /home/ubuntu/.m2/settings.xml << EOF
 <settings>
@@ -958,9 +958,9 @@ EOF
 
 ---
 
-***REMOVED******REMOVED*** Security
+## Security
 
-***REMOVED******REMOVED******REMOVED*** Network Security
+### Network Security
 
 **Private Link Isolation**:
 - ✅ Zero public internet exposure
@@ -974,7 +974,7 @@ EOF
 - ✅ No Service Endpoints (Private Link only)
 - ✅ Custom NSG rules when public access disabled
 
-***REMOVED******REMOVED******REMOVED*** Data Security
+### Data Security
 
 **Unity Catalog**:
 - ✅ Fine-grained access control (GRANT/REVOKE)
@@ -995,9 +995,9 @@ EOF
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 **Issue**: Cannot Access Workspace
 
@@ -1031,29 +1031,29 @@ EOF
 This is **expected in air-gapped deployments**. Libraries cannot be downloaded from the internet.
 
 **Workarounds**:
-1. Configure internal PyPI mirror (see [Post-Deployment Steps](***REMOVED***setup-internal-package-repositories))
+1. Configure internal PyPI mirror (see [Post-Deployment Steps](#setup-internal-package-repositories))
 2. Pre-install libraries via init scripts from internal storage
 3. Use cluster-scoped libraries from DBFS
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Network Planning
+### Network Planning
 
 - **Private Endpoint Subnet**: `/27` minimum, plan for growth
 - **DNS Configuration**: Test Private DNS resolution before deployment
 - **VPN/ExpressRoute**: Ensure adequate bandwidth for user traffic
 - **Firewall Rules**: Document all allow-list requirements
 
-***REMOVED******REMOVED******REMOVED*** Security Hardening
+### Security Hardening
 
 - **Disable Public Access**: Set `enable_public_network_access = false` after initial deployment
 - **IP Access Lists**: Enable even with Private Link for defense-in-depth
 - **CMK Rotation**: Configure automatic key rotation in Key Vault
 - **Audit Logging**: Enable Azure Monitor and Databricks audit logs
 
-***REMOVED******REMOVED******REMOVED*** Operational Excellence
+### Operational Excellence
 
 - **Bastion Host**: Deploy Azure Bastion for emergency access
 - **Internal Repos**: Maintain mirrors of PyPI, Maven, Docker registries
@@ -1062,7 +1062,7 @@ This is **expected in air-gapped deployments**. Libraries cannot be downloaded f
 
 ---
 
-***REMOVED******REMOVED*** References
+## References
 
 - **Pattern Documentation**: This document (Full-Private deployment pattern)
 - **CMK Module Documentation**: [docs/modules/05-CMK.md](../modules/05-CMK.md)

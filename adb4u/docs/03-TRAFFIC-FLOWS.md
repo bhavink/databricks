@@ -1,10 +1,10 @@
-***REMOVED*** Traffic Flow and Network Sequences
+# Traffic Flow and Network Sequences
 
 **Purpose**: Detailed traffic flow diagrams for Azure Databricks deployment patterns
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This document provides comprehensive traffic flow diagrams showing how Databricks clusters communicate within different network architectures. Understanding these flows is essential for:
 
@@ -16,20 +16,20 @@ This document provides comprehensive traffic flow diagrams showing how Databrick
 
 ---
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-1. [Non-Private Link (Non-PL) Pattern](***REMOVED***non-private-link-non-pl-pattern)
-2. [Full Private Link Pattern](***REMOVED***full-private-link-pattern) (Coming Soon)
-3. [Hub-Spoke Pattern](***REMOVED***hub-spoke-pattern) (Coming Soon)
-4. [Common Traffic Patterns](***REMOVED***common-traffic-patterns)
-5. [Performance Metrics](***REMOVED***performance-metrics)
-6. [Cost Analysis](***REMOVED***cost-analysis)
+1. [Non-Private Link (Non-PL) Pattern](#non-private-link-non-pl-pattern)
+2. [Full Private Link Pattern](#full-private-link-pattern) (Coming Soon)
+3. [Hub-Spoke Pattern](#hub-spoke-pattern) (Coming Soon)
+4. [Common Traffic Patterns](#common-traffic-patterns)
+5. [Performance Metrics](#performance-metrics)
+6. [Cost Analysis](#cost-analysis)
 
 ---
 
-***REMOVED******REMOVED*** Non-Private Link (Non-PL) Pattern
+## Non-Private Link (Non-PL) Pattern
 
-***REMOVED******REMOVED******REMOVED*** Cluster Startup Sequence
+### Cluster Startup Sequence
 
 ```
 ┌──────────────┐
@@ -120,9 +120,9 @@ Legend:
 - - -> : Monitoring/heartbeat traffic
 ```
 
-***REMOVED******REMOVED******REMOVED*** Traffic Flow Phases
+### Traffic Flow Phases
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 1: Cluster Creation Request (T+0s)
+#### Phase 1: Cluster Creation Request (T+0s)
 
 **Flow**: User → Databricks Control Plane
 
@@ -149,7 +149,7 @@ Latency:       < 100ms
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 2: VM Provisioning (T+0s to T+2min)
+#### Phase 2: VM Provisioning (T+0s to T+2min)
 
 **Flow**: Control Plane → Azure Resource Manager → Customer VNet
 
@@ -183,7 +183,7 @@ Encryption:
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 3: Secure Tunnel Establishment (T+2min to T+3min)
+#### Phase 3: Secure Tunnel Establishment (T+2min to T+3min)
 
 **Flow**: Driver/Worker VMs → Control Plane (via NSG Service Tag: AzureDatabricks)
 
@@ -219,7 +219,7 @@ Security:
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 4a: Control Plane Communication (Ongoing)
+#### Phase 4a: Control Plane Communication (Ongoing)
 
 **Flow**: Cluster VMs ↔ Control Plane (via NSG Service Tag: AzureDatabricks)
 
@@ -258,7 +258,7 @@ Logs:
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 4b: User Library Downloads (T+2min to T+4min)
+#### Phase 4b: User Library Downloads (T+2min to T+4min)
 
 **Flow**: Cluster VMs → NAT Gateway → Internet
 
@@ -316,7 +316,7 @@ Important Notes:
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 4c: Storage Access (T+3min to T+5min)
+#### Phase 4c: Storage Access (T+3min to T+5min)
 
 **Flow**: Cluster VMs → Service Endpoints → Azure Storage (via NSG Service Tag: Storage)
 
@@ -370,7 +370,7 @@ External Location Storage (Customer-owned):
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Phase 5: Worker-to-Worker Communication (During execution)
+#### Phase 5: Worker-to-Worker Communication (During execution)
 
 **Flow**: Worker VMs ↔ Worker VMs (Within VNet)
 
@@ -407,7 +407,7 @@ Performance:
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Network Path Summary
+### Network Path Summary
 
 | Traffic Type | Source | Destination | Path | Protocol | NSG Service Tag | Cost | Latency |
 |--------------|--------|-------------|------|----------|----------------|------|---------|
@@ -424,9 +424,9 @@ Performance:
 
 ---
 
-***REMOVED******REMOVED*** Common Traffic Patterns
+## Common Traffic Patterns
 
-***REMOVED******REMOVED******REMOVED*** Notebook Execution
+### Notebook Execution
 
 ```
 1. User opens notebook → Databricks UI (HTTPS)
@@ -439,7 +439,7 @@ Performance:
 5. Logs written to DBFS (Service Endpoint)
 ```
 
-***REMOVED******REMOVED******REMOVED*** ETL Job Execution
+### ETL Job Execution
 
 ```
 1. Scheduler triggers job → Control Plane API (HTTPS)
@@ -453,7 +453,7 @@ Performance:
 6. Logs and metrics uploaded to DBFS
 ```
 
-***REMOVED******REMOVED******REMOVED*** ML Model Training
+### ML Model Training
 
 ```
 1. Data scientist runs training notebook
@@ -469,9 +469,9 @@ Performance:
 
 ---
 
-***REMOVED******REMOVED*** Performance Metrics
+## Performance Metrics
 
-***REMOVED******REMOVED******REMOVED*** Latency Characteristics
+### Latency Characteristics
 
 | Connection | Typical Latency | Notes |
 |------------|----------------|-------|
@@ -483,7 +483,7 @@ Performance:
 | Worker ↔ Worker (cross AZ) | 1-3ms | Cross availability zone |
 | Cluster → Internet (NAT) | 10-50ms | Destination-dependent |
 
-***REMOVED******REMOVED******REMOVED*** Bandwidth Characteristics
+### Bandwidth Characteristics
 
 | Connection | Typical Bandwidth | Notes |
 |------------|------------------|-------|
@@ -494,9 +494,9 @@ Performance:
 
 ---
 
-***REMOVED******REMOVED*** Cost Analysis
+## Cost Analysis
 
-***REMOVED******REMOVED******REMOVED*** Data Egress Charges (Azure)
+### Data Egress Charges (Azure)
 
 | Destination | Pricing (first 100 GB) | Pricing (next 10 TB) | Use Case |
 |-------------|----------------------|-------------------|----------|
@@ -525,9 +525,9 @@ Performance:
 
 ---
 
-***REMOVED******REMOVED*** Security Analysis
+## Security Analysis
 
-***REMOVED******REMOVED******REMOVED*** Attack Surface
+### Attack Surface
 
 | Entry Point | Risk | Mitigation |
 |-------------|------|------------|
@@ -537,7 +537,7 @@ Performance:
 | **Storage** | Public endpoint | Service Endpoints, RBAC, Azure AD |
 | **NAT Gateway** | Outbound only | Stateful firewall, no inbound connections |
 
-***REMOVED******REMOVED******REMOVED*** Data Flow Security
+### Data Flow Security
 
 | Flow | Encryption | Authentication | Authorization |
 |------|-----------|----------------|---------------|
@@ -549,15 +549,15 @@ Performance:
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting Guide
+## Troubleshooting Guide
 
-***REMOVED******REMOVED******REMOVED*** Cannot Reach Control Plane
+### Cannot Reach Control Plane
 
 **Symptom**: Cluster stuck in "Pending" or "Resizing"
 
 **Diagnosis**:
 ```bash
-***REMOVED*** From a test VM in same VNet
+# From a test VM in same VNet
 curl -v https://tunnel.{region}.azuredatabricks.net
 nslookup tunnel.{region}.azuredatabricks.net
 traceroute tunnel.{region}.azuredatabricks.net
@@ -568,13 +568,13 @@ traceroute tunnel.{region}.azuredatabricks.net
 - NSG blocking outbound HTTPS (443)
 - Route table misconfiguration
 
-***REMOVED******REMOVED******REMOVED*** Cannot Download Packages
+### Cannot Download Packages
 
 **Symptom**: `pip install` fails, "Connection timeout"
 
 **Diagnosis**:
 ```python
-***REMOVED*** From Databricks notebook
+# From Databricks notebook
 %sh curl -v https://pypi.org/simple/
 %sh ping -c 4 8.8.8.8
 ```
@@ -584,13 +584,13 @@ traceroute tunnel.{region}.azuredatabricks.net
 - No route to internet
 - Firewall blocking outbound traffic
 
-***REMOVED******REMOVED******REMOVED*** Cannot Access Storage
+### Cannot Access Storage
 
 **Symptom**: "403 Forbidden" or "Connection timeout" accessing ADLS
 
 **Diagnosis**:
 ```python
-***REMOVED*** From Databricks notebook
+# From Databricks notebook
 dbutils.fs.ls("abfss://...")
 ```
 
@@ -602,7 +602,7 @@ dbutils.fs.ls("abfss://...")
 
 ---
 
-***REMOVED******REMOVED*** References
+## References
 
 - [Azure Databricks Network Architecture](https://learn.microsoft.com/en-us/azure/databricks/security/network/)
 - [Secure Cluster Connectivity (NPIP)](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/secure-cluster-connectivity)

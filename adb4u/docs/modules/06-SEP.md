@@ -1,14 +1,14 @@
-***REMOVED*** Service Endpoint Policy (SEP) Module
+# Service Endpoint Policy (SEP) Module
 
 > **Control storage egress** from your VNet by allow-listing only approved Azure Storage accounts. Prevent data exfiltration via unauthorized storage access.
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The Service Endpoint Policy module restricts storage access from your Databricks VNet to only explicitly approved storage accounts. This prevents accidental or malicious data exfiltration by ensuring compute can only write to known, trusted storage locations.
 
-***REMOVED******REMOVED******REMOVED*** What It Does
+### What It Does
 
 **Security Control:**
 - ✅ **Allow** access to DBFS root storage
@@ -17,7 +17,7 @@ The Service Endpoint Policy module restricts storage access from your Databricks
 - ✅ **Allow** access to Databricks system storage (via alias)
 - ❌ **Block** access to all other storage accounts
 
-***REMOVED******REMOVED******REMOVED*** Key Features
+### Key Features
 
 ✅ **Egress Control** - Prevent data leaving via unauthorized storage  
 ✅ **Automatic** - DBFS and UC storage automatically included  
@@ -29,9 +29,9 @@ The Service Endpoint Policy module restricts storage access from your Databricks
 
 ---
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** Component Overview
+### Component Overview
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -72,7 +72,7 @@ The Service Endpoint Policy module restricts storage access from your Databricks
         └─────────────────────────┘
 ```
 
-***REMOVED******REMOVED******REMOVED*** How It Works
+### How It Works
 
 1. **Policy Creation** - SEP created with allow-list of storage accounts
 2. **Subnet Association** - SEP attached to Databricks subnets
@@ -81,24 +81,24 @@ The Service Endpoint Policy module restricts storage access from your Databricks
 
 ---
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
-***REMOVED******REMOVED******REMOVED*** Basic Usage
+### Basic Usage
 
 Enable SEP with automatic storage accounts:
 
 ```hcl
-***REMOVED*** terraform.tfvars
-enable_service_endpoint_policy = true  ***REMOVED*** Enabled by default
+# terraform.tfvars
+enable_service_endpoint_policy = true  # Enabled by default
 
-***REMOVED*** Automatically includes:
-***REMOVED*** - DBFS root storage
-***REMOVED*** - UC metastore storage
-***REMOVED*** - UC external storage
-***REMOVED*** - Databricks system storage (via alias)
+# Automatically includes:
+# - DBFS root storage
+# - UC metastore storage
+# - UC external storage
+# - Databricks system storage (via alias)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Add Custom Storage Accounts
+### Add Custom Storage Accounts
 
 ```hcl
 enable_service_endpoint_policy = true
@@ -109,27 +109,27 @@ additional_storage_account_ids = [
 ]
 ```
 
-***REMOVED******REMOVED******REMOVED*** Disable SEP (Not Recommended)
+### Disable SEP (Not Recommended)
 
 ```hcl
 enable_service_endpoint_policy = false
 
-***REMOVED*** ⚠️ Warning: Disabling SEP removes egress control.
-***REMOVED*** Compute can access ANY storage account.
+# ⚠️ Warning: Disabling SEP removes egress control.
+# Compute can access ANY storage account.
 ```
 
 ---
 
-***REMOVED******REMOVED*** Module Structure
+## Module Structure
 
 ```
 modules/service-endpoint-policy/
-├── main.tf       ***REMOVED*** SEP resource, policy definitions
-├── variables.tf  ***REMOVED*** Configuration options
-└── outputs.tf    ***REMOVED*** SEP ID, allowed accounts
+├── main.tf       # SEP resource, policy definitions
+├── variables.tf  # Configuration options
+└── outputs.tf    # SEP ID, allowed accounts
 ```
 
-***REMOVED******REMOVED******REMOVED*** Key Resources
+### Key Resources
 
 - `azurerm_subnet_service_endpoint_storage_policy` - SEP with allow-list
 - Policy definitions for each storage type
@@ -137,16 +137,16 @@ modules/service-endpoint-policy/
 
 ---
 
-***REMOVED******REMOVED*** Practical Usage
+## Practical Usage
 
-***REMOVED******REMOVED******REMOVED*** Deployment Workflow
+### Deployment Workflow
 
 **1. Enable in terraform.tfvars**
 
 ```hcl
 enable_service_endpoint_policy = true
 
-***REMOVED*** Add custom storage if needed
+# Add custom storage if needed
 additional_storage_account_ids = [
   "/subscriptions/.../storageAccounts/my-data-lake"
 ]
@@ -163,20 +163,20 @@ terraform apply
 ```bash
 terraform output service_endpoint_policy
 
-***REMOVED*** Output:
+# Output:
 {
   "allowed_storage_ids" = [
-    "/subscriptions/.../storageAccounts/dbstorageXXX",      ***REMOVED*** DBFS
-    "/subscriptions/.../storageAccounts/proddbmetastore",   ***REMOVED*** UC metastore
-    "/subscriptions/.../storageAccounts/proddbexternal",    ***REMOVED*** UC external
-    "/subscriptions/.../storageAccounts/my-data-lake"       ***REMOVED*** Custom
+    "/subscriptions/.../storageAccounts/dbstorageXXX",      # DBFS
+    "/subscriptions/.../storageAccounts/proddbmetastore",   # UC metastore
+    "/subscriptions/.../storageAccounts/proddbexternal",    # UC external
+    "/subscriptions/.../storageAccounts/my-data-lake"       # Custom
   ]
   "id" = "/subscriptions/.../serviceEndpointPolicies/..."
   "name" = "proddb-sep-storage-xxxxx"
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Validation Checklist
+### Validation Checklist
 
 After deployment, verify:
 
@@ -186,62 +186,62 @@ After deployment, verify:
 - [ ] Cluster can access UC storage (allowed)
 - [ ] Cluster cannot access unauthorized storage (blocked)
 
-***REMOVED******REMOVED******REMOVED*** Testing SEP
+### Testing SEP
 
 **Test Allowed Access (Should Work):**
 
 ```python
-***REMOVED*** Access DBFS (allowed)
+# Access DBFS (allowed)
 dbutils.fs.ls("dbfs:/")
 
-***REMOVED*** Access Unity Catalog (allowed)
+# Access Unity Catalog (allowed)
 spark.sql("SELECT * FROM catalog.schema.table LIMIT 10").show()
 
-***REMOVED*** Access custom storage (if added to allow-list)
+# Access custom storage (if added to allow-list)
 df = spark.read.parquet("abfss://container@customstorage.dfs.core.windows.net/data/")
 ```
 
 **Test Blocked Access (Should Fail):**
 
 ```python
-***REMOVED*** Try to access unauthorized storage account
+# Try to access unauthorized storage account
 df = spark.read.parquet("abfss://container@unauthorizedstorage.dfs.core.windows.net/data/")
 
-***REMOVED*** Expected error:
-***REMOVED*** "This request is not authorized to perform this operation using this permission"
-***REMOVED*** OR "Forbidden"
+# Expected error:
+# "This request is not authorized to perform this operation using this permission"
+# OR "Forbidden"
 ```
 
 ---
 
-***REMOVED******REMOVED*** How-To Guides
+## How-To Guides
 
-***REMOVED******REMOVED******REMOVED*** Add Storage Account After Deployment
+### Add Storage Account After Deployment
 
 ```hcl
-***REMOVED*** Update terraform.tfvars
+# Update terraform.tfvars
 additional_storage_account_ids = [
   "/subscriptions/.../storageAccounts/existing-storage",
-  "/subscriptions/.../storageAccounts/new-storage"  ***REMOVED*** Add this
+  "/subscriptions/.../storageAccounts/new-storage"  # Add this
 ]
 
-***REMOVED*** Apply changes
+# Apply changes
 terraform apply
 ```
 
-***REMOVED******REMOVED******REMOVED*** Remove Storage Account
+### Remove Storage Account
 
 ```hcl
-***REMOVED*** Remove from list in terraform.tfvars
+# Remove from list in terraform.tfvars
 additional_storage_account_ids = [
   "/subscriptions/.../storageAccounts/keep-this-one"
-  ***REMOVED*** Removed: "/subscriptions/.../storageAccounts/remove-this-one"
+  # Removed: "/subscriptions/.../storageAccounts/remove-this-one"
 ]
 
 terraform apply
 ```
 
-***REMOVED******REMOVED******REMOVED*** BYOV with SEP
+### BYOV with SEP
 
 When using existing VNet:
 
@@ -249,17 +249,17 @@ When using existing VNet:
 use_existing_network = true
 enable_service_endpoint_policy = true
 
-***REMOVED*** SEP will be attached to existing subnets
-***REMOVED*** Ensure existing subnets have Service Endpoints enabled:
-***REMOVED*** - Microsoft.Storage
-***REMOVED*** - Microsoft.KeyVault
+# SEP will be attached to existing subnets
+# Ensure existing subnets have Service Endpoints enabled:
+# - Microsoft.Storage
+# - Microsoft.KeyVault
 ```
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Issue: "Service endpoint policy definition contains invalid resource name"
+### Issue: "Service endpoint policy definition contains invalid resource name"
 
 **Cause**: Workspace not enabled for SEP support (created before July 14, 2025).
 
@@ -270,7 +270,7 @@ Workspaces created on or after July 14, 2025 support SEP by default.
 For older workspaces, request enablement from Databricks.
 ```
 
-***REMOVED******REMOVED******REMOVED*** Issue: "Cannot access UC storage after enabling SEP"
+### Issue: "Cannot access UC storage after enabling SEP"
 
 **Cause**: UC storage not in SEP allow-list.
 
@@ -282,14 +282,14 @@ terraform output service_endpoint_policy | grep storageAccounts
 
 UC storage should be automatically included. If missing, report as bug.
 
-***REMOVED******REMOVED******REMOVED*** Issue: "SEP cannot be deleted because it is in use"
+### Issue: "SEP cannot be deleted because it is in use"
 
 **Cause**: SEP still attached to subnets.
 
 **Solution**: Module handles this automatically via destroy provisioners. If issues persist:
 
 ```bash
-***REMOVED*** Manual cleanup (only if destroy fails)
+# Manual cleanup (only if destroy fails)
 az network vnet subnet update \
   --resource-group <RG_NAME> \
   --vnet-name <VNET_NAME> \
@@ -301,7 +301,7 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 ✅ **DO:**
 - Enable SEP by default for all deployments
@@ -318,9 +318,9 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** Important Notes
+## Important Notes
 
-***REMOVED******REMOVED******REMOVED*** Scope Limitations
+### Scope Limitations
 
 **SEP Applies To:**
 - ✅ Classic clusters (interactive, job, all-purpose)
@@ -332,7 +332,7 @@ terraform destroy
 - ❌ Control plane operations
 - ❌ Databricks-to-Databricks communication
 
-***REMOVED******REMOVED******REMOVED*** Serverless Connectivity
+### Serverless Connectivity
 
 For serverless compute, use different approaches:
 - **Service Endpoints**: Configure storage firewall with serverless subnets
@@ -340,7 +340,7 @@ For serverless compute, use different approaches:
 
 See: [Serverless Setup Guide](../guides/01-SERVERLESS-SETUP.md)
 
-***REMOVED******REMOVED******REMOVED*** Databricks System Storage
+### Databricks System Storage
 
 The SEP includes Databricks system storage accounts via alias:
 ```
@@ -356,7 +356,7 @@ This allows access to:
 
 ---
 
-***REMOVED******REMOVED*** Cost Considerations
+## Cost Considerations
 
 - **Service Endpoint**: Free (no Azure charges)
 - **SEP**: Free (no additional cost)
@@ -366,12 +366,12 @@ This allows access to:
 
 ---
 
-***REMOVED******REMOVED*** References
+## References
 
 **Azure Documentation:**
 - [Service Endpoints](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview)
 - [Service Endpoint Policies](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/service-endpoints)
-- [Data Exfiltration Prevention](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/service-endpoints***REMOVED***configure-a-service-endpoint-policy)
+- [Data Exfiltration Prevention](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/service-endpoints#configure-a-service-endpoint-policy)
 
 **Terraform Providers:**
 - [azurerm_subnet_service_endpoint_storage_policy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_service_endpoint_storage_policy)

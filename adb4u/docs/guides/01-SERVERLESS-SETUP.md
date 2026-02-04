@@ -1,4 +1,4 @@
-***REMOVED*** Serverless Compute Setup Guide
+# Serverless Compute Setup Guide
 
 > **Enable Serverless SQL Warehouses and Serverless Notebooks** with private connectivity to customer storage and Azure services.
 >
@@ -6,21 +6,21 @@
 
 ---
 
-***REMOVED******REMOVED*** 📋 **Table of Contents**
+## 📋 **Table of Contents**
 
-1. [Overview](***REMOVED***1-overview)
-2. [Prerequisites](***REMOVED***2-prerequisites)
-3. [Serverless Connectivity Options](***REMOVED***3-serverless-connectivity-options)
-4. [Option A: Service Endpoints (Recommended)](***REMOVED***4-option-a-service-endpoints-recommended)
-5. [Option B: Private Link via NCC](***REMOVED***5-option-b-private-link-via-ncc)
-6. [Testing Serverless](***REMOVED***6-testing-serverless)
-7. [Troubleshooting](***REMOVED***7-troubleshooting)
+1. [Overview](#1-overview)
+2. [Prerequisites](#2-prerequisites)
+3. [Serverless Connectivity Options](#3-serverless-connectivity-options)
+4. [Option A: Service Endpoints (Recommended)](#4-option-a-service-endpoints-recommended)
+5. [Option B: Private Link via NCC](#5-option-b-private-link-via-ncc)
+6. [Testing Serverless](#6-testing-serverless)
+7. [Troubleshooting](#7-troubleshooting)
 
 ---
 
-***REMOVED******REMOVED*** 1. Overview
+## 1. Overview
 
-***REMOVED******REMOVED******REMOVED*** **What is Serverless Compute?**
+### **What is Serverless Compute?**
 
 Serverless compute runs in **Databricks-managed Azure VNet** (not your VNet like classic clusters).
 
@@ -31,7 +31,7 @@ Serverless compute runs in **Databricks-managed Azure VNet** (not your VNet like
 | **Approval** | N/A (runs in your VNet) | Varies by connectivity option |
 | **Use Cases** | ETL, ML training, batch jobs | SQL Warehouses, ad-hoc queries |
 
-***REMOVED******REMOVED******REMOVED*** **Deployment Status**
+### **Deployment Status**
 
 After `terraform apply`, your workspace has:
 - ✅ **NCC Attached**: Network Connectivity Configuration created and bound
@@ -40,7 +40,7 @@ After `terraform apply`, your workspace has:
 
 ---
 
-***REMOVED******REMOVED*** 2. Prerequisites
+## 2. Prerequisites
 
 **Before Starting**:
 - ✅ Workspace deployed successfully
@@ -55,17 +55,17 @@ After `terraform apply`, your workspace has:
 
 ---
 
-***REMOVED******REMOVED*** 3. Serverless Connectivity Options
+## 3. Serverless Connectivity Options
 
-***REMOVED******REMOVED******REMOVED*** **Two Approaches**
+### **Two Approaches**
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Option A: Service Endpoints (Recommended)**
+#### **Option A: Service Endpoints (Recommended)**
 - ✅ **Setup**: Simple configuration
 - ✅ **Performance**: Good latency
 - ⚠️ **Security**: Traffic stays on Azure backbone (not internet), but not isolated
 - ✅ **Best For**: Most deployments
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Option B: Private Link via NCC**
+#### **Option B: Private Link via NCC**
 - ✅ **Setup**: Manual approval required in Azure Portal
 - ✅ **Performance**: Best latency
 - ✅ **Security**: Fully isolated (no public network routing)
@@ -73,9 +73,9 @@ After `terraform apply`, your workspace has:
 
 ---
 
-***REMOVED******REMOVED*** 4. Option A: Service Endpoints (Recommended)
+## 4. Option A: Service Endpoints (Recommended)
 
-***REMOVED******REMOVED******REMOVED*** **How It Works**
+### **How It Works**
 
 ```
 Serverless Compute → NCC → Service Endpoint → Storage Account
@@ -91,7 +91,7 @@ Serverless Compute → NCC → Service Endpoint → Storage Account
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Step 1: Enable Serverless in Databricks UI**
+### **Step 1: Enable Serverless in Databricks UI**
 
 1. **Navigate to Admin Console**:
    ```
@@ -110,11 +110,11 @@ Serverless Compute → NCC → Service Endpoint → Storage Account
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Step 2: Configure Storage Firewall with Serverless Subnets**
+### **Step 2: Configure Storage Firewall with Serverless Subnets**
 
 Databricks serverless will access your storage from specific subnets. You need to allow these subnets in your storage firewall.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Get Serverless Subnet IDs**
+#### **Get Serverless Subnet IDs**
 
 After enabling serverless, Databricks will display the serverless subnet IDs in the UI:
 
@@ -128,15 +128,15 @@ Workspace → Settings → Network → Serverless Compute → View Details
 /subscriptions/.../resourceGroups/databricks-rg-<workspace>/providers/Microsoft.Network/virtualNetworks/workers-vnet/subnets/serverless-private
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Update Storage Account Firewall**
+#### **Update Storage Account Firewall**
 
 **For UC Metastore Storage**:
 
 ```bash
-***REMOVED*** Get storage account name
+# Get storage account name
 UC_METASTORE_STORAGE=$(terraform output -raw external_storage_account_name)
 
-***REMOVED*** Add serverless subnets to firewall
+# Add serverless subnets to firewall
 az storage account network-rule add \
   --account-name $UC_METASTORE_STORAGE \
   --subnet "<SERVERLESS_PUBLIC_SUBNET_ID>" \
@@ -153,7 +153,7 @@ az storage account network-rule add \
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Step 3: Test Serverless SQL Warehouse**
+### **Step 3: Test Serverless SQL Warehouse**
 
 1. **Create SQL Warehouse**:
    ```
@@ -176,12 +176,12 @@ az storage account network-rule add \
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Step 4: (Optional) Lock Down Storage**
+### **Step 4: (Optional) Lock Down Storage**
 
 If you want to disable public access completely:
 
 ```bash
-***REMOVED*** Disable public network access (use with caution!)
+# Disable public network access (use with caution!)
 az storage account update \
   --name $UC_METASTORE_STORAGE \
   --resource-group <rg-name> \
@@ -199,9 +199,9 @@ az storage account update \
 
 ---
 
-***REMOVED******REMOVED*** 5. Option B: Private Link via NCC
+## 5. Option B: Private Link via NCC
 
-***REMOVED******REMOVED******REMOVED*** **How It Works**
+### **How It Works**
 
 ```
 Serverless Compute → NCC → Private Endpoint → Storage Account
@@ -213,7 +213,7 @@ Serverless Compute → NCC → Private Endpoint → Storage Account
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Step 1: Enable Serverless with Private Link**
+### **Step 1: Enable Serverless with Private Link**
 
 1. **Navigate to Admin Console**:
    ```
@@ -237,9 +237,9 @@ Serverless Compute → NCC → Private Endpoint → Storage Account
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Step 2: Approve Private Endpoint Connections**
+### **Step 2: Approve Private Endpoint Connections**
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Via Azure Portal**
+#### **Via Azure Portal**
 
 1. **Navigate to Storage Account**:
    ```
@@ -265,16 +265,16 @@ Serverless Compute → NCC → Private Endpoint → Storage Account
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Via Azure CLI**
+#### **Via Azure CLI**
 
 ```bash
-***REMOVED*** List pending private endpoint connections
+# List pending private endpoint connections
 az storage account private-endpoint-connection list \
   --account-name <storage-account-name> \
   --resource-group <rg-name> \
   --query "[?properties.privateLinkServiceConnectionState.status=='Pending']"
 
-***REMOVED*** Approve connection
+# Approve connection
 az storage account private-endpoint-connection approve \
   --account-name <storage-account-name> \
   --resource-group <rg-name> \
@@ -284,7 +284,7 @@ az storage account private-endpoint-connection approve \
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Step 3: Verify Connection Status**
+### **Step 3: Verify Connection Status**
 
 **In Databricks UI**:
 ```
@@ -295,12 +295,12 @@ Workspace → Settings → Network → Serverless Compute → View Private Link 
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Step 4: Lock Down Storage (Optional but Recommended)**
+### **Step 4: Lock Down Storage (Optional but Recommended)**
 
 Once Private Link is working:
 
 ```bash
-***REMOVED*** Disable public network access
+# Disable public network access
 az storage account update \
   --name <storage-account-name> \
   --resource-group <rg-name> \
@@ -314,17 +314,17 @@ az storage account update \
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Step 5: Test Serverless SQL Warehouse**
+### **Step 5: Test Serverless SQL Warehouse**
 
 Same as Option A Step 3.
 
 ---
 
-***REMOVED******REMOVED*** 6. Testing Serverless
+## 6. Testing Serverless
 
-***REMOVED******REMOVED******REMOVED*** **Test Checklist**
+### **Test Checklist**
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **SQL Warehouse Test**
+#### **SQL Warehouse Test**
 
 ```sql
 -- 1. Test catalog access
@@ -341,26 +341,26 @@ CREATE TABLE <catalog>.<schema>.test_table AS
 SELECT 1 as id, 'test' as name;
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Serverless Notebook Test** (Optional)
+#### **Serverless Notebook Test** (Optional)
 
 ```python
-***REMOVED*** Test Unity Catalog access
+# Test Unity Catalog access
 catalogs = spark.sql("SHOW CATALOGS").collect()
 print(f"Found {len(catalogs)} catalogs")
 
-***REMOVED*** Test external location read
+# Test external location read
 df = spark.read.table("<catalog>.<schema>.<table>")
 display(df.limit(10))
 
-***REMOVED*** Test external location write
+# Test external location write
 df.write.mode("overwrite").saveAsTable("<catalog>.<schema>.test_table")
 ```
 
 ---
 
-***REMOVED******REMOVED*** 7. Troubleshooting
+## 7. Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** **Issue: SQL Warehouse Fails to Start**
+### **Issue: SQL Warehouse Fails to Start**
 
 **Symptoms**:
 ```
@@ -373,7 +373,7 @@ Error: Network connectivity issue
 1. **NCC Attached**:
    ```bash
    terraform output ncc_id
-   ***REMOVED*** Should return: ncc-<id>
+   # Should return: ncc-<id>
    ```
 
 2. **Serverless Enabled**:
@@ -390,7 +390,7 @@ Error: Network connectivity issue
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Issue: Queries Work But Slow Performance**
+### **Issue: Queries Work But Slow Performance**
 
 **Possible Causes**:
 - Service Endpoint routing inefficient
@@ -403,7 +403,7 @@ Error: Network connectivity issue
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Issue: Cannot Write to External Location**
+### **Issue: Cannot Write to External Location**
 
 **Symptoms**:
 ```
@@ -415,7 +415,7 @@ Error: Permission denied
 
 1. **Access Connector Permissions**:
    ```bash
-   ***REMOVED*** Verify Access Connector has "Storage Blob Data Contributor"
+   # Verify Access Connector has "Storage Blob Data Contributor"
    az role assignment list \
      --assignee <access-connector-principal-id> \
      --scope <storage-account-id>
@@ -439,7 +439,7 @@ Error: Permission denied
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Issue: Private Endpoint Connection Stuck "Pending"**
+### **Issue: Private Endpoint Connection Stuck "Pending"**
 
 **Possible Causes**:
 - Manual approval not completed
@@ -460,7 +460,7 @@ Error: Permission denied
 
 ---
 
-***REMOVED******REMOVED*** 📚 **Additional Resources**
+## 📚 **Additional Resources**
 
 **Azure Documentation**:
 - [Serverless Network Security](https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/serverless-firewall)

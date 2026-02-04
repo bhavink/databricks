@@ -1,53 +1,53 @@
-***REMOVED*** Quick Start Guide - Non-PL Deployment
+# Quick Start Guide - Non-PL Deployment
 
 Deploy your first Azure Databricks workspace using the Non-Private Link pattern.
 
-***REMOVED******REMOVED*** ⏱️ Estimated Time: 20 minutes
+## ⏱️ Estimated Time: 20 minutes
 
-***REMOVED******REMOVED*** ✅ Prerequisites Checklist
+## ✅ Prerequisites Checklist
 
 - [ ] Azure subscription with Contributor + User Access Administrator roles
 - [ ] Terraform >= 1.5 installed (`terraform version`)
 - [ ] Azure CLI installed and logged in (`az login`)
 - [ ] Databricks Account ID from https://accounts.azuredatabricks.net
 
-***REMOVED******REMOVED*** 🚀 Deployment Steps
+## 🚀 Deployment Steps
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Set Environment Variables
+### Step 1: Set Environment Variables
 
 ```bash
-***REMOVED*** Set Databricks Account ID
+# Set Databricks Account ID
 export TF_VAR_databricks_account_id="<your-databricks-account-id>"
 
-***REMOVED*** Verify
+# Verify
 echo $TF_VAR_databricks_account_id
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Navigate to Deployment
+### Step 2: Navigate to Deployment
 
 ```bash
 cd /path/to/0-repo/databricks/adb4u/deployments/non-pl
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Configure Deployment
+### Step 3: Configure Deployment
 
 ```bash
-***REMOVED*** Copy example configuration
+# Copy example configuration
 cp terraform.tfvars.example terraform.tfvars
 
-***REMOVED*** Edit with your values
+# Edit with your values
 vim terraform.tfvars
 ```
 
 **Required values in `terraform.tfvars`:**
 ```hcl
-workspace_prefix        = "mydb"          ***REMOVED*** lowercase, max 12 chars
-location                = "eastus2"        ***REMOVED*** Azure region
+workspace_prefix        = "mydb"          # lowercase, max 12 chars
+location                = "eastus2"        # Azure region
 resource_group_name     = "rg-databricks-prod"
 databricks_account_id   = "<from-step-1>"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Initialize Terraform
+### Step 4: Initialize Terraform
 
 ```bash
 terraform init
@@ -63,7 +63,7 @@ Initializing modules...
 Terraform has been successfully initialized!
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 5: Validate Configuration
+### Step 5: Validate Configuration
 
 ```bash
 terraform validate
@@ -71,7 +71,7 @@ terraform validate
 
 **Expected:** `Success! The configuration is valid.`
 
-***REMOVED******REMOVED******REMOVED*** Step 6: Review Plan
+### Step 6: Review Plan
 
 ```bash
 terraform plan -out=tfplan
@@ -87,7 +87,7 @@ terraform plan -out=tfplan
 - 1 Access Connector
 - Unity Catalog resources
 
-***REMOVED******REMOVED******REMOVED*** Step 7: Apply Configuration
+### Step 7: Apply Configuration
 
 ```bash
 terraform apply tfplan
@@ -95,29 +95,29 @@ terraform apply tfplan
 
 **Duration:** ~15-20 minutes
 
-***REMOVED******REMOVED******REMOVED*** Step 8: Get Outputs
+### Step 8: Get Outputs
 
 ```bash
-***REMOVED*** View workspace URL
+# View workspace URL
 terraform output workspace_url
 
-***REMOVED*** View all outputs
+# View all outputs
 terraform output
 
-***REMOVED*** Save metastore ID for future workspaces
+# Save metastore ID for future workspaces
 terraform output metastore_id > metastore-id.txt
 ```
 
-***REMOVED******REMOVED*** ✅ Verification
+## ✅ Verification
 
-***REMOVED******REMOVED******REMOVED*** 1. Access Workspace
+### 1. Access Workspace
 
 ```bash
-***REMOVED*** Open workspace in browser
+# Open workspace in browser
 open $(terraform output -raw workspace_url)
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Verify Network Configuration
+### 2. Verify Network Configuration
 
 In Azure Portal, check:
 - Resource group exists
@@ -125,7 +125,7 @@ In Azure Portal, check:
 - NSG attached to both subnets
 - NAT Gateway created
 
-***REMOVED******REMOVED******REMOVED*** 3. Test Compute
+### 3. Test Compute
 
 1. In Databricks workspace, create a cluster
 2. Verify cluster has no public IPs (NPIP working)
@@ -134,22 +134,22 @@ In Azure Portal, check:
    %pip install pandas
    ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Test Unity Catalog
+### 4. Test Unity Catalog
 
 1. Navigate to Data → Unity Catalog
 2. Verify metastore is attached
 3. Create a catalog: `CREATE CATALOG test_catalog`
 4. Check external location is available
 
-***REMOVED******REMOVED*** 🐛 Troubleshooting
+## 🐛 Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Issue: "databricks_account_id must be a valid UUID"
+### Issue: "databricks_account_id must be a valid UUID"
 **Solution:** Verify format is `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` (no spaces)
 
-***REMOVED******REMOVED******REMOVED*** Issue: "Insufficient privileges"
+### Issue: "Insufficient privileges"
 **Solution:** Ensure you have Contributor + User Access Administrator roles
 
-***REMOVED******REMOVED******REMOVED*** Issue: "Subnet delegation not found" (BYOV only)
+### Issue: "Subnet delegation not found" (BYOV only)
 **Solution:** Add delegation manually:
 ```bash
 az network vnet subnet update \
@@ -159,10 +159,10 @@ az network vnet subnet update \
   --delegations Microsoft.Databricks/workspaces
 ```
 
-***REMOVED******REMOVED******REMOVED*** Issue: Cannot install packages
+### Issue: Cannot install packages
 **Solution:** Verify NAT Gateway is created and associated with subnets
 
-***REMOVED******REMOVED*** 📊 What Was Created?
+## 📊 What Was Created?
 
 | Resource Type | Count | Purpose |
 |---------------|-------|---------|
@@ -178,7 +178,7 @@ az network vnet subnet update \
 
 **Monthly Cost:** ~$58 (infrastructure only, compute is additional)
 
-***REMOVED******REMOVED*** 🎯 Next Steps
+## 🎯 Next Steps
 
 1. **Configure Users & Groups**
    - Set up Azure AD SCIM provisioning
@@ -202,7 +202,7 @@ az network vnet subnet update \
    - Set `create_metastore = false`
    - Reference `existing_metastore_id`
 
-***REMOVED******REMOVED*** 🧹 Cleanup (Testing Only)
+## 🧹 Cleanup (Testing Only)
 
 ```bash
 terraform destroy
@@ -210,7 +210,7 @@ terraform destroy
 
 **⚠️ Warning:** This will delete everything including Unity Catalog data!
 
-***REMOVED******REMOVED*** 📚 More Information
+## 📚 More Information
 
 - **Authentication Options:** See `docs/02-AUTHENTICATION.md`
 - **Architecture Details:** See [Non-PL Pattern](patterns/01-NON-PL.md)

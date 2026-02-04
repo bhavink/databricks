@@ -1,15 +1,15 @@
-***REMOVED*** Unity Catalog Module
+# Unity Catalog Module
 
 **Module**: `modules/unity-catalog`  
 **Purpose**: Creates and configures Unity Catalog metastore, storage, and external locations
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The Unity Catalog module provides a complete Unity Catalog implementation with support for new or existing metastores, flexible Access Connector strategies, and configurable storage connectivity (Service Endpoints vs. Private Link).
 
-***REMOVED******REMOVED******REMOVED*** Key Features
+### Key Features
 
 - ✅ **Flexible Metastore**: Create new or use existing
 - ✅ **Per-Workspace External Location**: Dedicated storage per workspace
@@ -21,9 +21,9 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 
 ---
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** Unity Catalog Components
+### Unity Catalog Components
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -87,7 +87,7 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 
 ---
 
-***REMOVED******REMOVED*** Resources Created
+## Resources Created
 
 | Resource Type | Name Pattern | Purpose | Scope |
 |--------------|--------------|---------|-------|
@@ -105,9 +105,9 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 
 ---
 
-***REMOVED******REMOVED*** Variables
+## Variables
 
-***REMOVED******REMOVED******REMOVED*** Metastore Configuration
+### Metastore Configuration
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -123,14 +123,14 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 | **First workspace in region** | `true` | `""` | Creates new metastore |
 | **Additional workspace in region** | `false` | `"abc-123..."` | Uses existing metastore |
 
-***REMOVED******REMOVED******REMOVED*** Workspace Configuration
+### Workspace Configuration
 
 | Variable | Type | Description |
 |----------|------|-------------|
 | `workspace_id` | string | Workspace ID (numeric) for metastore assignment |
 | `workspace_prefix` | string | Naming prefix for resources |
 
-***REMOVED******REMOVED******REMOVED*** Storage Configuration
+### Storage Configuration
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -143,7 +143,7 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 - Metastore: `{prefix}metastore{random}` (e.g., `proddbmetastore9a8b`)
 - External: `{prefix}external{random}` (e.g., `proddbexternal9a8b`)
 
-***REMOVED******REMOVED******REMOVED*** Access Connector Configuration
+### Access Connector Configuration
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -158,7 +158,7 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 | **Per-Workspace** | `true` | `""` | Default, workspace isolation |
 | **Shared (Regional)** | `false` | Provide IDs | Shared governance across workspaces |
 
-***REMOVED******REMOVED******REMOVED*** Storage Connectivity
+### Storage Connectivity
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -175,7 +175,7 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 
 ---
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -191,15 +191,15 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 
 ---
 
-***REMOVED******REMOVED*** Metastore Lifecycle
+## Metastore Lifecycle
 
-***REMOVED******REMOVED******REMOVED*** force_destroy = true
+### force_destroy = true
 
 **CRITICAL**: This module sets `force_destroy = true` on all metastore resources:
 
 ```hcl
 resource "databricks_metastore" "this" {
-  force_destroy = true  ***REMOVED*** Allows clean destroy with root credential
+  force_destroy = true  # Allows clean destroy with root credential
 }
 ```
 
@@ -214,20 +214,20 @@ resource "databricks_metastore" "this" {
 - ❌ Add `lifecycle.ignore_changes = [force_destroy]`
 - ❌ Remove `force_destroy` attribute
 
-See [Troubleshooting Guide](../TROUBLESHOOTING.md***REMOVED***unity-catalog-destroy-issues) for details.
+See [Troubleshooting Guide](../TROUBLESHOOTING.md#unity-catalog-destroy-issues) for details.
 
 ---
 
-***REMOVED******REMOVED*** Storage Accounts
+## Storage Accounts
 
-***REMOVED******REMOVED******REMOVED*** Network Configuration
+### Network Configuration
 
 **Default (Service Endpoints)**:
 ```hcl
 network_rules {
-  default_action = "Allow"  ***REMOVED*** Required for initial creation
+  default_action = "Allow"  # Required for initial creation
   bypass         = ["AzureServices"]
-  ***REMOVED*** Can be locked down post-deployment
+  # Can be locked down post-deployment
 }
 ```
 
@@ -241,11 +241,11 @@ network_rules {
 ```hcl
 resource "azurerm_private_endpoint" "metastore_storage" {
   count = var.enable_private_link_storage ? 1 : 0
-  ***REMOVED*** Creates private endpoint for storage account
+  # Creates private endpoint for storage account
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Storage Features
+### Storage Features
 
 - ✅ **ADLS Gen2**: Hierarchical Namespace enabled
 - ✅ **Replication**: LRS (locally redundant storage)
@@ -257,9 +257,9 @@ resource "azurerm_private_endpoint" "metastore_storage" {
 
 ---
 
-***REMOVED******REMOVED*** RBAC Configuration
+## RBAC Configuration
 
-***REMOVED******REMOVED******REMOVED*** Storage Account Permissions
+### Storage Account Permissions
 
 ```hcl
 resource "azurerm_role_assignment" "metastore_contributor" {
@@ -281,35 +281,35 @@ resource "azurerm_role_assignment" "metastore_contributor" {
 
 ---
 
-***REMOVED******REMOVED*** Usage Examples
+## Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Example 1: First Workspace in Region (Create Metastore)
+### Example 1: First Workspace in Region (Create Metastore)
 
 ```hcl
 module "unity_catalog" {
   source = "../../modules/unity-catalog"
   
-  ***REMOVED*** Metastore configuration (create new)
+  # Metastore configuration (create new)
   create_metastore      = true
   metastore_name        = "prod-eastus2-metastore"
   databricks_account_id = var.databricks_account_id
   
-  ***REMOVED*** Workspace configuration
+  # Workspace configuration
   workspace_id     = module.workspace.workspace_id_numeric
   workspace_prefix = "proddb"
   
-  ***REMOVED*** Storage configuration
+  # Storage configuration
   location            = "eastus2"
   resource_group_name = azurerm_resource_group.this.name
   
-  ***REMOVED*** Access Connector (create new)
+  # Access Connector (create new)
   create_access_connector = true
   
-  ***REMOVED*** Storage connectivity (Service Endpoints - default)
+  # Storage connectivity (Service Endpoints - default)
   enable_private_link_storage = false
   service_endpoints_enabled   = true
   
-  ***REMOVED*** Databricks providers
+  # Databricks providers
   providers = {
     databricks.account   = databricks.account
     databricks.workspace = databricks.workspace
@@ -321,31 +321,31 @@ module "unity_catalog" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example 2: Additional Workspace (Use Existing Metastore)
+### Example 2: Additional Workspace (Use Existing Metastore)
 
 ```hcl
 module "unity_catalog" {
   source = "../../modules/unity-catalog"
   
-  ***REMOVED*** Metastore configuration (use existing)
+  # Metastore configuration (use existing)
   create_metastore       = false
-  existing_metastore_id  = "abc-123-def-456"  ***REMOVED*** From first workspace
+  existing_metastore_id  = "abc-123-def-456"  # From first workspace
   databricks_account_id  = var.databricks_account_id
   
-  ***REMOVED*** Workspace configuration
+  # Workspace configuration
   workspace_id     = module.workspace.workspace_id_numeric
   workspace_prefix = "devdb"
   
-  ***REMOVED*** Storage configuration
+  # Storage configuration
   location                        = "eastus2"
   resource_group_name             = azurerm_resource_group.this.name
-  create_metastore_storage        = false  ***REMOVED*** Skip metastore storage
-  create_external_location_storage = true   ***REMOVED*** Create workspace storage
+  create_metastore_storage        = false  # Skip metastore storage
+  create_external_location_storage = true   # Create workspace storage
   
-  ***REMOVED*** Access Connector (create new per workspace)
+  # Access Connector (create new per workspace)
   create_access_connector = true
   
-  ***REMOVED*** Storage connectivity
+  # Storage connectivity
   enable_private_link_storage = false
   service_endpoints_enabled   = true
   
@@ -360,7 +360,7 @@ module "unity_catalog" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example 3: Private Link Storage
+### Example 3: Private Link Storage
 
 ```hcl
 module "unity_catalog" {
@@ -378,7 +378,7 @@ module "unity_catalog" {
   
   create_access_connector = true
   
-  ***REMOVED*** Private Link enabled
+  # Private Link enabled
   enable_private_link_storage         = true
   storage_private_endpoint_subnet_id  = module.networking.private_subnet_id
   
@@ -394,19 +394,19 @@ module "unity_catalog" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example 4: Shared Access Connector (Regional)
+### Example 4: Shared Access Connector (Regional)
 
 ```hcl
-***REMOVED*** First workspace: Create Access Connector
+# First workspace: Create Access Connector
 module "unity_catalog_ws1" {
   source = "../../modules/unity-catalog"
   
-  ***REMOVED*** ... other config ...
+  # ... other config ...
   
   create_access_connector = true
 }
 
-***REMOVED*** Capture Access Connector details
+# Capture Access Connector details
 output "shared_access_connector_id" {
   value = module.unity_catalog_ws1.access_connector_id
 }
@@ -415,13 +415,13 @@ output "shared_access_connector_principal_id" {
   value = module.unity_catalog_ws1.access_connector_principal_id
 }
 
-***REMOVED*** Second workspace: Use existing Access Connector
+# Second workspace: Use existing Access Connector
 module "unity_catalog_ws2" {
   source = "../../modules/unity-catalog"
   
-  ***REMOVED*** ... other config ...
+  # ... other config ...
   
-  ***REMOVED*** Use shared Access Connector
+  # Use shared Access Connector
   create_access_connector                = false
   existing_access_connector_id           = module.unity_catalog_ws1.access_connector_id
   existing_access_connector_principal_id = module.unity_catalog_ws1.access_connector_principal_id
@@ -430,9 +430,9 @@ module "unity_catalog_ws2" {
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Metastore Strategy
+### Metastore Strategy
 
 1. **One Metastore Per Region**
    - First workspace: Create metastore
@@ -442,9 +442,9 @@ module "unity_catalog_ws2" {
 2. **Naming Convention**
    ```hcl
    metastore_name = "${var.environment}-${var.location}-metastore"
-   ***REMOVED*** Examples:
-   ***REMOVED*** - prod-eastus2-metastore
-   ***REMOVED*** - staging-westus2-metastore
+   # Examples:
+   # - prod-eastus2-metastore
+   # - staging-westus2-metastore
    ```
 
 3. **Metastore Governance**
@@ -452,7 +452,7 @@ module "unity_catalog_ws2" {
    - Configure catalog permissions
    - Enable audit logging
 
-***REMOVED******REMOVED******REMOVED*** Storage Strategy
+### Storage Strategy
 
 1. **Separation of Concerns**
    - Metastore storage: Shared metadata
@@ -469,7 +469,7 @@ module "unity_catalog_ws2" {
    - Configure retention policies
    - Plan for data archival
 
-***REMOVED******REMOVED******REMOVED*** Access Connector Strategy
+### Access Connector Strategy
 
 | Approach | When to Use | Benefits | Drawbacks |
 |----------|------------|----------|-----------|
@@ -478,9 +478,9 @@ module "unity_catalog_ws2" {
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Issue: Metastore Already Exists
+### Issue: Metastore Already Exists
 
 **Error**:
 ```
@@ -493,7 +493,7 @@ create_metastore      = false
 existing_metastore_id = "abc-123-def-456"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Issue: 403 Authorization Error (Storage)
+### Issue: 403 Authorization Error (Storage)
 
 **Error**:
 ```
@@ -502,7 +502,7 @@ Error: checking for existing Container "metastore": unexpected status 403
 
 **Solution**: Storage account network rules are too restrictive. Module uses `default_action = "Allow"` during creation.
 
-***REMOVED******REMOVED******REMOVED*** Issue: Cannot Delete Metastore
+### Issue: Cannot Delete Metastore
 
 **Error**:
 ```
@@ -518,7 +518,7 @@ See [Troubleshooting Guide](../TROUBLESHOOTING.md) for more details.
 
 ---
 
-***REMOVED******REMOVED*** References
+## References
 
 - [Unity Catalog Overview](https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/)
 - [Unity Catalog Best Practices](https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/best-practices)

@@ -1,4 +1,4 @@
-***REMOVED*** Archive - Legacy Content
+# Archive - Legacy Content
 
 **Status**: 📦 **ARCHIVED** - Reference Only
 
@@ -11,31 +11,31 @@ This folder contains legacy templates, scripts, and documentation from the origi
 
 ---
 
-***REMOVED******REMOVED*** 📂 Contents
+## 📂 Contents
 
-***REMOVED******REMOVED******REMOVED*** Legacy Templates
+### Legacy Templates
 - **`templates/`** - Original Terraform scripts (adb-npip, adb-pl-latest, adb-pvt-workspace)
 - **`adb-arm-templates/`** - ARM templates for NPIP deployments
 
-***REMOVED******REMOVED******REMOVED*** Demos & Examples
+### Demos & Examples
 - **`accessing-adls/`** - ADLS Gen2 access examples (notebooks, SQL)
 - **`adb-authenticating-rest-api/`** - Postman collections for AAD token authentication
 - **`adb-e2e-automation-acelerator/`** - End-to-end automation examples
 - **`users-groups-management/`** - User/group provisioning guides
 
-***REMOVED******REMOVED******REMOVED*** SCIM & Service Principals
+### SCIM & Service Principals
 - **`adb-scim-provisioning-app-automation/`** - SCIM provisioning automation
 - **`adb-service-principal-scim-api/`** - Service principal SCIM examples
 
-***REMOVED******REMOVED******REMOVED*** Security & Deployment
+### Security & Deployment
 - **`secure-deployments/`** - Data exfiltration prevention examples
 - **`LEGACY-CONTENT.md`** - Original README content with Mermaid diagrams
 
 ---
 
-***REMOVED******REMOVED*** 🔄 Migration Guide
+## 🔄 Migration Guide
 
-***REMOVED******REMOVED******REMOVED*** Old vs New Structure
+### Old vs New Structure
 
 | Old Location | New Location | Status |
 |--------------|--------------|--------|
@@ -44,7 +44,7 @@ This folder contains legacy templates, scripts, and documentation from the origi
 | `secure-deployments/` | `docs/patterns/NON-PL.md` | ✅ Documented |
 | Legacy README diagrams | `archive/LEGACY-CONTENT.md` | ✅ Archived |
 
-***REMOVED******REMOVED******REMOVED*** Why Archive?
+### Why Archive?
 
 The legacy content:
 - ❌ Uses monolithic Terraform files (not modular)
@@ -65,7 +65,7 @@ The new modular structure:
 
 ---
 
-***REMOVED******REMOVED*** 📝 Using Legacy Templates
+## 📝 Using Legacy Templates
 
 If you need to reference the legacy templates:
 
@@ -78,7 +78,7 @@ If you need to reference the legacy templates:
 
 ---
 
-***REMOVED******REMOVED*** 📚 Reference Links
+## 📚 Reference Links
 
 **New Documentation**:
 - [Quick Start Guide](../docs/01-QUICKSTART.md)

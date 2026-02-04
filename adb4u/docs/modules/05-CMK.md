@@ -1,14 +1,14 @@
-***REMOVED*** Customer-Managed Keys (CMK) Module
+# Customer-Managed Keys (CMK) Module
 
 > **Encrypt your workspace data** with your own Azure Key Vault encryption keys for complete control over data security.
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The CMK module enables encryption of Databricks workspace data using customer-managed keys stored in Azure Key Vault. This gives you complete control over encryption keys and allows you to meet compliance requirements for key management.
 
-***REMOVED******REMOVED******REMOVED*** What Gets Encrypted
+### What Gets Encrypted
 
 **Three encryption scopes available:**
 
@@ -16,7 +16,7 @@ The CMK module enables encryption of Databricks workspace data using customer-ma
 2. **Managed Disks** - Data plane VM disks (cluster worker node data disks)
 3. **DBFS Root** - Workspace storage (DBFS root, libraries, init scripts)
 
-***REMOVED******REMOVED******REMOVED*** Key Features
+### Key Features
 
 ✅ **Auto-Rotation** - Keys automatically rotate every 90 days  
 ✅ **Flexible** - Create new Key Vault or use existing  
@@ -26,9 +26,9 @@ The CMK module enables encryption of Databricks workspace data using customer-ma
 
 ---
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** Component Overview
+### Component Overview
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -62,7 +62,7 @@ The CMK module enables encryption of Databricks workspace data using customer-ma
 └─────────────────────────────────────────────────────────┘
 ```
 
-***REMOVED******REMOVED******REMOVED*** CMK Encryption Flow
+### CMK Encryption Flow
 
 ```mermaid
 sequenceDiagram
@@ -106,7 +106,7 @@ sequenceDiagram
     end
 ```
 
-***REMOVED******REMOVED******REMOVED*** Key Permissions Model
+### Key Permissions Model
 
 | Component | Identity Type | Permissions | Purpose |
 |-----------|--------------|-------------|---------|
@@ -115,7 +115,7 @@ sequenceDiagram
 | **Disk Encryption Set** | System-Assigned MI | Get, WrapKey, UnwrapKey | Encrypt cluster VM disks |
 | **DBFS Storage** | System-Assigned MI | Get, WrapKey, UnwrapKey | Encrypt workspace storage |
 
-***REMOVED******REMOVED******REMOVED*** How It Works
+### How It Works
 
 1. **Key Vault Creation** - Module creates (or uses existing) Azure Key Vault with required configuration
 2. **CMK Key Generation** - Encryption key created with auto-rotation policy
@@ -125,70 +125,70 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
-***REMOVED******REMOVED******REMOVED*** Basic Usage
+### Basic Usage
 
 Enable all three CMK scopes:
 
 ```hcl
-***REMOVED*** terraform.tfvars
-enable_cmk_managed_services = true  ***REMOVED*** Notebooks, secrets, queries
-enable_cmk_managed_disks    = true  ***REMOVED*** Cluster VM disks
-enable_cmk_dbfs_root        = true  ***REMOVED*** Workspace storage
+# terraform.tfvars
+enable_cmk_managed_services = true  # Notebooks, secrets, queries
+enable_cmk_managed_disks    = true  # Cluster VM disks
+enable_cmk_dbfs_root        = true  # Workspace storage
 
-create_key_vault = true  ***REMOVED*** Create new Key Vault
+create_key_vault = true  # Create new Key Vault
 ```
 
-***REMOVED******REMOVED******REMOVED*** Option 1: Create New Key Vault (Recommended)
+### Option 1: Create New Key Vault (Recommended)
 
 ```hcl
 create_key_vault = true
 
-***REMOVED*** Key Vault automatically configured with:
-***REMOVED*** - Purge protection: Enabled
-***REMOVED*** - Soft delete: 90 days
-***REMOVED*** - Key rotation: 90 days
-***REMOVED*** - RBAC model: Enabled
+# Key Vault automatically configured with:
+# - Purge protection: Enabled
+# - Soft delete: 90 days
+# - Key rotation: 90 days
+# - RBAC model: Enabled
 ```
 
-***REMOVED******REMOVED******REMOVED*** Option 2: Use Existing Key Vault
+### Option 2: Use Existing Key Vault
 
 ```hcl
 create_key_vault = false
 
 existing_key_vault_id = "/subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.KeyVault/vaults/<kv-name>"
-existing_key_id       = "https://<kv-name>.vault.azure.net/keys/<key-name>/<version>"  ***REMOVED*** Optional
+existing_key_id       = "https://<kv-name>.vault.azure.net/keys/<key-name>/<version>"  # Optional
 
-***REMOVED*** Requirements for existing Key Vault:
-***REMOVED*** - Purge protection: Must be enabled
-***REMOVED*** - Soft delete: Must be enabled
-***REMOVED*** - Access policies: Will be added automatically
+# Requirements for existing Key Vault:
+# - Purge protection: Must be enabled
+# - Soft delete: Must be enabled
+# - Access policies: Will be added automatically
 ```
 
-***REMOVED******REMOVED******REMOVED*** Selective Scope Enablement
+### Selective Scope Enablement
 
 Enable only specific scopes:
 
 ```hcl
-***REMOVED*** Example: Only encrypt managed services and DBFS
+# Example: Only encrypt managed services and DBFS
 enable_cmk_managed_services = true
-enable_cmk_managed_disks    = false  ***REMOVED*** Skip managed disks
+enable_cmk_managed_disks    = false  # Skip managed disks
 enable_cmk_dbfs_root        = true
 ```
 
 ---
 
-***REMOVED******REMOVED*** Module Structure
+## Module Structure
 
 ```
 modules/key-vault/
-├── main.tf       ***REMOVED*** Key Vault, key, access policies
-├── variables.tf  ***REMOVED*** Configuration options
-└── outputs.tf    ***REMOVED*** Key Vault ID, key ID, summary
+├── main.tf       # Key Vault, key, access policies
+├── variables.tf  # Configuration options
+└── outputs.tf    # Key Vault ID, key ID, summary
 ```
 
-***REMOVED******REMOVED******REMOVED*** Key Resources
+### Key Resources
 
 - `azurerm_key_vault` - Key Vault with purge protection
 - `azurerm_key_vault_key` - CMK key with rotation policy
@@ -197,14 +197,14 @@ modules/key-vault/
 
 ---
 
-***REMOVED******REMOVED*** Practical Usage
+## Practical Usage
 
-***REMOVED******REMOVED******REMOVED*** Deployment Workflow
+### Deployment Workflow
 
 **1. Configure Variables**
 
 ```hcl
-***REMOVED*** Enable CMK in terraform.tfvars
+# Enable CMK in terraform.tfvars
 enable_cmk_managed_services = true
 enable_cmk_managed_disks    = true
 enable_cmk_dbfs_root        = true
@@ -236,7 +236,7 @@ Expected output:
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Validation Checklist
+### Validation Checklist
 
 After deployment, verify:
 
@@ -247,84 +247,84 @@ After deployment, verify:
 - [ ] Cluster can start successfully (validates managed disks CMK)
 - [ ] Can read/write to DBFS (validates DBFS root CMK)
 
-***REMOVED******REMOVED******REMOVED*** Testing Encryption
+### Testing Encryption
 
 **Test Managed Services CMK:**
 ```python
-***REMOVED*** Create a notebook and secret
+# Create a notebook and secret
 databricks secrets create-scope --scope test-scope
 databricks secrets put --scope test-scope --key test-key --string-value "encrypted"
 
-***REMOVED*** Verify it's stored (encrypted at rest with your key)
+# Verify it's stored (encrypted at rest with your key)
 databricks secrets list --scope test-scope
 ```
 
 **Test Managed Disks CMK:**
 ```bash
-***REMOVED*** Start a cluster - disks are automatically encrypted
-***REMOVED*** Check Azure Portal → Cluster VMs → Disks → Encryption = "Customer-managed key"
+# Start a cluster - disks are automatically encrypted
+# Check Azure Portal → Cluster VMs → Disks → Encryption = "Customer-managed key"
 ```
 
 **Test DBFS Root CMK:**
 ```python
-***REMOVED*** Write to DBFS
+# Write to DBFS
 dbutils.fs.put("/test.txt", "encrypted content")
 
-***REMOVED*** Verify storage account encryption in Azure Portal
-***REMOVED*** Storage Account → Encryption → "Customer-managed keys"
+# Verify storage account encryption in Azure Portal
+# Storage Account → Encryption → "Customer-managed keys"
 ```
 
 ---
 
-***REMOVED******REMOVED*** How-To Guides
+## How-To Guides
 
-***REMOVED******REMOVED******REMOVED*** Rotate Keys Manually
+### Rotate Keys Manually
 
 Keys auto-rotate, but you can manually rotate if needed:
 
 ```bash
-***REMOVED*** Azure CLI
+# Azure CLI
 az keyvault key rotate \
   --vault-name <key-vault-name> \
   --name databricks-cmk
 ```
 
-***REMOVED******REMOVED******REMOVED*** Update Key Version
+### Update Key Version
 
 ```bash
-***REMOVED*** Get latest key version
+# Get latest key version
 az keyvault key show \
   --vault-name <key-vault-name> \
   --name databricks-cmk \
   --query "key.kid"
 
-***REMOVED*** Update in terraform.tfvars (if using existing key)
+# Update in terraform.tfvars (if using existing key)
 existing_key_id = "https://<kv>.vault.azure.net/keys/databricks-cmk/<new-version>"
 
 terraform apply
 ```
 
-***REMOVED******REMOVED******REMOVED*** Disable CMK (Not Recommended)
+### Disable CMK (Not Recommended)
 
 ⚠️ **Warning**: Cannot disable CMK once enabled. You must destroy and recreate workspace.
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Issue: "Storage account identity is empty"
+### Issue: "Storage account identity is empty"
 
 **Cause**: Workspace not configured for CMK infrastructure.
 
 **Solution**: Ensure `customer_managed_key_enabled = true` is set on workspace.
 
-***REMOVED******REMOVED******REMOVED*** Issue: "Authentication issue on keyvault"
+### Issue: "Authentication issue on keyvault"
 
 **Cause**: DBFS storage account missing access policy.
 
 **Solution**: Check `azurerm_key_vault_access_policy.dbfs_storage` exists.
 
-***REMOVED******REMOVED******REMOVED*** Issue: Workspace destroy fails
+### Issue: Workspace destroy fails
 
 **Cause**: Key Vault still in use.
 
@@ -332,7 +332,7 @@ terraform apply
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
 ✅ **DO:**
 - Enable all three scopes for comprehensive encryption
@@ -349,7 +349,7 @@ terraform apply
 
 ---
 
-***REMOVED******REMOVED*** Cost Considerations
+## Cost Considerations
 
 - **Key Vault**: ~$0.03/month per vault
 - **CMK Operations**: ~$0.03 per 10,000 operations
@@ -359,7 +359,7 @@ terraform apply
 
 ---
 
-***REMOVED******REMOVED*** References
+## References
 
 **Azure Documentation:**
 - [CMK for Managed Services](https://learn.microsoft.com/en-us/azure/databricks/security/keys/cmk-managed-services-azure/)

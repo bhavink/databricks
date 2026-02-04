@@ -1,15 +1,15 @@
-***REMOVED*** Workspace Module
+# Workspace Module
 
 **Module**: `modules/workspace`  
 **Purpose**: Creates and configures Azure Databricks workspace with security features
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The workspace module creates a fully configured Azure Databricks workspace with support for Private Link, Customer-Managed Keys (CMK), IP Access Lists, and Secure Cluster Connectivity (NPIP).
 
-***REMOVED******REMOVED******REMOVED*** Key Features
+### Key Features
 
 - ✅ **VNet Injection**: Deploy into customer-managed VNet
 - ✅ **Secure Cluster Connectivity (NPIP)**: Always enabled (no public IPs on clusters)
@@ -20,9 +20,9 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 
 ---
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** Workspace Components
+### Workspace Components
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -56,7 +56,7 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 
 ---
 
-***REMOVED******REMOVED*** Resources Created
+## Resources Created
 
 | Resource Type | Name Pattern | Purpose |
 |--------------|--------------|---------|
@@ -77,9 +77,9 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 
 ---
 
-***REMOVED******REMOVED*** Variables
+## Variables
 
-***REMOVED******REMOVED******REMOVED*** Workspace Configuration
+### Workspace Configuration
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -88,7 +88,7 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 | `resource_group_name` | string | (required) | Resource group for workspace |
 | `location` | string | (required) | Azure region |
 
-***REMOVED******REMOVED******REMOVED*** Network Configuration
+### Network Configuration
 
 | Variable | Type | Description |
 |----------|------|-------------|
@@ -103,7 +103,7 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 - `true`: Control plane + data plane use Private Link, `public_network_access_enabled = false`
 - `false`: Control plane public, data plane private (NPIP)
 
-***REMOVED******REMOVED******REMOVED*** Customer-Managed Keys (CMK)
+### Customer-Managed Keys (CMK)
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -124,7 +124,7 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 
 **Cost Impact**: No additional cost for CMK (Azure Disk Encryption)
 
-***REMOVED******REMOVED******REMOVED*** IP Access Lists
+### IP Access Lists
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -138,7 +138,7 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 
 **Important**: Does not apply to Private Link workspaces (already isolated)
 
-***REMOVED******REMOVED******REMOVED*** Additional Configuration
+### Additional Configuration
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -147,7 +147,7 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 
 ---
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -160,15 +160,15 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 
 ---
 
-***REMOVED******REMOVED*** Secure Cluster Connectivity (NPIP)
+## Secure Cluster Connectivity (NPIP)
 
-***REMOVED******REMOVED******REMOVED*** Always Enabled
+### Always Enabled
 
 This module **always** enables NPIP (Secure Cluster Connectivity):
 
 ```hcl
 custom_parameters {
-  no_public_ip = true  ***REMOVED*** NPIP - Always enabled
+  no_public_ip = true  # NPIP - Always enabled
 }
 ```
 
@@ -184,9 +184,9 @@ custom_parameters {
 
 ---
 
-***REMOVED******REMOVED*** Customer-Managed Keys (CMK)
+## Customer-Managed Keys (CMK)
 
-***REMOVED******REMOVED******REMOVED*** CMK Architecture
+### CMK Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -222,7 +222,7 @@ custom_parameters {
 └─────────────────────────────────────────────────────────────┘
 ```
 
-***REMOVED******REMOVED******REMOVED*** CMK Implementation
+### CMK Implementation
 
 **Managed Services CMK**:
 ```hcl
@@ -239,10 +239,10 @@ managed_disk_customer_managed_key {
   key_vault_key_id = var.cmk_key_vault_key_id
 }
 
-***REMOVED*** Disk Encryption Set
+# Disk Encryption Set
 resource "azurerm_disk_encryption_set" "this" {
   key_vault_key_id = var.cmk_key_vault_key_id
-  ***REMOVED*** Automatic key rotation supported
+  # Automatic key rotation supported
 }
 ```
 
@@ -255,7 +255,7 @@ resource "databricks_workspace_conf" "dbfs_cmk" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** CMK Requirements
+### CMK Requirements
 
 1. **Key Vault**:
    - Premium SKU (required for CMK)
@@ -273,9 +273,9 @@ resource "databricks_workspace_conf" "dbfs_cmk" {
 
 ---
 
-***REMOVED******REMOVED*** Deployment Flow
+## Deployment Flow
 
-***REMOVED******REMOVED******REMOVED*** Module Dependencies
+### Module Dependencies
 
 ```
 Resource Group
@@ -297,7 +297,7 @@ Catalog
 - ✅ Classic clusters work immediately after workspace creation
 - ⏸️ Serverless requires NCC + manual setup
 
-***REMOVED******REMOVED******REMOVED*** Integration with Other Modules
+### Integration with Other Modules
 
 | Module | Relationship | Data Passed |
 |--------|-------------|-------------|
@@ -307,9 +307,9 @@ Catalog
 
 ---
 
-***REMOVED******REMOVED*** Usage Examples
+## Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Example 1: Non-PL Workspace (Minimal)
+### Example 1: Non-PL Workspace (Minimal)
 
 ```hcl
 module "workspace" {
@@ -320,14 +320,14 @@ module "workspace" {
   resource_group_name = azurerm_resource_group.this.name
   location            = "eastus2"
   
-  ***REMOVED*** Network configuration
+  # Network configuration
   vnet_id                           = module.networking.vnet_id
   public_subnet_name                = module.networking.public_subnet_name
   private_subnet_name               = module.networking.private_subnet_name
   public_subnet_nsg_association_id  = module.networking.public_subnet_nsg_association_id
   private_subnet_nsg_association_id = module.networking.private_subnet_nsg_association_id
   
-  ***REMOVED*** Non-PL configuration (defaults)
+  # Non-PL configuration (defaults)
   enable_private_link = false
   
   tags = {
@@ -336,7 +336,7 @@ module "workspace" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example 2: Private Link Workspace
+### Example 2: Private Link Workspace
 
 ```hcl
 module "workspace" {
@@ -347,14 +347,14 @@ module "workspace" {
   resource_group_name = azurerm_resource_group.this.name
   location            = "eastus2"
   
-  ***REMOVED*** Network configuration
+  # Network configuration
   vnet_id                           = module.networking.vnet_id
   public_subnet_name                = module.networking.public_subnet_name
   private_subnet_name               = module.networking.private_subnet_name
   public_subnet_nsg_association_id  = module.networking.public_subnet_nsg_association_id
   private_subnet_nsg_association_id = module.networking.private_subnet_nsg_association_id
   
-  ***REMOVED*** Private Link enabled
+  # Private Link enabled
   enable_private_link = true
   
   tags = {
@@ -364,7 +364,7 @@ module "workspace" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example 3: Workspace with Full CMK
+### Example 3: Workspace with Full CMK
 
 ```hcl
 module "workspace" {
@@ -375,14 +375,14 @@ module "workspace" {
   resource_group_name = azurerm_resource_group.this.name
   location            = "eastus2"
   
-  ***REMOVED*** Network configuration
+  # Network configuration
   vnet_id                           = module.networking.vnet_id
   public_subnet_name                = module.networking.public_subnet_name
   private_subnet_name               = module.networking.private_subnet_name
   public_subnet_nsg_association_id  = module.networking.public_subnet_nsg_association_id
   private_subnet_nsg_association_id = module.networking.private_subnet_nsg_association_id
   
-  ***REMOVED*** CMK enabled for all three scopes
+  # CMK enabled for all three scopes
   enable_cmk_managed_services = true
   enable_cmk_managed_disks    = true
   enable_cmk_dbfs_root        = true
@@ -397,7 +397,7 @@ module "workspace" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example 4: Workspace with IP Access Lists
+### Example 4: Workspace with IP Access Lists
 
 ```hcl
 module "workspace" {
@@ -408,18 +408,18 @@ module "workspace" {
   resource_group_name = azurerm_resource_group.this.name
   location            = "eastus2"
   
-  ***REMOVED*** Network configuration
+  # Network configuration
   vnet_id                           = module.networking.vnet_id
   public_subnet_name                = module.networking.public_subnet_name
   private_subnet_name               = module.networking.private_subnet_name
   public_subnet_nsg_association_id  = module.networking.public_subnet_nsg_association_id
   private_subnet_nsg_association_id = module.networking.private_subnet_nsg_association_id
   
-  ***REMOVED*** IP Access Lists
+  # IP Access Lists
   enable_ip_access_lists = true
   allowed_ip_ranges = [
-    "203.0.113.0/24",    ***REMOVED*** Corporate office
-    "198.51.100.0/24",   ***REMOVED*** Remote office
+    "203.0.113.0/24",    # Corporate office
+    "198.51.100.0/24",   # Remote office
   ]
   
   tags = {
@@ -431,9 +431,9 @@ module "workspace" {
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Security
+### Security
 
 1. **CMK Strategy**
    - Enable for compliance requirements
@@ -452,7 +452,7 @@ module "workspace" {
    - Requires DNS configuration
    - Plan for increased cost (~$40/month)
 
-***REMOVED******REMOVED******REMOVED*** Cost Optimization
+### Cost Optimization
 
 | Feature | Monthly Cost | When to Enable |
 |---------|-------------|----------------|
@@ -461,25 +461,25 @@ module "workspace" {
 | CMK | $0 | Compliance required |
 | NPIP | $0 | Always (enabled by default) |
 
-***REMOVED******REMOVED******REMOVED*** Naming Conventions
+### Naming Conventions
 
 ```hcl
 workspace_name = "${var.environment}-${var.workload}-workspace"
-***REMOVED*** Examples:
-***REMOVED*** - prod-analytics-workspace
-***REMOVED*** - dev-ml-workspace
-***REMOVED*** - staging-etl-workspace
+# Examples:
+# - prod-analytics-workspace
+# - dev-ml-workspace
+# - staging-etl-workspace
 ```
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Issue: Workspace Creation Fails (NSG Association)
+### Issue: Workspace Creation Fails (NSG Association)
 
 **Error**:
 ```
-Error waiting for Databricks Workspace to become ready: Future***REMOVED***WaitForCompletion
+Error waiting for Databricks Workspace to become ready: Future#WaitForCompletion
 ```
 
 **Solution**: Ensure NSG associations exist before workspace creation. Module uses `depends_on`:
@@ -490,7 +490,7 @@ depends_on = [
 ]
 ```
 
-***REMOVED******REMOVED******REMOVED*** Issue: CMK Key Not Found
+### Issue: CMK Key Not Found
 
 **Error**:
 ```
@@ -502,7 +502,7 @@ Error: Key Vault Key not found
 2. Ensure service principal has `Get` permission
 3. Check Key Vault firewall rules allow Databricks
 
-***REMOVED******REMOVED******REMOVED*** Issue: IP Access List Blocks Access
+### Issue: IP Access List Blocks Access
 
 **Symptom**: Cannot access workspace UI
 
@@ -514,7 +514,7 @@ Error: Key Vault Key not found
 
 ---
 
-***REMOVED******REMOVED*** References
+## References
 
 - [Azure Databricks Workspace Configuration](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/workspace-settings/)
 - [Secure Cluster Connectivity (NPIP)](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/secure-cluster-connectivity)

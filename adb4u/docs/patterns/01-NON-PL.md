@@ -1,11 +1,11 @@
-***REMOVED*** Non-Private Link (Non-PL) Deployment Pattern
+# Non-Private Link (Non-PL) Deployment Pattern
 
 **Pattern**: `deployments/non-pl`  
 **Status**: ✅ **Production Ready**
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The Non-Private Link (Non-PL) pattern provides a **secure** Azure Databricks deployment with:
 - **Public control plane** (UI/API accessible from internet)
@@ -15,7 +15,7 @@ The Non-Private Link (Non-PL) pattern provides a **secure** Azure Databricks dep
 - **Service Endpoints** for storage connectivity
 - **Network Connectivity Configuration (NCC)** for serverless compute
 
-***REMOVED******REMOVED******REMOVED*** Use Cases
+### Use Cases
 
 ✅ **Standard production workloads**  
 ✅ **Teams needing internet access** (PyPI, Maven, etc.)  
@@ -24,9 +24,9 @@ The Non-Private Link (Non-PL) pattern provides a **secure** Azure Databricks dep
 
 ---
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** **High-Level Design**
+### **High-Level Design**
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -106,7 +106,7 @@ The Non-Private Link (Non-PL) pattern provides a **secure** Azure Databricks dep
 
 ---
 
-***REMOVED******REMOVED*** Network Traffic Flow
+## Network Traffic Flow
 
 ```mermaid
 graph LR
@@ -132,19 +132,19 @@ graph LR
     NSG -->|Default Route| NAT
     NAT -->|SNAT| INT
     
-    style NSG fill:***REMOVED***f3e5f5
-    style NAT fill:***REMOVED***ffebee
-    style DB fill:***REMOVED***e1f5ff
-    style ST fill:***REMOVED***e8f5e9
-    style EH fill:***REMOVED***fff9c4
-    style INT fill:***REMOVED***ffebee
+    style NSG fill:#f3e5f5
+    style NAT fill:#ffebee
+    style DB fill:#e1f5ff
+    style ST fill:#e8f5e9
+    style EH fill:#fff9c4
+    style INT fill:#ffebee
 ```
 
 ---
 
-***REMOVED******REMOVED*** Serverless Compute Connectivity
+## Serverless Compute Connectivity
 
-***REMOVED******REMOVED******REMOVED*** **Overview**
+### **Overview**
 
 This deployment includes Network Connectivity Configuration (NCC) for serverless compute (SQL Warehouses, Serverless Notebooks).
 
@@ -155,9 +155,9 @@ This deployment includes Network Connectivity Configuration (NCC) for serverless
 | **Setup** | ✅ Immediate | ⏸️ Manual configuration required |
 | **Use Cases** | ETL, ML, batch jobs | SQL queries, ad-hoc analysis |
 
-***REMOVED******REMOVED******REMOVED*** **Serverless Connectivity Options**
+### **Serverless Connectivity Options**
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Option A: Service Endpoints** (Recommended)
+#### **Option A: Service Endpoints** (Recommended)
 
 **How It Works**:
 ```
@@ -179,7 +179,7 @@ Serverless Compute → NCC → Service Endpoint → Storage
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Option B: Private Link via NCC**
+#### **Option B: Private Link via NCC**
 
 **How It Works**:
 ```
@@ -202,7 +202,7 @@ Serverless Compute → NCC → Private Endpoint → Storage
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **NCC Configuration**
+### **NCC Configuration**
 
 **What's Created by Terraform**:
 ```hcl
@@ -227,17 +227,17 @@ module "ncc" {
 
 **After Deployment**:
 ```bash
-***REMOVED*** Check NCC is attached
+# Check NCC is attached
 terraform output ncc_id
-***REMOVED*** Output: ncc-abc123
+# Output: ncc-abc123
 
 terraform output ncc_name
-***REMOVED*** Output: proddb-ncc
+# Output: proddb-ncc
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** **Recommendation**
+### **Recommendation**
 
 | Scenario | Recommended Option |
 |----------|-------------------|
@@ -251,18 +251,18 @@ terraform output ncc_name
 
 ---
 
-***REMOVED******REMOVED*** Traffic Flow: Cluster Startup Sequence
+## Traffic Flow: Cluster Startup Sequence
 
 This section documents the network traffic flow when a Databricks cluster starts.
 
 **Contents**:
-- [High-Level Flow](***REMOVED***high-level-cluster-startup) - Quick overview (30 seconds)
-- [Detailed Phase Breakdown](***REMOVED***detailed-phase-breakdown) - Per-phase traffic analysis
-- [Network Routing Table](***REMOVED***network-routing-summary) - Where each traffic type goes
+- [High-Level Flow](#high-level-cluster-startup) - Quick overview (30 seconds)
+- [Detailed Phase Breakdown](#detailed-phase-breakdown) - Per-phase traffic analysis
+- [Network Routing Table](#network-routing-summary) - Where each traffic type goes
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** High-Level Cluster Startup
+### High-Level Cluster Startup
 
 **Simplified 5-Phase Flow**:
 
@@ -295,9 +295,9 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Detailed Phase Breakdown
+### Detailed Phase Breakdown
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 1: Cluster Request** (T+0s)
+#### **Phase 1: Cluster Request** (T+0s)
 
 ```
 User → Databricks UI/API
@@ -310,7 +310,7 @@ User → Databricks UI/API
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 2: VM Provisioning** (T+0s to T+2min)
+#### **Phase 2: VM Provisioning** (T+0s to T+2min)
 
 ```mermaid
 sequenceDiagram
@@ -333,7 +333,7 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 3: Control Plane Tunnel** (T+2min to T+3min)
+#### **Phase 3: Control Plane Tunnel** (T+2min to T+3min)
 
 ```
 Cluster VMs → NSG (AzureDatabricks tag) → Control Plane
@@ -348,7 +348,7 @@ Routing: NOT via NAT Gateway (direct via NSG service tag)
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 4: Resource Downloads** (T+2min to T+4min)
+#### **Phase 4: Resource Downloads** (T+2min to T+4min)
 
 **4a. DBR Images** (Databricks Runtime):
 ```
@@ -371,7 +371,7 @@ Routing: NAT Gateway (public IP for whitelisting)
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Phase 5: Storage Access** (T+3min onwards)
+#### **Phase 5: Storage Access** (T+3min onwards)
 
 ```mermaid
 graph LR
@@ -391,8 +391,8 @@ graph LR
     SE --> UC
     SE --> ExtLoc
     
-    style NSG fill:***REMOVED***f3e5f5
-    style SE fill:***REMOVED***e8f5e9
+    style NSG fill:#f3e5f5
+    style SE fill:#e8f5e9
 ```
 
 **Access Pattern**:
@@ -404,7 +404,7 @@ graph LR
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Network Routing Summary
+### Network Routing Summary
 
 | Traffic Type | Source | Destination | Path | Authentication |
 |--------------|--------|-------------|------|----------------|
@@ -425,7 +425,7 @@ graph LR
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Traffic Flow Diagram (Simplified)
+### Traffic Flow Diagram (Simplified)
 
 ```
 ┌─────────────┐
@@ -476,7 +476,7 @@ graph LR
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Security Controls
+### Security Controls
 
 | Layer | Control | Purpose |
 |-------|---------|---------|
@@ -494,9 +494,9 @@ graph LR
 
 ---
 
-***REMOVED******REMOVED*** Features
+## Features
 
-***REMOVED******REMOVED******REMOVED*** Included Features
+### Included Features
 
 | Feature | Status | Details |
 |---------|--------|---------|
@@ -511,7 +511,7 @@ graph LR
 | **Random Suffixes** | ✅ Always enabled | Prevent naming conflicts |
 | **Resource Tagging** | ✅ Always enabled | Owner and KeepUntil tags |
 
-***REMOVED******REMOVED******REMOVED*** Not Included
+### Not Included
 
 | Feature | Status | Alternative |
 |---------|--------|-------------|
@@ -519,15 +519,15 @@ graph LR
 | **Hub-Spoke Topology** | ❌ Not included | Use `hub-spoke` pattern (future) |
 | **Azure Firewall** | ❌ Not included | Use `hub-spoke` pattern (future) |
 
-**Note**: Private Link for **serverless compute** is available via NCC (see [Serverless Compute Connectivity](***REMOVED***serverless-compute-connectivity)).
+**Note**: Private Link for **serverless compute** is available via NCC (see [Serverless Compute Connectivity](#serverless-compute-connectivity)).
 
 ---
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
-See [Quick Start Guide](../01-QUICKSTART.md***REMOVED***prerequisites) for complete details.
+See [Quick Start Guide](../01-QUICKSTART.md#prerequisites) for complete details.
 
 **Required**:
 - Azure subscription with appropriate permissions
@@ -537,65 +537,65 @@ See [Quick Start Guide](../01-QUICKSTART.md***REMOVED***prerequisites) for compl
 
 **Environment Variables**:
 ```bash
-***REMOVED*** Azure Authentication
+# Azure Authentication
 export ARM_SUBSCRIPTION_ID="..."
 export ARM_TENANT_ID="..."
 
-***REMOVED*** Databricks Authentication
+# Databricks Authentication
 export DATABRICKS_ACCOUNT_ID="..."
 export DATABRICKS_AZURE_TENANT_ID="$ARM_TENANT_ID"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Quick Deploy
+### Quick Deploy
 
 ```bash
-***REMOVED*** 1. Navigate to deployment folder
+# 1. Navigate to deployment folder
 cd deployments/non-pl
 
-***REMOVED*** 2. Copy and configure variables
+# 2. Copy and configure variables
 cp terraform.tfvars.example terraform.tfvars
 vim terraform.tfvars
 
-***REMOVED*** 3. Initialize Terraform
+# 3. Initialize Terraform
 terraform init
 
-***REMOVED*** 4. Review deployment plan
+# 4. Review deployment plan
 terraform plan
 
-***REMOVED*** 5. Deploy
+# 5. Deploy
 terraform apply
 ```
 
-***REMOVED******REMOVED******REMOVED*** Deployment Time
+### Deployment Time
 
 - **Initial deployment**: 15-20 minutes
 - **Subsequent deployments**: 10-15 minutes
 
 ---
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
-***REMOVED******REMOVED******REMOVED*** Required Variables
+### Required Variables
 
 ```hcl
-***REMOVED*** terraform.tfvars
+# terraform.tfvars
 
-***REMOVED*** Core Configuration
-workspace_prefix    = "<your-prefix>"        ***REMOVED*** Lowercase, alphanumeric, max 12 chars (e.g., "proddb", "devml")
-location           = "<azure-region>"        ***REMOVED*** Azure region (e.g., "eastus2", "westus")
-resource_group_name = "<rg-name>"            ***REMOVED*** Resource group name (e.g., "rg-databricks-prod-eastus2")
+# Core Configuration
+workspace_prefix    = "<your-prefix>"        # Lowercase, alphanumeric, max 12 chars (e.g., "proddb", "devml")
+location           = "<azure-region>"        # Azure region (e.g., "eastus2", "westus")
+resource_group_name = "<rg-name>"            # Resource group name (e.g., "rg-databricks-prod-eastus2")
 
-***REMOVED*** Databricks Configuration
-databricks_account_id = "<account-id>"       ***REMOVED*** Your Databricks account ID (UUID format)
+# Databricks Configuration
+databricks_account_id = "<account-id>"       # Your Databricks account ID (UUID format)
 
-***REMOVED*** Unity Catalog
-metastore_name = "<metastore-name>"          ***REMOVED*** Metastore name (e.g., "prod-eastus2-metastore")
+# Unity Catalog
+metastore_name = "<metastore-name>"          # Metastore name (e.g., "prod-eastus2-metastore")
 
-***REMOVED*** Tags
-tag_owner     = "<owner-email>"              ***REMOVED*** Resource owner email
-tag_keepuntil = "<expiration-date>"          ***REMOVED*** Resource expiration date (MM/DD/YYYY)
+# Tags
+tag_owner     = "<owner-email>"              # Resource owner email
+tag_keepuntil = "<expiration-date>"          # Resource expiration date (MM/DD/YYYY)
 
-***REMOVED*** Standard tags
+# Standard tags
 tags = {
   Environment = "Production"
   ManagedBy   = "Terraform"
@@ -603,7 +603,7 @@ tags = {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Optional Configurations
+### Optional Configurations
 
 **BYOV (Bring Your Own VNet)**:
 ```hcl
@@ -628,22 +628,22 @@ cmk_key_vault_id            = "/subscriptions/.../vaults/databricks-kv"
 ```hcl
 enable_ip_access_lists = true
 allowed_ip_ranges = [
-  "203.0.113.0/24",    ***REMOVED*** Corporate office
-  "198.51.100.0/24",   ***REMOVED*** Remote office
+  "203.0.113.0/24",    # Corporate office
+  "198.51.100.0/24",   # Remote office
 ]
 ```
 
 **Unity Catalog (Existing Metastore)**:
 ```hcl
 create_metastore      = false
-existing_metastore_id = "abc-123-def-456"  ***REMOVED*** From first workspace
+existing_metastore_id = "abc-123-def-456"  # From first workspace
 ```
 
 ---
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
-***REMOVED******REMOVED******REMOVED*** Essential Outputs
+### Essential Outputs
 
 ```hcl
 workspace_url               = "https://adb-<workspace-id>.azuredatabricks.net"
@@ -655,7 +655,7 @@ metastore_id                = "<metastore-id>"
 external_location_url       = "abfss://external@<storage-account>.dfs.core.windows.net/"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Deployment Summary
+### Deployment Summary
 
 ```hcl
 deployment_summary = {
@@ -671,9 +671,9 @@ deployment_summary = {
 
 ---
 
-***REMOVED******REMOVED*** Security
+## Security
 
-***REMOVED******REMOVED******REMOVED*** Network Security
+### Network Security
 
 **Secure Cluster Connectivity (NPIP)**:
 - ✅ No public IPs on cluster VMs
@@ -690,7 +690,7 @@ deployment_summary = {
 - ✅ Direct Azure backbone routing to storage
 - ✅ No internet exposure for storage traffic
 
-***REMOVED******REMOVED******REMOVED*** Data Security
+### Data Security
 
 **Unity Catalog**:
 - ✅ Fine-grained access control (GRANT/REVOKE)
@@ -709,13 +709,13 @@ deployment_summary = {
 
 ---
 
-***REMOVED******REMOVED*** Operations
+## Operations
 
-***REMOVED******REMOVED******REMOVED*** Monitoring
+### Monitoring
 
 **Azure Monitor**:
 ```bash
-***REMOVED*** View workspace activity
+# View workspace activity
 az monitor activity-log list \
   --resource-group rg-databricks-prod-eastus2 \
   --resource-id /subscriptions/.../databrickses/proddb-workspace
@@ -726,7 +726,7 @@ az monitor activity-log list \
 - Tracks all workspace and data access
 - Available via Databricks System Tables
 
-***REMOVED******REMOVED******REMOVED*** Scaling
+### Scaling
 
 **Cluster Autoscaling**:
 - Configure min/max workers per cluster
@@ -738,7 +738,7 @@ az monitor activity-log list \
 - Unity Catalog shared across workspaces
 - Network resources sized appropriately
 
-***REMOVED******REMOVED******REMOVED*** Backup and Disaster Recovery
+### Backup and Disaster Recovery
 
 **Databricks Workspace**:
 - Notebooks: Export via Workspace API or Repos
@@ -752,11 +752,11 @@ az monitor activity-log list \
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
 See [Troubleshooting Guide](../TROUBLESHOOTING.md) for comprehensive issue resolution.
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 **Issue**: NSG Rule Conflicts
 
@@ -795,17 +795,17 @@ existing_metastore_id = "abc-123-def-456"
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Naming Conventions
+### Naming Conventions
 
 ```hcl
-workspace_prefix = "{env}{app}"  ***REMOVED*** e.g., proddb, devml, stageetl
+workspace_prefix = "{env}{app}"  # e.g., proddb, devml, stageetl
 resource_group_name = "rg-databricks-{env}-{location}"
 metastore_name = "{env}-{location}-metastore"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Resource Tagging
+### Resource Tagging
 
 ```hcl
 tags = {
@@ -817,13 +817,13 @@ tags = {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Network Planning
+### Network Planning
 
 - **Subnet Sizing**: Use `/24` (256 IPs) for production
 - **VNet CIDR**: Avoid conflicts with other VNets (plan for peering)
 - **NAT Gateway**: Always enable for Non-PL pattern
 
-***REMOVED******REMOVED******REMOVED*** Resource Management
+### Resource Management
 
 - **Cluster Policies**: Enforce autotermination and max DBUs
 - **Storage Lifecycle**: Archive old data to cool/archive tiers
@@ -832,7 +832,7 @@ tags = {
 
 ---
 
-***REMOVED******REMOVED*** Migration from Legacy Templates
+## Migration from Legacy Templates
 
 If migrating from legacy templates in `templates/terraform-scripts/adb-npip`:
 
@@ -845,9 +845,9 @@ If migrating from legacy templates in `templates/terraform-scripts/adb-npip`:
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
-***REMOVED******REMOVED******REMOVED*** After Deployment
+### After Deployment
 
 1. ✅ **Verify workspace access**: Open `workspace_url` in browser
 2. ✅ **Configure Unity Catalog**: Create catalogs and schemas
@@ -856,14 +856,14 @@ If migrating from legacy templates in `templates/terraform-scripts/adb-npip`:
 5. ✅ **Create service principals**: For CI/CD automation
 6. ✅ **Enable audit logging**: Monitor workspace activity
 
-***REMOVED******REMOVED******REMOVED*** Advanced Configurations
+### Advanced Configurations
 
 - [Add CMK](../modules/05-CMK.md)
 - [Configure IP Access Lists](../modules/02-WORKSPACE.md)
 - [Set up BYOV](../modules/01-NETWORKING.md)
-- [Share Unity Catalog metastore](../../docs/modules/UNITY-CATALOG.md***REMOVED***example-2-additional-workspace-use-existing-metastore)
+- [Share Unity Catalog metastore](../../docs/modules/UNITY-CATALOG.md#example-2-additional-workspace-use-existing-metastore)
 
-***REMOVED******REMOVED******REMOVED*** Production Readiness
+### Production Readiness
 
 - [ ] Review [Troubleshooting Guide](../TROUBLESHOOTING.md)
 - [ ] Complete [Deployment Checklist](../DEPLOYMENT-CHECKLIST.md)
@@ -873,7 +873,7 @@ If migrating from legacy templates in `templates/terraform-scripts/adb-npip`:
 
 ---
 
-***REMOVED******REMOVED*** References
+## References
 
 - [Azure Databricks Documentation](https://learn.microsoft.com/en-us/azure/databricks/)
 - [Unity Catalog](https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/)

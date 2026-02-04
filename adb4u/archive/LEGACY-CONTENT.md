@@ -1,4 +1,4 @@
-***REMOVED*** Azure Databricks Security Best Practices - Legacy Content
+# Azure Databricks Security Best Practices - Legacy Content
 
 **Status**: 📦 **ARCHIVED** - For reference only
 
@@ -6,7 +6,7 @@ This document contains historical best practices and patterns. **For new deploym
 
 ---
 
-***REMOVED******REMOVED*** Architecture Overview
+## Architecture Overview
 
 ```mermaid
 graph TB
@@ -62,19 +62,19 @@ graph TB
     SP -->|Automate| RestAPI
     Groups -->|Access Control| Workspace
 
-    style AAD fill:***REMOVED***0078D4
-    style Workspace fill:***REMOVED***FF3621
-    style ADLS fill:***REMOVED***0078D4
-    style KeyVault fill:***REMOVED***0078D4
+    style AAD fill:#0078D4
+    style Workspace fill:#FF3621
+    style ADLS fill:#0078D4
+    style KeyVault fill:#0078D4
 ```
 
 ---
 
-***REMOVED******REMOVED*** Topics
+## Topics
 
-***REMOVED******REMOVED******REMOVED*** Ready to use
+### Ready to use
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Preventing Data Exfiltration** - Secure Deployments
+#### **Preventing Data Exfiltration** - Secure Deployments
 - [Deployment walk thru video]()
 
 ```mermaid
@@ -97,7 +97,7 @@ sequenceDiagram
     Note over ADB_Data,Storage: No public internet access<br/>No data exfiltration possible
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Authenticating API calls using AAD tokens** - Securely accessing Azure Databricks REST API using AAD tokens
+#### **Authenticating API calls using AAD tokens** - Securely accessing Azure Databricks REST API using AAD tokens
 - [Video walk thru]()
 - [Using Service Principal AAD Tokens]()
 
@@ -122,7 +122,7 @@ sequenceDiagram
     Note over ADB_API,Workspace: No Personal Access Tokens needed
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Accessing ADLS Gen2** - options available to read/write data from ADLS Gen2
+#### **Accessing ADLS Gen2** - options available to read/write data from ADLS Gen2
 - [Demo video]()
 
 ```mermaid
@@ -156,7 +156,7 @@ sequenceDiagram
     ADLS-->>Cluster: Data (User Permissions Apply)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** **Users and Groups Management** - Automate users/groups onboarding and management
+#### **Users and Groups Management** - Automate users/groups onboarding and management
 - [Demo video]()
 
 ```mermaid
@@ -193,7 +193,7 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** Work in progress
+## Work in progress
 
 - **IP Access List** - Connect to Azure Databricks only through existing corporate networks with a secure perimeter
 - **Platform tokens** - Manage Azure Databricks platform tokens
@@ -242,13 +242,13 @@ graph LR
     AAD2 --> PBI
     AAD2 --> Synapse2
 
-    style CMK_DBFS fill:***REMOVED***FFD700
-    style CMK_NB fill:***REMOVED***FFD700
-    style Secrets fill:***REMOVED***90EE90
-    style IPList fill:***REMOVED***87CEEB
+    style CMK_DBFS fill:#FFD700
+    style CMK_NB fill:#FFD700
+    style Secrets fill:#90EE90
+    style IPList fill:#87CEEB
 ```
 
-***REMOVED******REMOVED******REMOVED*** Customer Managed Keys (CMK) Flow
+### Customer Managed Keys (CMK) Flow
 
 ```mermaid
 sequenceDiagram

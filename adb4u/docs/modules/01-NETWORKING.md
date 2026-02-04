@@ -1,15 +1,15 @@
-***REMOVED*** Networking Module
+# Networking Module
 
 **Module**: `modules/networking`  
 **Purpose**: Creates or references Azure network infrastructure for Databricks workspace deployment
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The networking module provides flexible network infrastructure for Azure Databricks deployments. It supports both **creating new network resources** and **using existing infrastructure** (BYOV - Bring Your Own VNet).
 
-***REMOVED******REMOVED******REMOVED*** Key Features
+### Key Features
 
 - ✅ **BYOV Support**: Use existing VNet/Subnets/NSG or create new
 - ✅ **Secure Cluster Connectivity (NPIP)**: Always enabled, no public IPs on clusters
@@ -21,9 +21,9 @@ The networking module provides flexible network infrastructure for Azure Databri
 
 ---
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
-***REMOVED******REMOVED******REMOVED*** Network Topology
+### Network Topology
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -53,9 +53,9 @@ The networking module provides flexible network infrastructure for Azure Databri
 
 ---
 
-***REMOVED******REMOVED*** Resources Created
+## Resources Created
 
-***REMOVED******REMOVED******REMOVED*** When Creating New Network (`use_existing_network = false`)
+### When Creating New Network (`use_existing_network = false`)
 
 | Resource Type | Name Pattern | Purpose |
 |--------------|--------------|---------|
@@ -68,7 +68,7 @@ The networking module provides flexible network infrastructure for Azure Databri
 | `azurerm_nat_gateway` | `{prefix}-nat-gateway` | Internet egress (if enabled) |
 | `azurerm_subnet_nat_gateway_association` | (auto) | NAT → Subnet bindings (if enabled) |
 
-***REMOVED******REMOVED******REMOVED*** When Using Existing Network (`use_existing_network = true`)
+### When Using Existing Network (`use_existing_network = true`)
 
 | Resource Type | Purpose |
 |--------------|---------|
@@ -81,9 +81,9 @@ The networking module provides flexible network infrastructure for Azure Databri
 
 ---
 
-***REMOVED******REMOVED*** Variables
+## Variables
 
-***REMOVED******REMOVED******REMOVED*** BYOV Configuration
+### BYOV Configuration
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -96,7 +96,7 @@ The networking module provides flexible network infrastructure for Azure Databri
 
 **Important**: When `use_existing_network = true`, **ALL** network resources must exist.
 
-***REMOVED******REMOVED******REMOVED*** New Network Configuration
+### New Network Configuration
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -109,7 +109,7 @@ The networking module provides flexible network infrastructure for Azure Databri
 - Recommended: `/24` (256 IPs) - Production workloads
 - Large: `/22` (1024 IPs) - Enterprise scale
 
-***REMOVED******REMOVED******REMOVED*** Private Link Configuration
+### Private Link Configuration
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -119,7 +119,7 @@ The networking module provides flexible network infrastructure for Azure Databri
 - `true`: Creates NSG rules, no NAT Gateway
 - `false`: Databricks manages NSG rules, NAT Gateway optional
 
-***REMOVED******REMOVED******REMOVED*** NAT Gateway Configuration
+### NAT Gateway Configuration
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -129,7 +129,7 @@ The networking module provides flexible network infrastructure for Azure Databri
 - ✅ **Non-PL Pattern**: Enable for internet access (PyPI, Maven, etc.)
 - ❌ **Private Link Pattern**: Disable (air-gapped, no internet)
 
-***REMOVED******REMOVED******REMOVED*** Required Configuration
+### Required Configuration
 
 | Variable | Type | Description |
 |----------|------|-------------|
@@ -140,9 +140,9 @@ The networking module provides flexible network infrastructure for Azure Databri
 
 ---
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
-***REMOVED******REMOVED******REMOVED*** Essential Outputs (IDs)
+### Essential Outputs (IDs)
 
 | Output | Description |
 |--------|-------------|
@@ -157,7 +157,7 @@ The networking module provides flexible network infrastructure for Azure Databri
 | `nat_gateway_id` | NAT Gateway ID (if enabled) |
 | `nat_gateway_public_ip` | NAT Gateway public IP (if enabled) |
 
-***REMOVED******REMOVED******REMOVED*** Structured Output
+### Structured Output
 
 ```hcl
 output "network_configuration" {
@@ -197,16 +197,16 @@ output "network_configuration" {
 
 ---
 
-***REMOVED******REMOVED*** NSG Rules
+## NSG Rules
 
-***REMOVED******REMOVED******REMOVED*** Automatic NSG Rule Management
+### Automatic NSG Rule Management
 
 | Deployment Pattern | NSG Rules Managed By |
 |-------------------|---------------------|
 | **Non-PL** | Databricks (automatic) |
 | **Private Link** | This module (manual) |
 
-***REMOVED******REMOVED******REMOVED*** NSG Rules for Private Link
+### NSG Rules for Private Link
 
 **Inbound Rules**:
 
@@ -225,13 +225,13 @@ output "network_configuration" {
 | `AllowStorageOutBound` | 130 | VirtualNetwork | Storage | 443 | TCP | DBFS access |
 | `AllowEventHubOutBound` | 140 | VirtualNetwork | EventHub | 9093 | TCP | Logging |
 
-**Reference**: [Microsoft Documentation - SCC NSG Rules](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject***REMOVED***network-security-group-rules-for-workspaces)
+**Reference**: [Microsoft Documentation - SCC NSG Rules](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject#network-security-group-rules-for-workspaces)
 
 ---
 
-***REMOVED******REMOVED*** Service Endpoints
+## Service Endpoints
 
-***REMOVED******REMOVED******REMOVED*** Enabled Service Endpoints
+### Enabled Service Endpoints
 
 Automatically enabled on both public and private subnets:
 
@@ -245,9 +245,9 @@ Automatically enabled on both public and private subnets:
 
 ---
 
-***REMOVED******REMOVED*** Subnet Delegation
+## Subnet Delegation
 
-***REMOVED******REMOVED******REMOVED*** Automatic Delegation
+### Automatic Delegation
 
 Both subnets are automatically delegated to `Microsoft.Databricks/workspaces`:
 
@@ -272,26 +272,26 @@ delegation {
 
 ---
 
-***REMOVED******REMOVED*** Usage Examples
+## Usage Examples
 
-***REMOVED******REMOVED******REMOVED*** Example 1: Non-PL with New Network
+### Example 1: Non-PL with New Network
 
 ```hcl
 module "networking" {
   source = "../../modules/networking"
   
-  ***REMOVED*** Basic Configuration
+  # Basic Configuration
   location            = "eastus2"
   resource_group_name = azurerm_resource_group.this.name
   workspace_prefix    = "proddb"
   
-  ***REMOVED*** Create new network
+  # Create new network
   use_existing_network = false
   vnet_address_space   = ["10.0.0.0/16"]
   public_subnet_address_prefix  = ["10.0.1.0/24"]
   private_subnet_address_prefix = ["10.0.2.0/24"]
   
-  ***REMOVED*** Non-PL Configuration
+  # Non-PL Configuration
   enable_private_link = false
   enable_nat_gateway  = true
   
@@ -302,18 +302,18 @@ module "networking" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example 2: Private Link with Existing Network (BYOV)
+### Example 2: Private Link with Existing Network (BYOV)
 
 ```hcl
 module "networking" {
   source = "../../modules/networking"
   
-  ***REMOVED*** Basic Configuration
+  # Basic Configuration
   location            = "eastus2"
   resource_group_name = azurerm_resource_group.this.name
   workspace_prefix    = "proddb"
   
-  ***REMOVED*** Use existing network
+  # Use existing network
   use_existing_network        = true
   existing_vnet_name          = "existing-vnet"
   existing_resource_group_name = "existing-rg"
@@ -321,9 +321,9 @@ module "networking" {
   existing_private_subnet_name = "databricks-private"
   existing_nsg_name           = "databricks-nsg"
   
-  ***REMOVED*** Private Link Configuration
+  # Private Link Configuration
   enable_private_link = true
-  enable_nat_gateway  = false  ***REMOVED*** No internet access
+  enable_nat_gateway  = false  # No internet access
   
   tags = {
     Environment = "Production"
@@ -332,7 +332,7 @@ module "networking" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Example 3: Non-PL without NAT Gateway
+### Example 3: Non-PL without NAT Gateway
 
 ```hcl
 module "networking" {
@@ -344,7 +344,7 @@ module "networking" {
   
   use_existing_network = false
   enable_private_link  = false
-  enable_nat_gateway   = false  ***REMOVED*** No egress, use workspace defaults
+  enable_nat_gateway   = false  # No egress, use workspace defaults
   
   tags = {
     Environment = "Development"
@@ -354,9 +354,9 @@ module "networking" {
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Network Planning
+### Network Planning
 
 1. **Subnet Sizing**
    - Calculate expected cluster size
@@ -369,7 +369,7 @@ module "networking" {
    - Plan for VNet peering
    - Document IP allocation
 
-***REMOVED******REMOVED******REMOVED*** Security
+### Security
 
 1. **NSG Rules**
    - ✅ Let Databricks manage rules (Non-PL)
@@ -381,9 +381,9 @@ module "networking" {
    - Required for Service Endpoint Policies
    - Provides backbone routing
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Issue: NSG Rule Conflicts
+### Issue: NSG Rule Conflicts
 
 **Error**:
 ```
@@ -392,7 +392,7 @@ Security rule conflicts with Microsoft.Databricks-workspaces_UseOnly_databricks-
 
 **Solution**: Non-PL workspaces auto-create NSG rules. Set `enable_private_link = false` to skip custom rule creation.
 
-***REMOVED******REMOVED******REMOVED*** Issue: Subnet Too Small
+### Issue: Subnet Too Small
 
 **Error**:
 ```
@@ -401,7 +401,7 @@ Subnet does not have enough IP addresses for requested cluster size
 
 **Solution**: Use at least `/26` (64 IPs), recommended `/24` (256 IPs).
 
-***REMOVED******REMOVED******REMOVED*** Issue: Delegation Already Exists
+### Issue: Delegation Already Exists
 
 **Error**:
 ```
@@ -412,12 +412,12 @@ Subnet is already delegated to Microsoft.Databricks/workspaces
 
 ---
 
-***REMOVED******REMOVED*** References
+## References
 
 - [Azure Databricks Network Architecture](https://learn.microsoft.com/en-us/azure/databricks/security/network/)
 - [Secure Cluster Connectivity (NPIP)](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/secure-cluster-connectivity)
 - [VNet Injection](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject)
-- [NSG Rules for SCC](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject***REMOVED***network-security-group-rules-for-workspaces)
+- [NSG Rules for SCC](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject#network-security-group-rules-for-workspaces)
 
 ---
 
