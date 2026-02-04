@@ -1,5 +1,5 @@
 ## Consuming Databricks on GCP
-Databricks service is available as a GCP market place offering and the unit of deployment is called a [`workspace`](https://docs.gcp.databricks.com/getting-started/concepts.html***REMOVED***workspace), from here onwards we'll be using `workspace` to refer to databricks service through out this guide.
+Databricks service is available as a GCP market place offering and the unit of deployment is called a [`workspace`](https://docs.gcp.databricks.com/getting-started/concepts.html#workspace), from here onwards we'll be using `workspace` to refer to databricks service through out this guide.
 
 Databricks is a `Managed Service` and is fully hosted, managed, and supported by the Databricks. Although you register with the Databricks to use the service, Google handles all billing.
 
@@ -45,11 +45,11 @@ stateDiagram-v2
 
 | Databricks  | Relationship  | GCP  |
 |---|---|---|
-| Account  |  1:1 maps to | [Billing Account](https://cloud.google.com/billing/docs/concepts***REMOVED***overview)  |
+| Account  |  1:1 maps to | [Billing Account](https://cloud.google.com/billing/docs/concepts#overview)  |
 | Subscription | maps to | *Entitlements |
 | Workspaces | resides in | [Consumer Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) |
 | Worker Environment (**classic dataplane) | maps to | Google Compute Engine based databricks cluster |
-| Databricks Serverless | maps to | [Serverless compute resources running in the serverless compute plane, which is managed by Databricks](https://docs.gcp.databricks.com/en/security/network/serverless-network-security/index.html***REMOVED***serverless-compute-plane-networking-overview) |
+| Databricks Serverless | maps to | [Serverless compute resources running in the serverless compute plane, which is managed by Databricks](https://docs.gcp.databricks.com/en/security/network/serverless-network-security/index.html#serverless-compute-plane-networking-overview) |
 
 - *Represents purchase, pricing, and payment mechanism for an account
 - **Compute resources resides within your GCP Project and utilizes your own VPC

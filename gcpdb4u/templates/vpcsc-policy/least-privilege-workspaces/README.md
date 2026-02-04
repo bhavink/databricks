@@ -1,10 +1,10 @@
-***REMOVED*** Least Privilege Workspaces (LPW) VPC-SC Policies
+# Least Privilege Workspaces (LPW) VPC-SC Policies
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This folder contains VPC Service Controls policies for **Least Privilege Workspaces (LPW)** - a special, highly restricted Databricks workspace configuration that requires explicit allowlisting.
 
-***REMOVED******REMOVED*** What are Least Privilege Workspaces?
+## What are Least Privilege Workspaces?
 
 Least Privilege Workspaces are Databricks deployments with:
 - **Extremely restrictive security posture**: Maximum security lockdown
@@ -12,7 +12,7 @@ Least Privilege Workspaces are Databricks deployments with:
 - **Special use case**: Not a common deployment pattern
 - **Custom configuration**: Tailored to specific security/compliance requirements
 
-***REMOVED******REMOVED*** When to Use LPW Policies
+## When to Use LPW Policies
 
 Use Least Privilege Workspace policies when:
 - ✅ Your organization requires the highest level of security controls
@@ -21,7 +21,7 @@ Use Least Privilege Workspace policies when:
 - ✅ You've coordinated with Databricks support for LPW setup
 - ❌ **NOT for standard deployments** - use the regular policies instead
 
-***REMOVED******REMOVED*** Key Differences from Standard Policies
+## Key Differences from Standard Policies
 
 | Aspect | Standard Workspaces | Least Privilege Workspaces (LPW) |
 |--------|---------------------|----------------------------------|
@@ -31,9 +31,9 @@ Use Least Privilege Workspace policies when:
 | **Use Cases** | Most production deployments | Highly regulated environments |
 | **Support** | Self-service | Requires Databricks engagement |
 
-***REMOVED******REMOVED*** Files in This Folder
+## Files in This Folder
 
-***REMOVED******REMOVED******REMOVED*** create-ws-lpw.yaml
+### create-ws-lpw.yaml
 
 VPC-SC policy for creating Least Privilege Workspaces during workspace creation phase.
 
@@ -43,9 +43,9 @@ VPC-SC policy for creating Least Privilege Workspaces during workspace creation 
 - Custom rules tailored to LPW requirements
 - Must be coordinated with Databricks support
 
-***REMOVED******REMOVED*** How to Use LPW Policies
+## How to Use LPW Policies
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 1. **Databricks Support Engagement**:
    - Contact Databricks support to request LPW setup
@@ -63,7 +63,7 @@ VPC-SC policy for creating Least Privilege Workspaces during workspace creation 
    - VPC firewall rules following deny-by-default approach
    - Access Context Manager policies defined
 
-***REMOVED******REMOVED******REMOVED*** Setup Process
+### Setup Process
 
 1. **Coordinate with Databricks**:
    ```
@@ -83,22 +83,22 @@ VPC-SC policy for creating Least Privilege Workspaces during workspace creation 
 
 3. **Deploy LPW Policies**:
    ```bash
-   ***REMOVED*** Create Access Context Manager Access Level
+   # Create Access Context Manager Access Level
    gcloud access-context-manager levels create databricks_lpw_access \
      --basic-level-spec=lpw-access-level.yaml \
      --policy=$ACCESS_POLICY_ID
 
-   ***REMOVED*** Create VPC-SC Perimeter with LPW policy (dry-run first)
+   # Create VPC-SC Perimeter with LPW policy (dry-run first)
    gcloud access-context-manager perimeters dry-run create databricks-lpw-perimeter \
      --title="Databricks LPW Perimeter" \
      --resources=projects/$PROJECT_NUMBER \
      --ingress-policies=create-ws-lpw.yaml \
      --policy=$ACCESS_POLICY_ID
 
-   ***REMOVED*** Test in dry-run mode
-   ***REMOVED*** Monitor logs for violations
+   # Test in dry-run mode
+   # Monitor logs for violations
 
-   ***REMOVED*** Enforce after validation
+   # Enforce after validation
    gcloud access-context-manager perimeters dry-run enforce databricks-lpw-perimeter \
      --policy=$ACCESS_POLICY_ID
    ```
@@ -119,9 +119,9 @@ VPC-SC policy for creating Least Privilege Workspaces during workspace creation 
    - Coordinate any policy adjustments with Databricks support
    ```
 
-***REMOVED******REMOVED*** Important Notes
+## Important Notes
 
-***REMOVED******REMOVED******REMOVED*** Not a Self-Service Feature
+### Not a Self-Service Feature
 
 ⚠️ **WARNING**: Least Privilege Workspaces require Databricks support engagement:
 - Cannot be deployed without Databricks approval
@@ -129,7 +129,7 @@ VPC-SC policy for creating Least Privilege Workspaces during workspace creation 
 - Not covered by standard Databricks documentation
 - Ongoing support coordination may be needed
 
-***REMOVED******REMOVED******REMOVED*** Testing Requirements
+### Testing Requirements
 
 Before production deployment:
 1. **Dry-Run Testing**: Always test policies in dry-run mode first
@@ -137,7 +137,7 @@ Before production deployment:
 3. **Log Monitoring**: Continuously monitor VPC-SC audit logs
 4. **Databricks Validation**: Have Databricks support review your configuration
 
-***REMOVED******REMOVED******REMOVED*** Maintenance
+### Maintenance
 
 LPW deployments require ongoing maintenance:
 - Regular review of VPC-SC policies
@@ -145,9 +145,9 @@ LPW deployments require ongoing maintenance:
 - Coordination with Databricks for Databricks-side changes
 - Quarterly security audits of access patterns
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
@@ -156,27 +156,27 @@ LPW deployments require ongoing maintenance:
 | Access denied errors | Insufficient permissions in LPW policy | Review and expand policy with Databricks approval |
 | Policy conflicts | LPW policy incompatible with VPC-SC setup | Align policies with Databricks LPW requirements |
 
-***REMOVED******REMOVED******REMOVED*** Debug Commands
+### Debug Commands
 
 ```bash
-***REMOVED*** Check VPC-SC violations specific to LPW perimeter
+# Check VPC-SC violations specific to LPW perimeter
 gcloud logging read "protoPayload.metadata.@type=type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata AND protoPayload.metadata.securityPolicyInfo.servicePerimeterName:databricks-lpw-perimeter" \
   --limit=50 \
   --format=json
 
-***REMOVED*** Describe LPW perimeter
+# Describe LPW perimeter
 gcloud access-context-manager perimeters describe databricks-lpw-perimeter \
   --policy=$ACCESS_POLICY_ID
 
-***REMOVED*** List access levels for LPW
+# List access levels for LPW
 gcloud access-context-manager levels list \
   --policy=$ACCESS_POLICY_ID \
   --filter="name:lpw"
 ```
 
-***REMOVED******REMOVED*** Comparison: Standard vs LPW Policies
+## Comparison: Standard vs LPW Policies
 
-***REMOVED******REMOVED******REMOVED*** Standard Policies (Regular Workspaces)
+### Standard Policies (Regular Workspaces)
 
 Located in: `/templates/vpcsc-policy/`
 
@@ -187,7 +187,7 @@ Located in: `/templates/vpcsc-policy/`
 
 **Use when**: Most production deployments
 
-***REMOVED******REMOVED******REMOVED*** LPW Policies (This Folder)
+### LPW Policies (This Folder)
 
 Located in: `/templates/vpcsc-policy/least-privilege-workspaces/`
 
@@ -197,9 +197,9 @@ Located in: `/templates/vpcsc-policy/least-privilege-workspaces/`
 
 **Use when**: Maximum security, explicit allowlisting required
 
-***REMOVED******REMOVED*** Migration Path
+## Migration Path
 
-***REMOVED******REMOVED******REMOVED*** From Standard to LPW
+### From Standard to LPW
 
 If you need to migrate from standard to LPW:
 
@@ -209,20 +209,20 @@ If you need to migrate from standard to LPW:
 4. **Test in Parallel**: Create new LPW workspace, don't migrate existing
 5. **Gradual Transition**: Move workloads incrementally after validation
 
-***REMOVED******REMOVED******REMOVED*** From LPW to Standard
+### From LPW to Standard
 
 Not recommended - typically LPW is used for compliance reasons that persist.
 
-***REMOVED******REMOVED*** Support and Resources
+## Support and Resources
 
-***REMOVED******REMOVED******REMOVED*** Databricks Support
+### Databricks Support
 
 For LPW deployments, always engage Databricks support:
 - **Databricks Support Portal**: https://help.databricks.com
 - **Account Team**: Contact your Databricks Account Executive
 - **Professional Services**: Consider Databricks PS engagement for complex LPW setups
 
-***REMOVED******REMOVED******REMOVED*** Documentation
+### Documentation
 
 - Standard VPC-SC Setup: `../Configure-VPC-SC.md`
 - Private Google Access: `../Configure-PrivateGoogleAccess.md`
@@ -231,7 +231,7 @@ For LPW deployments, always engage Databricks support:
 
 ---
 
-***REMOVED******REMOVED*** Summary
+## Summary
 
 Least Privilege Workspaces provide maximum security for Databricks deployments but require:
 - ✅ Databricks support engagement and approval

@@ -1,11 +1,11 @@
-***REMOVED*** PSC workspace creation run book
-***REMOVED******REMOVED******REMOVED*** You would need to update commands as per your environment details
+# PSC workspace creation run book
+### You would need to update commands as per your environment details
 
 Create a service account, lets call it automatio-sa and grant it:
 grant projectViewer role on vpc project (if using shared vpc)
 grant projectEditor and IAMAdmin role on service project i.e. where the workspace will be created or could add a custom role
 
-***REMOVED******REMOVED******REMOVED*** Create Databricks custom role for ws creation
+### Create Databricks custom role for ws creation
 ```gcloud iam roles create DatabricksCustomRole \
     --project=aservice-prj2 \
     --title="Databricks Custom Role" \
@@ -13,49 +13,49 @@ grant projectEditor and IAMAdmin role on service project i.e. where the workspac
     --permissions=iam.serviceAccounts.getIamPolicy,iam.serviceAccounts.setIamPolicy,iam.roles.create,iam.roles.delete,iam.roles.get,iam.roles.update,resourcemanager.projects.get,resourcemanager.projects.getIamPolicy,resourcemanager.projects.setIamPolicy,serviceusage.services.get,serviceusage.services.list,serviceusage.services.enable,compute.networks.get,compute.projects.get,compute.subnetworks.get
 ```
 
-***REMOVED******REMOVED******REMOVED*** Grant custom role to your service account
+### Grant custom role to your service account
 ```gcloud projects add-iam-policy-binding aservice-prj2 \
     --member="serviceAccount:automation-sa@aservice-prj2.iam.gserviceaccount.com" \
     --role="roles/DatabricksCustomRole"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Grant viewer role to the automation SA on the shared vpc project
+### Grant viewer role to the automation SA on the shared vpc project
 ```gcloud projects add-iam-policy-binding ahost-prj \
     --member="serviceAccount:automation-sa@aservice-prj2.iam.gserviceaccount.com" \
     --role="roles/viewer"
 ```
 
-***REMOVED******REMOVED******REMOVED*** List roles assigned to automation SA on service project
+### List roles assigned to automation SA on service project
 ```gcloud projects get-iam-policy aservice-prj2 \
     --flatten="bindings[].members" \
     --filter="bindings.members:serviceAccount:automation-sa@aservice-prj2.iam.gserviceaccount.com" \
     --format="table(bindings.role)"
 ```
 
-***REMOVED******REMOVED******REMOVED*** List roles assigned to automation SA on host project
+### List roles assigned to automation SA on host project
 ```gcloud projects get-iam-policy ahost-prj \
     --flatten="bindings[].members" \
     --filter="bindings.members:serviceAccount:automation-sa@aservice-prj2.iam.gserviceaccount.com" \
     --format="table(bindings.role)"
 ```
 
-***REMOVED*** On your local system where you plan to run terraform
-***REMOVED******REMOVED******REMOVED*** Authenticate your gcloud session
+# On your local system where you plan to run terraform
+### Authenticate your gcloud session
 
 ```
 gcloud auth application-default login
 ```
 
-***REMOVED******REMOVED*** Set default project to Databricks project
-***REMOVED******REMOVED******REMOVED*** PROJECT_NAME == Service or Host project
+## Set default project to Databricks project
+### PROJECT_NAME == Service or Host project
 ```
 gcloud config set project PROJECT_NAME
 ```
-***REMOVED******REMOVED******REMOVED*** Following command runs on vpc (host) project
+### Following command runs on vpc (host) project
 ```
 gcloud config set project VPC_PROJECT_NAME
 ```
-***REMOVED******REMOVED******REMOVED*** Create private ip addresses used for Databricks 
+### Create private ip addresses used for Databricks 
 ```
 gcloud compute addresses create workspace-pe-ip --region=us-central1 --subnet=psc-endpoint-subnet
 ```
@@ -69,10 +69,10 @@ gcloud compute addresses create relay-pe-ip --region=us-central1 --subnet=psc-en
 gcloud compute addresses list --filter="name=relay-pe-ip"
 ```
 
-***REMOVED*** Create private endpoint using regional service serviceAttachments
-* Detailed list of per region attachement available over [here](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html***REMOVED***regional-endpoints)
+# Create private endpoint using regional service serviceAttachments
+* Detailed list of per region attachement available over [here](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#regional-endpoints)
 
-***REMOVED******REMOVED******REMOVED*** Create forwarding rule for backend psc ep
+### Create forwarding rule for backend psc ep
 ```
 gcloud compute forwarding-rules create usc1-backend-ep \
     --region=us-central1 \
@@ -80,7 +80,7 @@ gcloud compute forwarding-rules create usc1-backend-ep \
     --address=relay-pe-ip \
     --target-service-attachment=projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint
 ```
-***REMOVED******REMOVED******REMOVED*** Create forwarding rule for frontend psc ep
+### Create forwarding rule for frontend psc ep
 ```
 gcloud compute forwarding-rules create usc1-frontend-ep \
     --region=us-central1 \
@@ -89,7 +89,7 @@ gcloud compute forwarding-rules create usc1-frontend-ep \
     --target-service-attachment=projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint
 ```
 
-***REMOVED******REMOVED******REMOVED*** List endpoints
+### List endpoints
 ```
 gcloud compute forwarding-rules describe usc1-backend-ep \
     --region=us-central1
@@ -99,8 +99,8 @@ gcloud compute forwarding-rules describe usc1-frontend-ep \
     --region=us-central1
 ```
 
-***REMOVED*** Following commands runs on gke (service) project
-***REMOVED******REMOVED*** Create CMK keys for databricks
+# Following commands runs on gke (service) project
+## Create CMK keys for databricks
 * Key could reside in any project, service, host or any other project
 ```
 gcloud config set project GKE_PROJECT_NAME
@@ -126,7 +126,7 @@ gcloud kms keys create databricks-cmek \
 gcloud kms keys list --location=us-central1 --keyring=databricks-keyring
 ```
 
-***REMOVED******REMOVED******REMOVED*** Grant permission on the key to automation-SA
+### Grant permission on the key to automation-SA
 ```
 gcloud kms keys add-iam-policy-binding databricks-cmek \
   --location us-central1 \
@@ -142,14 +142,14 @@ gcloud kms keys add-iam-policy-binding databricks-cmek \
   --role roles/cloudkms.viewer
 ```
 
-***REMOVED*** Create VPC perimeter
+# Create VPC perimeter
 
-***REMOVED******REMOVED******REMOVED*** replace the following with your details
+### replace the following with your details
     - projects/<YOUR PROJECT NUMBER> - project you would like to secure
     - policy=<POLICY ID> - policy id
     - access-levels='accessPolicies/<YOUR POLICY ID>/accessLevels/<YOUR ACCESS POLICY>' -  access context policy
 
-***REMOVED*** regular policy
+# regular policy
 ```
 gcloud access-context-manager perimeters create 'accessPolicies/<YOUR POLICY ID>/servicePerimeters/dbxpolicy' \
   --title=labs-dbxpolicy \
@@ -161,7 +161,7 @@ gcloud access-context-manager perimeters create 'accessPolicies/<YOUR POLICY ID>
   --vpc-allowed-services=RESTRICTED-SERVICES \
   --policy=<YOUR POLICY ID>
 ```
-***REMOVED*** dry run policy
+# dry run policy
 ```
 gcloud access-context-manager perimeters dry-run create 'accessPolicies/<YOUR POLICY ID>/servicePerimeters/labsperimeter2' \
   --perimeter-title=labs-perimeter2 \
@@ -175,7 +175,7 @@ gcloud access-context-manager perimeters dry-run create 'accessPolicies/<YOUR PO
   --policy=<YOUR POLICY ID>
 ```
 
-***REMOVED*** delete perimeter
+# delete perimeter
 ```
 gcloud access-context-manager perimeters dry-run delete labs_perimeter --policy <YOUR POLICY ID>
 ```
