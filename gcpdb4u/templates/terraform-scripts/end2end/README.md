@@ -1,26 +1,26 @@
-***REMOVED*** Databricks End-to-End Deployment with Unity Catalog
+# Databricks End-to-End Deployment with Unity Catalog
 
 A comprehensive Terraform configuration for deploying a **production-ready Databricks workspace** on Google Cloud Platform (GCP) with Unity Catalog for data governance, external storage locations, cluster policies, and complete user/group management.
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-- [Architecture Overview](***REMOVED***architecture-overview)
-- [Prerequisites](***REMOVED***prerequisites)
-- [What's Included](***REMOVED***whats-included)
-- [Provider Configuration](***REMOVED***provider-configuration)
-- [GCP Infrastructure Requirements](***REMOVED***gcp-infrastructure-requirements)
-- [Databricks Resources](***REMOVED***databricks-resources)
-- [Unity Catalog Configuration](***REMOVED***unity-catalog-configuration)
-- [Deployment Flow](***REMOVED***deployment-flow)
-- [Configuration](***REMOVED***configuration)
-- [Deployment](***REMOVED***deployment)
-- [Post-Deployment](***REMOVED***post-deployment)
-- [Outputs](***REMOVED***outputs)
-- [Troubleshooting](***REMOVED***troubleshooting)
+- [Architecture Overview](#architecture-overview)
+- [Prerequisites](#prerequisites)
+- [What's Included](#whats-included)
+- [Provider Configuration](#provider-configuration)
+- [GCP Infrastructure Requirements](#gcp-infrastructure-requirements)
+- [Databricks Resources](#databricks-resources)
+- [Unity Catalog Configuration](#unity-catalog-configuration)
+- [Deployment Flow](#deployment-flow)
+- [Configuration](#configuration)
+- [Deployment](#deployment)
+- [Post-Deployment](#post-deployment)
+- [Outputs](#outputs)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-***REMOVED******REMOVED*** Architecture Overview
+## Architecture Overview
 
 This deployment creates a **complete, production-ready Databricks platform** with:
 
@@ -37,7 +37,7 @@ This deployment creates a **complete, production-ready Databricks platform** wit
 
 > **Note**: This configuration assumes you already have VPC infrastructure. For infrastructure creation, see `../infra4db/`.
 
-***REMOVED******REMOVED******REMOVED*** Architecture Diagram
+### Architecture Diagram
 
 ```mermaid
 graph TB
@@ -126,13 +126,13 @@ graph TB
     SUBNET --> CONTROL
     CONTROL --> WS
     
-    style META fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style UC_ADMIN fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style WS fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style CP1 fill:***REMOVED***34A853,color:***REMOVED***fff
+    style META fill:"#FF3621",color:"#fff"
+    style UC_ADMIN fill:"#FBBC04",color:"#000"
+    style WS fill:"#4285F4",color:"#fff"
+    style CP1 fill:"#34A853",color:"#fff"
 ```
 
-***REMOVED******REMOVED******REMOVED*** What Makes This "End-to-End"?
+### What Makes This "End-to-End"?
 
 This configuration provides a **complete Databricks deployment**, not just infrastructure:
 
@@ -147,9 +147,9 @@ This configuration provides a **complete Databricks deployment**, not just infra
 
 ---
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
-***REMOVED******REMOVED******REMOVED*** 1. Databricks Account Requirements
+### 1. Databricks Account Requirements
 
 - **Databricks Account on GCP** (Enterprise Edition for Unity Catalog)
 - **Account Console Access** at `https://accounts.gcp.databricks.com`
@@ -158,9 +158,9 @@ This configuration provides a **complete Databricks deployment**, not just infra
   - Service account email (e.g., `automation-sa@project.iam.gserviceaccount.com`)
 - **Unity Catalog Enabled** for your account
 
-***REMOVED******REMOVED******REMOVED*** 2. GCP Requirements
+### 2. GCP Requirements
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Existing VPC Infrastructure
+#### Existing VPC Infrastructure
 
 This configuration requires a **pre-existing VPC**. Use `../infra4db/` to create:
 
@@ -170,7 +170,7 @@ This configuration requires a **pre-existing VPC**. Use `../infra4db/` to create
 - Internet connectivity via Cloud NAT
 - Firewall rules for Databricks traffic
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** GCP Service Account Permissions
+#### GCP Service Account Permissions
 
 **On Service/Consumer Project**:
 - `roles/compute.networkAdmin`
@@ -182,18 +182,18 @@ This configuration requires a **pre-existing VPC**. Use `../infra4db/` to create
 - `roles/compute.networkUser`
 - `roles/compute.securityAdmin`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** GCP Projects
+#### GCP Projects
 
 1. **Service/Consumer Project**: Where workspace will be created
 2. **Host/Shared VPC Project**: Where VPC network exists
 
-***REMOVED******REMOVED******REMOVED*** 3. Local Requirements
+### 3. Local Requirements
 
 - **Terraform** >= 1.0
 - **Google Cloud SDK** configured
 - **Service Account Authentication** configured
 
-***REMOVED******REMOVED******REMOVED*** 4. Users
+### 4. Users
 
 - **Databricks Admin User**: Email for workspace admin
 - Will be added to admin groups automatically
@@ -201,51 +201,51 @@ This configuration requires a **pre-existing VPC**. Use `../infra4db/` to create
 
 ---
 
-***REMOVED******REMOVED*** What's Included
+## What's Included
 
-***REMOVED******REMOVED******REMOVED*** Core Components
+### Core Components
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Databricks Workspace
+#### 1. Databricks Workspace
 - Customer-managed VPC deployment
 - IP access lists configured
 - Workspace admin user assignment
 - Public master, private nodes (configurable)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Unity Catalog Setup
+#### 2. Unity Catalog Setup
 - **Metastore**: Central metadata repository
 - **Default Storage**: GCS bucket for managed tables
 - **Storage Credentials**: Databricks-managed service accounts
 - **Metastore Assignment**: Links workspace to metastore
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Account-Level Groups
+#### 3. Account-Level Groups
 - **UC Admins Group**: Unity Catalog administrators
 - **Data Engineering Group**: For engineering workloads
 - **Data Science Group**: For data science workloads
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 4. Users and Assignments
+#### 4. Users and Assignments
 - **Admin Users**: Added to UC Admins group
 - **Service Account**: Added as admin member
 - **Demo Users**: Created for testing (auto-generated)
 - **Group Memberships**: Automatic assignments
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 5. Catalogs and Schemas
+#### 5. Catalogs and Schemas
 - **Main Catalog**: Default catalog (auto-created)
 - **Dev Catalog**: Development catalog with permissions
 - **DevDB Schema**: Development database in dev catalog
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 6. External Storage
+#### 6. External Storage
 - **External GCS Bucket**: For external tables
 - **Storage Credential**: With Databricks SA
 - **External Location**: Registered with Unity Catalog
 - **Permissions**: Granted to appropriate groups
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 7. Cluster Policies
+#### 7. Cluster Policies
 - **Fair Use Policy**: DBU limits (max 10 DBU/hour)
 - **Auto-termination**: Mandatory 20-minute timeout
 - **Custom Tags**: Team and CostCenter tags
 - **Group Permissions**: Policy usage rights
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 8. Workspace Permissions
+#### 8. Workspace Permissions
 - **Group-to-Workspace Assignment**: Via `mws_permission_assignment`
 - **Admin Group**: Full admin access
 - **User Group**: Standard user access
@@ -253,11 +253,11 @@ This configuration requires a **pre-existing VPC**. Use `../infra4db/` to create
 
 ---
 
-***REMOVED******REMOVED*** Provider Configuration
+## Provider Configuration
 
 This deployment uses three Terraform providers:
 
-***REMOVED******REMOVED******REMOVED*** 1. Google Provider (Default)
+### 1. Google Provider (Default)
 
 ```hcl
 provider "google" {
@@ -266,7 +266,7 @@ provider "google" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Google Provider (VPC Project)
+### 2. Google Provider (VPC Project)
 
 ```hcl
 provider "google" {
@@ -276,7 +276,7 @@ provider "google" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Databricks Account Provider
+### 3. Databricks Account Provider
 
 ```hcl
 provider "databricks" {
@@ -292,7 +292,7 @@ provider "databricks" {
 - Creating account-level groups
 - Assigning groups to workspace
 
-***REMOVED******REMOVED******REMOVED*** 4. Databricks Workspace Provider
+### 4. Databricks Workspace Provider
 
 ```hcl
 provider "databricks" {
@@ -310,22 +310,22 @@ provider "databricks" {
 
 ---
 
-***REMOVED******REMOVED*** GCP Infrastructure Requirements
+## GCP Infrastructure Requirements
 
-***REMOVED******REMOVED******REMOVED*** VPC and Subnet Requirements
+### VPC and Subnet Requirements
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** VPC Network
+#### VPC Network
 - Name: Referenced in `google_vpc_id` variable
 - Project: Must exist in `google_shared_vpc_project`
 - Type: Custom mode
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Node Subnet
+#### Node Subnet
 - Name: Referenced in `node_subnet` variable
 - Purpose: Databricks cluster nodes
 - CIDR: Minimum `/24` (251 IPs)
 - Internet access: Via Cloud NAT
 
-***REMOVED******REMOVED******REMOVED*** Network Connectivity
+### Network Connectivity
 
 **Egress (Required):**
 - `*.gcp.databricks.com` (control plane)
@@ -334,9 +334,9 @@ provider "databricks" {
 
 ---
 
-***REMOVED******REMOVED*** Databricks Resources
+## Databricks Resources
 
-***REMOVED******REMOVED******REMOVED*** 1. Workspace (`workspace.tf`)
+### 1. Workspace (`workspace.tf`)
 
 ```hcl
 resource "databricks_mws_workspaces" "databricks_workspace"
@@ -354,9 +354,9 @@ resource "databricks_mws_workspaces" "databricks_workspace"
 - Admin user assignment
 - Random suffix for uniqueness
 
-***REMOVED******REMOVED******REMOVED*** 2. Unity Catalog Setup (`unity-setup.tf`)
+### 2. Unity Catalog Setup (`unity-setup.tf`)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Metastore
+#### Metastore
 
 ```hcl
 resource "databricks_metastore" "this"
@@ -372,7 +372,7 @@ resource "databricks_metastore" "this"
 - Force destroy: `true` (for testing)
 - Owner: UC Admins group
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Default Storage Credential
+#### Default Storage Credential
 
 ```hcl
 resource "databricks_metastore_data_access" "first"
@@ -384,7 +384,7 @@ resource "databricks_metastore_data_access" "first"
 - Grants `storage.legacyBucketReader` on metastore bucket
 - Sets as default credential for metastore
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Metastore Assignment
+#### Metastore Assignment
 
 ```hcl
 resource "databricks_metastore_assignment" "this"
@@ -395,7 +395,7 @@ resource "databricks_metastore_assignment" "this"
 - Sets "main" as default catalog
 - Enables Unity Catalog features in workspace
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Metastore Grants
+#### Metastore Grants
 
 ```hcl
 resource "databricks_grants" "all_grants"
@@ -405,9 +405,9 @@ resource "databricks_grants" "all_grants"
 - Service account: `CREATE_CATALOG`, `CREATE_EXTERNAL_LOCATION`, `CREATE_STORAGE_CREDENTIAL`
 - Admin user: `USE_CONNECTION`, `CREATE_EXTERNAL_LOCATION`, `CREATE_STORAGE_CREDENTIAL`
 
-***REMOVED******REMOVED******REMOVED*** 3. Groups and Users (`unity-setup.tf`)
+### 3. Groups and Users (`unity-setup.tf`)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Unity Catalog Admins Group
+#### Unity Catalog Admins Group
 
 ```hcl
 resource "databricks_group" "uc_admins"
@@ -422,7 +422,7 @@ resource "databricks_group" "uc_admins"
 - Auto-generated admin user
 - Service account (from variable)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Workspace Groups
+#### Workspace Groups
 
 ```hcl
 resource "databricks_group" "data_eng"
@@ -442,9 +442,9 @@ resource "databricks_mws_permission_assignment"
 - `data_science` → ADMIN role
 - `data_eng` → USER role
 
-***REMOVED******REMOVED******REMOVED*** 4. Catalogs and Schemas (`unity-objects-management.tf`)
+### 4. Catalogs and Schemas (`unity-objects-management.tf`)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Dev Catalog
+#### Dev Catalog
 
 ```hcl
 resource "databricks_catalog" "dev"
@@ -460,7 +460,7 @@ resource "databricks_catalog" "dev"
 - Data Science: `USE_CATALOG`, `CREATE_SCHEMA`
 - Admin User: `USE_CATALOG`, `CREATE_SCHEMA`, `USE_SCHEMA`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** DevDB Schema
+#### DevDB Schema
 
 ```hcl
 resource "databricks_schema" "dev_database"
@@ -475,9 +475,9 @@ resource "databricks_schema" "dev_database"
 - Data Science group: `USE_SCHEMA`
 - Admin user: `USE_SCHEMA`
 
-***REMOVED******REMOVED******REMOVED*** 5. External Storage (`unity-objects-management.tf`)
+### 5. External Storage (`unity-objects-management.tf`)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** External GCS Bucket
+#### External GCS Bucket
 
 ```hcl
 resource "google_storage_bucket" "ext_bucket"
@@ -488,7 +488,7 @@ resource "google_storage_bucket" "ext_bucket"
 - Separate from managed storage
 - Full control over data lifecycle
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Storage Credential
+#### Storage Credential
 
 ```hcl
 resource "databricks_storage_credential" "external_storage1_credential"
@@ -507,7 +507,7 @@ resource "databricks_storage_credential" "external_storage1_credential"
 - Data Engineering: `CREATE_EXTERNAL_TABLE`, `READ_FILES`, `WRITE_FILES`
 - Admin user: `ALL_PRIVILEGES`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** External Location
+#### External Location
 
 ```hcl
 resource "databricks_external_location" "external_storage1"
@@ -523,7 +523,7 @@ resource "databricks_external_location" "external_storage1"
 - Enforce access control via Unity Catalog
 - Enable external table creation
 
-***REMOVED******REMOVED******REMOVED*** 6. Cluster Policies (`cluster_policies.tf`)
+### 6. Cluster Policies (`cluster_policies.tf`)
 
 ```hcl
 resource "databricks_cluster_policy" "fair_use"
@@ -549,9 +549,9 @@ resource "databricks_cluster_policy" "fair_use"
 
 ---
 
-***REMOVED******REMOVED*** Deployment Flow
+## Deployment Flow
 
-***REMOVED******REMOVED******REMOVED*** High-Level Sequence
+### High-Level Sequence
 
 ```mermaid
 sequenceDiagram
@@ -613,7 +613,7 @@ sequenceDiagram
     Note over DB_WS: Complete Platform Ready
 ```
 
-***REMOVED******REMOVED******REMOVED*** Dependency Management
+### Dependency Management
 
 The configuration uses `depends_on` extensively to ensure proper ordering:
 
@@ -635,71 +635,71 @@ Permissions and Grants
 
 ---
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
-***REMOVED******REMOVED******REMOVED*** 1. Update Provider Configuration
+### 1. Update Provider Configuration
 
 Edit `providers.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Service Account
+# Service Account
 google_service_account_email = "automation-sa@my-service-project.iam.gserviceaccount.com"
 
-***REMOVED*** Projects
+# Projects
 google_project_name = "my-service-project"
 google_shared_vpc_project = "my-host-project"
 
-***REMOVED*** Region
+# Region
 google_region = "us-central1"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Update Workspace Configuration
+### 2. Update Workspace Configuration
 
 Edit `workspace.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Databricks Account
+# Databricks Account
 databricks_account_id = "12345678-1234-1234-1234-123456789abc"
 databricks_account_console_url = "https://accounts.gcp.databricks.com"
 databricks_workspace_name = "my-production-workspace"
 databricks_admin_user = "admin@mycompany.com"
 
-***REMOVED*** Network Configuration
+# Network Configuration
 google_vpc_id = "my-vpc-network"
 node_subnet = "databricks-node-subnet"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Update Unity Catalog Configuration
+### 3. Update Unity Catalog Configuration
 
 Edit `unity-setup.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Unity Catalog Groups
+# Unity Catalog Groups
 uc_admin_group_name = "unity-catalog-admins"
 group_name1 = "data-engineering"
 group_name2 = "data-science"
 
-***REMOVED*** Metastore Name
+# Metastore Name
 metastore_name = "production-metastore"
 
-***REMOVED*** External Storage
+# External Storage
 external_storage = "external-data"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Update Cluster Policy Configuration
+### 4. Update Cluster Policy Configuration
 
 Edit `cluster_policies.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Cluster Policy
+# Cluster Policy
 cluster_policy1_name = "fair-use"
 
-***REMOVED*** Custom Tags for Cost Attribution
+# Custom Tags for Cost Attribution
 custom_tag_team = "DataPlatform"
 custom_tag_cost_center = "Engineering-12345"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 5. Variable Validation Checklist
+### 5. Variable Validation Checklist
 
 Before deployment:
 
@@ -715,32 +715,32 @@ Before deployment:
 
 ---
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Authenticate with GCP
+### Step 1: Authenticate with GCP
 
 ```bash
-***REMOVED*** Option 1: Service Account Impersonation
+# Option 1: Service Account Impersonation
 gcloud config set auth/impersonate_service_account automation-sa@project.iam.gserviceaccount.com
 export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 
-***REMOVED*** Option 2: Service Account Key
+# Option 2: Service Account Key
 export GOOGLE_APPLICATION_CREDENTIALS=~/sa-key.json
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Navigate to Directory
+### Step 2: Navigate to Directory
 
 ```bash
 cd gcp/gh-repo/gcp/terraform-scripts/end2end
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Initialize Terraform
+### Step 3: Initialize Terraform
 
 ```bash
 terraform init
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Review Plan
+### Step 4: Review Plan
 
 ```bash
 terraform plan
@@ -762,7 +762,7 @@ terraform plan
 - Multiple grants and permissions
 - IP access list configuration
 
-***REMOVED******REMOVED******REMOVED*** Step 5: Apply Configuration
+### Step 5: Apply Configuration
 
 ```bash
 terraform apply
@@ -782,7 +782,7 @@ terraform apply
 9. Cluster policies (~1 min)
 10. Permissions and grants (~2-3 min)
 
-***REMOVED******REMOVED******REMOVED*** Step 6: Verify Deployment
+### Step 6: Verify Deployment
 
 ```bash
 terraform output
@@ -798,15 +798,15 @@ uc_admins_group_id = "group-id"
 
 ---
 
-***REMOVED******REMOVED*** Post-Deployment
+## Post-Deployment
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Access Workspace
+### Step 1: Access Workspace
 
 1. Navigate to workspace URL
 2. Log in with admin user email
 3. Verify Unity Catalog is enabled
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Verify Unity Catalog
+### Step 2: Verify Unity Catalog
 
 ```sql
 -- In Databricks SQL or Notebook
@@ -825,7 +825,7 @@ INSERT INTO test_table VALUES (1, 'test');
 SELECT * FROM test_table;
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Test External Location
+### Step 3: Test External Location
 
 ```sql
 -- Create external table
@@ -836,7 +836,7 @@ LOCATION 'gs://external-data-<region>-<suffix>/test_data';
 SELECT * FROM dev.devdb.external_test;
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Test Cluster Policy
+### Step 4: Test Cluster Policy
 
 1. Go to **Compute** → **Cluster Policies**
 2. Verify "fair-use cluster policy" exists
@@ -846,7 +846,7 @@ SELECT * FROM dev.devdb.external_test;
    - Custom tags applied
    - DBU limit enforced
 
-***REMOVED******REMOVED******REMOVED*** Step 5: Verify Permissions
+### Step 5: Verify Permissions
 
 **As Data Engineering User:**
 ```sql
@@ -866,7 +866,7 @@ CREATE SCHEMA test_schema;
 
 ---
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -890,11 +890,11 @@ terraform output -json | jq
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Metastore Assignment Fails
+#### 1. Metastore Assignment Fails
 
 **Error:**
 ```
@@ -916,7 +916,7 @@ Error: cannot assign metastore to workspace
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Group-to-Workspace Assignment Fails
+#### 2. Group-to-Workspace Assignment Fails
 
 **Error:**
 ```
@@ -938,7 +938,7 @@ This API requires Unity Catalog to be assigned:
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Storage Credential Creation Fails
+#### 3. Storage Credential Creation Fails
 
 **Error:**
 ```
@@ -960,7 +960,7 @@ Error: cannot create storage credential
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 4. External Location Validation Fails
+#### 4. External Location Validation Fails
 
 **Error:**
 ```
@@ -985,7 +985,7 @@ Error: external location validation failed: cannot access bucket
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 5. Cannot Create Catalog or Schema
+#### 5. Cannot Create Catalog or Schema
 
 **Error:**
 ```
@@ -1008,7 +1008,7 @@ Error: permission denied when creating catalog
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 6. Cluster Policy Creation Fails
+#### 6. Cluster Policy Creation Fails
 
 **Error:**
 ```
@@ -1032,59 +1032,59 @@ Error: cannot create cluster policy
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Debug Commands
+### Debug Commands
 
 ```bash
-***REMOVED*** Check workspace status
+# Check workspace status
 terraform state show databricks_mws_workspaces.databricks_workspace
 
-***REMOVED*** Check metastore
+# Check metastore
 terraform state show databricks_metastore.this
 
-***REMOVED*** Check metastore assignment
+# Check metastore assignment
 terraform state show databricks_metastore_assignment.this
 
-***REMOVED*** Check groups
+# Check groups
 terraform state show databricks_group.uc_admins
 terraform state show databricks_group.data_eng
 terraform state show databricks_group.data_science
 
-***REMOVED*** Check workspace assignments
+# Check workspace assignments
 terraform state list | grep mws_permission_assignment
 
-***REMOVED*** Check catalogs and schemas
+# Check catalogs and schemas
 terraform state show databricks_catalog.dev
 terraform state show databricks_schema.dev_database
 
-***REMOVED*** Check external storage
+# Check external storage
 terraform state show google_storage_bucket.ext_bucket
 terraform state show databricks_storage_credential.external_storage1_credential
 terraform state show databricks_external_location.external_storage1
 
-***REMOVED*** Check cluster policy
+# Check cluster policy
 terraform state show databricks_cluster_policy.fair_use
 
-***REMOVED*** View all outputs
+# View all outputs
 terraform output -json | jq
 ```
 
 ---
 
-***REMOVED******REMOVED*** Cleanup
+## Cleanup
 
-***REMOVED******REMOVED******REMOVED*** Important Notes
+### Important Notes
 
 ⚠️ **Before destroying**:
 1. Export all important notebooks and data
 2. Terminate all running clusters
 3. Remove metastore data access resource from state
 
-***REMOVED******REMOVED******REMOVED*** Cleanup Steps
+### Cleanup Steps
 
 **Step 1: Remove metastore data access** (Terraform limitation):
 
 ```bash
-***REMOVED*** This resource cannot be destroyed via Terraform
+# This resource cannot be destroyed via Terraform
 terraform state rm databricks_metastore_data_access.first
 ```
 
@@ -1100,7 +1100,7 @@ After `terraform destroy`, manually delete the metastore in Databricks Account C
 
 ---
 
-***REMOVED******REMOVED*** Additional Resources
+## Additional Resources
 
 - [Databricks Unity Catalog on GCP](https://docs.gcp.databricks.com/data-governance/unity-catalog/index.html)
 - [Unity Catalog Best Practices](https://docs.gcp.databricks.com/data-governance/unity-catalog/best-practices.html)
@@ -1110,7 +1110,7 @@ After `terraform destroy`, manually delete the metastore in Databricks Account C
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 After deploying your complete platform:
 
@@ -1146,42 +1146,42 @@ After deploying your complete platform:
 
 ---
 
-***REMOVED******REMOVED*** Best Practices Implemented
+## Best Practices Implemented
 
-***REMOVED******REMOVED******REMOVED*** ✅ Infrastructure as Code
+### ✅ Infrastructure as Code
 - All resources defined in Terraform
 - Version controlled configuration
 - Repeatable deployments
 
-***REMOVED******REMOVED******REMOVED*** ✅ Data Governance
+### ✅ Data Governance
 - Unity Catalog for centralized metadata
 - Fine-grained access control
 - Audit trail for all data access
 
-***REMOVED******REMOVED******REMOVED*** ✅ Cost Management
+### ✅ Cost Management
 - Cluster policies with DBU limits
 - Auto-termination to prevent waste
 - Custom tags for chargeback
 
-***REMOVED******REMOVED******REMOVED*** ✅ Security
+### ✅ Security
 - RBAC at all levels
 - Least privilege access
 - IP access lists
 - Separate groups for different roles
 
-***REMOVED******REMOVED******REMOVED*** ✅ Organization
+### ✅ Organization
 - Catalogs for environment separation
 - Schemas for logical grouping
 - External locations for data organization
 
-***REMOVED******REMOVED******REMOVED*** ✅ Automation
+### ✅ Automation
 - Automated group and user creation
 - Automated permission grants
 - Automated storage credential setup
 
 ---
 
-***REMOVED******REMOVED*** License
+## License
 
 This configuration is provided as a reference implementation for deploying complete, production-ready Databricks workspaces with Unity Catalog on GCP.
 

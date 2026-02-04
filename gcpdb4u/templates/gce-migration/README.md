@@ -1,10 +1,10 @@
-***REMOVED*** Databricks GCE Compute Migration
+# Databricks GCE Compute Migration
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This folder contains policies and documentation for the **Databricks GCE (Compute Engine) migration** - the transition from GKE-based (Kubernetes) to GCE-based (Compute Engine) classic compute clusters.
 
-***REMOVED******REMOVED*** What is the GCE Migration?
+## What is the GCE Migration?
 
 Databricks is migrating the underlying infrastructure for classic compute clusters:
 - **FROM**: GKE-based (Google Kubernetes Engine) clusters
@@ -12,9 +12,9 @@ Databricks is migrating the underlying infrastructure for classic compute cluste
 - **WHY**: Improved performance, reliability, and simplified architecture
 - **WHEN**: Announced migration - check Databricks documentation for timeline
 
-***REMOVED******REMOVED*** What's in This Folder
+## What's in This Folder
 
-***REMOVED******REMOVED******REMOVED*** cmv1-gce-policy.yaml
+### cmv1-gce-policy.yaml
 
 **Purpose**: Policy to allow Databricks to create/update firewall rules in customer-managed VPCs during the GCE migration.
 
@@ -25,23 +25,23 @@ Databricks is migrating the underlying infrastructure for classic compute cluste
 - ✅ If you want Databricks to automatically create firewall rules
 - ❌ NOT needed if you manually pre-create the firewall rule
 
-***REMOVED******REMOVED*** Do You Need This?
+## Do You Need This?
 
-***REMOVED******REMOVED******REMOVED*** ✅ You NEED this migration if:
+### ✅ You NEED this migration if:
 - You use **customer-managed VPCs** (Shared VPC or standalone VPC)
 - You have **classic compute** Databricks workspaces
 - You received notification about the GCE migration from Databricks
 
-***REMOVED******REMOVED******REMOVED*** ❌ You DON'T need this if:
+### ❌ You DON'T need this if:
 - You use **Databricks-managed VPCs**
 - You only use **serverless compute** (no classic clusters)
 - You already completed the migration
 
-***REMOVED******REMOVED*** Required Firewall Rule
+## Required Firewall Rule
 
 The GCE migration requires a new firewall rule to allow the `delegate-sa` service account to manage cluster instances:
 
-***REMOVED******REMOVED******REMOVED*** Firewall Rule Specifications
+### Firewall Rule Specifications
 
 | Property | Value |
 |----------|-------|
@@ -54,9 +54,9 @@ The GCE migration requires a new firewall rule to allow the `delegate-sa` servic
 | **Priority** | 1000 |
 | **Purpose** | Allow delegate-sa to launch and manage GCE cluster instances |
 
-***REMOVED******REMOVED*** Implementation Options
+## Implementation Options
 
-***REMOVED******REMOVED******REMOVED*** Option 1: Manual Firewall Rule Creation (RECOMMENDED)
+### Option 1: Manual Firewall Rule Creation (RECOMMENDED)
 
 Create the firewall rule manually before migration. This is the **recommended approach**.
 
@@ -83,7 +83,7 @@ gcloud compute firewall-rules create databricks-cmv1-worker-to-worker-gce \
 - ✅ Can customize rule parameters
 - ✅ Rule persists after migration
 
-***REMOVED******REMOVED******REMOVED*** Option 2: Let Databricks Create the Rule (USE POLICY FILE)
+### Option 2: Let Databricks Create the Rule (USE POLICY FILE)
 
 Use the `cmv1-gce-policy.yaml` to allow Databricks to automatically create the firewall rule.
 
@@ -114,9 +114,9 @@ Use the `cmv1-gce-policy.yaml` to allow Databricks to automatically create the f
 - ❌ Temporary permission grant to Databricks
 - ❌ Less control over rule parameters
 
-***REMOVED******REMOVED*** Migration Workflow
+## Migration Workflow
 
-***REMOVED******REMOVED******REMOVED*** Pre-Migration
+### Pre-Migration
 
 ```mermaid
 graph TD
@@ -135,12 +135,12 @@ graph TD
     I --> J
     D --> J
 
-    style F fill:***REMOVED***90EE90
-    style G fill:***REMOVED***FFE6B3
-    style J fill:***REMOVED***87CEEB
+    style F fill:"#90EE90"
+    style G fill:"#FFE6B3"
+    style J fill:"#87CEEB"
 ```
 
-***REMOVED******REMOVED******REMOVED*** During Migration
+### During Migration
 
 1. **Databricks initiates migration** for your workspace
 2. **Delegate-sa uses firewall rule** to launch GCE instances
@@ -148,14 +148,14 @@ graph TD
 4. **Monitor cluster health** during transition
 5. **Verify clusters function** correctly on GCE
 
-***REMOVED******REMOVED******REMOVED*** Post-Migration
+### Post-Migration
 
 1. **Verify all clusters operational** on GCE infrastructure
 2. **Remove cmv1-gce-policy.yaml** (if used Option 2)
 3. **Keep firewall rule** (required for ongoing operations)
 4. **Update documentation** to reflect GCE architecture
 
-***REMOVED******REMOVED*** What is delegate-sa?
+## What is delegate-sa?
 
 **Service Account**: `delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com`
 
@@ -171,27 +171,27 @@ graph TD
 
 **Find Yours**: [Databricks Regional Resources](https://docs.databricks.com/gcp/en/resources/ip-domain-region)
 
-***REMOVED******REMOVED*** Verification
+## Verification
 
 After creating the firewall rule, verify it's configured correctly:
 
 ```bash
-***REMOVED*** List firewall rules
+# List firewall rules
 gcloud compute firewall-rules list --filter="name:databricks-cmv1"
 
-***REMOVED*** Describe the rule
+# Describe the rule
 gcloud compute firewall-rules describe databricks-cmv1-worker-to-worker-gce
 
-***REMOVED*** Expected output should show:
-***REMOVED*** - Direction: INGRESS
-***REMOVED*** - Allowed: all protocols
-***REMOVED*** - Source service accounts: delegate-sa@prod-gcp-[REGION].iam.gserviceaccount.com
-***REMOVED*** - Target tags: databricks-worker (or target subnet)
+# Expected output should show:
+# - Direction: INGRESS
+# - Allowed: all protocols
+# - Source service accounts: delegate-sa@prod-gcp-[REGION].iam.gserviceaccount.com
+# - Target tags: databricks-worker (or target subnet)
 ```
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Migration Fails with Permission Errors
+### Migration Fails with Permission Errors
 
 **Symptom**: Cluster launch fails with "insufficient permissions" error
 
@@ -206,7 +206,7 @@ gcloud compute firewall-rules describe databricks-cmv1-worker-to-worker-gce
 3. Review GCP audit logs for specific denial
 4. Ensure VPC-SC perimeter (if configured) allows delegate-sa
 
-***REMOVED******REMOVED******REMOVED*** Firewall Rule Creation Fails
+### Firewall Rule Creation Fails
 
 **Symptom**: Rule creation command fails
 
@@ -220,7 +220,7 @@ gcloud compute firewall-rules describe databricks-cmv1-worker-to-worker-gce
 2. Check for existing rule: `gcloud compute firewall-rules list --filter="name:databricks-cmv1"`
 3. Enable Compute API: `gcloud services enable compute.googleapis.com`
 
-***REMOVED******REMOVED******REMOVED*** Clusters Stuck in PENDING State
+### Clusters Stuck in PENDING State
 
 **Symptom**: After migration, clusters don't start
 
@@ -235,9 +235,9 @@ gcloud compute firewall-rules describe databricks-cmv1-worker-to-worker-gce
 3. Review subnet IP availability
 4. Check Databricks cluster event logs
 
-***REMOVED******REMOVED*** Important Notes
+## Important Notes
 
-***REMOVED******REMOVED******REMOVED*** ⚠️ This is NOT a VPC Service Controls Policy
+### ⚠️ This is NOT a VPC Service Controls Policy
 
 The `cmv1-gce-policy.yaml` file is **NOT** a VPC Service Controls (VPC-SC) policy. It's an **IAM conditional policy** or **org policy constraint**.
 
@@ -245,7 +245,7 @@ The `cmv1-gce-policy.yaml` file is **NOT** a VPC Service Controls (VPC-SC) polic
 - VPC-SC ingress/egress policies (in `/templates/vpcsc-policy/`)
 - VPC firewall rules (in `/templates/firewall-rules/` or managed by gcloud)
 
-***REMOVED******REMOVED******REMOVED*** ⚠️ Keep the Firewall Rule After Migration
+### ⚠️ Keep the Firewall Rule After Migration
 
 The `databricks-cmv1-worker-to-worker-gce` firewall rule is **required for ongoing operations**, not just migration:
 - ✅ Keep the rule permanently
@@ -254,15 +254,15 @@ The `databricks-cmv1-worker-to-worker-gce` firewall rule is **required for ongoi
 
 Only the **policy file** (cmv1-gce-policy.yaml) should be removed after migration if you used Option 2.
 
-***REMOVED******REMOVED******REMOVED*** ⚠️ Region-Specific Configuration
+### ⚠️ Region-Specific Configuration
 
 Each region has its own delegate-sa. If you have workspaces in multiple regions:
 - Create firewall rule per region with correct delegate-sa
 - Or use a single rule with multiple source service accounts
 
-***REMOVED******REMOVED*** Integration with Other Security Controls
+## Integration with Other Security Controls
 
-***REMOVED******REMOVED******REMOVED*** VPC Service Controls
+### VPC Service Controls
 
 If you use VPC-SC, ensure your egress policies allow delegate-sa:
 
@@ -280,7 +280,7 @@ If you use VPC-SC, ensure your egress policies allow delegate-sa:
 
 See: `/templates/vpcsc-policy/egress.yaml`
 
-***REMOVED******REMOVED******REMOVED*** VPC Firewall Rules
+### VPC Firewall Rules
 
 The GCE migration firewall rule works alongside other Databricks firewall rules:
 - Intra-cluster communication rules
@@ -289,7 +289,7 @@ The GCE migration firewall rule works alongside other Databricks firewall rules:
 
 See: `/security/LockDown-VPC-Firewall-Rules.md`
 
-***REMOVED******REMOVED*** FAQ
+## FAQ
 
 **Q: Do I need this for Databricks-managed VPCs?**
 A: No, Databricks handles this automatically for managed VPCs.
@@ -312,21 +312,21 @@ A: Serverless is unaffected - already uses different infrastructure.
 **Q: How long does migration take?**
 A: Per-workspace migration is typically quick, but coordinate with Databricks for exact timing.
 
-***REMOVED******REMOVED*** Support and Resources
+## Support and Resources
 
-***REMOVED******REMOVED******REMOVED*** Databricks Documentation
+### Databricks Documentation
 
 - **GCE Migration Announcement**: https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/gce-update
-- **Customer-Managed VPC Requirements**: https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/gce-update***REMOVED***updates-needed-for-customer-managed-vpcs
+- **Customer-Managed VPC Requirements**: https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/gce-update#updates-needed-for-customer-managed-vpcs
 - **Regional Resources**: https://docs.databricks.com/gcp/en/resources/ip-domain-region
 
-***REMOVED******REMOVED******REMOVED*** Related Documentation
+### Related Documentation
 
 - **VPC Service Controls Setup**: `/security/Configure-VPC-SC.md`
 - **Firewall Rules**: `/security/LockDown-VPC-Firewall-Rules.md`
 - **VPC-SC Egress Policies**: `/templates/vpcsc-policy/egress.yaml`
 
-***REMOVED******REMOVED******REMOVED*** Getting Help
+### Getting Help
 
 - **Databricks Support**: Open ticket at https://help.databricks.com
 - **Account Team**: Contact your Databricks Account Executive
@@ -334,9 +334,9 @@ A: Per-workspace migration is typically quick, but coordinate with Databricks fo
 
 ---
 
-***REMOVED******REMOVED*** Quick Reference
+## Quick Reference
 
-***REMOVED******REMOVED******REMOVED*** Manual Firewall Rule Creation (Recommended)
+### Manual Firewall Rule Creation (Recommended)
 
 ```bash
 gcloud compute firewall-rules create databricks-cmv1-worker-to-worker-gce \
@@ -349,17 +349,17 @@ gcloud compute firewall-rules create databricks-cmv1-worker-to-worker-gce \
   --priority=1000
 ```
 
-***REMOVED******REMOVED******REMOVED*** Verification Command
+### Verification Command
 
 ```bash
 gcloud compute firewall-rules describe databricks-cmv1-worker-to-worker-gce
 ```
 
-***REMOVED******REMOVED******REMOVED*** Find Your delegate-sa
+### Find Your delegate-sa
 
 ```bash
-***REMOVED*** From Databricks documentation based on your region
-***REMOVED*** Format: delegate-sa@prod-gcp-[REGION].iam.gserviceaccount.com
+# From Databricks documentation based on your region
+# Format: delegate-sa@prod-gcp-[REGION].iam.gserviceaccount.com
 ```
 
 ---

@@ -1,25 +1,25 @@
-***REMOVED*** Databricks Workspace with BYOVPC + Private Service Connect + CMEK
+# Databricks Workspace with BYOVPC + Private Service Connect + CMEK
 
 A Terraform configuration for deploying the **most secure** Databricks workspace on Google Cloud Platform (GCP) featuring customer-managed VPC, Private Service Connect for private connectivity, and Customer-Managed Encryption Keys for data encryption.
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-- [Architecture Overview](***REMOVED***architecture-overview)
-- [Prerequisites](***REMOVED***prerequisites)
-- [Security Features](***REMOVED***security-features)
-- [Provider Configuration](***REMOVED***provider-configuration)
-- [GCP Infrastructure Requirements](***REMOVED***gcp-infrastructure-requirements)
-- [Databricks Resources](***REMOVED***databricks-resources)
-- [DNS Configuration](***REMOVED***dns-configuration)
-- [Deployment Flow](***REMOVED***deployment-flow)
-- [Configuration](***REMOVED***configuration)
-- [Deployment](***REMOVED***deployment)
-- [Outputs](***REMOVED***outputs)
-- [Troubleshooting](***REMOVED***troubleshooting)
+- [Architecture Overview](#architecture-overview)
+- [Prerequisites](#prerequisites)
+- [Security Features](#security-features)
+- [Provider Configuration](#provider-configuration)
+- [GCP Infrastructure Requirements](#gcp-infrastructure-requirements)
+- [Databricks Resources](#databricks-resources)
+- [DNS Configuration](#dns-configuration)
+- [Deployment Flow](#deployment-flow)
+- [Configuration](#configuration)
+- [Deployment](#deployment)
+- [Outputs](#outputs)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-***REMOVED******REMOVED*** Architecture Overview
+## Architecture Overview
 
 This deployment creates the **most secure Databricks workspace** configuration with:
 
@@ -35,7 +35,7 @@ This deployment creates the **most secure Databricks workspace** configuration w
 
 > **Important**: This configuration requires **both PSC and CMEK** to be enabled for your Databricks account. Contact Databricks support to enable these features.
 
-***REMOVED******REMOVED******REMOVED*** Architecture Diagram
+### Architecture Diagram
 
 ```mermaid
 graph TB
@@ -104,15 +104,15 @@ graph TB
     USER -.DNS.-> DNS_ZONE
     USER -.Private.-> FE_EP
     
-    style FE_SA fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style BE_SA fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style KEY fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style GCS fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style GKE fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style DNS_ZONE fill:***REMOVED***34A853,color:***REMOVED***fff
+    style FE_SA fill:"#FF3621",color:"#fff"
+    style BE_SA fill:"#FF3621",color:"#fff"
+    style KEY fill:"#FBBC04",color:"#000"
+    style GCS fill:"#4285F4",color:"#fff"
+    style GKE fill:"#4285F4",color:"#fff"
+    style DNS_ZONE fill:"#34A853",color:"#fff"
 ```
 
-***REMOVED******REMOVED******REMOVED*** What This Configuration Does
+### What This Configuration Does
 
 1. **Registers Pre-Created CMEK**: Links your KMS key to Databricks account
 2. **Creates PSC Endpoints**: Establishes private connections to Databricks
@@ -123,7 +123,7 @@ graph TB
 7. **Enables IP Access Lists**: Adds IP-based access control
 8. **Assigns Admin User**: Grants initial workspace access
 
-***REMOVED******REMOVED******REMOVED*** What This Configuration Does NOT Do
+### What This Configuration Does NOT Do
 
 This configuration does **NOT** include:
 
@@ -141,9 +141,9 @@ For these features, see:
 
 ---
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
-***REMOVED******REMOVED******REMOVED*** 1. Databricks Account Requirements
+### 1. Databricks Account Requirements
 
 - **Databricks Account on GCP** (Enterprise Edition)
 - **PSC Feature Enabled**: Contact Databricks to enable Private Service Connect
@@ -155,19 +155,19 @@ For these features, see:
 
 > **Critical**: You must request **both PSC and CMEK** enablement for your account before proceeding.
 
-***REMOVED******REMOVED******REMOVED*** 2. GCP Requirements
+### 2. GCP Requirements
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Pre-Created KMS Key
+#### Pre-Created KMS Key
 
 This configuration **requires a pre-existing KMS key**. Create one first using `../byovpc-cmek-ws/` or manually:
 
 ```bash
-***REMOVED*** Create key ring
+# Create key ring
 gcloud kms keyrings create databricks-keyring \
   --location=us-central1 \
   --project=my-project
 
-***REMOVED*** Create crypto key
+# Create crypto key
 gcloud kms keys create databricks-key \
   --keyring=databricks-keyring \
   --location=us-central1 \
@@ -182,7 +182,7 @@ gcloud kms keys create databricks-key \
 - Rotation period: Recommended 90-365 days
 - Service account must have `cloudkms.cryptoKeyEncrypterDecrypter` role
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Existing VPC Infrastructure
+#### Existing VPC Infrastructure
 
 This configuration requires a **pre-existing VPC** with appropriate subnets:
 
@@ -199,7 +199,7 @@ This configuration requires a **pre-existing VPC** with appropriate subnets:
 
 To create this infrastructure, use `../infra4db/` first.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** GCP Service Account Permissions
+#### GCP Service Account Permissions
 
 The service account needs these IAM roles:
 
@@ -216,7 +216,7 @@ The service account needs these IAM roles:
 - `roles/dns.admin`
 - `roles/cloudkms.viewer`
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** PSC Service Attachments
+#### PSC Service Attachments
 
 You need the Databricks PSC service attachment URIs for your region:
 
@@ -226,16 +226,16 @@ Frontend: projects/prod-gcp-<region>/regions/<region>/serviceAttachments/plproxy
 Backend: projects/prod-gcp-<region>/regions/<region>/serviceAttachments/ngrok-psc-endpoint
 ```
 
-**Find Service Attachments**: [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***psc)
+**Find Service Attachments**: [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
 
-***REMOVED******REMOVED******REMOVED*** 3. Local Requirements
+### 3. Local Requirements
 
 - **Terraform** >= 1.0
 - **Google Cloud SDK** (`gcloud` CLI) configured
 - **Service Account Authentication** configured
 - **VPN or Cloud Interconnect** for private network access
 
-***REMOVED******REMOVED******REMOVED*** 4. Network Requirements
+### 4. Network Requirements
 
 Since the workspace uses private connectivity:
 
@@ -246,11 +246,11 @@ Since the workspace uses private connectivity:
 
 ---
 
-***REMOVED******REMOVED*** Security Features
+## Security Features
 
 This configuration provides **defense-in-depth** security:
 
-***REMOVED******REMOVED******REMOVED*** Layer 1: Network Isolation (PSC)
+### Layer 1: Network Isolation (PSC)
 
 **Private Service Connect** ensures all traffic remains private:
 
@@ -260,7 +260,7 @@ This configuration provides **defense-in-depth** security:
 | Clusters → Control Plane | Clusters → PSC Backend → Databricks | Private relay |
 | Clusters → DBFS | Clusters → VPC → GCS | Private storage access |
 
-***REMOVED******REMOVED******REMOVED*** Layer 2: Encryption at Rest (CMEK)
+### Layer 2: Encryption at Rest (CMEK)
 
 **Customer-Managed Keys** encrypt all data:
 
@@ -277,7 +277,7 @@ This configuration provides **defense-in-depth** security:
 - Revoke access by disabling keys
 - Compliance with regulatory requirements
 
-***REMOVED******REMOVED******REMOVED*** Layer 3: Access Control
+### Layer 3: Access Control
 
 **Multiple access control mechanisms:**
 
@@ -295,7 +295,7 @@ This configuration provides **defense-in-depth** security:
    - User authentication via identity provider
    - Service account for Terraform automation
 
-***REMOVED******REMOVED******REMOVED*** Layer 4: DNS Security
+### Layer 4: DNS Security
 
 **Private DNS Zone** prevents DNS leakage:
 
@@ -304,7 +304,7 @@ This configuration provides **defense-in-depth** security:
 - Requires VPN for DNS resolution
 - Prevents external reconnaissance
 
-***REMOVED******REMOVED******REMOVED*** Combined Security Benefits
+### Combined Security Benefits
 
 ```mermaid
 graph LR
@@ -322,37 +322,37 @@ graph LR
     
     L --> M[Data Encrypted with CMEK]
     
-    style L fill:***REMOVED***34A853,color:***REMOVED***fff
-    style M fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style C fill:***REMOVED***EA4335,color:***REMOVED***fff
-    style E fill:***REMOVED***EA4335,color:***REMOVED***fff
-    style G fill:***REMOVED***EA4335,color:***REMOVED***fff
-    style I fill:***REMOVED***EA4335,color:***REMOVED***fff
-    style K fill:***REMOVED***EA4335,color:***REMOVED***fff
+    style L fill:"#34A853",color:"#fff"
+    style M fill:"#FBBC04",color:"#000"
+    style C fill:"#EA4335",color:"#fff"
+    style E fill:"#EA4335",color:"#fff"
+    style G fill:"#EA4335",color:"#fff"
+    style I fill:"#EA4335",color:"#fff"
+    style K fill:"#EA4335",color:"#fff"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Authentication Setup
+## Authentication Setup
 
-***REMOVED******REMOVED******REMOVED*** Option 1: Service Account Impersonation (Recommended)
+### Option 1: Service Account Impersonation (Recommended)
 
 ```bash
-***REMOVED*** Set the service account to impersonate
+# Set the service account to impersonate
 gcloud config set auth/impersonate_service_account automation-sa@project.iam.gserviceaccount.com
 
-***REMOVED*** Generate access token
+# Generate access token
 export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Option 2: Service Account Key File
+### Option 2: Service Account Key File
 
 ```bash
-***REMOVED*** Download service account key
+# Download service account key
 gcloud iam service-accounts keys create ~/sa-key.json \
   --iam-account=automation-sa@project.iam.gserviceaccount.com
 
-***REMOVED*** Set environment variable
+# Set environment variable
 export GOOGLE_APPLICATION_CREDENTIALS=~/sa-key.json
 ```
 
@@ -362,11 +362,11 @@ For detailed authentication guide, see `../sa-impersonation.md`.
 
 ---
 
-***REMOVED******REMOVED*** Provider Configuration
+## Provider Configuration
 
 This deployment uses five Terraform providers:
 
-***REMOVED******REMOVED******REMOVED*** 1. Google Provider (Default)
+### 1. Google Provider (Default)
 
 ```hcl
 provider "google" {
@@ -375,7 +375,7 @@ provider "google" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Google Provider (VPC Project)
+### 2. Google Provider (VPC Project)
 
 ```hcl
 provider "google" {
@@ -385,7 +385,7 @@ provider "google" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Google Beta Provider
+### 3. Google Beta Provider
 
 Required for PSC endpoint creation:
 
@@ -396,7 +396,7 @@ provider "google-beta" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Databricks Account Provider
+### 4. Databricks Account Provider
 
 ```hcl
 provider "databricks" {
@@ -412,7 +412,7 @@ provider "databricks" {
 - Private access settings
 - Workspace creation
 
-***REMOVED******REMOVED******REMOVED*** 5. Databricks Workspace Provider
+### 5. Databricks Workspace Provider
 
 ```hcl
 provider "databricks" {
@@ -429,15 +429,15 @@ provider "databricks" {
 
 ---
 
-***REMOVED******REMOVED*** GCP Infrastructure Requirements
+## GCP Infrastructure Requirements
 
-***REMOVED******REMOVED******REMOVED*** 1. VPC Network
+### 1. VPC Network
 
 - Name: Referenced in `google_vpc_id`
 - Project: `google_shared_vpc_project`
 - Type: Custom mode
 
-***REMOVED******REMOVED******REMOVED*** 2. Node Subnet
+### 2. Node Subnet
 
 - Name: Referenced in `node_subnet`
 - Purpose: Databricks cluster nodes
@@ -445,7 +445,7 @@ provider "databricks" {
 - Region: Must match workspace region
 - Internet access: Via Cloud NAT
 
-***REMOVED******REMOVED******REMOVED*** 3. PSC Subnet
+### 3. PSC Subnet
 
 - Name: Referenced in `google_pe_subnet`
 - Purpose: PSC endpoint private IPs
@@ -453,29 +453,29 @@ provider "databricks" {
 - Region: Must match workspace region
 - Note: Only 2 IPs needed for frontend/backend endpoints
 
-***REMOVED******REMOVED******REMOVED*** 4. KMS Key
+### 4. KMS Key
 
 - Resource ID format: `projects/{project}/locations/{region}/keyRings/{keyring}/cryptoKeys/{key}`
 - Must exist before deployment
 - Same region as workspace
 - Service account has decrypt/encrypt permissions
 
-***REMOVED******REMOVED******REMOVED*** 5. Firewall Rules
+### 5. Firewall Rules
 
 Required egress rules from node subnet:
 
 ```
-***REMOVED*** Allow to PSC endpoints
+# Allow to PSC endpoints
 Source: Node subnet
 Destination: PSC subnet
 Protocols: TCP 443, 6666, 8443-8451
 
-***REMOVED*** Allow to GCP APIs (including KMS)
+# Allow to GCP APIs (including KMS)
 Source: Node subnet
 Destination: 0.0.0.0/0
 Protocols: TCP 443
 
-***REMOVED*** Allow internal cluster communication
+# Allow internal cluster communication
 Source: Node subnet
 Destination: Node subnet
 Protocols: TCP/UDP (all ports)
@@ -483,9 +483,9 @@ Protocols: TCP/UDP (all ports)
 
 ---
 
-***REMOVED******REMOVED*** Databricks Resources
+## Databricks Resources
 
-***REMOVED******REMOVED******REMOVED*** 1. CMEK Registration
+### 1. CMEK Registration
 
 ```hcl
 resource "databricks_mws_customer_managed_keys" "this"
@@ -501,9 +501,9 @@ resource "databricks_mws_customer_managed_keys" "this"
 - `use_cases`: ["STORAGE", "MANAGED"]
 - `lifecycle.ignore_changes = all`: Prevents updates after creation
 
-***REMOVED******REMOVED******REMOVED*** 2. PSC Endpoints
+### 2. PSC Endpoints
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Frontend PSC Endpoint
+#### Frontend PSC Endpoint
 
 ```hcl
 resource "google_compute_address" "frontend_pe_ip_address"
@@ -521,7 +521,7 @@ resource "google_compute_forwarding_rule" "frontend_psc_ep"
 - `network`: Your VPC
 - `subnetwork`: PSC subnet
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Backend PSC Endpoint
+#### Backend PSC Endpoint
 
 ```hcl
 resource "google_compute_address" "backend_pe_ip_address"
@@ -533,7 +533,7 @@ resource "google_compute_forwarding_rule" "backend_psc_ep"
 - Forwarding rule to Databricks backend service attachment
 - Connection for cluster relay traffic (port 6666)
 
-***REMOVED******REMOVED******REMOVED*** 3. VPC Endpoint Registration
+### 3. VPC Endpoint Registration
 
 ```hcl
 resource "databricks_mws_vpc_endpoint" "workspace_vpce"
@@ -546,7 +546,7 @@ resource "databricks_mws_vpc_endpoint" "relay_vpce"
 
 **Note:** Must wait for PSC connection status = "ACCEPTED"
 
-***REMOVED******REMOVED******REMOVED*** 4. Private Access Settings
+### 4. Private Access Settings
 
 ```hcl
 resource "databricks_mws_private_access_settings" "pas"
@@ -555,8 +555,8 @@ resource "databricks_mws_private_access_settings" "pas"
 **Key Configuration:**
 
 ```hcl
-public_access_enabled = false  ***REMOVED*** No public access
-private_access_level  = "ACCOUNT"  ***REMOVED*** Any account VPC endpoints
+public_access_enabled = false  # No public access
+private_access_level  = "ACCOUNT"  # Any account VPC endpoints
 ```
 
 **Important:**
@@ -571,7 +571,7 @@ private_access_level  = "ACCOUNT"  ***REMOVED*** Any account VPC endpoints
 | `ACCOUNT` | Any VPC endpoints registered in your account can access |
 | `ENDPOINT` | Only explicitly specified VPC endpoints can access |
 
-***REMOVED******REMOVED******REMOVED*** 5. Network Configuration
+### 5. Network Configuration
 
 ```hcl
 resource "databricks_mws_networks" "databricks_network"
@@ -590,7 +590,7 @@ vpc_endpoints {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 6. Workspace with PSC and CMEK
+### 6. Workspace with PSC and CMEK
 
 ```hcl
 resource "databricks_mws_workspaces" "databricks_workspace"
@@ -609,7 +609,7 @@ resource "databricks_mws_workspaces" "databricks_workspace"
 - `storage_customer_managed_key_id`: CMEK for DBFS
 - `managed_services_customer_managed_key_id`: CMEK for notebooks
 
-***REMOVED******REMOVED******REMOVED*** 7. IP Access Lists
+### 7. IP Access Lists
 
 ```hcl
 resource "databricks_workspace_conf" "this"
@@ -625,9 +625,9 @@ resource "databricks_ip_access_list" "this"
 
 ---
 
-***REMOVED******REMOVED*** DNS Configuration
+## DNS Configuration
 
-***REMOVED******REMOVED******REMOVED*** Private DNS Zone
+### Private DNS Zone
 
 ```hcl
 resource "google_dns_managed_zone" "databricks-private-zone"
@@ -638,7 +638,7 @@ resource "google_dns_managed_zone" "databricks-private-zone"
 - Type: Private
 - Visibility: Your VPC
 
-***REMOVED******REMOVED******REMOVED*** DNS A Records
+### DNS A Records
 
 Four A records are created automatically via `dns.tf`:
 
@@ -649,9 +649,9 @@ Four A records are created automatically via `dns.tf`:
 
 ---
 
-***REMOVED******REMOVED*** Deployment Flow
+## Deployment Flow
 
-***REMOVED******REMOVED******REMOVED*** Deployment Sequence
+### Deployment Sequence
 
 ```mermaid
 sequenceDiagram
@@ -715,58 +715,58 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
-***REMOVED******REMOVED******REMOVED*** 1. Update Provider Configuration
+### 1. Update Provider Configuration
 
 Edit `providers.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Service Account for authentication
+# Service Account for authentication
 google_service_account_email = "automation-sa@my-service-project.iam.gserviceaccount.com"
 
-***REMOVED*** Service/Consumer Project
+# Service/Consumer Project
 google_project_name = "my-service-project"
 
-***REMOVED*** Host/Shared VPC Project
+# Host/Shared VPC Project
 google_shared_vpc_project = "my-host-project"
 
-***REMOVED*** Region (must match KMS key location)
+# Region (must match KMS key location)
 google_region = "us-central1"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Update Workspace Configuration
+### 2. Update Workspace Configuration
 
 Edit `workspace.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Databricks Configuration
+# Databricks Configuration
 databricks_account_id = "12345678-1234-1234-1234-123456789abc"
 databricks_account_console_url = "https://accounts.gcp.databricks.com"
 databricks_workspace_name = "my-secure-workspace"
 databricks_admin_user = "admin@mycompany.com"
 
-***REMOVED*** Network Configuration
+# Network Configuration
 google_vpc_id = "my-vpc-network"
 node_subnet = "databricks-node-subnet"
 google_pe_subnet = "databricks-psc-subnet"
 
-***REMOVED*** PSC Endpoint Names (must be unique)
+# PSC Endpoint Names (must be unique)
 workspace_pe = "us-c1-frontend-ep"
 relay_pe = "us-c1-backend-ep"
 workspace_pe_ip_name = "frontend-pe-ip"
 relay_pe_ip_name = "backend-pe-ip"
 
-***REMOVED*** PSC Service Attachments (region-specific)
-***REMOVED*** Find yours at: https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***psc
+# PSC Service Attachments (region-specific)
+# Find yours at: https://docs.gcp.databricks.com/resources/supported-regions.html#psc
 workspace_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
 relay_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
 
-***REMOVED*** CMEK Configuration (pre-created key)
+# CMEK Configuration (pre-created key)
 cmek_resource_id = "projects/my-project/locations/us-central1/keyRings/databricks-keyring/cryptoKeys/databricks-key"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Variable Validation Checklist
+### 3. Variable Validation Checklist
 
 Before deployment:
 
@@ -784,32 +784,32 @@ Before deployment:
 
 ---
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Authenticate with GCP
+### Step 1: Authenticate with GCP
 
 ```bash
-***REMOVED*** Option 1: Service Account Impersonation (Recommended)
+# Option 1: Service Account Impersonation (Recommended)
 gcloud config set auth/impersonate_service_account automation-sa@project.iam.gserviceaccount.com
 export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 
-***REMOVED*** Option 2: Service Account Key
+# Option 2: Service Account Key
 export GOOGLE_APPLICATION_CREDENTIALS=~/sa-key.json
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Navigate to Directory
+### Step 2: Navigate to Directory
 
 ```bash
 cd gcp/gh-repo/gcp/terraform-scripts/byovpc-psc-cmek-ws
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Initialize Terraform
+### Step 3: Initialize Terraform
 
 ```bash
 terraform init
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Review Plan
+### Step 4: Review Plan
 
 ```bash
 terraform plan
@@ -830,7 +830,7 @@ terraform plan
 - 1 Admin user
 - 1 Group membership
 
-***REMOVED******REMOVED******REMOVED*** Step 5: Apply Configuration
+### Step 5: Apply Configuration
 
 ```bash
 terraform apply
@@ -847,7 +847,7 @@ terraform apply
 6. DNS configuration (~1-2 min)
 7. User setup (~1 min)
 
-***REMOVED******REMOVED******REMOVED*** Step 6: Verify Deployment
+### Step 6: Verify Deployment
 
 ```bash
 terraform output
@@ -862,12 +862,12 @@ workspace_url = "https://12345678901234.1.gcp.databricks.com"
 
 > **Important**: Both PSC statuses must be "ACCEPTED"
 
-***REMOVED******REMOVED******REMOVED*** Step 7: Verify Encryption
+### Step 7: Verify Encryption
 
 Check KMS key is being used:
 
 ```bash
-***REMOVED*** View key usage logs (requires Cloud Audit Logs)
+# View key usage logs (requires Cloud Audit Logs)
 gcloud logging read "resource.type=cloudkms_cryptokey AND \
   resource.labels.key_ring_id=databricks-keyring AND \
   resource.labels.crypto_key_id=databricks-key" \
@@ -875,13 +875,13 @@ gcloud logging read "resource.type=cloudkms_cryptokey AND \
   --project=my-project
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 8: Access Workspace
+### Step 8: Access Workspace
 
 1. **Connect to VPN** (required for private access)
 2. **Verify DNS resolution**:
    ```bash
    nslookup <workspace-id>.gcp.databricks.com
-   ***REMOVED*** Should resolve to frontend private IP
+   # Should resolve to frontend private IP
    ```
 3. **Navigate to workspace URL**
 4. **Log in** with admin user credentials
@@ -889,7 +889,7 @@ gcloud logging read "resource.type=cloudkms_cryptokey AND \
 
 ---
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -902,11 +902,11 @@ gcloud logging read "resource.type=cloudkms_cryptokey AND \
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues and Solutions
+### Common Issues and Solutions
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. CMEK Not Accessible
+#### 1. CMEK Not Accessible
 
 **Error:**
 ```
@@ -943,7 +943,7 @@ Error: cannot register customer-managed key: key not accessible
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. PSC Connection Not ACCEPTED
+#### 2. PSC Connection Not ACCEPTED
 
 **Error:**
 ```
@@ -954,7 +954,7 @@ Backend psc status: PENDING
 **Solution:**
 
 1. Verify service attachments are correct for your region:
-   - Check [Databricks Supported Regions](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***psc)
+   - Check [Databricks Supported Regions](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
 
 2. Confirm PSC is enabled for your account:
    - Contact Databricks support to verify PSC feature flag
@@ -970,7 +970,7 @@ Backend psc status: PENDING
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. DNS Resolution Fails
+#### 3. DNS Resolution Fails
 
 **Error:**
 Workspace URL doesn't resolve from corporate network
@@ -985,7 +985,7 @@ Workspace URL doesn't resolve from corporate network
 
 2. Test resolution from within VPC:
    ```bash
-   ***REMOVED*** From a VM in your VPC
+   # From a VM in your VPC
    nslookup <workspace-id>.gcp.databricks.com
    ```
 
@@ -995,13 +995,13 @@ Workspace URL doesn't resolve from corporate network
 
 4. Alternatively, add static DNS entries on your local machine:
    ```bash
-   ***REMOVED*** /etc/hosts or C:\Windows\System32\drivers\etc\hosts
+   # /etc/hosts or C:\Windows\System32\drivers\etc\hosts
    10.1.0.5  1234567890123456.1.gcp.databricks.com
    ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 4. Workspace Creation Fails - Encryption Error
+#### 4. Workspace Creation Fails - Encryption Error
 
 **Error:**
 ```
@@ -1043,7 +1043,7 @@ This means Databricks cannot use the KMS key for encryption:
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 5. Cannot Access Workspace After Deployment
+#### 5. Cannot Access Workspace After Deployment
 
 **Error:**
 Connection timeout when accessing workspace URL
@@ -1058,20 +1058,20 @@ Connection timeout when accessing workspace URL
 
 1. **Verify VPN connection**:
    ```bash
-   ***REMOVED*** Test connectivity to PSC subnet
+   # Test connectivity to PSC subnet
    ping <frontend-private-ip>
    ```
 
 2. **Check DNS resolution**:
    ```bash
    nslookup <workspace-id>.gcp.databricks.com
-   ***REMOVED*** Should return frontend private IP, not public IP
+   # Should return frontend private IP, not public IP
    ```
 
 3. **Verify IP allowlist** (if `public_access_enabled = true`):
    ```bash
    curl ifconfig.me
-   ***REMOVED*** Check this IP is in workspace.auto.tfvars ip_addresses list
+   # Check this IP is in workspace.auto.tfvars ip_addresses list
    ```
 
 4. **Test PSC connectivity**:
@@ -1081,13 +1081,13 @@ Connection timeout when accessing workspace URL
 
 5. **Check firewall rules**:
    ```bash
-   ***REMOVED*** Verify your source IP can reach PSC subnet
+   # Verify your source IP can reach PSC subnet
    gcloud compute firewall-rules list --project=my-host-project
    ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 6. Cluster Creation Fails
+#### 6. Cluster Creation Fails
 
 **Error:**
 Clusters fail to start with "Unable to connect to control plane"
@@ -1097,13 +1097,13 @@ Clusters fail to start with "Unable to connect to control plane"
 1. Verify backend PSC status:
    ```bash
    terraform output backend_end_psc_status
-   ***REMOVED*** Must be: "Backend psc status: ACCEPTED"
+   # Must be: "Backend psc status: ACCEPTED"
    ```
 
 2. Check tunnel DNS record:
    ```bash
    nslookup tunnel.us-central1.gcp.databricks.com
-   ***REMOVED*** Should resolve to backend private IP
+   # Should resolve to backend private IP
    ```
 
 3. Test backend connectivity:
@@ -1124,7 +1124,7 @@ Clusters fail to start with "Unable to connect to control plane"
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 7. Key Disabled - Workspace Inaccessible
+#### 7. Key Disabled - Workspace Inaccessible
 
 **Critical Error:**
 Workspace becomes completely inaccessible after disabling KMS key
@@ -1135,14 +1135,14 @@ Workspace becomes completely inaccessible after disabling KMS key
 
 1. **Re-enable the key version** immediately:
    ```bash
-   ***REMOVED*** List key versions
+   # List key versions
    gcloud kms keys versions list \
      --key=databricks-key \
      --keyring=databricks-keyring \
      --location=us-central1 \
      --project=my-project
    
-   ***REMOVED*** Re-enable the primary version
+   # Re-enable the primary version
    gcloud kms keys versions enable <VERSION> \
      --key=databricks-key \
      --keyring=databricks-keyring \
@@ -1162,47 +1162,47 @@ Workspace becomes completely inaccessible after disabling KMS key
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Debug Commands
+### Debug Commands
 
 ```bash
-***REMOVED*** Check PSC endpoint status
+# Check PSC endpoint status
 gcloud compute forwarding-rules describe frontend-ep \
   --region=us-central1 --project=my-host-project
 
 gcloud compute forwarding-rules describe backend-ep \
   --region=us-central1 --project=my-host-project
 
-***REMOVED*** Verify DNS records
+# Verify DNS records
 gcloud dns record-sets list --zone=databricks --project=my-host-project
 
-***REMOVED*** Test DNS resolution
+# Test DNS resolution
 nslookup <workspace-id>.gcp.databricks.com
 nslookup tunnel.us-central1.gcp.databricks.com
 
-***REMOVED*** Check KMS key
+# Check KMS key
 gcloud kms keys describe databricks-key \
   --keyring=databricks-keyring \
   --location=us-central1 \
   --project=my-project
 
-***REMOVED*** View KMS key IAM policy
+# View KMS key IAM policy
 gcloud kms keys get-iam-policy databricks-key \
   --keyring=databricks-keyring \
   --location=us-central1 \
   --project=my-project
 
-***REMOVED*** Check Terraform state
+# Check Terraform state
 terraform state show databricks_mws_customer_managed_keys.this
 terraform state show google_compute_forwarding_rule.frontend_psc_ep
 terraform state show google_compute_forwarding_rule.backend_psc_ep
 
-***REMOVED*** View all outputs
+# View all outputs
 terraform output -json | jq
 ```
 
 ---
 
-***REMOVED******REMOVED*** Cleanup
+## Cleanup
 
 To destroy all resources:
 
@@ -1234,18 +1234,18 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** Additional Resources
+## Additional Resources
 
 - [Databricks PSC Documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html)
 - [Databricks CMEK Documentation](https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html)
 - [GCP Private Service Connect](https://cloud.google.com/vpc/docs/private-service-connect)
 - [Google Cloud KMS](https://cloud.google.com/kms/docs)
-- [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***psc)
-- [Cloud DNS Private Zones](https://cloud.google.com/dns/docs/zones***REMOVED***create-private-zone)
+- [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
+- [Cloud DNS Private Zones](https://cloud.google.com/dns/docs/zones#create-private-zone)
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 After deploying your secure workspace:
 
@@ -1279,9 +1279,9 @@ After deploying your secure workspace:
 
 ---
 
-***REMOVED******REMOVED*** Security Best Practices
+## Security Best Practices
 
-***REMOVED******REMOVED******REMOVED*** 1. Key Management
+### 1. Key Management
 
 - ✅ Never disable keys without backup plan
 - ✅ Enable automatic key rotation
@@ -1289,7 +1289,7 @@ After deploying your secure workspace:
 - ✅ Limit KMS admin access
 - ✅ Document key recovery procedures
 
-***REMOVED******REMOVED******REMOVED*** 2. Network Security
+### 2. Network Security
 
 - ✅ Keep workspace fully private (`public_access_enabled = false`)
 - ✅ Use least-privilege IP allowlists
@@ -1297,7 +1297,7 @@ After deploying your secure workspace:
 - ✅ Enable VPC Flow Logs
 - ✅ Monitor PSC connection health
 
-***REMOVED******REMOVED******REMOVED*** 3. Access Control
+### 3. Access Control
 
 - ✅ Use service accounts for automation
 - ✅ Implement RBAC in workspace
@@ -1305,7 +1305,7 @@ After deploying your secure workspace:
 - ✅ Regular access reviews
 - ✅ Audit log monitoring
 
-***REMOVED******REMOVED******REMOVED*** 4. Compliance
+### 4. Compliance
 
 - ✅ Document security controls
 - ✅ Regular security assessments
@@ -1315,6 +1315,6 @@ After deploying your secure workspace:
 
 ---
 
-***REMOVED******REMOVED*** License
+## License
 
 This configuration is provided as a reference implementation for deploying the most secure Databricks workspaces on GCP with Private Service Connect and Customer-Managed Encryption Keys.

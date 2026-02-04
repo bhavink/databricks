@@ -1,25 +1,25 @@
-***REMOVED*** Databricks Workspace with BYOVPC + Private Service Connect (PSC)
+# Databricks Workspace with BYOVPC + Private Service Connect (PSC)
 
 A Terraform configuration for deploying a secure Databricks workspace on Google Cloud Platform (GCP) using customer-managed VPC with Private Service Connect for private connectivity.
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-- [Architecture Overview](***REMOVED***architecture-overview)
-- [Prerequisites](***REMOVED***prerequisites)
-- [Private Service Connect Explained](***REMOVED***private-service-connect-explained)
-- [Provider Configuration](***REMOVED***provider-configuration)
-- [GCP Infrastructure Requirements](***REMOVED***gcp-infrastructure-requirements)
-- [Databricks Resources](***REMOVED***databricks-resources)
-- [DNS Configuration](***REMOVED***dns-configuration)
-- [Deployment Flow](***REMOVED***deployment-flow)
-- [Configuration](***REMOVED***configuration)
-- [Deployment](***REMOVED***deployment)
-- [Outputs](***REMOVED***outputs)
-- [Troubleshooting](***REMOVED***troubleshooting)
+- [Architecture Overview](#architecture-overview)
+- [Prerequisites](#prerequisites)
+- [Private Service Connect Explained](#private-service-connect-explained)
+- [Provider Configuration](#provider-configuration)
+- [GCP Infrastructure Requirements](#gcp-infrastructure-requirements)
+- [Databricks Resources](#databricks-resources)
+- [DNS Configuration](#dns-configuration)
+- [Deployment Flow](#deployment-flow)
+- [Configuration](#configuration)
+- [Deployment](#deployment)
+- [Outputs](#outputs)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-***REMOVED******REMOVED*** Architecture Overview
+## Architecture Overview
 
 This deployment creates a **secure, private Databricks workspace** with:
 
@@ -31,9 +31,9 @@ This deployment creates a **secure, private Databricks workspace** with:
 - ✅ **IP Access Lists** for additional security
 - ✅ **Workspace Admin Assignment** for initial user
 
-> **Important**: Private Service Connect (PSC) is a **gated GA feature**. You must enable it for your Databricks account first. Follow [this guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html***REMOVED***step-1-enable-your-account-for-private-service-connect).
+> **Important**: Private Service Connect (PSC) is a **gated GA feature**. You must enable it for your Databricks account first. Follow [this guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#step-1-enable-your-account-for-private-service-connect).
 
-***REMOVED******REMOVED******REMOVED*** Architecture Diagram
+### Architecture Diagram
 
 ```mermaid
 graph TB
@@ -100,16 +100,16 @@ graph TB
     USER -.DNS Lookup.-> DNS_ZONE
     USER -.Private Access.-> FE_EP
     
-    style FE_SA fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style BE_SA fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style GCS fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style GKE fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style DNS_ZONE fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style FE_EP fill:***REMOVED***34A853,color:***REMOVED***fff
-    style BE_EP fill:***REMOVED***34A853,color:***REMOVED***fff
+    style FE_SA fill:"#FF3621",color:"#fff"
+    style BE_SA fill:"#FF3621",color:"#fff"
+    style GCS fill:"#4285F4",color:"#fff"
+    style GKE fill:"#4285F4",color:"#fff"
+    style DNS_ZONE fill:"#FBBC04",color:"#000"
+    style FE_EP fill:"#34A853",color:"#fff"
+    style BE_EP fill:"#34A853",color:"#fff"
 ```
 
-***REMOVED******REMOVED******REMOVED*** What This Configuration Does
+### What This Configuration Does
 
 1. **Creates PSC Endpoints**: Establishes private connections to Databricks service attachments
 2. **Configures VPC Endpoints**: Registers PSC endpoints with Databricks
@@ -119,7 +119,7 @@ graph TB
 6. **Assigns Admin User**: Adds specified user to workspace admin group
 7. **Enables IP Access Lists**: Configures IP-based access control
 
-***REMOVED******REMOVED******REMOVED*** What This Configuration Does NOT Do
+### What This Configuration Does NOT Do
 
 This configuration does **NOT** include:
 
@@ -136,9 +136,9 @@ For these features, see:
 
 ---
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
-***REMOVED******REMOVED******REMOVED*** 1. Databricks Account Requirements
+### 1. Databricks Account Requirements
 
 - **Databricks Account on GCP** (Enterprise Edition)
 - **PSC Feature Enabled**: Contact Databricks to enable Private Service Connect
@@ -147,11 +147,11 @@ For these features, see:
   - Must be added to Databricks Account Console with **Account Admin** role
   - Service account email (e.g., `automation-sa@project.iam.gserviceaccount.com`)
 
-> **Critical**: You must request PSC enablement for your account. Follow [Step 1 in the PSC documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html***REMOVED***step-1-enable-your-account-for-private-service-connect).
+> **Critical**: You must request PSC enablement for your account. Follow [Step 1 in the PSC documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#step-1-enable-your-account-for-private-service-connect).
 
-***REMOVED******REMOVED******REMOVED*** 2. GCP Requirements
+### 2. GCP Requirements
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Existing VPC Infrastructure
+#### Existing VPC Infrastructure
 
 This configuration requires a **pre-existing VPC** with appropriate subnets:
 
@@ -168,7 +168,7 @@ This configuration requires a **pre-existing VPC** with appropriate subnets:
 
 To create this infrastructure, use `../infra4db/` first.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** GCP Service Account Permissions
+#### GCP Service Account Permissions
 
 The service account needs these IAM roles:
 
@@ -183,7 +183,7 @@ The service account needs these IAM roles:
 - `roles/compute.securityAdmin`
 - `roles/dns.admin` (for private DNS zone creation)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** PSC Service Attachments
+#### PSC Service Attachments
 
 You need to know the Databricks PSC service attachment URIs for your region. These are provided by Databricks.
 
@@ -193,16 +193,16 @@ Frontend: projects/prod-gcp-<region>/regions/<region>/serviceAttachments/plproxy
 Backend: projects/prod-gcp-<region>/regions/<region>/serviceAttachments/ngrok-psc-endpoint
 ```
 
-**Find Service Attachments**: [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***psc)
+**Find Service Attachments**: [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
 
-***REMOVED******REMOVED******REMOVED*** 3. Local Requirements
+### 3. Local Requirements
 
 - **Terraform** >= 1.0
 - **Google Cloud SDK** (`gcloud` CLI) configured
 - **Service Account Authentication** configured
 - **Network connectivity** to GCP private resources (VPN or Cloud Interconnect)
 
-***REMOVED******REMOVED******REMOVED*** 4. Network Requirements
+### 4. Network Requirements
 
 Since the workspace uses private connectivity, you need:
 
@@ -212,15 +212,15 @@ Since the workspace uses private connectivity, you need:
 
 ---
 
-***REMOVED******REMOVED*** Private Service Connect Explained
+## Private Service Connect Explained
 
-***REMOVED******REMOVED******REMOVED*** What is Private Service Connect?
+### What is Private Service Connect?
 
 Private Service Connect (PSC) enables private connectivity between your VPC and Databricks services without exposing traffic to the public internet.
 
-***REMOVED******REMOVED******REMOVED*** PSC Components
+### PSC Components
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Service Attachments (Databricks Side)
+#### 1. Service Attachments (Databricks Side)
 
 Databricks publishes two service attachments per region:
 
@@ -229,7 +229,7 @@ Databricks publishes two service attachments per region:
 | **plproxy-psc-endpoint** | Frontend endpoint | REST API, Web UI, Notebook access |
 | **ngrok-psc-endpoint** | Backend endpoint | Cluster-to-control-plane relay |
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. PSC Endpoints (Your VPC)
+#### 2. PSC Endpoints (Your VPC)
 
 You create two PSC endpoints in your VPC:
 
@@ -238,7 +238,7 @@ You create two PSC endpoints in your VPC:
 | **Frontend (workspace)** | plproxy service attachment | PSC subnet | 3 A records (workspace URL, dp- prefix, psc-auth) |
 | **Backend (relay)** | ngrok service attachment | PSC subnet | 1 A record (tunnel) |
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Private IP Addresses
+#### 3. Private IP Addresses
 
 Each PSC endpoint gets a private IP from your PSC subnet:
 
@@ -247,7 +247,7 @@ Frontend PSC Endpoint IP: 10.1.0.5 (example)
 Backend PSC Endpoint IP: 10.1.0.6 (example)
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 4. DNS Resolution
+#### 4. DNS Resolution
 
 Private DNS zone resolves workspace domains to private IPs:
 
@@ -258,7 +258,7 @@ us-central1.psc-auth.gcp.databricks.com    → 10.1.0.5 (Frontend IP)
 tunnel.us-central1.gcp.databricks.com      → 10.1.0.6 (Backend IP)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Traffic Flows with PSC
+### Traffic Flows with PSC
 
 ```mermaid
 sequenceDiagram
@@ -286,17 +286,17 @@ sequenceDiagram
     BE-->>Cluster: Relay traffic
 ```
 
-***REMOVED******REMOVED******REMOVED*** DNS Record Requirements
+### DNS Record Requirements
 
 For each workspace, you need **4 A records**:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Per-Workspace Records (3 Frontend)
+#### Per-Workspace Records (3 Frontend)
 
 1. **Workspace URL**: `<workspace-id>.gcp.databricks.com` → Frontend IP
 2. **Dataplane Prefix**: `dp-<workspace-id>.gcp.databricks.com` → Frontend IP
 3. **PSC Auth**: `<region>.psc-auth.gcp.databricks.com` → Frontend IP
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Per-Region Records (1 Backend)
+#### Per-Region Records (1 Backend)
 
 4. **Tunnel**: `tunnel.<region>.gcp.databricks.com` → Backend IP
 
@@ -304,11 +304,11 @@ For each workspace, you need **4 A records**:
 
 ---
 
-***REMOVED******REMOVED*** Provider Configuration
+## Provider Configuration
 
 This deployment uses four Terraform providers:
 
-***REMOVED******REMOVED******REMOVED*** 1. Google Provider (Default)
+### 1. Google Provider (Default)
 
 ```hcl
 provider "google" {
@@ -317,7 +317,7 @@ provider "google" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Google Provider (VPC Project)
+### 2. Google Provider (VPC Project)
 
 ```hcl
 provider "google" {
@@ -327,7 +327,7 @@ provider "google" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Google Beta Provider
+### 3. Google Beta Provider
 
 Required for PSC endpoint creation:
 
@@ -338,7 +338,7 @@ provider "google-beta" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 4. Databricks Providers
+### 4. Databricks Providers
 
 **Account Provider:**
 ```hcl
@@ -360,15 +360,15 @@ provider "databricks" {
 
 ---
 
-***REMOVED******REMOVED*** GCP Infrastructure Requirements
+## GCP Infrastructure Requirements
 
-***REMOVED******REMOVED******REMOVED*** 1. VPC Network
+### 1. VPC Network
 
 - Name: Referenced in `google_vpc_id`
 - Project: `google_shared_vpc_project`
 - Type: Custom mode
 
-***REMOVED******REMOVED******REMOVED*** 2. Node Subnet
+### 2. Node Subnet
 
 - Name: Referenced in `node_subnet`
 - Purpose: Databricks cluster nodes
@@ -376,7 +376,7 @@ provider "databricks" {
 - Region: Must match workspace region
 - Internet access: Via Cloud NAT
 
-***REMOVED******REMOVED******REMOVED*** 3. PSC Subnet
+### 3. PSC Subnet
 
 - Name: Referenced in `google_pe_subnet`
 - Purpose: PSC endpoint private IPs
@@ -384,22 +384,22 @@ provider "databricks" {
 - Region: Must match workspace region
 - Note: Only 2 IPs needed for frontend/backend endpoints
 
-***REMOVED******REMOVED******REMOVED*** 4. Firewall Rules
+### 4. Firewall Rules
 
 Required egress rules from node subnet:
 
 ```
-***REMOVED*** Allow to PSC endpoints
+# Allow to PSC endpoints
 Source: Node subnet
 Destination: PSC subnet
 Protocols: TCP 443, 6666, 8443-8451
 
-***REMOVED*** Allow to GCP APIs
+# Allow to GCP APIs
 Source: Node subnet
 Destination: 0.0.0.0/0
 Protocols: TCP 443
 
-***REMOVED*** Allow internal cluster communication
+# Allow internal cluster communication
 Source: Node subnet
 Destination: Node subnet
 Protocols: TCP/UDP (all ports)
@@ -407,11 +407,11 @@ Protocols: TCP/UDP (all ports)
 
 ---
 
-***REMOVED******REMOVED*** Databricks Resources
+## Databricks Resources
 
-***REMOVED******REMOVED******REMOVED*** 1. PSC Endpoints
+### 1. PSC Endpoints
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Frontend PSC Endpoint
+#### Frontend PSC Endpoint
 
 ```hcl
 resource "google_compute_forwarding_rule" "frontend_psc_ep"
@@ -425,7 +425,7 @@ resource "google_compute_address" "frontend_pe_ip_address"
 - IP: Allocated from PSC subnet
 - Load balancing scheme: Empty (for service attachment)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Backend PSC Endpoint
+#### Backend PSC Endpoint
 
 ```hcl
 resource "google_compute_forwarding_rule" "backend_psc_ep"
@@ -439,7 +439,7 @@ resource "google_compute_address" "backend_pe_ip_address"
 - IP: Allocated from PSC subnet
 - Port: 6666 (cluster relay)
 
-***REMOVED******REMOVED******REMOVED*** 2. VPC Endpoint Registration
+### 2. VPC Endpoint Registration
 
 ```hcl
 resource "databricks_mws_vpc_endpoint" "relay_vpce"
@@ -448,7 +448,7 @@ resource "databricks_mws_vpc_endpoint" "workspace_vpce"
 
 **Registers PSC endpoints with Databricks account**
 
-***REMOVED******REMOVED******REMOVED*** 3. Private Access Settings
+### 3. Private Access Settings
 
 ```hcl
 resource "databricks_mws_private_access_settings" "pas"
@@ -457,8 +457,8 @@ resource "databricks_mws_private_access_settings" "pas"
 **Key Configuration:**
 
 ```hcl
-public_access_enabled = true  ***REMOVED*** or false for fully private
-private_access_level  = "ACCOUNT"  ***REMOVED*** or "ENDPOINT"
+public_access_enabled = true  # or false for fully private
+private_access_level  = "ACCOUNT"  # or "ENDPOINT"
 ```
 
 **Options Explained:**
@@ -472,7 +472,7 @@ private_access_level  = "ACCOUNT"  ***REMOVED*** or "ENDPOINT"
 
 > **Warning**: `public_access_enabled` cannot be changed after creation.
 
-***REMOVED******REMOVED******REMOVED*** 4. Network Configuration
+### 4. Network Configuration
 
 ```hcl
 resource "databricks_mws_networks" "databricks_network"
@@ -483,7 +483,7 @@ resource "databricks_mws_networks" "databricks_network"
 - Frontend VPC endpoint (REST API)
 - Backend VPC endpoint (dataplane relay)
 
-***REMOVED******REMOVED******REMOVED*** 5. Workspace
+### 5. Workspace
 
 ```hcl
 resource "databricks_mws_workspaces" "databricks_workspace"
@@ -494,7 +494,7 @@ resource "databricks_mws_workspaces" "databricks_workspace"
 - Links private access settings
 - Links network configuration
 
-***REMOVED******REMOVED******REMOVED*** 6. Workspace Configuration
+### 6. Workspace Configuration
 
 ```hcl
 resource "databricks_workspace_conf" "this"
@@ -507,9 +507,9 @@ resource "databricks_ip_access_list" "this"
 
 ---
 
-***REMOVED******REMOVED*** DNS Configuration
+## DNS Configuration
 
-***REMOVED******REMOVED******REMOVED*** Private DNS Zone
+### Private DNS Zone
 
 ```hcl
 resource "google_dns_managed_zone" "databricks-private-zone"
@@ -520,11 +520,11 @@ resource "google_dns_managed_zone" "databricks-private-zone"
 - Type: Private
 - Visibility: Your VPC
 
-***REMOVED******REMOVED******REMOVED*** DNS A Records
+### DNS A Records
 
 Four A records are created automatically:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Workspace URL Record
+#### 1. Workspace URL Record
 
 ```hcl
 resource "google_dns_record_set" "record_set_workspace_url"
@@ -534,7 +534,7 @@ resource "google_dns_record_set" "record_set_workspace_url"
 **Points to**: Frontend PSC endpoint IP  
 **Purpose**: Main workspace URL
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Dataplane Prefix Record
+#### 2. Dataplane Prefix Record
 
 ```hcl
 resource "google_dns_record_set" "record_set_workspace_dp"
@@ -544,7 +544,7 @@ resource "google_dns_record_set" "record_set_workspace_dp"
 **Points to**: Frontend PSC endpoint IP  
 **Purpose**: Dataplane API access
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. PSC Auth Record
+#### 3. PSC Auth Record
 
 ```hcl
 resource "google_dns_record_set" "record_set_workspace_psc_auth"
@@ -554,7 +554,7 @@ resource "google_dns_record_set" "record_set_workspace_psc_auth"
 **Points to**: Frontend PSC endpoint IP  
 **Purpose**: PSC authentication
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 4. Tunnel Record
+#### 4. Tunnel Record
 
 ```hcl
 resource "google_dns_record_set" "record_set_relay"
@@ -566,9 +566,9 @@ resource "google_dns_record_set" "record_set_relay"
 
 ---
 
-***REMOVED******REMOVED*** Deployment Flow
+## Deployment Flow
 
-***REMOVED******REMOVED******REMOVED*** Deployment Sequence
+### Deployment Sequence
 
 ```mermaid
 sequenceDiagram
@@ -620,7 +620,7 @@ sequenceDiagram
     Note over DB_WS: Workspace Ready (Private Access)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Resource Dependencies
+### Resource Dependencies
 
 ```mermaid
 graph TD
@@ -639,69 +639,69 @@ graph TD
     L --> M[Create Admin User]
     M --> N[Workspace Ready]
     
-    style A fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style N fill:***REMOVED***34A853,color:***REMOVED***fff
-    style H fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style D fill:***REMOVED***FBBC04,color:***REMOVED***000
+    style A fill:"#4285F4",color:"#fff"
+    style N fill:"#34A853",color:"#fff"
+    style H fill:"#FF3621",color:"#fff"
+    style D fill:"#FBBC04",color:"#000"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
-***REMOVED******REMOVED******REMOVED*** 1. Update Provider Configuration
+### 1. Update Provider Configuration
 
 Edit `providers.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Service Account for authentication
+# Service Account for authentication
 google_service_account_email = "automation-sa@my-service-project.iam.gserviceaccount.com"
 
-***REMOVED*** Service/Consumer Project
+# Service/Consumer Project
 google_project_name = "my-service-project"
 
-***REMOVED*** Host/Shared VPC Project
+# Host/Shared VPC Project
 google_shared_vpc_project = "my-host-project"
 
-***REMOVED*** Region
+# Region
 google_region = "us-central1"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Update Workspace Configuration
+### 2. Update Workspace Configuration
 
 Edit `workspace.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Databricks Configuration
+# Databricks Configuration
 databricks_account_id = "12345678-1234-1234-1234-123456789abc"
 databricks_account_console_url = "https://accounts.gcp.databricks.com"
 databricks_workspace_name = "my-psc-workspace"
 databricks_admin_user = "admin@mycompany.com"
 
-***REMOVED*** Network Configuration
+# Network Configuration
 google_vpc_id = "my-vpc-network"
 node_subnet = "databricks-node-subnet"
 google_pe_subnet = "databricks-psc-subnet"
 
-***REMOVED*** PSC Endpoint Names (must be unique)
+# PSC Endpoint Names (must be unique)
 workspace_pe = "us-c1-frontend-ep"
 relay_pe = "us-c1-backend-ep"
 
-***REMOVED*** PSC Private IP Names
+# PSC Private IP Names
 workspace_pe_ip_name = "frontend-pe-ip"
 relay_pe_ip_name = "backend-pe-ip"
 
-***REMOVED*** PSC Service Attachments (region-specific)
-***REMOVED*** Find yours at: https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***psc
+# PSC Service Attachments (region-specific)
+# Find yours at: https://docs.gcp.databricks.com/resources/supported-regions.html#psc
 workspace_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
 relay_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
 
-***REMOVED*** DNS Configuration
+# DNS Configuration
 private_zone_name = "databricks"
-dns_name = "gcp.databricks.com."  ***REMOVED*** Trailing dot required
+dns_name = "gcp.databricks.com."  # Trailing dot required
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Variable Validation Checklist
+### 3. Variable Validation Checklist
 
 Before deployment:
 
@@ -715,23 +715,23 @@ Before deployment:
 
 ---
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Authenticate
+### Step 1: Authenticate
 
 ```bash
 gcloud config set auth/impersonate_service_account automation-sa@project.iam.gserviceaccount.com
 export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Initialize Terraform
+### Step 2: Initialize Terraform
 
 ```bash
 cd gcp/gh-repo/gcp/terraform-scripts/byovpc-psc-ws
 terraform init
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Review Plan
+### Step 3: Review Plan
 
 ```bash
 terraform plan
@@ -751,7 +751,7 @@ terraform plan
 - 1 Admin user
 - 1 Group membership
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Apply Configuration
+### Step 4: Apply Configuration
 
 ```bash
 terraform apply
@@ -766,7 +766,7 @@ terraform apply
 4. DNS configuration (~1-2 min)
 5. User setup (~1 min)
 
-***REMOVED******REMOVED******REMOVED*** Step 5: Verify PSC Connection
+### Step 5: Verify PSC Connection
 
 ```bash
 terraform output
@@ -780,7 +780,7 @@ Backend psc status: ACCEPTED
 
 > **Important**: If status is not "ACCEPTED", PSC connection failed. Check service attachment URIs.
 
-***REMOVED******REMOVED******REMOVED*** Step 6: Access Workspace
+### Step 6: Access Workspace
 
 1. Ensure you're connected via VPN or private network
 2. Navigate to workspace URL from output
@@ -793,7 +793,7 @@ Backend psc status: ACCEPTED
 
 ---
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -806,9 +806,9 @@ Backend psc status: ACCEPTED
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** 1. PSC Connection Status Not ACCEPTED
+### 1. PSC Connection Status Not ACCEPTED
 
 **Error:**
 ```
@@ -831,13 +831,13 @@ Backend psc status: PENDING
    ```
 
 2. Check Databricks documentation for correct URIs:
-   - [Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***psc)
+   - [Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
 
 3. Verify PSC is enabled for your account with Databricks support
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 2. DNS Resolution Fails
+### 2. DNS Resolution Fails
 
 **Error:**
 Workspace URL doesn't resolve or resolves to public IP
@@ -867,7 +867,7 @@ Workspace URL doesn't resolve or resolves to public IP
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 3. Cannot Access Workspace UI
+### 3. Cannot Access Workspace UI
 
 **Error:**
 Workspace URL times out or connection refused
@@ -882,14 +882,14 @@ Workspace URL times out or connection refused
 
 1. Verify you're on private network:
    ```bash
-   ***REMOVED*** Should show private IP
+   # Should show private IP
    ping <workspace-id>.gcp.databricks.com
    ```
 
 2. Check IP access list includes your IP:
    ```bash
    curl ifconfig.me
-   ***REMOVED*** Verify this IP is in workspace.auto.tfvars ip_addresses list
+   # Verify this IP is in workspace.auto.tfvars ip_addresses list
    ```
 
 3. Test PSC endpoint connectivity:
@@ -901,7 +901,7 @@ Workspace URL times out or connection refused
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 4. Cluster Creation Fails
+### 4. Cluster Creation Fails
 
 **Error:**
 Clusters fail to start with "Unable to connect to control plane"
@@ -921,7 +921,7 @@ Clusters fail to start with "Unable to connect to control plane"
 2. Check tunnel DNS record:
    ```bash
    nslookup tunnel.us-central1.gcp.databricks.com
-   ***REMOVED*** Should resolve to backend private IP
+   # Should resolve to backend private IP
    ```
 
 3. Test backend connectivity from node subnet:
@@ -933,7 +933,7 @@ Clusters fail to start with "Unable to connect to control plane"
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 5. Insufficient PSC Subnet IPs
+### 5. Insufficient PSC Subnet IPs
 
 **Error:**
 ```
@@ -961,7 +961,7 @@ You only need 2 IPs for frontend and backend endpoints. If this fails:
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 6. IP Access List Blocks Admin
+### 6. IP Access List Blocks Admin
 
 **Error:**
 Admin user cannot log in after workspace creation
@@ -977,7 +977,7 @@ Admin user cannot log in after workspace creation
    ```hcl
    ip_addresses = [
      "YOUR.CURRENT.IP/32",
-     "0.0.0.0/0"  ***REMOVED*** Temporary allow all
+     "0.0.0.0/0"  # Temporary allow all
    ]
    ```
 
@@ -990,30 +990,30 @@ Admin user cannot log in after workspace creation
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Debug Commands
+### Debug Commands
 
 ```bash
-***REMOVED*** Check PSC endpoint status
+# Check PSC endpoint status
 gcloud compute forwarding-rules describe frontend-ep \
   --region=us-central1 --project=my-host-project
 
-***REMOVED*** Verify DNS records
+# Verify DNS records
 gcloud dns record-sets list --zone=databricks --project=my-host-project
 
-***REMOVED*** Test DNS resolution
+# Test DNS resolution
 nslookup <workspace-id>.gcp.databricks.com
 
-***REMOVED*** Check PSC connection from Terraform
+# Check PSC connection from Terraform
 terraform state show google_compute_forwarding_rule.frontend_psc_ep
 terraform state show google_compute_forwarding_rule.backend_psc_ep
 
-***REMOVED*** View all outputs
+# View all outputs
 terraform output -json | jq
 ```
 
 ---
 
-***REMOVED******REMOVED*** Cleanup
+## Cleanup
 
 To destroy all resources:
 
@@ -1036,17 +1036,17 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** Additional Resources
+## Additional Resources
 
 - [Databricks PSC Documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html)
-- [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***psc)
+- [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
 - [GCP Private Service Connect](https://cloud.google.com/vpc/docs/private-service-connect)
-- [Cloud DNS Private Zones](https://cloud.google.com/dns/docs/zones***REMOVED***create-private-zone)
+- [Cloud DNS Private Zones](https://cloud.google.com/dns/docs/zones#create-private-zone)
 - [Databricks Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 After deploying your PSC-enabled workspace:
 
@@ -1070,7 +1070,7 @@ After deploying your PSC-enabled workspace:
 
 ---
 
-***REMOVED******REMOVED*** License
+## License
 
 This configuration is provided as a reference implementation for deploying Databricks workspaces with Private Service Connect on GCP.
 

@@ -1,23 +1,23 @@
-***REMOVED*** Databricks on GCP - Terraform Deployment Configurations
+# Databricks on GCP - Terraform Deployment Configurations
 
 Comprehensive Terraform configurations for deploying Databricks workspaces on Google Cloud Platform (GCP) with various security, networking, and governance configurations.
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-- [Overview](***REMOVED***overview)
-- [Architecture Options](***REMOVED***architecture-options)
-- [Quick Start Guide](***REMOVED***quick-start-guide)
-- [Configuration Matrix](***REMOVED***configuration-matrix)
-- [Authentication Setup](***REMOVED***authentication-setup)
-- [Folder Structure](***REMOVED***folder-structure)
-- [Deployment Scenarios](***REMOVED***deployment-scenarios)
-- [Prerequisites](***REMOVED***prerequisites)
-- [Common Variables](***REMOVED***common-variables)
-- [Support and Documentation](***REMOVED***support-and-documentation)
+- [Overview](#overview)
+- [Architecture Options](#architecture-options)
+- [Quick Start Guide](#quick-start-guide)
+- [Configuration Matrix](#configuration-matrix)
+- [Authentication Setup](#authentication-setup)
+- [Folder Structure](#folder-structure)
+- [Deployment Scenarios](#deployment-scenarios)
+- [Prerequisites](#prerequisites)
+- [Common Variables](#common-variables)
+- [Support and Documentation](#support-and-documentation)
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This repository provides **production-ready Terraform configurations** for deploying Databricks workspaces on GCP with different combinations of features:
 
@@ -27,7 +27,7 @@ This repository provides **production-ready Terraform configurations** for deplo
 - **Infrastructure**: VPC, subnets, firewall rules, DNS configuration
 - **Access Management**: Groups, users, permissions, cluster policies
 
-***REMOVED******REMOVED******REMOVED*** Key Features
+### Key Features
 
 ✅ **Modular Design**: Choose the configuration that matches your requirements  
 ✅ **Production Ready**: Battle-tested configurations with security best practices  
@@ -36,7 +36,7 @@ This repository provides **production-ready Terraform configurations** for deplo
 ✅ **Troubleshooting**: Common issues and solutions included  
 ✅ **GCP Best Practices**: Follows Google Cloud Platform recommendations
 
-***REMOVED******REMOVED******REMOVED*** Repository Structure Overview
+### Repository Structure Overview
 
 ```mermaid
 graph TB
@@ -58,21 +58,21 @@ graph TB
     DOCS --> SA_DOC[sa-impersonation.md<br/>📖 Auth Guide]
     DOCS --> README[README.md<br/>📖 This File]
     
-    style ROOT fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style INFRA fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style BASIC fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style CMEK fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style PSC fill:***REMOVED***34A853,color:***REMOVED***fff
-    style SECURE fill:***REMOVED***EA4335,color:***REMOVED***fff
-    style E2E fill:***REMOVED***34A853,color:***REMOVED***fff
-    style UC fill:***REMOVED***FF3621,color:***REMOVED***fff
+    style ROOT fill:"#4285F4",color:"#fff"
+    style INFRA fill:"#FBBC04",color:"#000"
+    style BASIC fill:"#4285F4",color:"#fff"
+    style CMEK fill:"#FBBC04",color:"#000"
+    style PSC fill:"#34A853",color:"#fff"
+    style SECURE fill:"#EA4335",color:"#fff"
+    style E2E fill:"#34A853",color:"#fff"
+    style UC fill:"#FF3621",color:"#fff"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Architecture Options
+## Architecture Options
 
-***REMOVED******REMOVED******REMOVED*** Deployment Configurations
+### Deployment Configurations
 
 ```mermaid
 graph TB
@@ -102,17 +102,17 @@ graph TB
     Q5 -->|Add to Existing WS| UC[uc/<br/>Unity Catalog Only<br/>For Existing Workspace]
     Q5 -->|Not Now| DONE[Deploy Workspace]
     
-    style START fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style PSC_CMEK fill:***REMOVED***EA4335,color:***REMOVED***fff
-    style E2E fill:***REMOVED***34A853,color:***REMOVED***fff
-    style INFRA fill:***REMOVED***FBBC04,color:***REMOVED***000
+    style START fill:"#4285F4",color:"#fff"
+    style PSC_CMEK fill:"#EA4335",color:"#fff"
+    style E2E fill:"#34A853",color:"#fff"
+    style INFRA fill:"#FBBC04",color:"#000"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Quick Start Guide
+## Quick Start Guide
 
-***REMOVED******REMOVED******REMOVED*** 1. Choose Your Configuration
+### 1. Choose Your Configuration
 
 | Configuration | Description | Use Case |
 |--------------|-------------|----------|
@@ -125,7 +125,7 @@ graph TB
 | **[lpw/](lpw/)** | **2-Phase Workspace + Unity Catalog** | Advanced: Production workspace with 2-phase deployment, UC, compute policies, SQL warehouses |
 | **[uc/](uc/)** | Unity Catalog only | Add UC to existing workspace |
 
-***REMOVED******REMOVED******REMOVED*** 2. Prerequisites
+### 2. Prerequisites
 
 - **Terraform** >= 1.0
 - **Google Cloud SDK** (`gcloud` CLI)
@@ -133,35 +133,35 @@ graph TB
 - **Google Service Account** with appropriate IAM roles
 - **VPC Infrastructure** (or use `infra4db/` to create)
 
-***REMOVED******REMOVED******REMOVED*** 3. Authentication
+### 3. Authentication
 
-See [Authentication Setup](***REMOVED***authentication-setup) section below.
+See [Authentication Setup](#authentication-setup) section below.
 
-***REMOVED******REMOVED******REMOVED*** 4. Deploy
+### 4. Deploy
 
 ```bash
-***REMOVED*** Navigate to chosen configuration
+# Navigate to chosen configuration
 cd <configuration-folder>
 
-***REMOVED*** Update configuration files
-***REMOVED*** - providers.auto.tfvars
-***REMOVED*** - workspace.auto.tfvars (or equivalent)
+# Update configuration files
+# - providers.auto.tfvars
+# - workspace.auto.tfvars (or equivalent)
 
-***REMOVED*** Initialize Terraform
+# Initialize Terraform
 terraform init
 
-***REMOVED*** Review plan
+# Review plan
 terraform plan
 
-***REMOVED*** Deploy
+# Deploy
 terraform apply
 ```
 
 ---
 
-***REMOVED******REMOVED*** Deployment Architecture Diagrams
+## Deployment Architecture Diagrams
 
-***REMOVED******REMOVED******REMOVED*** 1. Infrastructure Foundation (`infra4db/`)
+### 1. Infrastructure Foundation (`infra4db/`)
 
 Creates the foundational GCP infrastructure required for Databricks workspaces.
 
@@ -208,10 +208,10 @@ graph TB
     VPC --> FW_IN
     VPC --> FW_OUT
     
-    style VPC fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style NODE_SUB fill:***REMOVED***34A853,color:***REMOVED***fff
-    style PSC_SUB fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style NAT fill:***REMOVED***4285F4,color:***REMOVED***fff
+    style VPC fill:"#4285F4",color:"#fff"
+    style NODE_SUB fill:"#34A853",color:"#fff"
+    style PSC_SUB fill:"#FBBC04",color:"#000"
+    style NAT fill:"#4285F4",color:"#fff"
 ```
 
 **Use Case**: Starting from scratch, no existing GCP infrastructure  
@@ -220,7 +220,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 2. Basic Workspace (`byovpc-ws/`)
+### 2. Basic Workspace (`byovpc-ws/`)
 
 Simple Databricks workspace with customer-managed VPC and public internet access.
 
@@ -251,10 +251,10 @@ graph TB
     GKE --> SUBNET
     GKE --> GCS
     
-    style CONTROL fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style GKE fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style GCS fill:***REMOVED***34A853,color:***REMOVED***fff
-    style USERS fill:***REMOVED***FBBC04,color:***REMOVED***000
+    style CONTROL fill:"#FF3621",color:"#fff"
+    style GKE fill:"#4285F4",color:"#fff"
+    style GCS fill:"#34A853",color:"#fff"
+    style USERS fill:"#FBBC04",color:"#000"
 ```
 
 **Security Level**: ⭐ Basic  
@@ -265,7 +265,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 3. Encrypted Workspace (`byovpc-cmek-ws/`)
+### 3. Encrypted Workspace (`byovpc-cmek-ws/`)
 
 Workspace with customer-managed encryption keys for enhanced data security.
 
@@ -306,10 +306,10 @@ graph TB
     NAT --> CONTROL
     GKE --> SUBNET
     
-    style KEY fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style GCS fill:***REMOVED***34A853,color:***REMOVED***fff
-    style GKE fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style CONTROL fill:***REMOVED***FF3621,color:***REMOVED***fff
+    style KEY fill:"#FBBC04",color:"#000"
+    style GCS fill:"#34A853",color:"#fff"
+    style GKE fill:"#4285F4",color:"#fff"
+    style CONTROL fill:"#FF3621",color:"#fff"
 ```
 
 **Security Level**: ⭐⭐ Enhanced  
@@ -320,7 +320,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 4. Private Workspace (`byovpc-psc-ws/`)
+### 4. Private Workspace (`byovpc-psc-ws/`)
 
 Workspace with Private Service Connect for fully private connectivity.
 
@@ -369,11 +369,11 @@ graph TB
     VPN_USER -.DNS Lookup.-> DNS
     VPN_USER -.Private.-> FE_EP
     
-    style FE_SA fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style BE_SA fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style DNS fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style FE_EP fill:***REMOVED***34A853,color:***REMOVED***fff
-    style BE_EP fill:***REMOVED***34A853,color:***REMOVED***fff
+    style FE_SA fill:"#FF3621",color:"#fff"
+    style BE_SA fill:"#FF3621",color:"#fff"
+    style DNS fill:"#FBBC04",color:"#000"
+    style FE_EP fill:"#34A853",color:"#fff"
+    style BE_EP fill:"#34A853",color:"#fff"
 ```
 
 **Security Level**: ⭐⭐⭐ High  
@@ -384,7 +384,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 5. Maximum Security Workspace (`byovpc-psc-cmek-ws/`)
+### 5. Maximum Security Workspace (`byovpc-psc-cmek-ws/`)
 
 The most secure configuration combining private connectivity and customer-managed encryption.
 
@@ -437,11 +437,11 @@ graph TB
     VPN -.Private DNS.-> DNS
     VPN -.Private Access.-> FE_EP
     
-    style KEY fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style CONTROL fill:***REMOVED***EA4335,color:***REMOVED***fff
-    style FE_EP fill:***REMOVED***34A853,color:***REMOVED***fff
-    style VPN fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style GCS fill:***REMOVED***34A853,color:***REMOVED***fff
+    style KEY fill:"#FBBC04",color:"#000"
+    style CONTROL fill:"#EA4335",color:"#fff"
+    style FE_EP fill:"#34A853",color:"#fff"
+    style VPN fill:"#4285F4",color:"#fff"
+    style GCS fill:"#34A853",color:"#fff"
 ```
 
 **Security Level**: ⭐⭐⭐⭐⭐ Maximum  
@@ -452,7 +452,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 6. Complete Data Platform (`end2end/`)
+### 6. Complete Data Platform (`end2end/`)
 
 Full production platform with workspace, Unity Catalog, and governance.
 
@@ -515,10 +515,10 @@ graph TB
     DATA_ENG -.User Access.-> WS
     DATA_SCI -.Admin Access.-> WS
     
-    style META fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style UC_ADMIN fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style POLICY fill:***REMOVED***34A853,color:***REMOVED***fff
-    style WS fill:***REMOVED***4285F4,color:***REMOVED***fff
+    style META fill:"#FF3621",color:"#fff"
+    style UC_ADMIN fill:"#FBBC04",color:"#000"
+    style POLICY fill:"#34A853",color:"#fff"
+    style WS fill:"#4285F4",color:"#fff"
 ```
 
 **What It Includes**:
@@ -535,7 +535,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** 7. Unity Catalog Standalone (`uc/`)
+### 7. Unity Catalog Standalone (`uc/`)
 
 Add Unity Catalog to an existing workspace (retrofitting data governance).
 
@@ -580,10 +580,10 @@ graph TB
     
     UC_ADMIN -.Owns.-> META
     
-    style WS fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style META fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style UC_ADMIN fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style ASSIGN fill:***REMOVED***34A853,color:***REMOVED***fff
+    style WS fill:"#4285F4",color:"#fff"
+    style META fill:"#FF3621",color:"#fff"
+    style UC_ADMIN fill:"#FBBC04",color:"#000"
+    style ASSIGN fill:"#34A853",color:"#fff"
 ```
 
 **Use Case**: Add Unity Catalog to workspace created without it  
@@ -600,9 +600,9 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED*** Configuration Matrix
+## Configuration Matrix
 
-***REMOVED******REMOVED******REMOVED*** Feature Comparison
+### Feature Comparison
 
 | Feature | byovpc-ws | byovpc-cmek-ws | byovpc-psc-ws | byovpc-psc-cmek-ws | end2end | uc |
 |---------|-----------|----------------|---------------|--------------------|---------|----|
@@ -622,7 +622,7 @@ graph TB
 \* Can be combined with PSC/CMEK configurations  
 \*\* Can be added (see end2end example)
 
-***REMOVED******REMOVED******REMOVED*** Security Level Comparison
+### Security Level Comparison
 
 ```mermaid
 graph LR
@@ -636,13 +636,13 @@ graph LR
     B -->|Add Private Access| D
     C -->|Add Encryption| D
     
-    style A fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style B fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style C fill:***REMOVED***34A853,color:***REMOVED***fff
-    style D fill:***REMOVED***EA4335,color:***REMOVED***fff
+    style A fill:"#4285F4",color:"#fff"
+    style B fill:"#FBBC04",color:"#000"
+    style C fill:"#34A853",color:"#fff"
+    style D fill:"#EA4335",color:"#fff"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Feature Build-Up Visualization
+### Feature Build-Up Visualization
 
 ```mermaid
 graph TB
@@ -678,27 +678,27 @@ graph TB
     L4A --> L4B
     L4B --> L4C
     
-    style L1 fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style L2A fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style L3A fill:***REMOVED***34A853,color:***REMOVED***fff
-    style L4A fill:***REMOVED***FF3621,color:***REMOVED***fff
+    style L1 fill:"#4285F4",color:"#fff"
+    style L2A fill:"#FBBC04",color:"#000"
+    style L3A fill:"#34A853",color:"#fff"
+    style L4A fill:"#FF3621",color:"#fff"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Authentication Setup
+## Authentication Setup
 
-***REMOVED******REMOVED******REMOVED*** Google Service Account Authentication
+### Google Service Account Authentication
 
 You need a Google Service Account with appropriate permissions to deploy Databricks resources.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Option 1: Service Account Impersonation (Recommended)
+#### Option 1: Service Account Impersonation (Recommended)
 
 ```bash
-***REMOVED*** Set service account for impersonation
+# Set service account for impersonation
 gcloud config set auth/impersonate_service_account <GSA-NAME>@<PROJECT>.iam.gserviceaccount.com
 
-***REMOVED*** Generate access token
+# Generate access token
 export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 ```
 
@@ -708,22 +708,22 @@ export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 - Audit trail via GCP logs
 - Temporary credentials
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Option 2: Service Account Key File
+#### Option 2: Service Account Key File
 
 ```bash
-***REMOVED*** Download service account key
+# Download service account key
 gcloud iam service-accounts keys create ~/sa-key.json \
   --iam-account=<GSA-NAME>@<PROJECT>.iam.gserviceaccount.com
 
-***REMOVED*** Set environment variable
+# Set environment variable
 export GOOGLE_APPLICATION_CREDENTIALS=~/sa-key.json
 ```
 
 **For detailed instructions**: See [sa-impersonation.md](sa-impersonation.md)
 
-***REMOVED******REMOVED******REMOVED*** Required IAM Roles
+### Required IAM Roles
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** On Service/Consumer Project (Where Workspace Deploys)
+#### On Service/Consumer Project (Where Workspace Deploys)
 
 - `roles/compute.networkAdmin` - Manage VPC and network resources
 - `roles/iam.serviceAccountAdmin` - Manage service accounts
@@ -734,7 +734,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=~/sa-key.json
 - `roles/cloudkms.admin` - Manage KMS keys
 - `roles/cloudkms.cryptoKeyEncrypterDecrypter` - Use keys for encryption
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** On Host/Shared VPC Project (If Using Shared VPC)
+#### On Host/Shared VPC Project (If Using Shared VPC)
 
 - `roles/compute.networkUser` - Use VPC network
 - `roles/compute.securityAdmin` - Manage firewall rules
@@ -742,15 +742,15 @@ export GOOGLE_APPLICATION_CREDENTIALS=~/sa-key.json
 **For PSC:**
 - `roles/dns.admin` - Manage private DNS zones
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** On Databricks Account
+#### On Databricks Account
 
 - **Account Admin** role for the service account in Databricks Account Console
 
-**Reference**: [Databricks IAM Requirements](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html***REMOVED***role-requirements)
+**Reference**: [Databricks IAM Requirements](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html#role-requirements)
 
 ---
 
-***REMOVED******REMOVED*** Folder Structure
+## Folder Structure
 
 ```
 terraform-scripts/
@@ -821,9 +821,9 @@ terraform-scripts/
 
 ---
 
-***REMOVED******REMOVED*** Deployment Scenarios
+## Deployment Scenarios
 
-***REMOVED******REMOVED******REMOVED*** Typical Deployment Journey
+### Typical Deployment Journey
 
 ```mermaid
 graph TB
@@ -864,16 +864,16 @@ graph TB
     P4B --> P5
     P4C --> P5
     
-    style START fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style P1 fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style P2B fill:***REMOVED***EA4335,color:***REMOVED***fff
-    style P3 fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style P5 fill:***REMOVED***34A853,color:***REMOVED***fff
+    style START fill:"#4285F4",color:"#fff"
+    style P1 fill:"#FBBC04",color:"#000"
+    style P2B fill:"#EA4335",color:"#fff"
+    style P3 fill:"#FF3621",color:"#fff"
+    style P5 fill:"#34A853",color:"#fff"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Deployment Scenarios
+### Deployment Scenarios
 
-***REMOVED******REMOVED******REMOVED*** Scenario 1: New Simple Workspace
+### Scenario 1: New Simple Workspace
 
 **Goal**: Deploy a basic workspace for development/testing
 
@@ -891,7 +891,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Scenario 2: Secure Production Workspace
+### Scenario 2: Secure Production Workspace
 
 **Goal**: Deploy highly secure workspace with encryption and private access
 
@@ -912,7 +912,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Scenario 3: Complete Data Platform
+### Scenario 3: Complete Data Platform
 
 **Goal**: Deploy full Databricks platform with Unity Catalog
 
@@ -934,7 +934,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Scenario 4: Add Unity Catalog to Existing Workspace
+### Scenario 4: Add Unity Catalog to Existing Workspace
 
 **Goal**: Retrofit Unity Catalog onto an existing workspace
 
@@ -952,7 +952,7 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Scenario 5: Multi-Workspace with Shared Metastore
+### Scenario 5: Multi-Workspace with Shared Metastore
 
 **Goal**: Multiple workspaces sharing a single Unity Catalog metastore
 
@@ -971,9 +971,9 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
-***REMOVED******REMOVED******REMOVED*** General Requirements
+### General Requirements
 
 1. **Databricks Account**
    - Enterprise Edition (for Unity Catalog)
@@ -990,9 +990,9 @@ graph TB
    - gcloud CLI
    - Access to service account credentials
 
-***REMOVED******REMOVED******REMOVED*** Feature-Specific Requirements
+### Feature-Specific Requirements
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** For PSC (Private Service Connect)
+#### For PSC (Private Service Connect)
 
 - PSC feature enabled for Databricks account (contact Databricks)
 - PSC service attachment URIs for your region
@@ -1001,9 +1001,9 @@ graph TB
 
 **Resources**:
 - [Databricks PSC Documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html)
-- [Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***psc)
+- [Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** For CMEK (Customer-Managed Keys)
+#### For CMEK (Customer-Managed Keys)
 
 - Pre-created KMS key (or use byovpc-cmek-ws/ to create)
 - Key in same region as workspace
@@ -1012,7 +1012,7 @@ graph TB
 **Resources**:
 - [Databricks CMEK Documentation](https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** For Unity Catalog
+#### For Unity Catalog
 
 - Unity Catalog enabled for account
 - GCS bucket for metastore storage
@@ -1023,65 +1023,65 @@ graph TB
 
 ---
 
-***REMOVED******REMOVED*** Common Variables
+## Common Variables
 
-***REMOVED******REMOVED******REMOVED*** Provider Variables (`providers.auto.tfvars`)
+### Provider Variables (`providers.auto.tfvars`)
 
 ```hcl
-***REMOVED*** Service Account (for authentication)
+# Service Account (for authentication)
 google_service_account_email = "automation-sa@my-project.iam.gserviceaccount.com"
 
-***REMOVED*** Service/Consumer Project (where workspace deploys)
+# Service/Consumer Project (where workspace deploys)
 google_project_name = "my-service-project"
 
-***REMOVED*** Host/Shared VPC Project (where VPC exists)
+# Host/Shared VPC Project (where VPC exists)
 google_shared_vpc_project = "my-host-project"
 
-***REMOVED*** Region (must match VPC region)
+# Region (must match VPC region)
 google_region = "us-central1"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Workspace Variables (`workspace.auto.tfvars`)
+### Workspace Variables (`workspace.auto.tfvars`)
 
 ```hcl
-***REMOVED*** Databricks Account
+# Databricks Account
 databricks_account_id = "12345678-1234-1234-1234-123456789abc"
 databricks_account_console_url = "https://accounts.gcp.databricks.com"
 databricks_workspace_name = "my-workspace"
 databricks_admin_user = "admin@mycompany.com"
 
-***REMOVED*** Network Configuration
+# Network Configuration
 google_vpc_id = "my-vpc-network"
 node_subnet = "databricks-node-subnet"
 ```
 
-***REMOVED******REMOVED******REMOVED*** PSC Variables (if applicable)
+### PSC Variables (if applicable)
 
 ```hcl
-***REMOVED*** PSC Subnet
+# PSC Subnet
 google_pe_subnet = "databricks-psc-subnet"
 
-***REMOVED*** PSC Endpoint Names
+# PSC Endpoint Names
 workspace_pe = "frontend-ep"
 relay_pe = "backend-ep"
 
-***REMOVED*** PSC Service Attachments (region-specific)
+# PSC Service Attachments (region-specific)
 workspace_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
 relay_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
 ```
 
-***REMOVED******REMOVED******REMOVED*** CMEK Variables (if applicable)
+### CMEK Variables (if applicable)
 
 ```hcl
-***REMOVED*** Pre-created KMS Key
+# Pre-created KMS Key
 cmek_resource_id = "projects/my-project/locations/us-central1/keyRings/databricks-keyring/cryptoKeys/databricks-key"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Deployment Flow
+## Deployment Flow
 
-***REMOVED******REMOVED******REMOVED*** Typical End-to-End Deployment
+### Typical End-to-End Deployment
 
 ```mermaid
 sequenceDiagram
@@ -1127,9 +1127,9 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** Support and Documentation
+## Support and Documentation
 
-***REMOVED******REMOVED******REMOVED*** Official Documentation
+### Official Documentation
 
 - **Databricks on GCP**: https://docs.gcp.databricks.com/
 - **Unity Catalog**: https://docs.gcp.databricks.com/data-governance/unity-catalog/
@@ -1137,19 +1137,19 @@ sequenceDiagram
 - **CMEK**: https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html
 - **Customer-Managed VPC**: https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html
 
-***REMOVED******REMOVED******REMOVED*** Terraform Providers
+### Terraform Providers
 
 - **Databricks Provider**: https://registry.terraform.io/providers/databricks/databricks/latest/docs
 - **Google Provider**: https://registry.terraform.io/providers/hashicorp/google/latest/docs
 
-***REMOVED******REMOVED******REMOVED*** GCP Documentation
+### GCP Documentation
 
 - **VPC Documentation**: https://cloud.google.com/vpc/docs
 - **Private Service Connect**: https://cloud.google.com/vpc/docs/private-service-connect
 - **Cloud KMS**: https://cloud.google.com/kms/docs
 - **Cloud DNS**: https://cloud.google.com/dns/docs
 
-***REMOVED******REMOVED******REMOVED*** Getting Help
+### Getting Help
 
 1. **Check folder README**: Each folder has comprehensive documentation
 2. **Review troubleshooting sections**: Common issues and solutions included
@@ -1158,9 +1158,9 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Security
+### Security
 
 - ✅ Use service account impersonation (avoid key files)
 - ✅ Enable CMEK for sensitive data
@@ -1170,7 +1170,7 @@ sequenceDiagram
 - ✅ Use separate projects for prod/dev
 - ✅ Enable audit logging
 
-***REMOVED******REMOVED******REMOVED*** Infrastructure
+### Infrastructure
 
 - ✅ Use Shared VPC for multi-workspace deployments
 - ✅ Size subnets appropriately (min /24 for nodes)
@@ -1179,7 +1179,7 @@ sequenceDiagram
 - ✅ Implement proper firewall rules
 - ✅ Use private Google access
 
-***REMOVED******REMOVED******REMOVED*** Operations
+### Operations
 
 - ✅ Use Terraform for all deployments
 - ✅ Store state in GCS backend
@@ -1189,7 +1189,7 @@ sequenceDiagram
 - ✅ Test in dev before prod
 - ✅ Implement proper change management
 
-***REMOVED******REMOVED******REMOVED*** Cost Optimization
+### Cost Optimization
 
 - ✅ Use cluster policies to limit DBU consumption
 - ✅ Enable auto-termination
@@ -1200,9 +1200,9 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** Changelog
+## Changelog
 
-***REMOVED******REMOVED******REMOVED*** Recent Updates
+### Recent Updates
 
 - ✅ Added comprehensive README to all folders
 - ✅ Added Mermaid architecture diagrams
@@ -1214,7 +1214,7 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** Contributing
+## Contributing
 
 These configurations are provided as reference implementations. Feel free to:
 
@@ -1225,15 +1225,15 @@ These configurations are provided as reference implementations. Feel free to:
 
 ---
 
-***REMOVED******REMOVED*** License
+## License
 
 These Terraform configurations are provided as reference implementations for deploying Databricks workspaces on Google Cloud Platform.
 
 ---
 
-***REMOVED******REMOVED*** Visual Deployment Comparison
+## Visual Deployment Comparison
 
-***REMOVED******REMOVED******REMOVED*** All Configurations at a Glance
+### All Configurations at a Glance
 
 ```mermaid
 graph TB
@@ -1269,16 +1269,16 @@ graph TB
     
     INFRA -.All-in-One.-> E2E
     
-    style INFRA fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style BASIC fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style CMEK fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style PSC fill:***REMOVED***34A853,color:***REMOVED***fff
-    style SECURE fill:***REMOVED***EA4335,color:***REMOVED***fff
-    style E2E fill:***REMOVED***34A853,color:***REMOVED***fff
-    style UC_ONLY fill:***REMOVED***FF3621,color:***REMOVED***fff
+    style INFRA fill:"#FBBC04",color:"#000"
+    style BASIC fill:"#4285F4",color:"#fff"
+    style CMEK fill:"#FBBC04",color:"#000"
+    style PSC fill:"#34A853",color:"#fff"
+    style SECURE fill:"#EA4335",color:"#fff"
+    style E2E fill:"#34A853",color:"#fff"
+    style UC_ONLY fill:"#FF3621",color:"#fff"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Component Inclusion Matrix
+### Component Inclusion Matrix
 
 ```mermaid
 graph TD
@@ -1303,17 +1303,17 @@ graph TD
         L6[uc]
     end
     
-    style L1 fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style L2 fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style L3 fill:***REMOVED***34A853,color:***REMOVED***fff
-    style L4 fill:***REMOVED***EA4335,color:***REMOVED***fff
-    style L5 fill:***REMOVED***34A853,color:***REMOVED***fff
-    style L6 fill:***REMOVED***FF3621,color:***REMOVED***fff
+    style L1 fill:"#4285F4",color:"#fff"
+    style L2 fill:"#FBBC04",color:"#000"
+    style L3 fill:"#34A853",color:"#fff"
+    style L4 fill:"#EA4335",color:"#fff"
+    style L5 fill:"#34A853",color:"#fff"
+    style L6 fill:"#FF3621",color:"#fff"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Quick Links
+## Quick Links
 
 | Configuration | Description | README Link |
 |--------------|-------------|-------------|

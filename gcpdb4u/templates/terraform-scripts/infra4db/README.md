@@ -1,6 +1,6 @@
-***REMOVED*** Terraform Configuration for Databricks VPC and PSC Setup
+# Terraform Configuration for Databricks VPC and PSC Setup
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This Terraform configuration is designed to set up Google Cloud Platform (GCP) infrastructure required to create a Databricks workspace within customers GCP project including the creation of subnets, Private Service Connect (PSC) subnets, and necessary firewall rules. It also includes the option to create Customer Managed Keys (CMK) for encryption. Please note that we are only creating pre-requistes required to provision a Databricks workspace. Depending upon your needs you could create workspaces:
 
@@ -12,13 +12,13 @@ This Terraform configuration is designed to set up Google Cloud Platform (GCP) i
   - When `create_cmk_resources` set to `true` in `terraform.tfvars`
 - BYOVPC + PSC + Customer Managed Keys(CMK)
   - When `create_psc_resources` and `create_cmk_resources` set to `true` in `terraform.tfvars`
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
 - **Terraform**: Ensure you have Terraform installed on your local machine. You can download it from [Terraform's official website](https://www.terraform.io/downloads.html).
 - **Google Cloud SDK**: Install the Google Cloud SDK to interact with GCP. You can find installation instructions [here](https://cloud.google.com/sdk/docs/install).
 - **GCP Project**: You need a GCP project where you have permissions to create resources.
 
-***REMOVED******REMOVED*** Required IAM Roles
+## Required IAM Roles
 
 To successfully create the resources defined in this Terraform configuration, ensure that the service account or user account you are using has the following IAM roles:
 
@@ -29,9 +29,9 @@ To successfully create the resources defined in this Terraform configuration, en
 - **Service Networking Admin**: Required to manage Private Service Connect and associated resources.
 - **Viewer**: Grants read access to all resources in the project.
 
-***REMOVED******REMOVED*** Configuration Files
+## Configuration Files
 
-***REMOVED******REMOVED******REMOVED*** `variables.tf`
+### `variables.tf`
 
 This file defines the variables used in the Terraform configuration. Key variables include:
 
@@ -42,7 +42,7 @@ This file defines the variables used in the Terraform configuration. Key variabl
 - `create_psc_resources`: Flag to enable or disable the creation of PSC resources.This allows us to create a BYOVPC + PSC workspace
 - `create_cmk_resources`: Flag to enable or disable the creation of KMS resources. This allows us to create a BYOVPC + CMK workspace
 
-***REMOVED******REMOVED******REMOVED*** `terraform.tfvars`
+### `terraform.tfvars`
 
 This file contains the values for the variables defined in `variables.tf`. You can customize the values according to your requirements. Key configurations include:
 
@@ -54,7 +54,7 @@ This file contains the values for the variables defined in `variables.tf`. You c
 - `create_psc_resources`: Flag to enable or disable the creation of PSC resources.
 - `create_cmk_resources`: Flag to enable or disable the creation of KMS resources.
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
 1. **Rename terraform.tfvars.remove**: Rename terraform.tfvars.remove by removing `remove` from the end of the file extension. Update variables so that it has your desired values
 
@@ -84,7 +84,7 @@ This file contains the values for the variables defined in `variables.tf`. You c
    terraform output
    ```
 
-***REMOVED******REMOVED*** Cleanup
+## Cleanup
 
 To destroy all resources created by this configuration, run:
 
@@ -94,7 +94,7 @@ terraform destroy
 
 Confirm the action when prompted.
 
-***REMOVED******REMOVED*** Notes
+## Notes
 
 - Ensure that you have the necessary permissions in your GCP project to create the resources defined in this configuration.
 - Modify the `terraform.tfvars` file to customize the setup according to your needs.

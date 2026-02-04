@@ -52,11 +52,11 @@ graph TB
     BOTTLENECK --> PARTITION
     BOTTLENECK --> TUNING
     
-    style UI fill:#1E88E5
-    style SPARK_UI fill:#1E88E5
-    style ALERTS fill:#FF6F00
-    style DASH fill:#43A047
-    style BOTTLENECK fill:#E53935
+    style UI fill:"#1E88E5"
+    style SPARK_UI fill:"#1E88E5"
+    style ALERTS fill:"#FF6F00"
+    style DASH fill:"#43A047"
+    style BOTTLENECK fill:"#E53935"
 ```
 
 ### Table of Contents
@@ -172,13 +172,13 @@ graph TB
     FIX --> TEST[Test & Validate]
     TEST --> END[Performance Improved ✓]
     
-    style START fill:#FF6F00
-    style MEM_ISSUE fill:#E53935
-    style TIME_ISSUE fill:#E53935
-    style NET_ISSUE fill:#E53935
-    style SPARK_UI fill:#1E88E5
-    style GANGLIA fill:#1E88E5
-    style END fill:#43A047
+    style START fill:"#FF6F00"
+    style MEM_ISSUE fill:"#E53935"
+    style TIME_ISSUE fill:"#E53935"
+    style NET_ISSUE fill:"#E53935"
+    style SPARK_UI fill:"#1E88E5"
+    style GANGLIA fill:"#1E88E5"
+    style END fill:"#43A047"
 ```
 
 ### Use REST API for Monitoring
@@ -240,12 +240,12 @@ graph TB
     DATADOG --> SLACK
     SPLUNK --> EMAIL
     
-    style DB_API fill:#1E88E5
-    style JOBS_API fill:#1E88E5
-    style GRAFANA fill:#43A047
-    style PROM fill:#43A047
-    style PAGER fill:#FF6F00
-    style SLACK fill:#FF6F00
+    style DB_API fill:"#1E88E5"
+    style JOBS_API fill:"#1E88E5"
+    style GRAFANA fill:"#43A047"
+    style PROM fill:"#43A047"
+    style PAGER fill:"#FF6F00"
+    style SLACK fill:"#FF6F00"
 ```
 
 ### Comprehensive Monitoring Strategy
@@ -288,15 +288,15 @@ graph LR
     A2 --> O2
     A3 --> O3
     
-    style RT1 fill:#1E88E5
-    style RT2 fill:#1E88E5
-    style RT3 fill:#1E88E5
-    style A1 fill:#FF6F00
-    style A2 fill:#FF6F00
-    style A3 fill:#FF6F00
-    style O1 fill:#43A047
-    style O2 fill:#43A047
-    style O3 fill:#43A047
+    style RT1 fill:"#1E88E5"
+    style RT2 fill:"#1E88E5"
+    style RT3 fill:"#1E88E5"
+    style A1 fill:"#FF6F00"
+    style A2 fill:"#FF6F00"
+    style A3 fill:"#FF6F00"
+    style O1 fill:"#43A047"
+    style O2 fill:"#43A047"
+    style O3 fill:"#43A047"
 ```
 
 For more details, refer to the official [Databricks Jobs Monitoring Documentation](https://docs.databricks.com/gcp/en/jobs/monitor).

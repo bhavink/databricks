@@ -1,23 +1,23 @@
-***REMOVED*** Databricks Workspace with BYOVPC (Bring Your Own VPC)
+# Databricks Workspace with BYOVPC (Bring Your Own VPC)
 
 A Terraform configuration for deploying a basic Databricks workspace on Google Cloud Platform (GCP) using a customer-managed VPC.
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-- [Architecture Overview](***REMOVED***architecture-overview)
-- [Prerequisites](***REMOVED***prerequisites)
-- [Provider Configuration](***REMOVED***provider-configuration)
-- [GCP Infrastructure Requirements](***REMOVED***gcp-infrastructure-requirements)
-- [Databricks Resources](***REMOVED***databricks-resources)
-- [Deployment Flow](***REMOVED***deployment-flow)
-- [Configuration](***REMOVED***configuration)
-- [Deployment](***REMOVED***deployment)
-- [Outputs](***REMOVED***outputs)
-- [Troubleshooting](***REMOVED***troubleshooting)
+- [Architecture Overview](#architecture-overview)
+- [Prerequisites](#prerequisites)
+- [Provider Configuration](#provider-configuration)
+- [GCP Infrastructure Requirements](#gcp-infrastructure-requirements)
+- [Databricks Resources](#databricks-resources)
+- [Deployment Flow](#deployment-flow)
+- [Configuration](#configuration)
+- [Deployment](#deployment)
+- [Outputs](#outputs)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-***REMOVED******REMOVED*** Architecture Overview
+## Architecture Overview
 
 This deployment creates a **basic Databricks workspace** with:
 
@@ -26,7 +26,7 @@ This deployment creates a **basic Databricks workspace** with:
 - ✅ **Workspace Admin Assignment** for initial user
 - ✅ **Basic Security Configuration**
 
-***REMOVED******REMOVED******REMOVED*** Architecture Diagram
+### Architecture Diagram
 
 ```mermaid
 graph TB
@@ -58,20 +58,20 @@ graph TB
     USER --> CONTROL
     CONTROL --> GKE
     
-    style CONTROL fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style GCS fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style GKE fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style SUBNET fill:***REMOVED***34A853,color:***REMOVED***fff
+    style CONTROL fill:"#FF3621",color:"#fff"
+    style GCS fill:"#4285F4",color:"#fff"
+    style GKE fill:"#4285F4",color:"#fff"
+    style SUBNET fill:"#34A853",color:"#fff"
 ```
 
-***REMOVED******REMOVED******REMOVED*** What This Configuration Does
+### What This Configuration Does
 
 1. **Creates Network Configuration**: Registers your VPC and subnet with Databricks
 2. **Provisions Workspace**: Deploys a Databricks workspace in your GCP project
 3. **Assigns Admin User**: Adds specified user to workspace admin group
 4. **Grants Access**: Enables the admin user to log in and manage the workspace
 
-***REMOVED******REMOVED******REMOVED*** What This Configuration Does NOT Do
+### What This Configuration Does NOT Do
 
 This is a minimal workspace deployment. It does **NOT** include:
 
@@ -92,9 +92,9 @@ For these features, see:
 
 ---
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
-***REMOVED******REMOVED******REMOVED*** 1. Databricks Account Requirements
+### 1. Databricks Account Requirements
 
 - **Databricks Account on GCP** (Enterprise Edition recommended)
 - **Account Console Access** at `https://accounts.gcp.databricks.com`
@@ -102,9 +102,9 @@ For these features, see:
   - Must be added to Databricks Account Console with **Account Admin** role
   - Service account email (e.g., `automation-sa@project.iam.gserviceaccount.com`)
 
-***REMOVED******REMOVED******REMOVED*** 2. GCP Requirements
+### 2. GCP Requirements
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Existing VPC Infrastructure
+#### Existing VPC Infrastructure
 
 This configuration requires a **pre-existing VPC** with appropriate subnets. To create the infrastructure, use `../infra4db/` first.
 
@@ -115,7 +115,7 @@ This configuration requires a **pre-existing VPC** with appropriate subnets. To 
   - Secondary IP ranges for GKE pods and services (auto-created by Databricks)
 - Internet connectivity via Cloud Router + Cloud NAT OR Direct Internet Gateway
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** GCP Service Account Permissions
+#### GCP Service Account Permissions
 
 The service account needs these IAM roles on both projects:
 
@@ -129,9 +129,9 @@ The service account needs these IAM roles on both projects:
 - `roles/compute.networkUser`
 - `roles/compute.securityAdmin`
 
-For detailed role requirements, see [Databricks Documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html***REMOVED***role-requirements).
+For detailed role requirements, see [Databricks Documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html#role-requirements).
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** GCP Projects
+#### GCP Projects
 
 You need two project IDs:
 1. **Service/Consumer Project** (`google_project_name`): Where Databricks resources will be created
@@ -139,13 +139,13 @@ You need two project IDs:
 
 > **Note**: If not using Shared VPC, both values should be the same project ID.
 
-***REMOVED******REMOVED******REMOVED*** 3. Local Requirements
+### 3. Local Requirements
 
 - **Terraform** >= 1.0
 - **Google Cloud SDK** (`gcloud` CLI) configured
-- **Service Account Authentication** configured (see [Authentication Setup](***REMOVED***authentication-setup))
+- **Service Account Authentication** configured (see [Authentication Setup](#authentication-setup))
 
-***REMOVED******REMOVED******REMOVED*** 4. Databricks User
+### 4. Databricks User
 
 - User email must already exist in your organization's identity provider
 - User will be added to the workspace admin group automatically
@@ -153,11 +153,11 @@ You need two project IDs:
 
 ---
 
-***REMOVED******REMOVED*** Provider Configuration
+## Provider Configuration
 
 This deployment uses three Terraform providers:
 
-***REMOVED******REMOVED******REMOVED*** 1. Google Provider (Default)
+### 1. Google Provider (Default)
 
 Manages resources in the **service/consumer project**.
 
@@ -168,7 +168,7 @@ provider "google" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Google Provider (VPC Project Alias)
+### 2. Google Provider (VPC Project Alias)
 
 Manages resources in the **host/shared VPC project**.
 
@@ -180,7 +180,7 @@ provider "google" {
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Databricks Account Provider
+### 3. Databricks Account Provider
 
 Creates workspace and account-level configurations.
 
@@ -197,7 +197,7 @@ provider "databricks" {
 - Registering network configuration
 - Account-level permissions
 
-***REMOVED******REMOVED******REMOVED*** 4. Databricks Workspace Provider
+### 4. Databricks Workspace Provider
 
 Manages workspace-level configurations after workspace creation.
 
@@ -216,26 +216,26 @@ provider "databricks" {
 
 ---
 
-***REMOVED******REMOVED*** Authentication Setup
+## Authentication Setup
 
-***REMOVED******REMOVED******REMOVED*** Option 1: Service Account Impersonation (Recommended)
+### Option 1: Service Account Impersonation (Recommended)
 
 ```bash
-***REMOVED*** Set the service account to impersonate
+# Set the service account to impersonate
 gcloud config set auth/impersonate_service_account automation-sa@project.iam.gserviceaccount.com
 
-***REMOVED*** Generate access token
+# Generate access token
 export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 ```
 
-***REMOVED******REMOVED******REMOVED*** Option 2: Service Account Key File
+### Option 2: Service Account Key File
 
 ```bash
-***REMOVED*** Download service account key
+# Download service account key
 gcloud iam service-accounts keys create ~/sa-key.json \
   --iam-account=automation-sa@project.iam.gserviceaccount.com
 
-***REMOVED*** Set environment variable
+# Set environment variable
 export GOOGLE_APPLICATION_CREDENTIALS=~/sa-key.json
 ```
 
@@ -245,18 +245,18 @@ For detailed authentication guide, see `../sa-impersonation.md`.
 
 ---
 
-***REMOVED******REMOVED*** GCP Infrastructure Requirements
+## GCP Infrastructure Requirements
 
-***REMOVED******REMOVED******REMOVED*** VPC and Subnet Requirements
+### VPC and Subnet Requirements
 
 Before deploying the workspace, ensure you have:
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** VPC Network
+#### VPC Network
 - Name: Referenced in `google_vpc_id` variable
 - Project: Must exist in `google_shared_vpc_project`
 - Type: Custom mode (not auto-mode)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Node Subnet
+#### Node Subnet
 - Name: Referenced in `node_subnet` variable
 - Purpose: Hosts Databricks cluster nodes (GKE)
 - IP Range: 
@@ -264,7 +264,7 @@ Before deploying the workspace, ensure you have:
   - Secondary ranges: Auto-created by Databricks for pods/services
 - Region: Must match `google_region` variable
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Network Connectivity Requirements
+#### Network Connectivity Requirements
 
 **Egress (Outbound) - Required:**
 - Access to `*.gcp.databricks.com` (control plane)
@@ -275,7 +275,7 @@ Before deploying the workspace, ensure you have:
 - Public internet access for workspace UI (default)
 - Can be restricted with Private Service Connect (see `../byovpc-psc-ws/`)
 
-***REMOVED******REMOVED******REMOVED*** Firewall Rules
+### Firewall Rules
 
 Minimum required firewall rules (managed separately):
 
@@ -297,9 +297,9 @@ For infrastructure creation including firewall rules, use `../infra4db/`.
 
 ---
 
-***REMOVED******REMOVED*** Databricks Resources
+## Databricks Resources
 
-***REMOVED******REMOVED******REMOVED*** 1. Network Configuration
+### 1. Network Configuration
 
 ```hcl
 resource "databricks_mws_networks" "databricks_network"
@@ -317,7 +317,7 @@ resource "databricks_mws_networks" "databricks_network"
 - `subnet_id`: Your node subnet name
 - `subnet_region`: Must match workspace region
 
-***REMOVED******REMOVED******REMOVED*** 2. Workspace
+### 2. Workspace
 
 ```hcl
 resource "databricks_mws_workspaces" "databricks_workspace"
@@ -337,7 +337,7 @@ resource "databricks_mws_workspaces" "databricks_workspace"
 
 **Deployment Time:** ~10-15 minutes
 
-***REMOVED******REMOVED******REMOVED*** 3. User and Admin Assignment
+### 3. User and Admin Assignment
 
 ```hcl
 resource "databricks_user" "me"
@@ -351,9 +351,9 @@ resource "databricks_group_member" "ws_admin_member0"
 
 ---
 
-***REMOVED******REMOVED*** Deployment Flow
+## Deployment Flow
 
-***REMOVED******REMOVED******REMOVED*** Module Dependency Graph
+### Module Dependency Graph
 
 ```mermaid
 graph TD
@@ -368,13 +368,13 @@ graph TD
     I --> J[Add User to Admins Group]
     J --> K[Workspace Ready]
     
-    style A fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style K fill:***REMOVED***34A853,color:***REMOVED***fff
-    style F fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style G fill:***REMOVED***FBBC04,color:***REMOVED***fff
+    style A fill:"#4285F4",color:"#fff"
+    style K fill:"#34A853",color:"#fff"
+    style F fill:"#FF3621",color:"#fff"
+    style G fill:"#FBBC04",color:"#fff"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Deployment Sequence
+### Deployment Sequence
 
 ```mermaid
 sequenceDiagram
@@ -411,52 +411,52 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
-***REMOVED******REMOVED******REMOVED*** 1. Update Provider Configuration
+### 1. Update Provider Configuration
 
 Edit `providers.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Service Account for Terraform authentication
+# Service Account for Terraform authentication
 google_service_account_email = "automation-sa@my-service-project.iam.gserviceaccount.com"
 
-***REMOVED*** Service/Consumer Project (where workspace will be created)
+# Service/Consumer Project (where workspace will be created)
 google_project_name = "my-service-project"
 
-***REMOVED*** Host/Shared VPC Project (where VPC network exists)
-***REMOVED*** If not using Shared VPC, use the same value as google_project_name
+# Host/Shared VPC Project (where VPC network exists)
+# If not using Shared VPC, use the same value as google_project_name
 google_shared_vpc_project = "my-host-project"
 
-***REMOVED*** GCP Region
+# GCP Region
 google_region = "us-central1"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Update Workspace Configuration
+### 2. Update Workspace Configuration
 
 Edit `workspace.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Databricks Account ID (found in Account Console)
+# Databricks Account ID (found in Account Console)
 databricks_account_id = "12345678-1234-1234-1234-123456789abc"
 
-***REMOVED*** Databricks Account Console URL
+# Databricks Account Console URL
 databricks_account_console_url = "https://accounts.gcp.databricks.com"
 
-***REMOVED*** Workspace Name
+# Workspace Name
 databricks_workspace_name = "my-databricks-workspace"
 
-***REMOVED*** Admin User Email (must be valid user in your organization)
+# Admin User Email (must be valid user in your organization)
 databricks_admin_user = "admin@mycompany.com"
 
-***REMOVED*** Existing VPC Name
+# Existing VPC Name
 google_vpc_id = "my-vpc-network"
 
-***REMOVED*** Existing Subnet Name
+# Existing Subnet Name
 node_subnet = "databricks-node-subnet"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Variable Validation Checklist
+### 3. Variable Validation Checklist
 
 Before deployment, verify:
 
@@ -471,26 +471,26 @@ Before deployment, verify:
 
 ---
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Authenticate with GCP
+### Step 1: Authenticate with GCP
 
 ```bash
-***REMOVED*** Option 1: Service Account Impersonation (Recommended)
+# Option 1: Service Account Impersonation (Recommended)
 gcloud config set auth/impersonate_service_account automation-sa@project.iam.gserviceaccount.com
 export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 
-***REMOVED*** Option 2: Service Account Key
+# Option 2: Service Account Key
 export GOOGLE_APPLICATION_CREDENTIALS=~/sa-key.json
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Navigate to Directory
+### Step 2: Navigate to Directory
 
 ```bash
 cd gcp/gh-repo/gcp/terraform-scripts/byovpc-ws
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Initialize Terraform
+### Step 3: Initialize Terraform
 
 ```bash
 terraform init
@@ -505,13 +505,13 @@ Initializing provider plugins...
 Terraform has been successfully initialized!
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Validate Configuration
+### Step 4: Validate Configuration
 
 ```bash
 terraform validate
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 5: Review Plan
+### Step 5: Review Plan
 
 ```bash
 terraform plan
@@ -529,7 +529,7 @@ terraform plan
 - `databricks_user.me`
 - `databricks_group_member.ws_admin_member0`
 
-***REMOVED******REMOVED******REMOVED*** Step 6: Apply Configuration
+### Step 6: Apply Configuration
 
 ```bash
 terraform apply
@@ -544,7 +544,7 @@ Type `yes` when prompted.
 2. Creates workspace (~8-12 min)
 3. Configures admin user (~1-2 min)
 
-***REMOVED******REMOVED******REMOVED*** Step 7: Verify Deployment
+### Step 7: Verify Deployment
 
 ```bash
 terraform output
@@ -555,7 +555,7 @@ terraform output
 workspace_url = "https://12345678901234.1.gcp.databricks.com"
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 8: Access Workspace
+### Step 8: Access Workspace
 
 1. Navigate to the workspace URL from the output
 2. Log in with the admin user email
@@ -564,7 +564,7 @@ workspace_url = "https://12345678901234.1.gcp.databricks.com"
 
 ---
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 After successful deployment, the following outputs are available:
 
@@ -582,11 +582,11 @@ terraform output -json
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues and Solutions
+### Common Issues and Solutions
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Authentication Errors
+#### 1. Authentication Errors
 
 **Error:**
 ```
@@ -595,19 +595,19 @@ Error: google: could not find default credentials
 
 **Solution:**
 ```bash
-***REMOVED*** Verify authentication
+# Verify authentication
 gcloud auth list
 
-***REMOVED*** Re-authenticate
+# Re-authenticate
 gcloud auth application-default login
 
-***REMOVED*** Or set service account impersonation
+# Or set service account impersonation
 export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Service Account Not Found in Databricks Account
+#### 2. Service Account Not Found in Databricks Account
 
 **Error:**
 ```
@@ -623,7 +623,7 @@ Error: service account not found in Databricks account
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. VPC or Subnet Not Found
+#### 3. VPC or Subnet Not Found
 
 **Error:**
 ```
@@ -651,7 +651,7 @@ Error: network not found: databricks-vpc
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 4. Insufficient Permissions
+#### 4. Insufficient Permissions
 
 **Error:**
 ```
@@ -663,12 +663,12 @@ Error: googleapi: Error 403: Permission denied
 Verify service account has required roles:
 
 ```bash
-***REMOVED*** Check service project permissions
+# Check service project permissions
 gcloud projects get-iam-policy my-service-project \
   --flatten="bindings[].members" \
   --filter="bindings.members:serviceAccount:automation-sa@my-service-project.iam.gserviceaccount.com"
 
-***REMOVED*** Check host project permissions (if using Shared VPC)
+# Check host project permissions (if using Shared VPC)
 gcloud projects get-iam-policy my-host-project \
   --flatten="bindings[].members" \
   --filter="bindings.members:serviceAccount:automation-sa@my-service-project.iam.gserviceaccount.com"
@@ -677,12 +677,12 @@ gcloud projects get-iam-policy my-host-project \
 Grant missing roles:
 
 ```bash
-***REMOVED*** On service project
+# On service project
 gcloud projects add-iam-policy-binding my-service-project \
   --member="serviceAccount:automation-sa@my-service-project.iam.gserviceaccount.com" \
   --role="roles/compute.networkAdmin"
 
-***REMOVED*** On host project (if using Shared VPC)
+# On host project (if using Shared VPC)
 gcloud projects add-iam-policy-binding my-host-project \
   --member="serviceAccount:automation-sa@my-service-project.iam.gserviceaccount.com" \
   --role="roles/compute.networkUser"
@@ -690,7 +690,7 @@ gcloud projects add-iam-policy-binding my-host-project \
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 5. Workspace Creation Timeout
+#### 5. Workspace Creation Timeout
 
 **Error:**
 ```
@@ -718,16 +718,16 @@ This can happen if GCP resource quotas are exceeded or there are networking issu
 
 4. If workspace is stuck in provisioning, you may need to:
    ```bash
-   ***REMOVED*** Remove from Terraform state
+   # Remove from Terraform state
    terraform state rm databricks_mws_workspaces.databricks_workspace
    
-   ***REMOVED*** Delete manually in Account Console
-   ***REMOVED*** Then re-run terraform apply
+   # Delete manually in Account Console
+   # Then re-run terraform apply
    ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 6. User Cannot Access Workspace
+#### 6. User Cannot Access Workspace
 
 **Error:**
 User sees "Access Denied" when trying to log in to workspace.
@@ -752,7 +752,7 @@ User sees "Access Denied" when trying to log in to workspace.
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 7. Network Configuration Already Exists
+#### 7. Network Configuration Already Exists
 
 **Error:**
 ```
@@ -764,14 +764,14 @@ Error: network configuration with name already exists
 The random suffix is not unique. This is rare but can happen.
 
 ```bash
-***REMOVED*** Force new random suffix
+# Force new random suffix
 terraform taint random_string.databricks_suffix
 terraform apply
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Cleanup
+### Cleanup
 
 To destroy all resources created by this configuration:
 
@@ -794,7 +794,7 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** Additional Resources
+## Additional Resources
 
 - [Databricks GCP Documentation](https://docs.gcp.databricks.com/)
 - [Customer-Managed VPC Setup Guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)
@@ -804,7 +804,7 @@ terraform destroy
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 After successfully deploying your basic workspace, consider:
 
@@ -826,11 +826,11 @@ After successfully deploying your basic workspace, consider:
 
 ---
 
-***REMOVED******REMOVED*** Support
+## Support
 
 For issues or questions:
 
-1. Check the [Troubleshooting](***REMOVED***troubleshooting) section above
+1. Check the [Troubleshooting](#troubleshooting) section above
 2. Review [Databricks GCP Documentation](https://docs.gcp.databricks.com/)
 3. Check Terraform plan output for errors
 4. Consult GCP logs for infrastructure issues
@@ -838,7 +838,7 @@ For issues or questions:
 
 ---
 
-***REMOVED******REMOVED*** License
+## License
 
 This configuration is provided as a reference implementation for deploying Databricks workspaces on GCP.
 

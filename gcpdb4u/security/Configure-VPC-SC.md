@@ -1,4 +1,4 @@
-***REMOVED*** VPC Service Controls (VPC-SC) for Databricks on GCP 🔒
+# VPC Service Controls (VPC-SC) for Databricks on GCP 🔒
 
 VPC Service Controls (VPC-SC) lets you create security perimeters around Google Cloud resources to reduce the risk of data exfiltration and to restrict access to only authorized networks and identities. Databricks supports VPC-SC for both Customer-Managed VPCs (Shared VPC or standalone) and Databricks-managed VPCs.
 
@@ -6,7 +6,7 @@ This guide provides comprehensive configuration instructions for setting up VPC-
 
 ---
 
-***REMOVED******REMOVED*** Why Use VPC-SC for Databricks
+## Why Use VPC-SC for Databricks
 
 VPC Service Controls provides defense-in-depth security for Databricks deployments on GCP:
 
@@ -24,7 +24,7 @@ VPC Service Controls provides defense-in-depth security for Databricks deploymen
 
 ---
 
-***REMOVED******REMOVED*** Architecture Overview
+## Architecture Overview
 
 VPC Service Controls creates security perimeters that protect Google Cloud services and resources:
 
@@ -57,18 +57,18 @@ graph TB
     GCE -->|Egress: Pull Images| GAR
     GCE -->|Egress: Access Storage| APIs
 
-    style CP fill:***REMOVED***FFE6E6
-    style ConsumerSA fill:***REMOVED***E6F3FF
-    style DelegateSA fill:***REMOVED***E6F3FF
-    style LogSA fill:***REMOVED***E6F3FF
-    style WS fill:***REMOVED***E6FFE6
-    style GCS fill:***REMOVED***E6FFE6
-    style GCE fill:***REMOVED***E6FFE6
+    style CP fill:"#FFE6E6"
+    style ConsumerSA fill:"#E6F3FF"
+    style DelegateSA fill:"#E6F3FF"
+    style LogSA fill:"#E6F3FF"
+    style WS fill:"#E6FFE6"
+    style GCS fill:"#E6FFE6"
+    style GCE fill:"#E6FFE6"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Supported Services
+## Supported Services
 
 For a comprehensive list of services supported by VPC-SC, see:
 - [Services Supported by VPC Service Controls](https://cloud.google.com/vpc-service-controls/docs/supported-products)
@@ -83,11 +83,11 @@ For a comprehensive list of services supported by VPC-SC, see:
 
 ---
 
-***REMOVED******REMOVED*** Setting Up Private Connectivity to Google APIs
+## Setting Up Private Connectivity to Google APIs
 
 To restrict Private Google Access within a VPC-SC perimeter to only supported Google APIs and services, hosts must send their requests to the **`restricted.googleapis.com`** domain instead of `*.googleapis.com`.
 
-***REMOVED******REMOVED******REMOVED*** Restricted Google APIs Configuration
+### Restricted Google APIs Configuration
 
 | Parameter | Value |
 |-----------|-------|
@@ -106,13 +106,13 @@ See [Configure Private Google Access](./Configure-PrivateGoogleAccess.md) for de
 
 ---
 
-***REMOVED******REMOVED*** Understanding Databricks Identities and Projects
+## Understanding Databricks Identities and Projects
 
 Before configuring VPC-SC, it's essential to understand the various identities and projects involved in Databricks operations.
 
-***REMOVED******REMOVED******REMOVED*** Key Terms and Definitions
+### Key Terms and Definitions
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Projects
+#### Projects
 
 | Term | Description | Example |
 |------|-------------|---------|
@@ -124,13 +124,13 @@ Before configuring VPC-SC, it's essential to understand the various identities a
 | **Databricks Artifacts Project** | Databricks-owned project hosting runtime images | `databricks-prod-artifacts` |
 | **Databricks Unity Catalog Project** | Databricks-owned project for Unity Catalog services | `uc-useast4` |
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** VPC Network
+#### VPC Network
 
 | Term | Description |
 |------|-------------|
 | **Consumer VPC** | Customer-owned GCP VPC used by Databricks workspace (shared or standalone) |
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Identities
+#### Identities
 
 | Term | Description | Example | When Created |
 |------|-------------|---------|--------------|
@@ -140,17 +140,17 @@ Before configuring VPC-SC, it's essential to understand the various identities a
 | **Log Delivery SA** | Databricks service account for delivering audit logs | `log-delivery@databricks-prod-master.iam.gserviceaccount.com` | Pre-existing |
 | **Unity Catalog SA** | Databricks-created service account for Unity Catalog storage access | `db-uc-storage-UUID@uc-useast4.iam.gserviceaccount.com` | During Unity Catalog initialization |
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Control Plane Connectivity
+#### Control Plane Connectivity
 
 | Term | Description | Reference |
 |------|-------------|-----------|
-| **Databricks Control Plane IPs** | Source IP addresses from where requests into your GCP projects originate | [Databricks IP Addresses by Region](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***ip-addresses-and-domains) |
+| **Databricks Control Plane IPs** | Source IP addresses from where requests into your GCP projects originate | [Databricks IP Addresses by Region](https://docs.gcp.databricks.com/resources/supported-regions.html#ip-addresses-and-domains) |
 
 ---
 
-***REMOVED******REMOVED*** Databricks Service Accounts Reference
+## Databricks Service Accounts Reference
 
-***REMOVED******REMOVED******REMOVED*** Service Account Naming Patterns
+### Service Account Naming Patterns
 
 Databricks uses several service accounts to manage resources in customer projects:
 
@@ -163,15 +163,15 @@ Databricks uses several service accounts to manage resources in customer project
 | `log-delivery@databricks-prod-master.iam.gserviceaccount.com` | Deliver audit logs to customer storage | All (if audit logs enabled) | When audit logging configured |
 | `db-uc-storage-UUID@<uc-regional-project>.iam.gserviceaccount.com` | Unity Catalog storage access | Unity Catalog workspaces | When Unity Catalog initialized |
 
-***REMOVED******REMOVED******REMOVED*** Databricks Project Numbers
+### Databricks Project Numbers
 
-A list of Databricks-owned GCP project numbers is available at: [Databricks Supported Regions](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers)
+A list of Databricks-owned GCP project numbers is available at: [Databricks Supported Regions](https://docs.gcp.databricks.com/resources/supported-regions.html#private-service-connect-psc-attachment-uris-and-project-numbers)
 
 **Required for VPC-SC Configuration**: You'll need these project numbers when defining ingress sources and egress destinations in perimeter policies.
 
 ---
 
-***REMOVED******REMOVED*** Identity Usage Matrix
+## Identity Usage Matrix
 
 Understanding which identities are used for ingress (calls into customer projects) and egress (calls out to Databricks projects):
 
@@ -186,7 +186,7 @@ Understanding which identities are used for ingress (calls into customer project
 
 ---
 
-***REMOVED******REMOVED*** VPC-SC Configuration Workflow
+## VPC-SC Configuration Workflow
 
 The VPC-SC configuration follows different patterns depending on the workspace lifecycle stage:
 
@@ -217,7 +217,7 @@ sequenceDiagram
     Note over Project,CP: Workspace operational with full policies
 ```
 
-***REMOVED******REMOVED******REMOVED*** Configuration Phases
+### Configuration Phases
 
 | Phase | Policy Files | Purpose | When to Use |
 |-------|--------------|---------|-------------|
@@ -227,11 +227,11 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** VPC-SC Policy Files
+## VPC-SC Policy Files
 
 Before proceeding, **update all policy YAML files** with your relevant project numbers, identities, and IP ranges.
 
-***REMOVED******REMOVED******REMOVED*** Available Policy Templates
+### Available Policy Templates
 
 | Policy File | Purpose | Usage Stage | Key Features |
 |-------------|---------|-------------|--------------|
@@ -240,7 +240,7 @@ Before proceeding, **update all policy YAML files** with your relevant project n
 | [egress.yaml](../templates/vpcsc-policy/egress.yaml) | Operational egress policy | **After** workspace creation | Allows cluster nodes to access Control Plane and Artifact Registry |
 | LPW policies | Least privilege workspace policies | Special use case | Highly restricted - separate folder (not common) |
 
-***REMOVED******REMOVED******REMOVED*** Why Use ANY_IDENTITY for Consumer SA?
+### Why Use ANY_IDENTITY for Consumer SA?
 
 At workspace creation, Databricks automatically creates a per-workspace service account:
 
@@ -257,7 +257,7 @@ Since the Consumer SA is automatically generated during workspace creation (with
 ```yaml
 sources:
   - accessLevel: accessPolicies/[POLICY_ID]/accessLevels/databricks_control_plane_ips
-identityType: ANY_IDENTITY  ***REMOVED*** Required because Consumer SA doesn't exist yet
+identityType: ANY_IDENTITY  # Required because Consumer SA doesn't exist yet
 ```
 
 This still requires requests to originate from:
@@ -267,9 +267,9 @@ This still requires requests to originate from:
 
 ---
 
-***REMOVED******REMOVED*** Configuration Steps
+## Configuration Steps
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 Before configuring VPC-SC, ensure you have:
 
@@ -284,15 +284,15 @@ Before configuring VPC-SC, ensure you have:
   - `compute.networkAdmin` (for DNS, routes, firewall rules)
   - `iam.serviceAccountAdmin` (for service account management)
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Create Access Context Manager Access Level
+### Step 1: Create Access Context Manager Access Level
 
 Create an Access Level that allows traffic from Databricks Control Plane IP addresses:
 
 ```bash
-***REMOVED*** Get your Access Context Manager policy ID
+# Get your Access Context Manager policy ID
 ACCESS_POLICY_ID=$(gcloud access-context-manager policies list --format="value(name)")
 
-***REMOVED*** Create Access Level allowing Databricks Control Plane IPs
+# Create Access Level allowing Databricks Control Plane IPs
 gcloud access-context-manager levels create databricks_control_plane_ips \
   --title="Databricks Control Plane IPs" \
   --basic-level-spec=access-level-spec.yaml \
@@ -302,19 +302,19 @@ gcloud access-context-manager levels create databricks_control_plane_ips \
 **access-level-spec.yaml**:
 ```yaml
 - ipSubnetworks:
-  ***REMOVED*** Replace with your region's Control Plane NAT IPs
-  - "34.138.66.176/32"    ***REMOVED*** Example: us-east1 control plane IP 1
-  - "34.73.198.113/32"    ***REMOVED*** Example: us-east1 control plane IP 2
-  ***REMOVED*** Add all control plane IPs for your region
-  ***REMOVED*** See: https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***ip-addresses-and-domains
+  # Replace with your region's Control Plane NAT IPs
+  - "34.138.66.176/32"    # Example: us-east1 control plane IP 1
+  - "34.73.198.113/32"    # Example: us-east1 control plane IP 2
+  # Add all control plane IPs for your region
+  # See: https://docs.gcp.databricks.com/resources/supported-regions.html#ip-addresses-and-domains
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Create Service Perimeter (Dry-Run Mode)
+### Step 2: Create Service Perimeter (Dry-Run Mode)
 
 **For Workspace Creation**, start with `create-ws-ingress.yaml`:
 
 ```bash
-***REMOVED*** Create perimeter in DRY-RUN mode first
+# Create perimeter in DRY-RUN mode first
 gcloud access-context-manager perimeters dry-run create databricks-perimeter \
   --title="Databricks VPC-SC Perimeter" \
   --resources=projects/[CONSUMER_PROJECT_NUMBER] \
@@ -323,12 +323,12 @@ gcloud access-context-manager perimeters dry-run create databricks-perimeter \
   --policy=$ACCESS_POLICY_ID
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Test in Dry-Run Mode
+### Step 3: Test in Dry-Run Mode
 
 Monitor VPC-SC logs to verify the perimeter allows required traffic:
 
 ```bash
-***REMOVED*** Check VPC-SC audit logs for violations
+# Check VPC-SC audit logs for violations
 gcloud logging read "protoPayload.metadata.dryRun=true AND protoPayload.metadata.vpcServiceControlsUniqueId:*" \
   --limit=50 \
   --format=json
@@ -336,29 +336,29 @@ gcloud logging read "protoPayload.metadata.dryRun=true AND protoPayload.metadata
 
 **Expected**: No violations for legitimate Databricks traffic. If violations occur, adjust the policy.
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Enforce Perimeter
+### Step 4: Enforce Perimeter
 
 After validating in dry-run mode:
 
 ```bash
-***REMOVED*** Enforce the perimeter
+# Enforce the perimeter
 gcloud access-context-manager perimeters dry-run enforce databricks-perimeter \
   --policy=$ACCESS_POLICY_ID
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 5: Create Databricks Workspace
+### Step 5: Create Databricks Workspace
 
 Now create your Databricks workspace using the UI, CLI, or Terraform. The VPC-SC perimeter will allow the Control Plane to:
 - Create Consumer SA (`db-WORKSPACEID@...`)
 - Create DBFS storage buckets
 - Configure workspace resources
 
-***REMOVED******REMOVED******REMOVED*** Step 6: Update Perimeter for Post-Creation Operation
+### Step 6: Update Perimeter for Post-Creation Operation
 
 After workspace creation succeeds, update the perimeter with full operational policies:
 
 ```bash
-***REMOVED*** Update perimeter with ingress + egress policies
+# Update perimeter with ingress + egress policies
 gcloud access-context-manager perimeters update databricks-perimeter \
   --set-ingress-policies=ingress.yaml \
   --set-egress-policies=egress.yaml \
@@ -366,7 +366,7 @@ gcloud access-context-manager perimeters update databricks-perimeter \
   --dry-run
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 7: Test Updated Policies in Dry-Run
+### Step 7: Test Updated Policies in Dry-Run
 
 Again, monitor logs for violations:
 
@@ -374,41 +374,41 @@ Again, monitor logs for violations:
 gcloud logging read "protoPayload.metadata.dryRun=true" --limit=50
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 8: Enforce Updated Perimeter
+### Step 8: Enforce Updated Perimeter
 
 ```bash
-***REMOVED*** Enforce updated policies
+# Enforce updated policies
 gcloud access-context-manager perimeters dry-run enforce databricks-perimeter \
   --policy=$ACCESS_POLICY_ID
 ```
 
 ---
 
-***REMOVED******REMOVED*** Policy Structure Explained
+## Policy Structure Explained
 
-***REMOVED******REMOVED******REMOVED*** Ingress Policy Structure
+### Ingress Policy Structure
 
 Ingress policies control traffic **into** your consumer project from Databricks services:
 
 ```yaml
 - ingressFrom:
     sources:
-      ***REMOVED*** Access Level: Only allow from Control Plane IPs
+      # Access Level: Only allow from Control Plane IPs
       - accessLevel: accessPolicies/[POLICY_ID]/accessLevels/databricks_control_plane_ips
-    ***REMOVED*** Identity: Use ANY_IDENTITY because Consumer SA doesn't exist at creation
+    # Identity: Use ANY_IDENTITY because Consumer SA doesn't exist at creation
     identityType: ANY_IDENTITY
   ingressTo:
-    ***REMOVED*** Target: Your consumer project resources
+    # Target: Your consumer project resources
     resources:
       - projects/[CONSUMER_PROJECT_NUMBER]
-    ***REMOVED*** Operations: What APIs and methods are allowed
+    # Operations: What APIs and methods are allowed
     operations:
       - serviceName: storage.googleapis.com
         methodSelectors:
-          - method: "*"  ***REMOVED*** Allow all storage operations
+          - method: "*"  # Allow all storage operations
       - serviceName: compute.googleapis.com
         methodSelectors:
-          - method: "*"  ***REMOVED*** Allow all compute operations
+          - method: "*"  # Allow all compute operations
 ```
 
 **Key Components**:
@@ -417,21 +417,21 @@ Ingress policies control traffic **into** your consumer project from Databricks 
 - **`ingressTo.resources`**: Your consumer project (destination)
 - **`ingressTo.operations`**: Which Google APIs and methods are allowed
 
-***REMOVED******REMOVED******REMOVED*** Egress Policy Structure
+### Egress Policy Structure
 
 Egress policies control traffic **from** your consumer project to Databricks services:
 
 ```yaml
 - egressFrom:
-    ***REMOVED*** Identity: Service accounts in your project making outbound calls
+    # Identity: Service accounts in your project making outbound calls
     identities:
       - serviceAccount:db-[WORKSPACEID]@prod-gcp-us-central1.iam.gserviceaccount.com
   egressTo:
-    ***REMOVED*** Target: Databricks projects
+    # Target: Databricks projects
     resources:
       - projects/[DATABRICKS_CONTROL_PLANE_PROJECT_NUMBER]
       - projects/[DATABRICKS_ARTIFACTS_PROJECT_NUMBER]
-    ***REMOVED*** Operations: What APIs the cluster can access
+    # Operations: What APIs the cluster can access
     operations:
       - serviceName: storage.googleapis.com
         methodSelectors:
@@ -448,7 +448,7 @@ Egress policies control traffic **from** your consumer project to Databricks ser
 
 ---
 
-***REMOVED******REMOVED*** gcloud Command Reference
+## gcloud Command Reference
 
 | Action | Command |
 |--------|---------|
@@ -465,9 +465,9 @@ Egress policies control traffic **from** your consumer project to Databricks ser
 
 ---
 
-***REMOVED******REMOVED*** Validation and Testing
+## Validation and Testing
 
-***REMOVED******REMOVED******REMOVED*** Validation Checklist
+### Validation Checklist
 
 - [ ] Access Level created with Control Plane IPs
 - [ ] Service Perimeter created in dry-run mode
@@ -480,7 +480,7 @@ Egress policies control traffic **from** your consumer project to Databricks ser
 - [ ] Cluster can pull runtime images from Artifact Registry
 - [ ] No unexpected VPC-SC violations in logs
 
-***REMOVED******REMOVED******REMOVED*** Test Workspace Creation
+### Test Workspace Creation
 
 1. Create Access Level and Perimeter with `create-ws-ingress.yaml`
 2. Enforce perimeter in dry-run first, then production
@@ -489,17 +489,17 @@ Egress policies control traffic **from** your consumer project to Databricks ser
 5. Check that DBFS buckets are created
 6. Confirm Consumer SA exists in IAM
 
-***REMOVED******REMOVED******REMOVED*** Test Operational Access
+### Test Operational Access
 
 After updating to ingress + egress policies:
 
 1. Launch a test cluster
 2. Run notebook accessing Cloud Storage:
    ```python
-   ***REMOVED*** Test DBFS access
+   # Test DBFS access
    dbutils.fs.ls("dbfs:/")
 
-   ***REMOVED*** Test external bucket access
+   # Test external bucket access
    dbutils.fs.ls("gs://your-bucket/")
    ```
 3. Test package installation (pulls from Artifact Registry):
@@ -508,24 +508,24 @@ After updating to ingress + egress policies:
    ```
 4. Monitor VPC-SC logs for violations
 
-***REMOVED******REMOVED******REMOVED*** Check VPC-SC Logs
+### Check VPC-SC Logs
 
 ```bash
-***REMOVED*** Check for VPC-SC violations
+# Check for VPC-SC violations
 gcloud logging read "protoPayload.metadata.@type=type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata" \
   --limit=50 \
   --format=json
 
-***REMOVED*** Check for denied requests
+# Check for denied requests
 gcloud logging read "protoPayload.metadata.securityPolicyInfo.vpcServiceControlsUniqueId:* AND protoPayload.authorizationInfo.granted=false" \
   --limit=50
 ```
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
 | Issue | Symptom | Root Cause | Solution |
 |-------|---------|------------|----------|
@@ -537,35 +537,35 @@ gcloud logging read "protoPayload.metadata.securityPolicyInfo.vpcServiceControls
 | **Log delivery fails** | Audit logs not appearing in bucket | Log Delivery SA not in ingress policy | Add `log-delivery@databricks-prod-master.iam.gserviceaccount.com` to ingress identities |
 | **Policy update fails** | "Cannot update enforced perimeter" | Trying to update enforced policy directly | Use dry-run mode first: `--dry-run`, test, then enforce |
 
-***REMOVED******REMOVED******REMOVED*** Debug Commands
+### Debug Commands
 
 ```bash
-***REMOVED*** Get Access Context Manager policy ID
+# Get Access Context Manager policy ID
 gcloud access-context-manager policies list --format="value(name)"
 
-***REMOVED*** List all access levels
+# List all access levels
 gcloud access-context-manager levels list --policy=[POLICY_ID]
 
-***REMOVED*** Describe specific access level
+# Describe specific access level
 gcloud access-context-manager levels describe databricks_control_plane_ips --policy=[POLICY_ID]
 
-***REMOVED*** List all perimeters
+# List all perimeters
 gcloud access-context-manager perimeters list --policy=[POLICY_ID]
 
-***REMOVED*** Describe specific perimeter
+# Describe specific perimeter
 gcloud access-context-manager perimeters describe databricks-perimeter --policy=[POLICY_ID]
 
-***REMOVED*** Check VPC-SC audit logs
+# Check VPC-SC audit logs
 gcloud logging read "protoPayload.metadata.@type=type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata" \
   --limit=50 \
   --format=json
 
-***REMOVED*** Check for specific project violations
+# Check for specific project violations
 gcloud logging read "resource.labels.project_id=[PROJECT_ID] AND protoPayload.metadata.vpcServiceControlsUniqueId:*" \
   --limit=50
 ```
 
-***REMOVED******REMOVED******REMOVED*** VPC-SC Violation Log Analysis
+### VPC-SC Violation Log Analysis
 
 When investigating VPC-SC violations, look for these fields in audit logs:
 
@@ -592,9 +592,9 @@ When investigating VPC-SC violations, look for these fields in audit logs:
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** Security Best Practices
+### Security Best Practices
 
 | Practice | Description | Benefit |
 |----------|-------------|---------|
@@ -606,7 +606,7 @@ When investigating VPC-SC violations, look for these fields in audit logs:
 | **Use restricted Google APIs** | Configure `restricted.googleapis.com` | Limits to VPC-SC compliant services only |
 | **Document all exceptions** | Maintain documentation for policy decisions | Simplifies audits and policy updates |
 
-***REMOVED******REMOVED******REMOVED*** Operational Best Practices
+### Operational Best Practices
 
 | Practice | Description |
 |----------|-------------|
@@ -617,7 +617,7 @@ When investigating VPC-SC violations, look for these fields in audit logs:
 | **Maintain runbook** | Document troubleshooting steps | Speeds up incident resolution |
 | **Subscribe to Databricks updates** | Monitor for changes in IP addresses or service accounts | Keeps policies current |
 
-***REMOVED******REMOVED******REMOVED*** Configuration Best Practices
+### Configuration Best Practices
 
 | Practice | Recommendation |
 |----------|----------------|
@@ -629,9 +629,9 @@ When investigating VPC-SC violations, look for these fields in audit logs:
 
 ---
 
-***REMOVED******REMOVED*** Integration with Other Security Controls
+## Integration with Other Security Controls
 
-***REMOVED******REMOVED******REMOVED*** Combined with Private Google Access
+### Combined with Private Google Access
 
 VPC-SC works seamlessly with Private Google Access:
 
@@ -643,12 +643,12 @@ graph LR
     FW -->|4. VPC-SC Check| SC[VPC Service Controls<br/>Perimeter]
     SC -->|5. Access Allowed| API[Google APIs<br/>VPC-SC Protected]
 
-    style Cluster fill:***REMOVED***E6F3FF
-    style DNS fill:***REMOVED***FFE6E6
-    style VIP fill:***REMOVED***FFE6E6
-    style FW fill:***REMOVED***FFE6E6
-    style SC fill:***REMOVED***E6FFE6
-    style API fill:***REMOVED***E6FFE6
+    style Cluster fill:"#E6F3FF"
+    style DNS fill:"#FFE6E6"
+    style VIP fill:"#FFE6E6"
+    style FW fill:"#FFE6E6"
+    style SC fill:"#E6FFE6"
+    style API fill:"#E6FFE6"
 ```
 
 **Benefits of Combined Approach**:
@@ -659,7 +659,7 @@ graph LR
 
 See [Configure Private Google Access](./Configure-PrivateGoogleAccess.md) for PGA setup.
 
-***REMOVED******REMOVED******REMOVED*** Combined with VPC Firewall Rules
+### Combined with VPC Firewall Rules
 
 VPC-SC complements firewall rules for defense-in-depth:
 
@@ -673,9 +673,9 @@ See [Lock Down VPC Firewall Rules](./LockDown-VPC-Firewall-Rules.md) for firewal
 
 ---
 
-***REMOVED******REMOVED*** Configuration Checklist
+## Configuration Checklist
 
-***REMOVED******REMOVED******REMOVED*** Pre-Configuration
+### Pre-Configuration
 
 | Step | Task | Status |
 |------|------|--------|
@@ -685,7 +685,7 @@ See [Lock Down VPC Firewall Rules](./LockDown-VPC-Firewall-Rules.md) for firewal
 | 4 | Verify IAM permissions for VPC-SC configuration | ☐ |
 | 5 | Configure Private Google Access and DNS | ☐ |
 
-***REMOVED******REMOVED******REMOVED*** Workspace Creation Phase
+### Workspace Creation Phase
 
 | Step | Task | Status |
 |------|------|--------|
@@ -699,7 +699,7 @@ See [Lock Down VPC Firewall Rules](./LockDown-VPC-Firewall-Rules.md) for firewal
 | 13 | Verify workspace creation succeeds | ☐ |
 | 14 | Verify Consumer SA and DBFS buckets created | ☐ |
 
-***REMOVED******REMOVED******REMOVED*** Post-Creation Phase
+### Post-Creation Phase
 
 | Step | Task | Status |
 |------|------|--------|
@@ -716,7 +716,7 @@ See [Lock Down VPC Firewall Rules](./LockDown-VPC-Firewall-Rules.md) for firewal
 
 ---
 
-***REMOVED******REMOVED*** References
+## References
 
 - [GCP VPC Service Controls Documentation](https://cloud.google.com/vpc-service-controls/docs/overview)
 - [VPC-SC Supported Services](https://cloud.google.com/vpc-service-controls/docs/supported-products)
@@ -724,14 +724,14 @@ See [Lock Down VPC Firewall Rules](./LockDown-VPC-Firewall-Rules.md) for firewal
 - [Restricted VIP Services](https://cloud.google.com/vpc-service-controls/docs/restricted-vip-services)
 - [Private Google Access Setup](https://cloud.google.com/vpc-service-controls/docs/set-up-private-connectivity)
 - [Access Context Manager](https://cloud.google.com/access-context-manager/docs/overview)
-- [Databricks IP Addresses by Region](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***ip-addresses-and-domains)
-- [Databricks Project Numbers](https://docs.gcp.databricks.com/resources/supported-regions.html***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers)
+- [Databricks IP Addresses by Region](https://docs.gcp.databricks.com/resources/supported-regions.html#ip-addresses-and-domains)
+- [Databricks Project Numbers](https://docs.gcp.databricks.com/resources/supported-regions.html#private-service-connect-psc-attachment-uris-and-project-numbers)
 - [Configure Private Google Access](./Configure-PrivateGoogleAccess.md)
 - [Lock Down VPC Firewall Rules](./LockDown-VPC-Firewall-Rules.md)
 
 ---
 
-***REMOVED******REMOVED*** Summary
+## Summary
 
 ✅ **Recommended VPC Service Controls Configuration for Databricks on GCP**:
 

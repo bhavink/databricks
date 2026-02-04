@@ -1,5 +1,5 @@
 ## Consuming Databricks on GCP
-Databricks service is available as a GCP market place offering and the unit of deployment is called a [`workspace`](https://docs.gcp.databricks.com/getting-started/concepts.html***REMOVED***workspace), from here onwards we'll be using `workspace` to refer to databricks service through out this guide.
+Databricks service is available as a GCP market place offering and the unit of deployment is called a [`workspace`](https://docs.gcp.databricks.com/getting-started/concepts.html#workspace), from here onwards we'll be using `workspace` to refer to databricks service through out this guide.
 
 Databricks is a `Managed Service` and is fully hosted, managed, and supported by the Databricks. Although you register with the Databricks to use the service, Google handles all billing.
 
@@ -45,11 +45,11 @@ stateDiagram-v2
 
 | Databricks  | Relationship  | GCP  |
 |---|---|---|
-| Account  |  1:1 maps to | [Billing Account](https://cloud.google.com/billing/docs/concepts***REMOVED***overview)  |
+| Account  |  1:1 maps to | [Billing Account](https://cloud.google.com/billing/docs/concepts#overview)  |
 | Subscription | maps to | *Entitlements |
 | Workspaces | resides in | [Consumer Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) |
 | Worker Environment (**classic dataplane) | maps to | Google Compute Engine based databricks cluster |
-| Databricks Serverless | maps to | [Serverless compute resources running in the serverless compute plane, which is managed by Databricks](https://docs.gcp.databricks.com/en/security/network/serverless-network-security/index.html***REMOVED***serverless-compute-plane-networking-overview) |
+| Databricks Serverless | maps to | [Serverless compute resources running in the serverless compute plane, which is managed by Databricks](https://docs.gcp.databricks.com/en/security/network/serverless-network-security/index.html#serverless-compute-plane-networking-overview) |
 
 - *Represents purchase, pricing, and payment mechanism for an account
 - **Compute resources resides within your GCP Project and utilizes your own VPC
@@ -97,12 +97,12 @@ graph TB
     GCE1 -.resides in.-> VPC1
     GCE2 -.resides in.-> VPC2
     
-    style DBA fill:#1E88E5
-    style WS1 fill:#1E88E5
-    style WS2 fill:#1E88E5
-    style SCP fill:#43A047
-    style BA fill:#FF6F00
-    style SUB fill:#FDD835
+    style DBA fill:"#1E88E5"
+    style WS1 fill:"#1E88E5"
+    style WS2 fill:"#1E88E5"
+    style SCP fill:"#43A047"
+    style BA fill:"#FF6F00"
+    style SUB fill:"#FDD835"
 ```
 
 ## Availability Regions
@@ -141,10 +141,10 @@ graph TB
     GCPC --> NET[Networking<br/>Egress/VPC]
     GCPC --> OTHER[Other Services<br/>BigQuery, etc.]
     
-    style TC fill:#FF6F00
-    style DBC fill:#1E88E5
-    style GCPC fill:#4285F4
-    style DBU fill:#FDD835
+    style TC fill:"#FF6F00"
+    style DBC fill:"#1E88E5"
+    style GCPC fill:"#4285F4"
+    style DBU fill:"#FDD835"
 ```
 
 ### Subscription Tiers
@@ -164,10 +164,10 @@ graph LR
     PREMIUM -.applies to.-> WS1
     ENTERPRISE -.applies to.-> WS1
     
-    style STANDARD fill:#90CAF9
-    style PREMIUM fill:#1E88E5
-    style ENTERPRISE fill:#0D47A1
-    style WS1 fill:#FDD835
+    style STANDARD fill:"#90CAF9"
+    style PREMIUM fill:"#1E88E5"
+    style ENTERPRISE fill:"#0D47A1"
+    style WS1 fill:"#FDD835"
 ```
 
 ## Recommendations
@@ -264,13 +264,13 @@ graph TB
         O3SV -.attached.-> O3SP3
     end
     
-    style O1P1 fill:#4285F4
-    style O1P2 fill:#4285F4
-    style O2P fill:#4285F4
-    style O3HP fill:#EA4335
-    style O3SP1 fill:#4285F4
-    style O3SP2 fill:#4285F4
-    style O3SP3 fill:#4285F4
+    style O1P1 fill:"#4285F4"
+    style O1P2 fill:"#4285F4"
+    style O2P fill:"#4285F4"
+    style O3HP fill:"#EA4335"
+    style O3SP1 fill:"#4285F4"
+    style O3SP2 fill:"#4285F4"
+    style O3SP3 fill:"#4285F4"
 ```
 
 * Option 1:

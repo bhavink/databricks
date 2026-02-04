@@ -1,29 +1,29 @@
-***REMOVED*** Unity Catalog Standalone Setup
+# Unity Catalog Standalone Setup
 
 A Terraform configuration for setting up Unity Catalog on an **existing Databricks workspace** on Google Cloud Platform (GCP). This configuration adds Unity Catalog with data governance, external storage, and user/group management to workspaces that were created without Unity Catalog.
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-- [Overview](***REMOVED***overview)
-- [Use Cases](***REMOVED***use-cases)
-- [Prerequisites](***REMOVED***prerequisites)
-- [What This Configuration Does](***REMOVED***what-this-configuration-does)
-- [Provider Configuration](***REMOVED***provider-configuration)
-- [Unity Catalog Components](***REMOVED***unity-catalog-components)
-- [Deployment Flow](***REMOVED***deployment-flow)
-- [Configuration](***REMOVED***configuration)
-- [Deployment](***REMOVED***deployment)
-- [Post-Deployment Validation](***REMOVED***post-deployment-validation)
-- [Outputs](***REMOVED***outputs)
-- [Troubleshooting](***REMOVED***troubleshooting)
+- [Overview](#overview)
+- [Use Cases](#use-cases)
+- [Prerequisites](#prerequisites)
+- [What This Configuration Does](#what-this-configuration-does)
+- [Provider Configuration](#provider-configuration)
+- [Unity Catalog Components](#unity-catalog-components)
+- [Deployment Flow](#deployment-flow)
+- [Configuration](#configuration)
+- [Deployment](#deployment)
+- [Post-Deployment Validation](#post-deployment-validation)
+- [Outputs](#outputs)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 This is a **standalone Unity Catalog** configuration that can be applied to **existing Databricks workspaces**. Unlike the end-to-end configuration (`../end2end/`), this does not create a workspace—it only sets up Unity Catalog and related data governance resources.
 
-***REMOVED******REMOVED******REMOVED*** What Makes This "Standalone"?
+### What Makes This "Standalone"?
 
 | Aspect | Standalone UC (`uc/`) | End-to-End (`end2end/`) |
 |--------|----------------------|------------------------|
@@ -33,7 +33,7 @@ This is a **standalone Unity Catalog** configuration that can be applied to **ex
 | **Use Case** | Add UC to existing workspace | New workspace with UC |
 | **Deployment** | On top of existing | Complete from scratch |
 
-***REMOVED******REMOVED******REMOVED*** Architecture Diagram
+### Architecture Diagram
 
 ```mermaid
 graph TB
@@ -75,17 +75,17 @@ graph TB
     WS_ASSIGN1 --> WS
     WS_ASSIGN2 --> WS
     
-    style WS fill:***REMOVED***4285F4,color:***REMOVED***fff
-    style META fill:***REMOVED***FF3621,color:***REMOVED***fff
-    style UC_ADMIN fill:***REMOVED***FBBC04,color:***REMOVED***000
-    style META_BUCKET fill:***REMOVED***34A853,color:***REMOVED***fff
+    style WS fill:"#4285F4",color:"#fff"
+    style META fill:"#FF3621",color:"#fff"
+    style UC_ADMIN fill:"#FBBC04",color:"#000"
+    style META_BUCKET fill:"#34A853",color:"#fff"
 ```
 
 ---
 
-***REMOVED******REMOVED*** Use Cases
+## Use Cases
 
-***REMOVED******REMOVED******REMOVED*** When to Use This Configuration
+### When to Use This Configuration
 
 ✅ **Perfect for:**
 - You have an existing workspace without Unity Catalog
@@ -99,7 +99,7 @@ graph TB
 - Workspaces that already have Unity Catalog enabled
 - Testing workspace deployment (no workspace creation here)
 
-***REMOVED******REMOVED******REMOVED*** Common Scenarios
+### Common Scenarios
 
 **Scenario 1: Legacy Workspace Migration**
 ```
@@ -125,9 +125,9 @@ Then: Use this config to assign Workspace 2 & 3 to same metastore
 
 ---
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
-***REMOVED******REMOVED******REMOVED*** 1. Existing Databricks Workspace
+### 1. Existing Databricks Workspace
 
 ⚠️ **Critical**: You **must** have an existing, running Databricks workspace.
 
@@ -145,10 +145,10 @@ Workspace ID: 1234567890123456
 
 **Option B: Via Terraform**
 ```bash
-***REMOVED*** If workspace was created with Terraform
+# If workspace was created with Terraform
 terraform output workspace_id
 
-***REMOVED*** Or from state
+# Or from state
 terraform state show databricks_mws_workspaces.databricks_workspace
 ```
 
@@ -158,7 +158,7 @@ terraform state show databricks_mws_workspaces.databricks_workspace
 3. Click on your workspace
 4. Copy workspace ID from URL or details
 
-***REMOVED******REMOVED******REMOVED*** 2. Databricks Account Requirements
+### 2. Databricks Account Requirements
 
 - **Databricks Account on GCP** (Enterprise Edition)
 - **Unity Catalog Enabled** for your account
@@ -167,9 +167,9 @@ terraform state show databricks_mws_workspaces.databricks_workspace
   - Must be added to Databricks Account Console with **Account Admin** role
   - Service account email (e.g., `automation-sa@project.iam.gserviceaccount.com`)
 
-***REMOVED******REMOVED******REMOVED*** 3. GCP Requirements
+### 3. GCP Requirements
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** GCP Service Account Permissions
+#### GCP Service Account Permissions
 
 **On Service/Consumer Project**:
 - `roles/storage.admin` (for GCS bucket creation)
@@ -178,7 +178,7 @@ terraform state show databricks_mws_workspaces.databricks_workspace
 **On Databricks Account**:
 - Service account must be added as Account Admin
 
-***REMOVED******REMOVED******REMOVED*** 4. Local Requirements
+### 4. Local Requirements
 
 - **Terraform** >= 1.0
 - **Google Cloud SDK** configured
@@ -186,44 +186,44 @@ terraform state show databricks_mws_workspaces.databricks_workspace
 
 ---
 
-***REMOVED******REMOVED*** What This Configuration Does
+## What This Configuration Does
 
-***REMOVED******REMOVED******REMOVED*** Resources Created
+### Resources Created
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Unity Catalog Metastore
+#### 1. Unity Catalog Metastore
 - Central metadata repository
 - Located in same region as workspace
 - Managed by UC Admins group
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Metastore Storage
+#### 2. Metastore Storage
 - **GCS Bucket**: For managed tables and metadata
 - **Storage Credentials**: Databricks-managed service account
 - **IAM Grants**: Bucket permissions for service account
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Metastore Assignment
+#### 3. Metastore Assignment
 - Links metastore to existing workspace
 - Sets "main" as default catalog
 - Enables Unity Catalog features
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 4. Account-Level Groups
+#### 4. Account-Level Groups
 - **UC Admins Group**: Metastore owners and administrators
 - **Data Engineering Group**: For engineering workloads  
 - **Data Science Group**: For data science workloads
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 5. Users
+#### 5. Users
 - **Auto-generated User**: Created with random email
 - **Existing User**: From `databricks_admin_user` variable
 - **Service Account**: From `google_service_account_email` variable
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 6. Group Memberships
+#### 6. Group Memberships
 - Adds users to UC Admins group
 - Adds users to workspace groups (optional)
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 7. Workspace Assignments
+#### 7. Workspace Assignments
 - Assigns Data Science group as workspace ADMIN
 - Assigns Data Engineering group as workspace USER
 
-***REMOVED******REMOVED******REMOVED*** What This Does NOT Do
+### What This Does NOT Do
 
 ❌ **Does not create:**
 - Databricks workspace (must already exist)
@@ -238,9 +238,9 @@ For these features, see:
 
 ---
 
-***REMOVED******REMOVED*** Provider Configuration
+## Provider Configuration
 
-***REMOVED******REMOVED******REMOVED*** 1. Google Provider
+### 1. Google Provider
 
 ```hcl
 provider "google" {
@@ -253,7 +253,7 @@ provider "google" {
 - Creating GCS buckets
 - Granting IAM permissions
 
-***REMOVED******REMOVED******REMOVED*** 2. Databricks Account Provider
+### 2. Databricks Account Provider
 
 ```hcl
 provider "databricks" {
@@ -273,9 +273,9 @@ provider "databricks" {
 
 ---
 
-***REMOVED******REMOVED*** Unity Catalog Components
+## Unity Catalog Components
 
-***REMOVED******REMOVED******REMOVED*** 1. UC Admins Group
+### 1. UC Admins Group
 
 ```hcl
 resource "databricks_group" "uc_admins"
@@ -291,7 +291,7 @@ resource "databricks_group" "uc_admins"
 - User from variable (`admin_member1`)
 - Service account (`admin_member2`)
 
-***REMOVED******REMOVED******REMOVED*** 2. Workspace Groups
+### 2. Workspace Groups
 
 ```hcl
 resource "databricks_group" "data_eng"
@@ -305,7 +305,7 @@ resource "databricks_group" "data_science"
 
 **Created at:** Account level (can be used across workspaces)
 
-***REMOVED******REMOVED******REMOVED*** 3. Metastore
+### 3. Metastore
 
 ```hcl
 resource "databricks_metastore" "this"
@@ -323,7 +323,7 @@ resource "databricks_metastore" "this"
 - Unified governance across workspaces
 - Single source of truth for metadata
 
-***REMOVED******REMOVED******REMOVED*** 4. Storage Credentials
+### 4. Storage Credentials
 
 ```hcl
 resource "databricks_metastore_data_access" "first"
@@ -340,7 +340,7 @@ resource "databricks_metastore_data_access" "first"
 
 > **Note**: Destroying this resource is not supported by Terraform. Use `terraform state rm` before `terraform destroy`.
 
-***REMOVED******REMOVED******REMOVED*** 5. Metastore Assignment
+### 5. Metastore Assignment
 
 ```hcl
 resource "databricks_metastore_assignment" "this"
@@ -354,11 +354,11 @@ resource "databricks_metastore_assignment" "this"
 **Critical Configuration:**
 ```hcl
 locals {
-  workspace_id = "<workspace-id>"  ***REMOVED*** Must be hardcoded
+  workspace_id = "<workspace-id>"  # Must be hardcoded
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** 6. Workspace Assignments
+### 6. Workspace Assignments
 
 ```hcl
 resource "databricks_mws_permission_assignment"
@@ -375,7 +375,7 @@ resource "databricks_mws_permission_assignment"
 
 ---
 
-***REMOVED******REMOVED*** Deployment Flow
+## Deployment Flow
 
 ```mermaid
 sequenceDiagram
@@ -423,56 +423,56 @@ sequenceDiagram
 
 ---
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
-***REMOVED******REMOVED******REMOVED*** 1. Update Provider Configuration
+### 1. Update Provider Configuration
 
 Edit `providers.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Service Account
+# Service Account
 google_service_account_email = "automation-sa@my-service-project.iam.gserviceaccount.com"
 
-***REMOVED*** Service/Consumer Project
+# Service/Consumer Project
 google_project_name = "my-service-project"
 
-***REMOVED*** Region (must match workspace region)
+# Region (must match workspace region)
 google_region = "us-central1"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 2. Update Unity Catalog Configuration
+### 2. Update Unity Catalog Configuration
 
 Edit `unity-setup.auto.tfvars`:
 
 ```hcl
-***REMOVED*** Databricks Account ID
+# Databricks Account ID
 databricks_account_id = "12345678-1234-1234-1234-123456789abc"
 
-***REMOVED*** UC Admin Group
+# UC Admin Group
 uc_admin_group_name = "unity-catalog-admins"
 
-***REMOVED*** Workspace Groups
+# Workspace Groups
 group_name1 = "data-engineering"
 group_name2 = "data-science"
 
-***REMOVED*** Admin User (existing user in your organization)
+# Admin User (existing user in your organization)
 databricks_admin_user = "admin@mycompany.com"
 ```
 
-***REMOVED******REMOVED******REMOVED*** 3. Configure Workspace ID
+### 3. Configure Workspace ID
 
 **Edit `unity-setup.tf`** (line 51-54):
 
 ```hcl
-***REMOVED*** CRITICAL: Update this with your existing workspace ID
+# CRITICAL: Update this with your existing workspace ID
 locals {
-  workspace_id = "1234567890123456"  ***REMOVED*** Replace with actual workspace ID
+  workspace_id = "1234567890123456"  # Replace with actual workspace ID
 }
 ```
 
-**How to find workspace ID:** See [Prerequisites](***REMOVED***1-existing-databricks-workspace)
+**How to find workspace ID:** See [Prerequisites](#1-existing-databricks-workspace)
 
-***REMOVED******REMOVED******REMOVED*** 4. Variable Validation Checklist
+### 4. Variable Validation Checklist
 
 Before deployment:
 
@@ -487,43 +487,43 @@ Before deployment:
 
 ---
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Authenticate with GCP
+### Step 1: Authenticate with GCP
 
 ```bash
-***REMOVED*** Option 1: Service Account Impersonation
+# Option 1: Service Account Impersonation
 gcloud config set auth/impersonate_service_account automation-sa@project.iam.gserviceaccount.com
 export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 
-***REMOVED*** Option 2: Service Account Key
+# Option 2: Service Account Key
 export GOOGLE_APPLICATION_CREDENTIALS=~/sa-key.json
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Navigate to Directory
+### Step 2: Navigate to Directory
 
 ```bash
 cd gcp/gh-repo/gcp/terraform-scripts/uc
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Update Workspace ID
+### Step 3: Update Workspace ID
 
 ⚠️ **CRITICAL STEP**: Edit `unity-setup.tf` and update `workspace_id` in locals block.
 
 ```hcl
-***REMOVED*** Line ~51-54 in unity-setup.tf
+# Line ~51-54 in unity-setup.tf
 locals {
-  workspace_id = "YOUR-WORKSPACE-ID-HERE"  ***REMOVED*** Update this!
+  workspace_id = "YOUR-WORKSPACE-ID-HERE"  # Update this!
 }
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Initialize Terraform
+### Step 4: Initialize Terraform
 
 ```bash
 terraform init
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 5: Review Plan
+### Step 5: Review Plan
 
 ```bash
 terraform plan
@@ -541,7 +541,7 @@ terraform plan
 - 1 Metastore assignment
 - 2 Workspace permission assignments
 
-***REMOVED******REMOVED******REMOVED*** Step 6: Apply Configuration
+### Step 6: Apply Configuration
 
 ```bash
 terraform apply
@@ -558,7 +558,7 @@ terraform apply
 6. Metastore assignment (~1-2 min)
 7. Workspace assignments (~1-2 min)
 
-***REMOVED******REMOVED******REMOVED*** Step 7: Verify Deployment
+### Step 7: Verify Deployment
 
 ```bash
 terraform output
@@ -575,22 +575,22 @@ metastore_bucket_name = "unity-metastore-us-central1-xx"
 
 ---
 
-***REMOVED******REMOVED*** Post-Deployment Validation
+## Post-Deployment Validation
 
-***REMOVED******REMOVED******REMOVED*** Step 1: Access Workspace
+### Step 1: Access Workspace
 
 1. Navigate to your existing workspace URL
 2. Log in with admin user credentials
 3. Notice Unity Catalog is now available in left sidebar
 
-***REMOVED******REMOVED******REMOVED*** Step 2: Verify Unity Catalog Enabled
+### Step 2: Verify Unity Catalog Enabled
 
 **In Workspace UI:**
 1. Click **Data** in left sidebar
 2. Should see Unity Catalog interface
 3. Verify "main" catalog exists
 
-***REMOVED******REMOVED******REMOVED*** Step 3: Test Unity Catalog Functionality
+### Step 3: Test Unity Catalog Functionality
 
 Open a notebook or SQL editor:
 
@@ -622,7 +622,7 @@ SELECT * FROM main.test_schema.test_table;
 DESCRIBE EXTENDED main.test_schema.test_table;
 ```
 
-***REMOVED******REMOVED******REMOVED*** Step 4: Verify Groups and Permissions
+### Step 4: Verify Groups and Permissions
 
 **Check Group Memberships:**
 
@@ -644,13 +644,13 @@ DESCRIBE EXTENDED main.test_schema.test_table;
 - Verify admin role (should be ADMIN)
 - Test creating schemas and managing workspace
 
-***REMOVED******REMOVED******REMOVED*** Step 5: Check Metastore Storage
+### Step 5: Check Metastore Storage
 
 ```bash
-***REMOVED*** List metastore bucket contents
+# List metastore bucket contents
 gsutil ls gs://unity-metastore-us-central1-xx/
 
-***REMOVED*** Verify bucket IAM policy
+# Verify bucket IAM policy
 gcloud storage buckets get-iam-policy gs://unity-metastore-us-central1-xx
 ```
 
@@ -658,7 +658,7 @@ Should see Databricks service account with `storage.objectAdmin` and `storage.le
 
 ---
 
-***REMOVED******REMOVED*** Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -679,11 +679,11 @@ terraform output metastore_id
 
 ---
 
-***REMOVED******REMOVED*** Troubleshooting
+## Troubleshooting
 
-***REMOVED******REMOVED******REMOVED*** Common Issues
+### Common Issues
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 1. Workspace ID Not Found
+#### 1. Workspace ID Not Found
 
 **Error:**
 ```
@@ -694,28 +694,28 @@ Error: cannot assign metastore: workspace not found
 
 1. Verify workspace exists:
    ```bash
-   ***REMOVED*** Via Account Console
-   ***REMOVED*** Go to https://accounts.gcp.databricks.com → Workspaces
+   # Via Account Console
+   # Go to https://accounts.gcp.databricks.com → Workspaces
    ```
 
 2. Check workspace ID format (should be numeric):
    ```hcl
-   ***REMOVED*** Correct
+   # Correct
    workspace_id = "1234567890123456"
    
-   ***REMOVED*** Incorrect  
+   # Incorrect  
    workspace_id = "https://1234567890123456.1.gcp.databricks.com"
    workspace_id = "my-workspace"
    ```
 
 3. Ensure workspace and metastore are in same region:
    ```bash
-   ***REMOVED*** Workspace region must match google_region variable
+   # Workspace region must match google_region variable
    ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 2. Metastore Already Assigned
+#### 2. Metastore Already Assigned
 
 **Error:**
 ```
@@ -737,7 +737,7 @@ This workspace already has Unity Catalog. You have two options:
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 3. Storage Credential Creation Fails
+#### 3. Storage Credential Creation Fails
 
 **Error:**
 ```
@@ -757,7 +757,7 @@ Error: cannot create storage credential
 
 3. Ensure metastore assignment hasn't been attempted yet:
    ```bash
-   ***REMOVED*** Check if metastore_assignment resource exists
+   # Check if metastore_assignment resource exists
    terraform state show databricks_metastore_assignment.this
    ```
 
@@ -765,7 +765,7 @@ Error: cannot create storage credential
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 4. Workspace Assignment Fails
+#### 4. Workspace Assignment Fails
 
 **Error:**
 ```
@@ -784,7 +784,7 @@ This API requires Unity Catalog to be assigned to workspace first.
 2. Check `depends_on` in workspace assignment resources:
    ```hcl
    resource "databricks_mws_permission_assignment" "add_admin_group" {
-     depends_on = [databricks_metastore_assignment.this]  ***REMOVED*** Required!
+     depends_on = [databricks_metastore_assignment.this]  # Required!
      ...
    }
    ```
@@ -796,7 +796,7 @@ This API requires Unity Catalog to be assigned to workspace first.
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 5. Group Already Exists
+#### 5. Group Already Exists
 
 **Error:**
 ```
@@ -815,13 +815,13 @@ terraform import databricks_group.uc_admins \
 
 **Option B: Use different group name:**
 ```hcl
-***REMOVED*** In unity-setup.auto.tfvars
+# In unity-setup.auto.tfvars
 uc_admin_group_name = "unity-catalog-admins-v2"
 ```
 
 **Option C: Retrieve existing group:**
 ```hcl
-***REMOVED*** Change from 'resource' to 'data'
+# Change from 'resource' to 'data'
 data "databricks_group" "uc_admins" {
   provider     = databricks.accounts
   display_name = var.uc_admin_group_name
@@ -830,7 +830,7 @@ data "databricks_group" "uc_admins" {
 
 ---
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** 6. Cannot Destroy Metastore Data Access
+#### 6. Cannot Destroy Metastore Data Access
 
 **Error:**
 ```
@@ -844,54 +844,54 @@ This is a known Terraform limitation.
 **Correct cleanup procedure:**
 
 ```bash
-***REMOVED*** Step 1: Remove from Terraform state
+# Step 1: Remove from Terraform state
 terraform state rm databricks_metastore_data_access.first
 
-***REMOVED*** Step 2: Destroy other resources
+# Step 2: Destroy other resources
 terraform destroy
 
-***REMOVED*** Step 3: Manually delete metastore (if needed)
-***REMOVED*** Go to Account Console → Data → Metastores → Delete
+# Step 3: Manually delete metastore (if needed)
+# Go to Account Console → Data → Metastores → Delete
 ```
 
 ---
 
-***REMOVED******REMOVED******REMOVED*** Debug Commands
+### Debug Commands
 
 ```bash
-***REMOVED*** Check workspace info
+# Check workspace info
 terraform output workspace_id
 
-***REMOVED*** Check metastore
+# Check metastore
 terraform state show databricks_metastore.this
 
-***REMOVED*** Check metastore assignment
+# Check metastore assignment
 terraform state show databricks_metastore_assignment.this
 
-***REMOVED*** Check storage credential
+# Check storage credential
 terraform state show databricks_metastore_data_access.first
 
-***REMOVED*** Check groups
+# Check groups
 terraform state list | grep databricks_group
 
-***REMOVED*** Check workspace assignments
+# Check workspace assignments
 terraform state list | grep mws_permission_assignment
 
-***REMOVED*** View GCS bucket
+# View GCS bucket
 gsutil ls gs://unity-metastore-*/
 
-***REMOVED*** Check bucket IAM
+# Check bucket IAM
 gcloud storage buckets get-iam-policy gs://unity-metastore-us-central1-xx
 
-***REMOVED*** View all outputs
+# View all outputs
 terraform output -json | jq
 ```
 
 ---
 
-***REMOVED******REMOVED*** Cleanup
+## Cleanup
 
-***REMOVED******REMOVED******REMOVED*** Before Destroying
+### Before Destroying
 
 ⚠️ **Important considerations:**
 
@@ -900,12 +900,12 @@ terraform output -json | jq
 3. **External Tables**: External tables (if any) will lose metadata but data remains in GCS
 4. **Groups**: Account-level groups will be deleted
 
-***REMOVED******REMOVED******REMOVED*** Cleanup Steps
+### Cleanup Steps
 
 **Step 1: Remove metastore data access from state:**
 
 ```bash
-***REMOVED*** Required due to Terraform limitation
+# Required due to Terraform limitation
 terraform state rm databricks_metastore_data_access.first
 ```
 
@@ -942,7 +942,7 @@ Delete metastore in Account Console:
 
 ---
 
-***REMOVED******REMOVED*** Additional Resources
+## Additional Resources
 
 - [Unity Catalog on GCP Overview](https://docs.gcp.databricks.com/data-governance/unity-catalog/index.html)
 - [Create Unity Catalog Metastore](https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html)
@@ -952,7 +952,7 @@ Delete metastore in Account Console:
 
 ---
 
-***REMOVED******REMOVED*** Next Steps
+## Next Steps
 
 After successfully adding Unity Catalog to your workspace:
 
@@ -992,30 +992,30 @@ After successfully adding Unity Catalog to your workspace:
 
 ---
 
-***REMOVED******REMOVED*** Best Practices
+## Best Practices
 
-***REMOVED******REMOVED******REMOVED*** ✅ Planning
+### ✅ Planning
 
 - Understand existing workspace architecture
 - Document current metastore (if any)
 - Plan catalog structure before deployment
 - Identify user groups and access patterns
 
-***REMOVED******REMOVED******REMOVED*** ✅ Security
+### ✅ Security
 
 - Use service account impersonation
 - Follow least-privilege access
 - Enable audit logging
 - Regular permission audits
 
-***REMOVED******REMOVED******REMOVED*** ✅ Organization
+### ✅ Organization
 
 - Consistent naming conventions
 - Group-based permissions (not user-based)
 - Separate catalogs for environments (dev/prod)
 - Clear ownership of catalogs and schemas
 
-***REMOVED******REMOVED******REMOVED*** ✅ Operations
+### ✅ Operations
 
 - Test in dev workspace first
 - Document metastore ID and bucket names
@@ -1024,7 +1024,7 @@ After successfully adding Unity Catalog to your workspace:
 
 ---
 
-***REMOVED******REMOVED*** License
+## License
 
 This configuration is provided as a reference implementation for adding Unity Catalog to existing Databricks workspaces on GCP.
 

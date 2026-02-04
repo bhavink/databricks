@@ -61,12 +61,12 @@ graph TB
     SQL --> DW
     CLASSIC --> EXT
     
-    style UI fill:#1E88E5
-    style WS fill:#1E88E5
-    style CLASSIC fill:#43A047
-    style SERVERLESS fill:#7CB342
-    style UC fill:#8E24AA
-    style DL fill:#FF6F00
+    style UI fill:"#1E88E5"
+    style WS fill:"#1E88E5"
+    style CLASSIC fill:"#43A047"
+    style SERVERLESS fill:"#7CB342"
+    style UC fill:"#8E24AA"
+    style DL fill:"#FF6F00"
 ```
 
 # Objective
@@ -107,14 +107,14 @@ graph TB
     OBS -.->|monitors| WP
     COST -.->|optimizes| WP
     
-    style Start fill:#FF6F00
-    style GS fill:#1E88E5
-    style WA fill:#43A047
-    style WP fill:#E53935
-    style WS fill:#8E24AA
-    style IAM fill:#FB8C00
-    style OBS fill:#00ACC1
-    style COST fill:#FDD835
+    style Start fill:"#FF6F00"
+    style GS fill:"#1E88E5"
+    style WA fill:"#43A047"
+    style WP fill:"#E53935"
+    style WS fill:"#8E24AA"
+    style IAM fill:"#FB8C00"
+    style OBS fill:"#00ACC1"
+    style COST fill:"#FDD835"
 ```
 
 Most of the content is derived from [public docs](https://docs.gcp.databricks.com)
