@@ -1,4 +1,4 @@
-***REMOVED***!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Databricks IP Range Extractor
 
@@ -6,11 +6,11 @@ Extract IP ranges from Databricks published IP ranges for egress allowlisting.
 Filters by cloud provider and region, outputs JSON suitable for firewall rules.
 
 Usage:
-    python extract-databricks-ips.py                           ***REMOVED*** All clouds, all regions
-    python extract-databricks-ips.py --cloud aws               ***REMOVED*** AWS only, all regions
+    python extract-databricks-ips.py                           # All clouds, all regions
+    python extract-databricks-ips.py --cloud aws               # AWS only, all regions
     python extract-databricks-ips.py --cloud aws --region us-east-1
     python extract-databricks-ips.py --cloud azure --region eastus --ipv4-only
-    python extract-databricks-ips.py --list-regions aws        ***REMOVED*** List available regions
+    python extract-databricks-ips.py --list-regions aws        # List available regions
 
 No external dependencies required - uses Python standard library only.
 """
@@ -23,17 +23,17 @@ import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 
-***REMOVED*** Public URL for Databricks IP ranges
+# Public URL for Databricks IP ranges
 DEFAULT_URL = "https://<insert-url-here>"
 
-***REMOVED*** For local development/testing, use sample file
+# For local development/testing, use sample file
 LOCAL_FILE = Path(__file__).parent / "databricks-ip-ranges-sample.json"
 
 
 def load_ip_ranges(source=None):
     """Load IP ranges from URL or local file."""
 
-    ***REMOVED*** Priority: explicit source > URL > local file
+    # Priority: explicit source > URL > local file
     if source and source.startswith(("http://", "https://")):
         try:
             with urllib.request.urlopen(source, timeout=30) as response:
@@ -42,13 +42,13 @@ def load_ip_ranges(source=None):
             print(f"Error fetching URL: {e}", file=sys.stderr)
             sys.exit(1)
 
-    ***REMOVED*** Try local file
+    # Try local file
     local_path = Path(source) if source else LOCAL_FILE
     if local_path.exists():
         with open(local_path, "r") as f:
             return json.load(f)
 
-    ***REMOVED*** Try default URL as fallback
+    # Try default URL as fallback
     try:
         with urllib.request.urlopen(DEFAULT_URL, timeout=30) as response:
             return json.loads(response.read().decode("utf-8"))
@@ -67,26 +67,26 @@ def extract_ips(data, cloud="all", region="all", ipv4_only=False, ipv6_only=Fals
     filtered = []
 
     for entry in prefixes:
-        ***REMOVED*** Filter by cloud provider
+        # Filter by cloud provider
         if cloud != "all" and entry.get("cloudProvider", "").lower() != cloud.lower():
             continue
 
-        ***REMOVED*** Filter by region
+        # Filter by region
         if region != "all" and entry.get("region", "").lower() != region.lower():
             continue
 
-        ***REMOVED*** Filter by IP version
+        # Filter by IP version
         ip_version = entry.get("ipVersion", "ipv4")
         if ipv4_only and ip_version != "ipv4":
             continue
         if ipv6_only and ip_version != "ipv6":
             continue
 
-        ***REMOVED*** Filter by service
+        # Filter by service
         if service and entry.get("service", "").lower() != service.lower():
             continue
 
-        ***REMOVED*** Filter by active status
+        # Filter by active status
         if active_only:
             now = datetime.now(timezone.utc)
             active_after = entry.get("activeAfter")
@@ -116,7 +116,7 @@ def extract_ips(data, cloud="all", region="all", ipv4_only=False, ipv6_only=Fals
 def format_output(filtered_entries, data, cloud, region, output_format="json"):
     """Format the output for egress appliance consumption."""
 
-    ***REMOVED*** Build flat records for both JSON and CSV
+    # Build flat records for both JSON and CSV
     flat_records = []
     for entry in filtered_entries:
         flat_records.append({
@@ -137,7 +137,7 @@ def format_output(filtered_entries, data, cloud, region, output_format="json"):
         return "\n".join(lines)
 
     elif output_format == "simple":
-        ***REMOVED*** Just CIDRs, one per line (for direct import)
+        # Just CIDRs, one per line (for direct import)
         cidrs = sorted(set(r["cidr"] for r in flat_records))
         return "\n".join(cidrs)
 
@@ -180,14 +180,14 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s                                    ***REMOVED*** All IPs, all clouds
-  %(prog)s --cloud aws                        ***REMOVED*** AWS only
-  %(prog)s --cloud aws --region us-east-1     ***REMOVED*** AWS us-east-1 only
-  %(prog)s --cloud azure --ipv4-only          ***REMOVED*** Azure IPv4 only
-  %(prog)s --list-regions                     ***REMOVED*** Show all available regions
-  %(prog)s --list-regions --cloud gcp         ***REMOVED*** Show GCP regions only
-  %(prog)s --format simple                    ***REMOVED*** One CIDR per line
-  %(prog)s --source https://example.com/ips.json  ***REMOVED*** Custom source URL
+  %(prog)s                                    # All IPs, all clouds
+  %(prog)s --cloud aws                        # AWS only
+  %(prog)s --cloud aws --region us-east-1     # AWS us-east-1 only
+  %(prog)s --cloud azure --ipv4-only          # Azure IPv4 only
+  %(prog)s --list-regions                     # Show all available regions
+  %(prog)s --list-regions --cloud gcp         # Show GCP regions only
+  %(prog)s --format simple                    # One CIDR per line
+  %(prog)s --source https://example.com/ips.json  # Custom source URL
         """
     )
 
@@ -258,14 +258,14 @@ Examples:
 
     args = parser.parse_args()
 
-    ***REMOVED*** Validate mutually exclusive options
+    # Validate mutually exclusive options
     if args.ipv4_only and args.ipv6_only:
         parser.error("--ipv4-only and --ipv6-only are mutually exclusive")
 
-    ***REMOVED*** Load data
+    # Load data
     data = load_ip_ranges(args.source)
 
-    ***REMOVED*** Handle list commands
+    # Handle list commands
     if args.list_regions:
         regions = list_regions(data, args.cloud)
         if args.format == "json":
@@ -287,7 +287,7 @@ Examples:
                 print(f"  {s}")
         return
 
-    ***REMOVED*** Extract and filter
+    # Extract and filter
     filtered = extract_ips(
         data,
         cloud=args.cloud,
@@ -298,10 +298,10 @@ Examples:
         active_only=args.active_only
     )
 
-    ***REMOVED*** Format output
+    # Format output
     output = format_output(filtered, data, args.cloud, args.region, args.format)
 
-    ***REMOVED*** Output
+    # Output
     if isinstance(output, (dict, list)):
         output_str = json.dumps(output, indent=2)
     else:

@@ -1,89 +1,89 @@
-***REMOVED*** Databricks IP Range Extractor
+# Databricks IP Range Extractor
 
-***REMOVED******REMOVED*** Prerequisites
+## Prerequisites
 
 - Python 3.7 or higher
 - No external dependencies (uses standard library only)
 
 ```bash
-***REMOVED*** Verify Python version
+# Verify Python version
 python --version
 ```
 
 ---
 
-***REMOVED******REMOVED*** Quick Start
+## Quick Start
 
 ```bash
-***REMOVED*** Extract all AWS IPs
+# Extract all AWS IPs
 python extract-databricks-ips.py --cloud aws
 
-***REMOVED*** Extract AWS us-east-1 only
+# Extract AWS us-east-1 only
 python extract-databricks-ips.py --cloud aws --region us-east-1
 
-***REMOVED*** Save to file
+# Save to file
 python extract-databricks-ips.py --cloud aws --output aws-ips.json
 ```
 
 ---
 
-***REMOVED******REMOVED*** Usage
+## Usage
 
-***REMOVED******REMOVED******REMOVED*** Basic Commands
+### Basic Commands
 
 ```bash
-***REMOVED*** All clouds, all regions
+# All clouds, all regions
 python extract-databricks-ips.py
 
-***REMOVED*** Filter by cloud provider
+# Filter by cloud provider
 python extract-databricks-ips.py --cloud aws
 python extract-databricks-ips.py --cloud azure
 python extract-databricks-ips.py --cloud gcp
 
-***REMOVED*** Filter by region
+# Filter by region
 python extract-databricks-ips.py --cloud aws --region us-east-1
 python extract-databricks-ips.py --cloud azure --region eastus
 
-***REMOVED*** IPv4 only (for firewalls that don't support IPv6)
+# IPv4 only (for firewalls that don't support IPv6)
 python extract-databricks-ips.py --cloud aws --ipv4-only
 ```
 
-***REMOVED******REMOVED******REMOVED*** Output Formats
+### Output Formats
 
 ```bash
-***REMOVED*** JSON (default) - array of objects
+# JSON (default) - array of objects
 python extract-databricks-ips.py --cloud aws --format json
 
-***REMOVED*** CSV - header + rows
+# CSV - header + rows
 python extract-databricks-ips.py --cloud aws --format csv
 
-***REMOVED*** Simple - one CIDR per line
+# Simple - one CIDR per line
 python extract-databricks-ips.py --cloud aws --format simple
 ```
 
-***REMOVED******REMOVED******REMOVED*** Discovery Commands
+### Discovery Commands
 
 ```bash
-***REMOVED*** List available regions
+# List available regions
 python extract-databricks-ips.py --list-regions
 
-***REMOVED*** List regions for specific cloud
+# List regions for specific cloud
 python extract-databricks-ips.py --list-regions --cloud aws
 
-***REMOVED*** List available services
+# List available services
 python extract-databricks-ips.py --list-services
 ```
 
-***REMOVED******REMOVED******REMOVED*** Using the Public JSON Endpoint
+### Using the Public JSON Endpoint
 
 ```bash
-***REMOVED*** Fetch directly from Databricks (when URL is available)
+# Fetch directly from Databricks (when URL is available)
 python extract-databricks-ips.py --source https://<insert-url-here> --cloud aws
 ```
 
 ---
 
-***REMOVED******REMOVED*** Output Schema
+## Output Schema
 
 Both JSON and CSV use the same flat structure:
 
@@ -116,39 +116,39 @@ cidr,ipVersion,cloudProvider,region,service
 
 ---
 
-***REMOVED******REMOVED*** Automation Example
+## Automation Example
 
-***REMOVED******REMOVED******REMOVED*** Weekly Cron Job
+### Weekly Cron Job
 
 ```bash
-***REMOVED*** Add to crontab (runs every Monday at 6 AM)
+# Add to crontab (runs every Monday at 6 AM)
 0 6 * * 1 python /path/to/extract-databricks-ips.py --source https://<insert-url-here> --cloud aws --output /etc/firewall/databricks-ips.json
 ```
 
-***REMOVED******REMOVED******REMOVED*** Simple Bash Script
+### Simple Bash Script
 
 ```bash
-***REMOVED***!/bin/bash
-***REMOVED*** update-databricks-ips.sh
+#!/bin/bash
+# update-databricks-ips.sh
 
 SCRIPT_DIR="/path/to/databricks-utils/extract-databricks-ips"
 OUTPUT_DIR="/etc/firewall/allowlists"
 SOURCE_URL="https://<insert-url-here>"
 
-***REMOVED*** Extract IPs for each cloud
+# Extract IPs for each cloud
 python ${SCRIPT_DIR}/extract-databricks-ips.py \
   --source ${SOURCE_URL} \
   --cloud aws \
   --format simple \
   --output ${OUTPUT_DIR}/databricks-aws.txt
 
-***REMOVED*** Reload firewall rules (example for iptables)
-***REMOVED*** /usr/local/bin/reload-firewall.sh
+# Reload firewall rules (example for iptables)
+# /usr/local/bin/reload-firewall.sh
 ```
 
 ---
 
-***REMOVED******REMOVED*** All Options
+## All Options
 
 ```
 --cloud, -c        Cloud provider: aws, azure, gcp, all (default: all)
@@ -169,7 +169,7 @@ python ${SCRIPT_DIR}/extract-databricks-ips.py \
 
 ---
 
-***REMOVED******REMOVED*** Support
+## Support
 
 - **Documentation**: [Databricks Network Connectivity](https://docs.databricks.com)
 - **JSON Endpoint**: `https://<insert-url-here>`
