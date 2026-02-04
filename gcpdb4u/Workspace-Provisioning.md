@@ -51,11 +51,11 @@ graph TB
     IMGPOL -.validates.-> CLUSTER
     AUTHPOL -.validates.-> SA
     
-    style ACCT fill:#1E88E5
-    style VPC fill:#4285F4
-    style WS fill:#1E88E5
-    style CLUSTER fill:#43A047
-    style ORGPOL fill:#FF6F00
+    style ACCT fill:"#1E88E5"
+    style VPC fill:"#4285F4"
+    style WS fill:"#1E88E5"
+    style CLUSTER fill:"#43A047"
+    style ORGPOL fill:"#FF6F00"
 ```
 
 ### Before you begin
@@ -163,11 +163,11 @@ graph LR
     
     S26 -.cannot resize.-> S26
     
-    style S26 fill:#90CAF9
-    style S24 fill:#64B5F6
-    style S22 fill:#42A5F5
-    style S20 fill:#1E88E5
-    style S19 fill:#1565C0
+    style S26 fill:"#90CAF9"
+    style S24 fill:"#64B5F6"
+    style S22 fill:"#42A5F5"
+    style S20 fill:"#1E88E5"
+    style S19 fill:"#1565C0"
 ```
 
 **Important Note:** Subnet CIDR ranges cannot be changed after workspace creation. Choose carefully based on your expected growth!
@@ -299,12 +299,12 @@ graph TB
     CHECK5 -->|No| FAIL5[Policy Violation<br/>Fix: Update org policies<br/>or project settings]
     CHECK5 -->|Yes| SUCCESS[Cluster Running ✓]
     
-    style START fill:#1E88E5
-    style SUCCESS fill:#43A047
-    style FAIL1 fill:#E53935
-    style FAIL2 fill:#E53935
-    style FAIL3 fill:#E53935
-    style FAIL4 fill:#E53935
-    style FAIL5 fill:#E53935
+    style START fill:"#1E88E5"
+    style SUCCESS fill:"#43A047"
+    style FAIL1 fill:"#E53935"
+    style FAIL2 fill:"#E53935"
+    style FAIL3 fill:"#E53935"
+    style FAIL4 fill:"#E53935"
+    style FAIL5 fill:"#E53935"
 ```
 

@@ -67,12 +67,12 @@ graph TB
     
     SCP_VPC -.Private Google<br/>Access.-> GCS
     
-    style CP fill:#1E88E5
-    style WEB fill:#1E88E5
-    style GCE fill:#43A047
-    style SCP fill:#7CB342
-    style VPC fill:#4285F4
-    style GCS fill:#FF6F00
+    style CP fill:"#1E88E5"
+    style WEB fill:"#1E88E5"
+    style GCE fill:"#43A047"
+    style SCP fill:"#7CB342"
+    style VPC fill:"#4285F4"
+    style GCS fill:"#FF6F00"
 ```
 
 Before you begin, please make sure to familiarize yourself with
@@ -192,14 +192,14 @@ graph TB
     DRIVER -->|9: Query| BQ
     DRIVER -->|9: External Access| EXT
     
-    style DCP fill:#1E88E5
-    style SUBNET fill:#4285F4
-    style DRIVER fill:#43A047
-    style WORKER1 fill:#43A047
-    style WORKER2 fill:#43A047
-    style NAT fill:#FF6F00
-    style SCP fill:#7CB342
-    style GCS_DATA fill:#FDD835
+    style DCP fill:"#1E88E5"
+    style SUBNET fill:"#4285F4"
+    style DRIVER fill:"#43A047"
+    style WORKER1 fill:"#43A047"
+    style WORKER2 fill:"#43A047"
+    style NAT fill:"#FF6F00"
+    style SCP fill:"#7CB342"
+    style GCS_DATA fill:"#FDD835"
 ```
 
 **Network Flow Descriptions:**

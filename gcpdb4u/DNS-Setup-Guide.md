@@ -86,14 +86,14 @@ graph TB
     TunnelZone -->|A Record| BackendPE
     BackendPE -->|Private Connection| ControlPlane
 
-    style MainZone fill:#E8F5E9
-    style PSCZone fill:#E8F5E9
-    style AuthZone fill:#E8F5E9
-    style TunnelZone fill:#E8F5E9
-    style FrontendPE fill:#BBDEFB
-    style BackendPE fill:#BBDEFB
-    style ControlPlane fill:#FF6F00
-    style DataPlane fill:#FF6F00
+    style MainZone fill:"#E8F5E9"
+    style PSCZone fill:"#E8F5E9"
+    style AuthZone fill:"#E8F5E9"
+    style TunnelZone fill:"#E8F5E9"
+    style FrontendPE fill:"#BBDEFB"
+    style BackendPE fill:"#BBDEFB"
+    style ControlPlane fill:"#FF6F00"
+    style DataPlane fill:"#FF6F00"
 ```
 
 #### Non-PSC Workspace Architecture
@@ -132,12 +132,12 @@ graph TB
     AccountsZone -->|Forward| GoogleDNS
     GoogleDNS -->|Resolve| Accounts
 
-    style RegionalZone fill:#FFF9C4
-    style AccountsZone fill:#FFF9C4
-    style GoogleDNS fill:#B3E5FC
-    style Internet fill:#FFCCBC
-    style Workspace fill:#FF6F00
-    style Accounts fill:#FF6F00
+    style RegionalZone fill:"#FFF9C4"
+    style AccountsZone fill:"#FFF9C4"
+    style GoogleDNS fill:"#B3E5FC"
+    style Internet fill:"#FFCCBC"
+    style Workspace fill:"#FF6F00"
+    style Accounts fill:"#FF6F00"
 ```
 
 #### DNS Resolution Comparison
@@ -176,12 +176,12 @@ graph LR
         NonPSC_Internet --> NonPSC_DB
     end
 
-    style PSC_Private fill:#E8F5E9
-    style PSC_PrivateIP fill:#BBDEFB
-    style PSC_Endpoint fill:#BBDEFB
-    style NonPSC_Forward fill:#FFF9C4
-    style NonPSC_Public fill:#B3E5FC
-    style NonPSC_Internet fill:#FFCCBC
+    style PSC_Private fill:"#E8F5E9"
+    style PSC_PrivateIP fill:"#BBDEFB"
+    style PSC_Endpoint fill:"#BBDEFB"
+    style NonPSC_Forward fill:"#FFF9C4"
+    style NonPSC_Public fill:"#B3E5FC"
+    style NonPSC_Internet fill:"#FFCCBC"
 ```
 
 ### DNS Zone Requirements
