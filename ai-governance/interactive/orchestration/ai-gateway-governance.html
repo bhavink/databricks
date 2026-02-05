@@ -884,11 +884,11 @@
                 </div>
             </div>
             
-            <!-- Step 11: API Example -->
+            <!-- Step 11: Databricks OpenAI Client Example -->
             <div class="scroll-step" data-step="11">
-                <h3>Databricks OpenAI Client Example</h3>
+                <h3>1. Databricks OpenAI Client</h3>
                 <p>
-                    The recommended approach for querying deployed agents:
+                    <strong>Recommended</strong> for new applications — native SDK integration with streaming support:
                 </p>
                 <div class="highlight">
                     <code>from databricks.sdk import WorkspaceClient</code><br>
@@ -906,8 +906,72 @@
                 </p>
             </div>
             
-            <!-- Step 12: Architecture Summary -->
+            <!-- Step 12: MLflow Deployments Client Example -->
             <div class="scroll-step" data-step="12">
+                <h3>2. MLflow Deployments Client</h3>
+                <p>
+                    Best for existing <strong>MLflow workflows</strong> and experiment tracking integration:
+                </p>
+                <div class="highlight">
+                    <code>from mlflow.deployments import get_deploy_client</code><br><br>
+                    <code>client = get_deploy_client("databricks")</code><br><br>
+                    <code>response = client.predict(</code><br>
+                    <code>&nbsp;&nbsp;endpoint="my-agent-endpoint",</code><br>
+                    <code>&nbsp;&nbsp;inputs={</code><br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;"messages": [{"role": "user", "content": "..."}]</code><br>
+                    <code>&nbsp;&nbsp;}</code><br>
+                    <code>)</code>
+                </div>
+                <div class="note">
+                    💡 MLflow client integrates with experiment tracking for logging predictions and model versions.
+                </div>
+            </div>
+            
+            <!-- Step 13: REST API Example -->
+            <div class="scroll-step" data-step="13">
+                <h3>3. REST API (OpenAI-compatible)</h3>
+                <p>
+                    <strong>Language-agnostic</strong> — use from any HTTP client (curl, requests, fetch):
+                </p>
+                <div class="highlight">
+                    <code>POST /serving-endpoints/{endpoint}/invocations</code><br><br>
+                    <code>curl -X POST \</code><br>
+                    <code>&nbsp;&nbsp;-H "Authorization: Bearer $TOKEN" \</code><br>
+                    <code>&nbsp;&nbsp;-H "Content-Type: application/json" \</code><br>
+                    <code>&nbsp;&nbsp;-d '{"messages": [{"role": "user", "content": "..."}]}' \</code><br>
+                    <code>&nbsp;&nbsp;https://&lt;workspace&gt;/serving-endpoints/my-agent/invocations</code>
+                </div>
+                <div class="note">
+                    🔗 OpenAI-compatible format — easily swap between Databricks agents and OpenAI models.
+                </div>
+            </div>
+            
+            <!-- Step 14: AI Functions Example -->
+            <div class="scroll-step" data-step="14">
+                <h3>4. AI Functions (ai_query)</h3>
+                <p>
+                    Query agents <strong>directly from SQL</strong> — great for data pipelines and notebooks:
+                </p>
+                <div class="highlight">
+                    <code>SELECT ai_query(</code><br>
+                    <code>&nbsp;&nbsp;'my-agent-endpoint',</code><br>
+                    <code>&nbsp;&nbsp;'What is the summary of this document?'</code><br>
+                    <code>) AS response</code><br><br>
+                    <code>-- With structured input</code><br>
+                    <code>SELECT ai_query(</code><br>
+                    <code>&nbsp;&nbsp;'my-agent-endpoint',</code><br>
+                    <code>&nbsp;&nbsp;named_struct('messages', array(</code><br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;named_struct('role', 'user', 'content', prompt_col)</code><br>
+                    <code>&nbsp;&nbsp;))</code><br>
+                    <code>) FROM my_table</code>
+                </div>
+                <div class="note">
+                    📊 Process entire tables with AI — apply LLM to every row in a DataFrame.
+                </div>
+            </div>
+            
+            <!-- Step 15: Architecture Summary -->
+            <div class="scroll-step" data-step="15">
                 <h3>AI Gateway in the Architecture</h3>
                 <p>
                     AI Gateway sits at the center of your AI infrastructure, providing:
@@ -1356,14 +1420,14 @@
                     </div>
                 </div>
                 
-                <!-- Step 11: Code Example -->
-                <div class="vis-element" id="vis-code-example" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
-                    <div style="background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="background: rgba(74, 222, 128, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #4ade80; font-weight: 600;">
-                            Databricks OpenAI Client
+                <!-- Step 11: Databricks OpenAI Client Code -->
+                <div class="vis-element" id="vis-code-openai" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(74, 222, 128, 0.3);">
+                        <div style="background: rgba(74, 222, 128, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #4ade80; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🐍</span> Databricks OpenAI Client <span style="background: rgba(74, 222, 128, 0.3); padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.65rem;">Recommended</span>
                         </div>
                         <div style="padding: 1rem; font-family: 'SF Mono', Monaco, monospace; font-size: 0.75rem; line-height: 1.6;">
-                            <div style="color: #a855f7;">from</div> <span style="color: #22d3ee;">databricks.sdk</span> <span style="color: #a855f7;">import</span> <span style="color: #4ade80;">WorkspaceClient</span>
+                            <span style="color: #a855f7;">from</span> <span style="color: #22d3ee;">databricks.sdk</span> <span style="color: #a855f7;">import</span> <span style="color: #4ade80;">WorkspaceClient</span>
                             <br><br>
                             <span style="color: #e8e8e8;">w = WorkspaceClient()</span>
                             <br>
@@ -1386,7 +1450,101 @@
                     </div>
                 </div>
                 
-                <!-- Step 12: Architecture Summary -->
+                <!-- Step 12: MLflow Deployments Client Code -->
+                <div class="vis-element" id="vis-code-mlflow" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(168, 85, 247, 0.3);">
+                        <div style="background: rgba(168, 85, 247, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #a855f7; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🔄</span> MLflow Deployments Client
+                        </div>
+                        <div style="padding: 1rem; font-family: 'SF Mono', Monaco, monospace; font-size: 0.75rem; line-height: 1.6;">
+                            <span style="color: #a855f7;">from</span> <span style="color: #22d3ee;">mlflow.deployments</span> <span style="color: #a855f7;">import</span> <span style="color: #4ade80;">get_deploy_client</span>
+                            <br><br>
+                            <span style="color: #64748b;"># Connect to Databricks</span>
+                            <br>
+                            <span style="color: #e8e8e8;">client = get_deploy_client(<span style="color: #fbbf24;">"databricks"</span>)</span>
+                            <br><br>
+                            <span style="color: #64748b;"># Query the agent endpoint</span>
+                            <br>
+                            <span style="color: #e8e8e8;">response = client.<span style="color: #f97316;">predict</span>(</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;endpoint=<span style="color: #fbbf24;">"my-agent-endpoint"</span>,</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;inputs={</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #fbbf24;">"messages"</span>: [</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span style="color: #fbbf24;">"role"</span>: <span style="color: #fbbf24;">"user"</span>, <span style="color: #fbbf24;">"content"</span>: <span style="color: #fbbf24;">"..."</span>}</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;&nbsp;&nbsp;]</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;}</span>
+                            <br>
+                            <span style="color: #e8e8e8;">)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 13: REST API Code -->
+                <div class="vis-element" id="vis-code-rest" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(34, 211, 238, 0.3);">
+                        <div style="background: rgba(34, 211, 238, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #22d3ee; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🌐</span> REST API (OpenAI-compatible)
+                        </div>
+                        <div style="padding: 1rem; font-family: 'SF Mono', Monaco, monospace; font-size: 0.72rem; line-height: 1.6;">
+                            <span style="color: #64748b;"># Using curl</span>
+                            <br>
+                            <span style="color: #4ade80;">curl</span> <span style="color: #e8e8e8;">-X POST \</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;-H <span style="color: #fbbf24;">"Authorization: Bearer $TOKEN"</span> \</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;-H <span style="color: #fbbf24;">"Content-Type: application/json"</span> \</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;-d <span style="color: #fbbf24;">'{"messages": [{"role": "user", "content": "..."}]}'</span> \</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;<span style="color: #22d3ee;">https://&lt;workspace&gt;/serving-endpoints/my-agent/invocations</span></span>
+                            <br><br>
+                            <span style="color: #64748b;"># Using Python requests</span>
+                            <br>
+                            <span style="color: #e8e8e8;">response = requests.<span style="color: #f97316;">post</span>(</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;url, headers=headers, json=payload</span>
+                            <br>
+                            <span style="color: #e8e8e8;">)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 14: AI Functions Code -->
+                <div class="vis-element" id="vis-code-sql" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(251, 191, 36, 0.3);">
+                        <div style="background: rgba(251, 191, 36, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #fbbf24; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>📊</span> AI Functions (ai_query) — SQL
+                        </div>
+                        <div style="padding: 1rem; font-family: 'SF Mono', Monaco, monospace; font-size: 0.72rem; line-height: 1.6;">
+                            <span style="color: #64748b;">-- Simple query</span>
+                            <br>
+                            <span style="color: #a855f7;">SELECT</span> <span style="color: #f97316;">ai_query</span><span style="color: #e8e8e8;">(</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;<span style="color: #fbbf24;">'my-agent-endpoint'</span>,</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;<span style="color: #fbbf24;">'Summarize this document...'</span></span>
+                            <br>
+                            <span style="color: #e8e8e8;">) <span style="color: #a855f7;">AS</span> response;</span>
+                            <br><br>
+                            <span style="color: #64748b;">-- Process entire table with AI</span>
+                            <br>
+                            <span style="color: #a855f7;">SELECT</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;id,</span>
+                            <br>
+                            <span style="color: #e8e8e8;">&nbsp;&nbsp;<span style="color: #f97316;">ai_query</span>(<span style="color: #fbbf24;">'my-agent'</span>, content_col) <span style="color: #a855f7;">AS</span> ai_summary</span>
+                            <br>
+                            <span style="color: #a855f7;">FROM</span> <span style="color: #22d3ee;">my_table</span>;
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 15: Architecture Summary -->
                 <div class="vis-element gateway-arch" id="vis-arch-summary">
                     <div>
                         <div class="arch-label">Your Applications</div>
@@ -1546,8 +1704,11 @@
             8: 'vis-inference',
             9: 'vis-usage-tracking',
             10: 'vis-api-methods',
-            11: 'vis-code-example',
-            12: 'vis-arch-summary'
+            11: 'vis-code-openai',
+            12: 'vis-code-mlflow',
+            13: 'vis-code-rest',
+            14: 'vis-code-sql',
+            15: 'vis-arch-summary'
         };
         
         // Hide all visuals initially except first
