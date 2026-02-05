@@ -170,7 +170,7 @@
         .diagram-container {
             width: 100%;
             max-width: 520px;
-            height: 600px;
+            height: 650px;
             position: relative;
             background: rgba(255,255,255,0.02);
             border-radius: 16px;
@@ -637,35 +637,35 @@
                 </div>
                 
                 <!-- External MCP -->
-                <div class="flow-box pink" id="ext-mcp-box" style="left: 50px; top: 280px; min-width: 130px;">
+                <div class="flow-box pink" id="ext-mcp-box" style="left: 50px; top: 270px; min-width: 130px;">
                     <div class="icon">🌐</div>
                     <div class="title">External MCP</div>
                     <div class="desc">Via UC HTTP Conn</div>
                 </div>
                 
                 <!-- Custom MCP -->
-                <div class="flow-box purple" id="custom-mcp-box" style="right: 50px; top: 280px; min-width: 130px;">
+                <div class="flow-box purple" id="custom-mcp-box" style="right: 50px; top: 270px; min-width: 130px;">
                     <div class="icon">📦</div>
                     <div class="title">Custom MCP</div>
                     <div class="desc">Databricks Apps</div>
                 </div>
                 
                 <!-- UC Connection proxy -->
-                <div class="flow-box slate" id="uc-conn-box" style="left: 50px; top: 380px; min-width: 130px;">
+                <div class="flow-box slate" id="uc-conn-box" style="left: 50px; top: 360px; min-width: 130px;">
                     <div class="icon">🔗</div>
                     <div class="title">UC Connection</div>
                     <div class="desc">Secure proxy</div>
                 </div>
                 
                 <!-- External Server -->
-                <div class="flow-box orange" id="ext-server-box" style="left: 50px; top: 470px; min-width: 130px;">
+                <div class="flow-box orange" id="ext-server-box" style="left: 50px; top: 450px; min-width: 130px;">
                     <div class="icon">🌍</div>
                     <div class="title">Third-Party Server</div>
                     <div class="desc">External tools</div>
                 </div>
                 
                 <!-- Unity Catalog -->
-                <div class="flow-box green" id="uc-box" style="left: 50%; transform: translateX(-50%); bottom: 20px; min-width: 350px;">
+                <div class="flow-box green" id="uc-box" style="left: 50%; transform: translateX(-50%); bottom: 15px; min-width: 350px;">
                     <div class="icon">🛡️</div>
                     <div class="title">Unity Catalog Governance</div>
                     <div class="desc">Permissions, Scopes, Audit, Row Filters, Column Masks</div>
@@ -674,17 +674,17 @@
                 <!-- Arrows -->
                 <div class="flow-arrow cyan" id="arrow-agent-mcp" style="left: 50%; transform: translateX(-50%); top: 70px;">↓</div>
                 <div class="flow-arrow cyan" id="arrow-mcp-managed" style="left: 50%; transform: translateX(-50%); top: 140px;">↓</div>
-                <div class="flow-arrow pink" id="arrow-to-ext" style="left: 110px; top: 250px;">↓</div>
-                <div class="flow-arrow purple" id="arrow-to-custom" style="right: 110px; top: 250px;">↓</div>
-                <div class="flow-arrow pink" id="arrow-ext-conn" style="left: 110px; top: 355px;">↓</div>
-                <div class="flow-arrow pink" id="arrow-conn-server" style="left: 110px; top: 445px;">↓</div>
-                <div class="flow-arrow teal" id="arrow-to-uc" style="left: 50%; transform: translateX(-50%); top: 510px;">↓</div>
+                <div class="flow-arrow pink" id="arrow-to-ext" style="left: 110px; top: 240px;">↓</div>
+                <div class="flow-arrow purple" id="arrow-to-custom" style="right: 110px; top: 240px;">↓</div>
+                <div class="flow-arrow pink" id="arrow-ext-conn" style="left: 110px; top: 335px;">↓</div>
+                <div class="flow-arrow pink" id="arrow-conn-server" style="left: 110px; top: 425px;">↓</div>
+                <div class="flow-arrow teal" id="arrow-to-uc" style="left: 50%; transform: translateX(-50%); top: 530px;">↓</div>
                 
                 <!-- Labels -->
-                <div class="flow-label" id="label-managed" style="left: 50%; transform: translateX(-50%); top: 245px; color: #22d3ee;">Managed MCP</div>
+                <div class="flow-label" id="label-managed" style="left: 50%; transform: translateX(-50%); top: 235px; color: #22d3ee;">Managed MCP</div>
                 
-                <!-- External clients grid -->
-                <div class="client-grid" id="client-grid" style="left: 50%; transform: translateX(-50%); top: 120px;">
+                <!-- External clients grid (shown for external client scenarios) -->
+                <div class="client-grid" id="client-grid" style="left: 50%; transform: translateX(-50%); top: 90px;">
                     <div class="client-box"><div class="icon">🤖</div>Claude</div>
                     <div class="client-box"><div class="icon">💻</div>Cursor</div>
                     <div class="client-box"><div class="icon">💬</div>ChatGPT</div>
