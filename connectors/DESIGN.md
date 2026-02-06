@@ -256,6 +256,83 @@ def parse_message(raw_message: str) -> dict:
 parse_message_udf = udf(parse_message, result_schema)
 ```
 
+### UDF Optimization: Regular vs Pandas UDF
+
+When processing messages at scale, you can choose between regular Python UDFs and Arrow-optimized Pandas UDFs.
+
+#### Comparison
+
+| Aspect | Regular UDF | Pandas UDF (Arrow) |
+|--------|-------------|-------------------|
+| **Serialization** | Pickle (slower) | Apache Arrow (faster) |
+| **Processing** | Row-by-row | Batch/vectorized |
+| **Best for** | Complex parsing, nested schemas | Numeric operations, ML |
+| **Complexity** | Simpler return types | Must return `pd.DataFrame` for StructType |
+
+#### Recommendation
+
+| Scenario | Use | Reason |
+|----------|-----|--------|
+| **< 1M messages/day** | Regular UDF | Simpler, debugging easier |
+| **> 1M messages/day** | Consider Pandas UDF | ~20-30% throughput gain from reduced serialization |
+| **Numeric/ML workloads** | Always Pandas UDF | 10x+ performance gains |
+| **Complex nested output** | Regular UDF | Pandas DataFrame construction is tricky |
+
+For message parsing (HL7v2, SWIFT, etc.), the **core logic is string manipulation** which isn't vectorizable. The gain from Pandas UDF comes purely from **reduced serialization overhead**, not from vectorized computation.
+
+#### How to Convert to Pandas UDF
+
+If your volume justifies it, here's the pattern:
+
+```python
+from pyspark.sql.functions import pandas_udf
+import pandas as pd
+
+# Define schema (same as regular UDF)
+PARSE_SCHEMA = StructType([
+    StructField("message_id", StringType()),
+    StructField("message_type", StringType()),
+    # ... other fields
+])
+
+# Pandas UDF - processes batches
+@pandas_udf(PARSE_SCHEMA)
+def parse_message_pandas(messages: pd.Series) -> pd.DataFrame:
+    """
+    Arrow-optimized message parser.
+    
+    ALL PARSING LOGIC MUST STILL BE INLINED.
+    The batch is processed as a loop - same parsing, less serialization overhead.
+    """
+    def parse_single(raw_message: str) -> dict:
+        # Same parsing logic as regular UDF
+        try:
+            # ... parse message ...
+            return {"message_id": id, "message_type": type, ...}
+        except Exception as e:
+            return {"_parse_error": str(e)}
+    
+    # Process batch - not truly vectorized, but Arrow serialization is faster
+    results = [parse_single(msg) for msg in messages]
+    return pd.DataFrame(results)
+
+# Usage is identical
+df.withColumn("parsed", parse_message_pandas(col("raw_message")))
+```
+
+#### Key Points
+
+1. **Inlining still required** - Pandas UDFs have the same executor import limitations
+2. **Schema matching** - Return `pd.DataFrame` columns must exactly match `StructType` fields
+3. **Memory** - Entire batch loads into memory; tune `spark.sql.execution.arrow.maxRecordsPerBatch`
+4. **Testing** - Pandas UDFs are harder to test locally than regular UDFs
+
+#### When NOT to Use Pandas UDF
+
+- Deeply nested output schemas (like HL7v2's 150+ line schema) - DataFrame construction is error-prone
+- Development/debugging phase - Regular UDFs have better error messages
+- Low volume pipelines - Complexity isn't worth the marginal gain
+
 ---
 
 ## 5. HL7v2 Connector (Production)
@@ -512,3 +589,4 @@ Add pipeline to `databricks.yml` resources.
 - [Data Quality Expectations](https://docs.databricks.com/en/ldp/expectations)
 - [Auto Loader](https://docs.databricks.com/en/ingestion/auto-loader/)
 - [Asset Bundles](https://docs.databricks.com/en/dev-tools/bundles/)
+- [Pandas UDFs (Arrow-optimized)](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.pandas_udf.html)
