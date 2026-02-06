@@ -11,6 +11,10 @@ Usage:
     from hl7v2_faker import HL7v2Generator
     gen = HL7v2Generator()
     messages = gen.generate_batch(count=10, message_types=["ADT", "ORU"])
+    
+    # Or run the generate_all() function directly (notebook style):
+    from hl7v2_faker import generate_all
+    generate_all()  # Uses default config
 """
 
 import argparse
@@ -20,6 +24,30 @@ import random
 from collections import Counter
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
+
+
+# =============================================================================
+# CONFIGURATION - Edit these values for your environment
+# =============================================================================
+
+# UC Volume Configuration
+CATALOG = "main"
+SCHEMA = "healthcare"
+VOLUME = "raw_data"
+
+VOLUME_PATH = f"/Volumes/{CATALOG}/{SCHEMA}/{VOLUME}"
+HL7_PATH = f"{VOLUME_PATH}/hl7v2"
+
+# Number of messages to generate per type
+NUM_ADT_MESSAGES = 100
+NUM_ORM_MESSAGES = 100
+NUM_ORU_MESSAGES = 100
+NUM_SIU_MESSAGES = 30
+NUM_VXU_MESSAGES = 20
+
+# Nested directory structure (for testing Auto Loader recursive ingestion)
+USE_NESTED_DIRS = True  # Set to True to distribute files across subdirectories
+SUBDIRS = ["incoming", "batch_001", "batch_002", "archive"]
 
 
 # =============================================================================
@@ -498,6 +526,191 @@ def print_summary(messages: List[Tuple[str, Dict]], files: List[str]):
 
 
 # =============================================================================
+# Standalone Generation Functions (for notebooks/scripts)
+# =============================================================================
+
+def generate_adt_message(event_type: str = "A01") -> Tuple[str, str, str]:
+    """Generate a single ADT message. Returns (message, msg_id, event_type)."""
+    gen = HL7v2Generator()
+    message, metadata = gen.generate_adt(event_type)
+    return message, metadata["message_id"], metadata["event_type"]
+
+
+def generate_orm_message(order_control: str = "NW") -> Tuple[str, str, str, str]:
+    """Generate a single ORM message. Returns (message, msg_id, order_control, test_type)."""
+    gen = HL7v2Generator()
+    message, metadata = gen.generate_orm(order_control)
+    return message, metadata["message_id"], metadata["order_control"], metadata["test_type"]
+
+
+def generate_oru_message() -> Tuple[str, str, str, int]:
+    """Generate a single ORU message. Returns (message, msg_id, test_type, num_results)."""
+    gen = HL7v2Generator()
+    message, metadata = gen.generate_oru()
+    return message, metadata["message_id"], metadata["test_type"], metadata["num_observations"]
+
+
+def generate_siu_message(action_code: str = "S12") -> Tuple[str, str, str, str]:
+    """Generate a single SIU message. Returns (message, msg_id, action_code, appt_type)."""
+    gen = HL7v2Generator()
+    message, metadata = gen.generate_siu(action_code)
+    return message, metadata["message_id"], metadata["action_code"], metadata["appointment_type"]
+
+
+def generate_vxu_message() -> Tuple[str, str, str, str]:
+    """Generate a single VXU message. Returns (message, msg_id, manufacturer, lot_number)."""
+    gen = HL7v2Generator()
+    message, metadata = gen.generate_vxu()
+    return message, metadata["message_id"], metadata["vaccine_manufacturer"], metadata["lot_number"]
+
+
+def generate_messages_notebook_style(
+    output_path: str,
+    num_adt: int = 10,
+    num_orm: int = 5,
+    num_oru: int = 10,
+    num_siu: int = 3,
+    num_vxu: int = 2,
+    use_nested_dirs: bool = False,
+    subdirs: List[str] = None
+) -> List[Tuple[str, str, str]]:
+    """
+    Generate HL7v2 messages in a notebook-friendly style with emoji progress output.
+    
+    Args:
+        output_path: Directory to write files to (e.g., /Volumes/catalog/schema/volume/hl7v2)
+        num_adt: Number of ADT messages to generate
+        num_orm: Number of ORM messages to generate
+        num_oru: Number of ORU messages to generate
+        num_siu: Number of SIU messages to generate
+        num_vxu: Number of VXU messages to generate
+        use_nested_dirs: If True, randomly distribute files across subdirectories
+        subdirs: List of subdirectory names (default: ["incoming", "batch_001", "batch_002", "archive"])
+    
+    Returns:
+        List of (message_type, event/control, relative_path) tuples
+    """
+    # Default subdirectories for testing nested dir support
+    if subdirs is None:
+        subdirs = ["incoming", "batch_001", "batch_002", "archive"]
+    
+    # Create output directory and subdirectories
+    os.makedirs(output_path, exist_ok=True)
+    
+    # Available paths: root + subdirs
+    available_paths = [output_path]
+    if use_nested_dirs:
+        print(f"📁 Creating nested directory structure...")
+        for subdir in subdirs:
+            subdir_path = f"{output_path}/{subdir}"
+            os.makedirs(subdir_path, exist_ok=True)
+            available_paths.append(subdir_path)
+            print(f"  📂 {subdir}/")
+        print()
+    
+    def get_random_path() -> Tuple[str, str]:
+        """Returns (full_path, relative_prefix for display)"""
+        if use_nested_dirs:
+            chosen = random.choice(available_paths)
+            if chosen == output_path:
+                return chosen, ""
+            else:
+                rel = chosen.replace(output_path + "/", "")
+                return chosen, f"{rel}/"
+        return output_path, ""
+    
+    generated_files = []
+    
+    # Generate ADT messages
+    if num_adt > 0:
+        print("📋 Generating ADT Messages...")
+        adt_events = ["A01", "A02", "A03", "A04", "A08"]
+        for i in range(num_adt):
+            event_type = random.choice(adt_events)
+            message, msg_id, event = generate_adt_message(event_type)
+            filename = f"adt_{event}_{i+1:03d}.hl7"
+            dir_path, rel_prefix = get_random_path()
+            filepath = f"{dir_path}/{filename}"
+            
+            with open(filepath, "w") as f:
+                f.write(message)
+            
+            generated_files.append(("ADT", event, f"{rel_prefix}{filename}"))
+            print(f"  ✅ ADT^{event}: {rel_prefix}{filename}")
+    
+    # Generate ORM messages
+    if num_orm > 0:
+        print("\n📋 Generating ORM Messages...")
+        order_controls = ["NW", "CA", "XO", "SC"]
+        for i in range(num_orm):
+            order_control = random.choice(order_controls)
+            message, msg_id, oc, test = generate_orm_message(order_control)
+            filename = f"orm_{oc}_{i+1:03d}.hl7"
+            dir_path, rel_prefix = get_random_path()
+            filepath = f"{dir_path}/{filename}"
+            
+            with open(filepath, "w") as f:
+                f.write(message)
+            
+            generated_files.append(("ORM", f"{oc} ({test})", f"{rel_prefix}{filename}"))
+            print(f"  ✅ ORM^O01 ({oc}): {rel_prefix}{filename}")
+    
+    # Generate ORU messages
+    if num_oru > 0:
+        print("\n📋 Generating ORU Messages...")
+        for i in range(num_oru):
+            message, msg_id, test, num_results = generate_oru_message()
+            filename = f"oru_{test}_{i+1:03d}.hl7"
+            dir_path, rel_prefix = get_random_path()
+            filepath = f"{dir_path}/{filename}"
+            
+            with open(filepath, "w") as f:
+                f.write(message)
+            
+            generated_files.append(("ORU", f"{test} ({num_results} results)", f"{rel_prefix}{filename}"))
+            print(f"  ✅ ORU^R01 ({test}): {rel_prefix}{filename}")
+    
+    # Generate SIU messages
+    if num_siu > 0:
+        print("\n📋 Generating SIU Messages...")
+        siu_actions = ["S12", "S13", "S14", "S15"]
+        for i in range(num_siu):
+            action_code = random.choice(siu_actions)
+            message, msg_id, action, appt_type = generate_siu_message(action_code)
+            filename = f"siu_{action}_{i+1:03d}.hl7"
+            dir_path, rel_prefix = get_random_path()
+            filepath = f"{dir_path}/{filename}"
+            
+            with open(filepath, "w") as f:
+                f.write(message)
+            
+            generated_files.append(("SIU", f"{action} ({appt_type})", f"{rel_prefix}{filename}"))
+            print(f"  ✅ SIU^{action}: {rel_prefix}{filename}")
+    
+    # Generate VXU messages
+    if num_vxu > 0:
+        print("\n📋 Generating VXU Messages...")
+        for i in range(num_vxu):
+            message, msg_id, manufacturer, lot = generate_vxu_message()
+            filename = f"vxu_{i+1:03d}.hl7"
+            dir_path, rel_prefix = get_random_path()
+            filepath = f"{dir_path}/{filename}"
+            
+            with open(filepath, "w") as f:
+                f.write(message)
+            
+            generated_files.append(("VXU", f"{manufacturer}", f"{rel_prefix}{filename}"))
+            print(f"  ✅ VXU^V04 ({manufacturer}): {rel_prefix}{filename}")
+    
+    print(f"\n🎉 Generated {len(generated_files)} HL7v2 messages!")
+    print(f"📁 Output directory: {output_path}")
+    if use_nested_dirs:
+        print(f"📂 Subdirectories: {', '.join(subdirs)}")
+    
+    return generated_files
+
+
+# =============================================================================
 # CLI Entry Point
 # =============================================================================
 
@@ -537,7 +750,7 @@ def main():
     
     args = parser.parse_args()
     
-    print(f"\nGenerating {args.count} HL7v2 messages...")
+    print(f"\n🏥 Generating {args.count} HL7v2 messages...")
     
     generator = HL7v2Generator(seed=args.seed)
     messages = generator.generate_batch(count=args.count, message_types=args.types)
@@ -549,8 +762,107 @@ def main():
     )
     
     print_summary(messages, files)
-    print(f"\nOutput directory: {args.output}")
+    print(f"\n📁 Output directory: {args.output}")
+
+
+# =============================================================================
+# Generate All (uses module-level config)
+# =============================================================================
+
+def generate_all(
+    output_path: str = None,
+    num_adt: int = None,
+    num_orm: int = None,
+    num_oru: int = None,
+    num_siu: int = None,
+    num_vxu: int = None,
+    use_nested_dirs: bool = None,
+    subdirs: List[str] = None
+) -> List[Tuple[str, str, str]]:
+    """
+    Generate all HL7v2 messages using module-level config or overrides.
+    
+    This is the simplest way to generate messages - just call generate_all()
+    after editing the config values at the top of this file.
+    
+    Args:
+        output_path: Override for HL7_PATH config
+        num_adt: Override for NUM_ADT_MESSAGES
+        num_orm: Override for NUM_ORM_MESSAGES  
+        num_oru: Override for NUM_ORU_MESSAGES
+        num_siu: Override for NUM_SIU_MESSAGES
+        num_vxu: Override for NUM_VXU_MESSAGES
+        use_nested_dirs: If True, distribute files across subdirectories
+        subdirs: List of subdirectory names (default: ["incoming", "batch_001", "batch_002", "archive"])
+    
+    Returns:
+        List of (message_type, event/control, filename) tuples
+    """
+    # Use config values if not overridden
+    path = output_path or HL7_PATH
+    adt_count = num_adt if num_adt is not None else NUM_ADT_MESSAGES
+    orm_count = num_orm if num_orm is not None else NUM_ORM_MESSAGES
+    oru_count = num_oru if num_oru is not None else NUM_ORU_MESSAGES
+    siu_count = num_siu if num_siu is not None else NUM_SIU_MESSAGES
+    vxu_count = num_vxu if num_vxu is not None else NUM_VXU_MESSAGES
+    nested = use_nested_dirs if use_nested_dirs is not None else USE_NESTED_DIRS
+    dirs = subdirs if subdirs is not None else SUBDIRS
+    
+    print(f"📍 Output Path: {path}")
+    print(f"📊 Message counts: ADT={adt_count}, ORM={orm_count}, ORU={oru_count}, SIU={siu_count}, VXU={vxu_count}")
+    if nested:
+        print(f"📂 Nested directories: ENABLED")
+    print()
+    
+    return generate_messages_notebook_style(
+        output_path=path,
+        num_adt=adt_count,
+        num_orm=orm_count,
+        num_oru=oru_count,
+        num_siu=siu_count,
+        num_vxu=vxu_count,
+        use_nested_dirs=nested,
+        subdirs=dirs
+    )
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    # If arguments provided, use CLI mode; otherwise use config defaults
+    if len(sys.argv) > 1:
+        main()
+    else:
+        print("🏥 HL7v2 Message Generator")
+        print("=" * 50)
+        generate_all()
+
+
+# =============================================================================
+# NOTEBOOK USAGE
+# =============================================================================
+#
+# Cell 1: Configuration (edit these values)
+# -----------------------------------------
+# # UC Volume Configuration
+# CATALOG = "main"
+# SCHEMA = "default"  
+# VOLUME = "healthcare_data"
+#
+# VOLUME_PATH = f"/Volumes/{CATALOG}/{SCHEMA}/{VOLUME}"
+# HL7_PATH = f"{VOLUME_PATH}/hl7v2"
+#
+# # Number of messages to generate per type
+# NUM_ADT_MESSAGES = 100
+# NUM_ORM_MESSAGES = 100
+# NUM_ORU_MESSAGES = 100
+#
+# print(f"Output Path: {HL7_PATH}")
+#
+# Cell 2: Generate Messages
+# -------------------------
+# from hl7v2_faker import generate_all
+# generate_all()  # Uses config from Cell 1
+#
+# OR with overrides:
+# generate_all(output_path="/Volumes/my/path", num_adt=50, num_oru=50)
+#

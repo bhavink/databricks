@@ -12,9 +12,17 @@ __pycache__/
 dist/
 build/
 
-# Test configuration with credentials - NEVER commit
+# Credentials and secrets - NEVER commit
 **/configs/dev_config.json
 **/configs/*.json
+.env
+.env.*
+*.pem
+*.key
+.databrickscfg
+credentials.json
+secrets.json
+*_token.txt
 
 # IDE
 .idea/

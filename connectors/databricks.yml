@@ -1,0 +1,104 @@
+# Databricks Asset Bundle Configuration
+# =====================================
+#
+# Usage:
+#   databricks bundle deploy -t dev                            # Deploy to dev
+#   databricks bundle run healthcare_hl7v2_pipeline -t dev     # Run pipeline
+#   databricks bundle deploy -t prod                           # Deploy to production
+
+bundle:
+  name: healthcare_hl7v2_connector
+
+variables:
+  catalog:
+    description: Unity Catalog name
+    default: main
+  schema:
+    description: Schema name for pipeline tables
+    default: healthcare
+  volume:
+    description: Volume name for raw data
+    default: raw_data
+  workspace_root:
+    description: Workspace path for pipeline code
+    default: /Workspace/Users/${workspace.current_user.userName}
+
+resources:
+  pipelines:
+    healthcare_hl7v2_pipeline:
+      name: "Healthcare HL7v2 Ingestion - ${bundle.target}"
+      catalog: ${var.catalog}
+      target: ${var.schema}
+      
+      # Serverless by default - SDP handles compute automatically
+      serverless: true
+      photon: true
+      channel: CURRENT
+      
+      libraries:
+        - file:
+            path: ./pipelines/healthcare_ingestion/transformations/bronze_hl7v2.py
+      
+      configuration:
+        # === Source Configuration ===
+        healthcare.storage_path: "/Volumes/${var.catalog}/${var.schema}/${var.volume}/hl7v2"
+        healthcare.file_pattern: "*.hl7"
+        healthcare.max_files_per_trigger: "1000"
+        healthcare.max_bytes_per_trigger: "10g"
+
+        # === Data Quality (SDP handles automatically) ===
+        healthcare.quality.error_handling: "quarantine"
+        healthcare.quality.enable_expectations: "true"
+        healthcare.quality.quarantine_invalid_records: "true"
+
+        # === Liquid Clustering (SDP auto-optimizes) ===
+        healthcare.clustering.enabled: "true"
+        healthcare.clustering.raw.columns: "message_type,_ingestion_timestamp"
+        healthcare.clustering.adt.columns: "patient_id,message_datetime"
+        healthcare.clustering.orm.columns: "patient_id,order_datetime"
+        healthcare.clustering.oru.columns: "patient_id,message_datetime"
+        healthcare.clustering.oru_observations.columns: "patient_id,observation_datetime"
+        healthcare.clustering.siu.columns: "patient_id,appointment_start_datetime"
+        healthcare.clustering.siu_resources.columns: "message_control_id,resource_type"
+        healthcare.clustering.vxu.columns: "patient_id,message_datetime"
+        healthcare.clustering.vxu_vaccinations.columns: "patient_id,administration_datetime"
+        healthcare.clustering.quarantine.columns: "message_type,_ingestion_timestamp"
+
+        # === Auto-Optimization (SDP handles automatically) ===
+        healthcare.optimization.auto_optimize: "true"
+        healthcare.optimization.optimize_write: "true"
+        healthcare.optimization.auto_compact: "true"
+
+        # === Feature Flags ===
+        healthcare.features.parse_composite_fields: "true"
+        healthcare.features.flatten_observations: "true"
+        healthcare.features.flatten_vaccinations: "true"
+        healthcare.features.flatten_resources: "true"
+
+# Environment-specific targets
+targets:
+  # Development (default)
+  dev:
+    mode: development
+    default: true
+    variables:
+      catalog: main
+      schema: healthcare_dev
+    resources:
+      pipelines:
+        healthcare_hl7v2_pipeline:
+          development: true
+          continuous: false
+
+  # Production
+  prod:
+    mode: production
+    variables:
+      catalog: main
+      schema: healthcare_prod
+    resources:
+      pipelines:
+        healthcare_hl7v2_pipeline:
+          name: "Healthcare HL7v2 Ingestion - PROD"
+          development: false
+          continuous: true  # Always running for real-time ingestion

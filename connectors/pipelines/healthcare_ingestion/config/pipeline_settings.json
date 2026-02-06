@@ -1,0 +1,76 @@
+{
+  "name": "Healthcare HL7v2 Ingestion",
+  "catalog": "main",
+  "schema": "healthcare",
+  "development": true,
+  "continuous": false,
+  "channel": "CURRENT",
+  "photon": true,
+  "serverless": true,
+  "libraries": [
+    {
+      "file": {
+        "path": "/Workspace/Users/${workspace.current_user.userName}/healthcare_ingestion/transformations/bronze_hl7v2.py"
+      }
+    }
+  ],
+  "configuration": {
+    "_comment": "=== Source Configuration ===",
+    "healthcare.storage_path": "/Volumes/main/healthcare/raw_data/hl7v2",
+    "healthcare.file_pattern": "*.hl7",
+    "healthcare.max_files_per_trigger": "1000",
+    "healthcare.max_bytes_per_trigger": "10g",
+
+    "_comment_quality": "=== Data Quality Configuration ===",
+    "healthcare.quality.error_handling": "quarantine",
+    "healthcare.quality.enable_expectations": "true",
+    "healthcare.quality.quarantine_invalid_records": "true",
+
+    "_comment_clustering": "=== Liquid Clustering Configuration ===",
+    "healthcare.clustering.enabled": "true",
+    "healthcare.clustering.raw.columns": "message_type,_ingestion_timestamp",
+    "healthcare.clustering.adt.columns": "patient_id,message_datetime",
+    "healthcare.clustering.orm.columns": "patient_id,order_datetime",
+    "healthcare.clustering.oru.columns": "patient_id,message_datetime",
+    "healthcare.clustering.oru_observations.columns": "patient_id,observation_datetime",
+    "healthcare.clustering.siu.columns": "patient_id,appointment_start_datetime",
+    "healthcare.clustering.siu_resources.columns": "message_control_id,resource_type",
+    "healthcare.clustering.vxu.columns": "patient_id,message_datetime",
+    "healthcare.clustering.vxu_vaccinations.columns": "patient_id,administration_datetime",
+    "healthcare.clustering.quarantine.columns": "message_type,_ingestion_timestamp",
+
+    "_comment_optimization": "=== Auto-Optimization Configuration ===",
+    "healthcare.optimization.auto_optimize": "true",
+    "healthcare.optimization.optimize_write": "true",
+    "healthcare.optimization.auto_compact": "true",
+    "healthcare.optimization.predictive_optimization": "true",
+
+    "_comment_features": "=== Feature Flags ===",
+    "healthcare.features.parse_composite_fields": "true",
+    "healthcare.features.flatten_observations": "true",
+    "healthcare.features.flatten_vaccinations": "true",
+    "healthcare.features.flatten_resources": "true",
+
+    "_comment_tables": "=== Table Enable/Disable ===",
+    "healthcare.tables.raw.enabled": "true",
+    "healthcare.tables.quarantine.enabled": "true",
+    "healthcare.tables.adt.enabled": "true",
+    "healthcare.tables.orm.enabled": "true",
+    "healthcare.tables.oru.enabled": "true",
+    "healthcare.tables.oru_observations.enabled": "true",
+    "healthcare.tables.siu.enabled": "true",
+    "healthcare.tables.siu_resources.enabled": "true",
+    "healthcare.tables.vxu.enabled": "true",
+    "healthcare.tables.vxu_vaccinations.enabled": "true"
+  },
+  "clusters": [
+    {
+      "label": "default",
+      "autoscale": {
+        "min_workers": 1,
+        "max_workers": 4,
+        "mode": "ENHANCED"
+      }
+    }
+  ]
+}
