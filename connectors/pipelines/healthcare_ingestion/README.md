@@ -1,6 +1,6 @@
 # Healthcare HL7v2 Ingestion Pipeline
 
-This pipeline ingests HL7v2 messages from UC Volumes using the Healthcare Lakeflow Connector.
+Spark Declarative Pipeline (SDP) for ingesting HL7v2 messages from UC Volumes.
 
 ## Architecture
 
@@ -9,84 +9,208 @@ UC Volumes (HL7v2 files)
         │
         ▼
 ┌───────────────────────────────────────┐
-│  Healthcare Connector (~95% coverage) │
-│  - Batch file support (multi-message) │
-│  - Error handling (skip/fail/dlq)     │
-│  - Checkpointing                      │
+│     Bronze Layer (~95% coverage)      │
+│  - Single transformation file         │
+│  - Uses pyspark.pipelines API         │
+│  - Imports from utilities/ folder     │
 └───────────────────────────────────────┘
         │
         ├──► bronze_hl7v2_adt (ADT messages ~40%)
         ├──► bronze_hl7v2_orm (ORM messages ~15%)
         ├──► bronze_hl7v2_oru (ORU messages ~30%)
+        │      └──► bronze_hl7v2_oru_observations (flattened)
         ├──► bronze_hl7v2_siu (SIU messages ~8%)
+        │      └──► bronze_hl7v2_siu_resources (flattened)
         └──► bronze_hl7v2_vxu (VXU messages ~2%)
+               └──► bronze_hl7v2_vxu_vaccinations (flattened)
 ```
 
 ## Folder Structure
 
 ```
 healthcare_ingestion/
-├── README.md                           # This file
-├── explorations/                       # Ad-hoc exploration notebooks
+├── README.md                          # This file
+├── explorations/                      # Ad-hoc exploration notebooks
+│   └── explore_hl7v2_data.py
 ├── transformations/
-│   ├── bronze_hl7v2_adt.py            # ADT messages
-│   ├── bronze_hl7v2_orm.py            # ORM messages
-│   ├── bronze_hl7v2_oru.py            # ORU messages + observations
-│   ├── bronze_hl7v2_siu.py            # SIU messages + resources
-│   ├── bronze_hl7v2_vxu.py            # VXU messages + vaccinations
-│   └── bronze_hl7v2_all.py            # Alternative: All types in one file
+│   └── bronze_hl7v2.py               # SINGLE file for all HL7v2 types
 └── utilities/
-    ├── __init__.py
-    └── healthcare_connector.py         # Lakeflow Connect implementation
+    ├── __init__.py                   # Package marker
+    └── hl7v2_schemas.py              # PySpark schema definitions
 ```
 
-**IMPORTANT:** After uploading, update `PIPELINE_ROOT` in each transformation notebook to match your workspace path:
+**Note:** All files are pure Python (`.py`), no notebooks required. The parsing logic is inlined in the UDF within `bronze_hl7v2.py` because executors cannot access workspace file imports.
+
+## Key Design Patterns
+
+### 1. Workspace Files Import Pattern
+
+Add the pipeline workspace path to `sys.path`, then import from utilities:
 
 ```python
-PIPELINE_ROOT = "/Workspace/Users/<your-email>/hl7-processor-ldp"
+import sys
+sys.path.append("/Workspace/Users/<email>/healthcare_ingestion")
+
+from utilities.hl7v2_schemas import SCHEMAS, MESSAGE_TYPES
 ```
 
-## Configuration
+Reference: [Import Python modules from workspace files](https://learn.microsoft.com/en-us/azure/databricks/ldp/import-workspace-files)
 
-Set these parameters in your pipeline configuration:
+### 2. Pipeline Configuration
 
-| Parameter | Description | Example |
+Use `spark.conf.get()` at module level to read pipeline settings:
+
+```python
+STORAGE_PATH = spark.conf.get("healthcare.storage_path", "/Volumes/main/default/healthcare_data/hl7v2")
+FILE_PATTERN = spark.conf.get("healthcare.file_pattern", "*.hl7")
+```
+
+### 3. Auto Loader for Streaming Ingestion
+
+Use `cloudFiles` format for incremental file processing:
+
+```python
+raw_files = (
+    spark.readStream.format("cloudFiles")
+    .option("cloudFiles.format", "text")
+    .option("wholetext", "true")
+    .option("pathGlobFilter", FILE_PATTERN)
+    .load(STORAGE_PATH)
+)
+```
+
+### 4. UDF Registration Pattern
+
+Define functions, then register as UDFs with explicit schemas:
+
+```python
+def parse_hl7v2_message(msg: str):
+    # parsing logic
+    return result
+
+parse_hl7v2_udf = udf(parse_hl7v2_message, StructType([
+    StructField("message_control_id", StringType()),
+    StructField("message_type", StringType()),
+    # ...
+]))
+```
+
+### 5. DLT Table Decorators
+
+```python
+@dlt.table(
+    name="bronze_hl7v2_adt",
+    comment="Bronze layer for HL7v2 ADT messages",
+    table_properties={"quality": "bronze"},
+)
+@dlt.expect_or_drop("valid_message_type", "message_type = 'ADT'")
+@dlt.expect_or_drop("has_control_id", "message_control_id IS NOT NULL")
+def bronze_hl7v2_adt():
+    # ...
+```
+
+### 6. Reading Other Pipeline Tables
+
+Use `dlt.read()` to read tables within the same pipeline:
+
+```python
+@dlt.table(name="bronze_hl7v2_oru_observations")
+def bronze_hl7v2_oru_observations():
+    return (
+        dlt.read("bronze_hl7v2_oru")
+        .filter(col("observations").isNotNull())
+        .select(explode(col("observations")).alias("obs"))
+        # ...
+    )
+```
+
+### 7. Pipeline Mode (Triggered vs Continuous)
+
+| Mode | Use Case | Configuration |
+|------|----------|---------------|
+| **Triggered** | Development, batch processing | `"continuous": false` |
+| **Continuous** | Production, near-real-time | `"continuous": true` |
+
+Reference: [Triggered vs. continuous pipeline mode](https://learn.microsoft.com/en-us/azure/databricks/ldp/pipeline-mode)
+
+## Development Workflow
+
+### 1. Local Development (Cursor IDE)
+
+Edit files locally in your IDE:
+```
+healthcare_ingestion/
+├── transformations/bronze_hl7v2.py
+└── utilities/
+    ├── hl7v2_schemas.py
+    └── hl7v2_parser.py
+```
+
+### 2. Sync to Workspace
+
+Use Databricks CLI to sync files to your workspace:
+
+```bash
+# One-time sync
+databricks sync ./healthcare_ingestion /Workspace/Users/<email>/healthcare_ingestion
+
+# Continuous sync during development
+databricks sync --watch ./healthcare_ingestion /Workspace/Users/<email>/healthcare_ingestion
+```
+
+### 3. Create Pipeline
+
+In Databricks UI, create a new pipeline:
+
+**Pipeline Settings:**
+```json
+{
+  "name": "healthcare_hl7v2_bronze",
+  "target": "main.healthcare",
+  "development": true,
+  "continuous": false,
+  "channel": "CURRENT",
+  "libraries": [
+    {
+      "file": {
+        "path": "/Workspace/Users/<email>/healthcare_ingestion/transformations/bronze_hl7v2.py"
+      }
+    }
+  ],
+  "configuration": {
+    "healthcare.storage_path": "/Volumes/main/default/healthcare_data/hl7v2",
+    "healthcare.file_pattern": "*.hl7",
+    "healthcare.error_handling": "skip",
+    "healthcare.batch_size": "1000"
+  }
+}
+```
+
+### 4. Production Pipeline
+
+For production, update the pipeline configuration:
+
+```json
+{
+  "name": "healthcare_hl7v2_bronze_prod",
+  "development": false,
+  "continuous": true,
+  ...
+}
+```
+
+## Configuration Parameters
+
+| Parameter | Description | Default |
 |-----------|-------------|---------|
-| `hl7v2_source_path` | UC Volume path to HL7v2 files | `/Volumes/main/default/healthcare_data/hl7v2` |
-| `file_pattern` | Glob pattern for files | `*.hl7` |
-| `batch_size` | Files per micro-batch | `1000` |
-| `error_handling` | How to handle errors | `skip` / `fail` / `dead_letter` |
-| `dead_letter_path` | Path for failed records | `/Volumes/main/default/healthcare_data/dlq` |
+| `healthcare.storage_path` | UC Volume path to HL7v2 files | `/Volumes/main/default/healthcare_data/hl7v2` |
+| `healthcare.file_pattern` | Glob pattern for files | `*.hl7` |
+| `healthcare.batch_size` | Files per micro-batch | `1000` |
+| `healthcare.error_handling` | Error handling mode | `skip` |
 
-## Usage
+## Tables Created
 
-### Create DLT Pipeline
-
-1. Go to **Workflows** → **Delta Live Tables** → **Create Pipeline**
-2. Configure:
-   ```
-   Name: healthcare_hl7v2_ingestion
-   Source: /Workspace/Users/<you>/healthcare_ingestion/transformations/bronze_hl7v2_all.py
-   Target: main.default (or your catalog.schema)
-   
-   Configuration:
-     healthcare.storage_path: /Volumes/main/default/healthcare_data/hl7v2
-     healthcare.file_pattern: *.hl7
-     healthcare.error_handling: skip
-     healthcare.batch_size: 1000
-   ```
-3. Click **Start**
-
-### Tables Created
-
-The pipeline creates 8 bronze tables:
-- `bronze_hl7v2_adt` - ADT messages
-- `bronze_hl7v2_orm` - ORM messages
-- `bronze_hl7v2_oru` - ORU messages + `bronze_hl7v2_oru_observations` (flattened)
-- `bronze_hl7v2_siu` - SIU messages + `bronze_hl7v2_siu_resources` (flattened)
-- `bronze_hl7v2_vxu` - VXU messages + `bronze_hl7v2_vxu_vaccinations` (flattened)
-
-## Message Types
+### Primary Tables (5)
 
 | Table | HL7v2 Type | Description | Coverage |
 |-------|------------|-------------|----------|
@@ -98,7 +222,7 @@ The pipeline creates 8 bronze tables:
 
 **Total Coverage: ~95% of typical hospital HL7v2 traffic**
 
-### Flattened Tables
+### Flattened Tables (3)
 
 | Table | Source | Description |
 |-------|--------|-------------|
@@ -106,200 +230,64 @@ The pipeline creates 8 bronze tables:
 | `bronze_hl7v2_siu_resources` | SIU | One row per appointment resource |
 | `bronze_hl7v2_vxu_vaccinations` | VXU | One row per vaccination |
 
-## Error Handling
+## Data Quality Expectations
 
-- **skip**: Log errors, continue processing valid records
-- **fail**: Stop pipeline on first error
-- **dead_letter**: Write failed records to DLQ path for review
-
-## Incremental Processing
-
-The pipeline uses offset-based checkpointing:
-- Tracks `last_file` processed
-- Tracks list of `processed_files`
-- Resumes from last checkpoint on restart
-
----
-
-## DLT Best Practices Applied
-
-This pipeline follows Spark Declarative Pipeline best practices:
-
-### What Works
-
-| Pattern | Usage |
-|---------|-------|
-| Auto Loader (`cloudFiles`) | Streaming file ingestion with `wholetext=true` |
-| `_metadata.file_path` | Unity Catalog compatible source tracking |
-| UDFs → `MapType` | Parsing returns key-value pairs |
-| `from_json()` | Parse nested structures (observations, vaccinations) |
-| `explode()` | Flatten arrays to rows |
-| `spark.read.table()` | Read upstream tables (not `dlt.read()`) |
-
-### What Doesn't Work (Avoided)
-
-| Anti-Pattern | Alternative |
-|--------------|-------------|
-| `%run` magic | Import from `.py` files |
-| `.collect()` | Pure DataFrame transformations |
-| `input_file_name()` | `_metadata.file_path` |
-| `dlt.read()` | `spark.read.table("catalog.schema.table")` |
-| Notebooks as modules | Pure `.py` files in utilities |
-
-### File Types
-
-- **transformations/*.py** - Pure Python, no magic commands
-- **utilities/*.py** - Python modules (NOT notebooks)
-
-### Nested Structure Pattern
+All primary tables include these expectations:
 
 ```python
-# In UDF: Serialize nested arrays to JSON string
-result["observations"] = json.dumps(result["observations"])
-
-# In DataFrame: Parse back to structured array
-.withColumn("observations", from_json(col("parsed.observations"), schema))
+@dp.expect_or_drop("valid_message_type", f"message_type = '{msg_type}'")
+@dp.expect_or_drop("has_control_id", "message_control_id IS NOT NULL")
 ```
 
----
+## Pure Python Files
 
-## Extending to Other Message Formats
+DLT/SDP uses pure Python files (`.py`), not notebooks. Key considerations:
 
-To add support for new message types (e.g., CCDA, X12):
+1. **`spark` is available at module level**: DLT runtime injects `spark` before executing
+2. **`dlt` module available**: Import with `import dlt`
+3. **UDF logic must be inlined**: Executors cannot access workspace file imports
+4. **No magic commands**: No `%run`, `%pip`, `display()`, etc.
+5. **Driver-side imports work**: Schema imports from `utilities/` work on the driver
 
-1. Create parser in `utilities/` as `.py` file
-2. Define schema for message type
-3. Create transformation with Auto Loader + UDF pattern
-4. Handle nested structures with JSON serialization
-5. Add expectations for data quality
+## Extending the Pipeline
 
----
+### Adding New Message Types
 
-## Streaming Sources Support
-
-This pipeline can be adapted for event streaming sources:
-
-### Files vs Streaming Comparison
-
-| Aspect | Current (Files) | Streaming (Kafka/EventHub) |
-|--------|-----------------|---------------------------|
-| Source | Auto Loader (`cloudFiles`) | `kafka` format |
-| Batch Splitting | Required (`split_hl7_batch`) | Not needed |
-| Metadata | `_metadata.file_path` | `offset`, `partition`, `timestamp` |
-| Latency | Minutes | Seconds |
-
-### Adapting for Kafka/Event Hubs
-
+1. Add schema to `utilities/hl7v2_schemas.py`:
 ```python
-# Replace Auto Loader with Kafka
-raw_stream = spark.readStream.format("kafka") \
-    .option("kafka.bootstrap.servers", SERVERS) \
-    .option("subscribe", TOPIC) \
-    .load()
-
-# No batch splitting needed - direct parsing
-return raw_stream \
-    .withColumn("parsed", parse_hl7_udf(col("value").cast("string"))) \
-    .select(col("parsed.*"), col("offset"), col("partition"))
+SCHEMAS["MDM"] = StructType([
+    StructField("message_control_id", StringType(), nullable=False),
+    # ... add fields
+])
 ```
 
-### AWS Kinesis (Recommended Pattern)
+2. Add `"MDM"` to `MESSAGE_TYPES` list in `hl7v2_schemas.py`
 
-Use Kinesis → Firehose → S3, then Auto Loader:
-
+3. Add parsing logic to the inlined UDF in `bronze_hl7v2.py`:
 ```python
-# Firehose writes one message per line - no splitting needed
-raw_stream = spark.readStream.format("cloudFiles") \
-    .option("cloudFiles.format", "text") \
-    .option("cloudFiles.useNotifications", "true") \
-    .load(S3_KINESIS_PATH)
+elif mt == "MDM":
+    # Parse MDM-specific segments (TXA, OBX, etc.)
+    for line in lines:
+        if line.startswith("TXA"):
+            # ...
 ```
 
-### When to Use Each
+4. The for loop will automatically create `bronze_hl7v2_mdm` table.
 
-| Source | Use When |
-|--------|----------|
-| **Auto Loader** | Files in storage, batch OK, simplest |
-| **Kafka** | Low-latency, existing Kafka infra |
-| **Event Hubs** | Azure cloud, managed service |
-| **Kinesis** | AWS cloud - use Firehose → S3 pattern |
+### Adding Silver/Gold Layers
 
----
-
-## Making This a Reusable Asset
-
-### From Project to Product
-
-To share this parser across multiple pipelines/workspaces:
-
-**Current (Project-Specific):**
+Create additional transformation files in `transformations/`:
 ```
-/hl7-processor-ldp/
-├── transformations/
-│   └── bronze_hl7v2_adt.py  # Imports from local utilities/
-└── utilities/
-    └── hl7v2_parser.py      # Tightly coupled
+transformations/
+├── bronze_hl7v2.py          # Bronze layer
+├── silver_hl7v2.py          # Silver layer (cleaned, deduplicated)
+└── gold_hl7v2.py            # Gold layer (aggregated, business logic)
 ```
 
-**Reusable (Product):**
-```
-Unity Catalog Volume:
-/Volumes/shared/libraries/hl7_parser/
-└── hl7_parser-1.0.0-py3-none-any.whl
+## References
 
-Any Pipeline:
-├── transformations/
-│   └── bronze_hl7v2_adt.py  # Imports from installed package
-```
-
-### Steps to Package
-
-1. **Create package structure:**
-```
-hl7_parser/
-├── setup.py
-├── hl7_parser/
-│   ├── __init__.py
-│   ├── parser.py      # Core parsing (pure Python)
-│   ├── schemas.py     # Spark schemas
-│   └── spark_utils.py # UDF wrappers
-└── tests/
-```
-
-2. **Build wheel:**
-```bash
-python setup.py bdist_wheel
-# Output: dist/hl7_parser-1.0.0-py3-none-any.whl
-```
-
-3. **Upload to UC Volume:**
-```bash
-databricks fs cp dist/hl7_parser-1.0.0-py3-none-any.whl \
-    dbfs:/Volumes/shared/libraries/hl7_parser/hl7_parser-1.0.0-py3-none-any.whl
-```
-
-### Installation in Pipelines
-
-**Option 1: Pipeline libraries (Recommended)**
-```json
-{
-  "libraries": [
-    {"whl": "/Volumes/shared/libraries/hl7_parser/hl7_parser-1.0.0-py3-none-any.whl"}
-  ]
-}
-```
-
-**Option 2: %pip**
-```python
-%pip install /Volumes/shared/libraries/hl7_parser/hl7_parser-1.0.0-py3-none-any.whl
-from hl7_parser import split_hl7_batch, parse_hl7v2_message
-```
-
-### Version Management
-
-```
-/Volumes/shared/libraries/hl7_parser/
-├── hl7_parser-1.0.0-py3-none-any.whl
-├── hl7_parser-1.1.0-py3-none-any.whl  # New features
-└── hl7_parser-2.0.0-py3-none-any.whl  # Breaking changes
-```
+- [Spark Declarative Pipelines Overview](https://learn.microsoft.com/en-us/azure/databricks/ldp/)
+- [Develop pipeline code with Python](https://learn.microsoft.com/en-us/azure/databricks/ldp/developer/python-dev)
+- [Import Python modules from workspace files](https://learn.microsoft.com/en-us/azure/databricks/ldp/import-workspace-files)
+- [Manage Python dependencies](https://learn.microsoft.com/en-us/azure/databricks/ldp/developer/external-dependencies)
+- [Triggered vs. continuous pipeline mode](https://learn.microsoft.com/en-us/azure/databricks/ldp/pipeline-mode)
