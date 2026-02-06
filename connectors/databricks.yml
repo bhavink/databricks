@@ -28,7 +28,7 @@ resources:
     healthcare_hl7v2_pipeline:
       name: "Healthcare HL7v2 Ingestion - ${bundle.target}"
       catalog: ${var.catalog}
-      target: ${var.schema}
+      schema: ${var.schema}
       
       # Serverless by default - SDP handles compute automatically
       serverless: true
