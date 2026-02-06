@@ -1,382 +1,352 @@
-# Lakeflow Community Connectors - Generic Design Document
+# Lakeflow Community Connectors - Design Document
 
-> **Version**: 1.0  
-> **Created**: 2026-02-02  
-> **Applies to**: All connectors in this repository
+> **Version**: 2.0  
+> **Updated**: 2026-02-03  
 
 ---
 
 ## 1. Overview
 
-This document defines the **generic design patterns, workflows, and standards** that apply to ALL Lakeflow Community Connectors built in this repository. Each connector will have its own specific design document that references this generic design.
-
-### References
-
-- [Lakeflow Community Connectors (upstream)](https://github.com/databrickslabs/lakeflow-community-connectors)
-- [Lakeflow Connect Documentation](https://docs.databricks.com/aws/en/ingestion/lakeflow-connect/)
-- [SDP Python Reference](https://docs.databricks.com/aws/en/ldp/developer/python-ref)
+This repository contains custom Lakeflow Community Connectors built on the [upstream framework](https://github.com/databrickslabs/lakeflow-community-connectors).
 
 ---
 
-## 2. Connector Development Workflow
+## 2. LakeflowConnect Interface
 
-### 2.1 Mandatory Planning Session
-
-**Before writing any code**, every connector MUST go through a planning session:
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         PLANNING SESSION                                │
-│                                                                         │
-│  1. Define the problem                                                  │
-│     - What data source are we connecting to?                           │
-│     - What are the real-world use cases?                               │
-│     - Who are the target users?                                        │
-│                                                                         │
-│  2. Challenge assumptions                                               │
-│     - Does this connector already exist?                               │
-│     - Is Lakeflow Connect the right pattern for this source?           │
-│     - What are the alternatives?                                       │
-│                                                                         │
-│  3. Define scope                                                        │
-│     - Which tables/resources are in scope for v1?                      │
-│     - What ingestion types are needed (cdc, append, snapshot)?         │
-│     - What auth methods must be supported?                             │
-│                                                                         │
-│  4. Identify risks                                                      │
-│     - API rate limits?                                                 │
-│     - Authentication complexity?                                       │
-│     - Schema variability?                                              │
-│     - Data volume concerns?                                            │
-│                                                                         │
-│  5. Acceptance criteria                                                 │
-│     - What does "done" look like?                                      │
-│     - How will we test?                                                │
-│     - What's the MVP?                                                  │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-### 2.2 Development Phases
-
-Per [upstream workflow](https://github.com/databrickslabs/lakeflow-community-connectors#developing-new-connectors):
-
-| Phase | Skill | Output | Description |
-|-------|-------|--------|-------------|
-| **0** | `planning-session` | `{connector}/DESIGN.md` | Planning, questions, scope definition |
-| **1** | `understand-source` | `{connector}_api_doc.md` | Research and document source API |
-| **2** | `implement-connector` | `lakeflow_connect.py` | Implement LakeflowConnect interface |
-| **3** | `test-connector` | `test/test_{connector}_lakeflow_connect.py` | Test against real source |
-| **4** | `create-documentation` | `README.md` | User-facing documentation |
-
----
-
-## 3. LakeflowConnect Interface
-
-All connectors MUST implement this interface from [upstream](https://github.com/databrickslabs/lakeflow-community-connectors/blob/master/sources/interface/lakeflow_connect.py):
+All connectors implement this interface:
 
 ```python
 class LakeflowConnect:
-    def __init__(self, options: dict[str, str]) -> None:
-        """Initialize with connection parameters (auth tokens, configs, etc.)"""
-
-    def list_tables(self) -> list[str]:
-        """Return names of all tables supported by this connector."""
-
-    def get_table_schema(self, table_name: str, table_options: dict[str, str]) -> StructType:
-        """Return the Spark schema for a table."""
-
-    def read_table_metadata(self, table_name: str, table_options: dict[str, str]) -> dict:
-        """Return metadata: primary_keys, cursor_field, ingestion_type."""
-
-    def read_table(self, table_name: str, start_offset: dict, table_options: dict[str, str]) -> (Iterator[dict], dict):
-        """Yield records as JSON dicts and return the next offset."""
-
-    def read_table_deletes(self, table_name: str, start_offset: dict, table_options: dict[str, str]) -> (Iterator[dict], dict):
-        """Optional: Yield deleted records. Required if ingestion_type is 'cdc_with_deletes'."""
+    def __init__(self, options: dict) -> None
+    def list_tables(self) -> list[str]
+    def get_table_schema(self, table_name, table_options) -> StructType
+    def read_table_metadata(self, table_name, table_options) -> dict
+    def read_table(self, table_name, start_offset, table_options) -> (Iterator, dict)
 ```
 
-### 3.1 Ingestion Types
+### Ingestion Types
 
-| Type | Description | Required Fields |
-|------|-------------|-----------------|
-| `snapshot` | Full table reload each time | `primary_keys` |
-| `cdc` | Incremental with upserts only | `primary_keys`, `cursor_field` |
-| `cdc_with_deletes` | Incremental with upserts AND deletes | `primary_keys`, `cursor_field`, implement `read_table_deletes()` |
-| `append` | Incremental append-only | `cursor_field` |
+| Type | Description |
+|------|-------------|
+| `snapshot` | Full reload each time |
+| `cdc` | Incremental with upserts |
+| `append` | Incremental append-only |
 
 ---
 
-## 4. Implementation Rules
-
-Per [upstream implement_connector.md](https://github.com/databrickslabs/lakeflow-community-connectors/blob/master/prompts/implement_connector.md):
-
-### 4.1 Required Patterns
-
-| Rule | Rationale |
-|------|-----------|
-| Check `table_name` exists at start of each function | Fail fast with clear error |
-| Prefer `StructType` over `MapType` | Enforce explicit typing |
-| Use `LongType` over `IntegerType` | Avoid overflow |
-| Don't flatten nested JSON fields | Preserve structure |
-| Use `None` not `{}` for missing StructType fields | Consistent null handling |
-| No mock objects in implementation | Real data only |
-| No `main()` function | Only implement class methods |
-| If `cdc`/`cdc_with_deletes`: require `primary_keys` + `cursor_field` | SDP requirement |
-
-### 4.2 Prohibited Patterns
-
-| Pattern | Why |
-|---------|-----|
-| Hardcoded credentials | Security risk |
-| `print()` statements | Use logging |
-| Catching all exceptions silently | Hide errors |
-| Infinite loops without timeout | Resource exhaustion |
-| Schema conversion in `read_table()` | Return raw JSON |
-
----
-
-## 5. Directory Structure
-
-Per [upstream project structure](https://github.com/databrickslabs/lakeflow-community-connectors#project-structure):
-
-```
-connectors/                             # Root of connector development
-├── DESIGN.md                           # THIS FILE - Generic design
-├── WORKFLOW.md                         # Development workflow orchestration
-│
-├── skills/                             # Generic skills for all connectors
-│   ├── planning-session.md             # Phase 0: Planning
-│   ├── understand-source.md            # Phase 1: API research
-│   ├── implement-connector.md          # Phase 2: Implementation
-│   ├── test-connector.md               # Phase 3: Testing
-│   └── create-documentation.md         # Phase 4: Documentation
-│
-├── sources/                            # All connectors live here
-│   ├── interface/                      # Base interface (from upstream)
-│   │   ├── __init__.py
-│   │   ├── lakeflow_connect.py         # Base class - DO NOT MODIFY
-│   │   └── README.md
-│   │
-│   └── {connector}/                    # Each connector (e.g., healthcare/)
-│       ├── __init__.py
-│       ├── DESIGN.md                   # Connector-specific design
-│       ├── lakeflow_connect.py         # Main implementation (REQUIRED)
-│       ├── {connector}_api_doc.md      # API documentation (REQUIRED)
-│       ├── README.md                   # User documentation (REQUIRED)
-│       ├── test/
-│       │   └── test_{connector}_lakeflow_connect.py
-│       └── configs/
-│           └── dev_config.json         # Test config (DO NOT COMMIT)
-│
-├── libs/                               # Shared utilities
-│   └── __init__.py
-│
-├── tests/                              # Generic test suite helpers
-│   └── __init__.py
-│
-└── tools/                              # CLI and deployment
-    └── README.md
-```
-
-### Current Structure
+## 3. Project Structure
 
 ```
 connectors/
-├── DESIGN.md                           # ✅ Generic design (this file)
-├── WORKFLOW.md                         # ✅ Workflow orchestration
-├── pyproject.toml                      # ✅ Python packaging + pytest config
-├── .venv/                              # ✅ Virtual environment (not committed)
+├── DESIGN.md                    # This file
+├── WORKFLOW.md                  # Development workflow
+├── requirements.txt             # Python dependencies
+├── pyproject.toml               # Package config
 │
-├── skills/                             # ✅ Generic skills
-│   ├── planning-session.md
-│   ├── understand-source.md
-│   ├── implement-connector.md
-│   ├── test-connector.md
-│   └── create-documentation.md
+├── notebooks/                   # Databricks test notebooks
+│   ├── test_healthcare_connector.py
+│   ├── test_hl7v2_file_mode.py
+│   └── hl7v2_faker.py
 │
 ├── sources/
-│   ├── __init__.py
-│   ├── interface/                      # ✅ Base interface
-│   │   ├── __init__.py
-│   │   ├── lakeflow_connect.py
-│   │   └── README.md
+│   ├── interface/               # Base interface
+│   │   └── lakeflow_connect.py
 │   │
-│   └── healthcare/                     # 🚧 Healthcare connector (Phase 2)
-│       ├── __init__.py
-│       ├── DESIGN.md                   # ✅ Connector-specific design
-│       ├── healthcare_api_doc.md       # ✅ Phase 1 output
-│       ├── lakeflow_connect.py         # 🚧 Phase 2 implementation
-│       ├── test/
-│       │   ├── __init__.py
-│       │   └── test_healthcare_lakeflow_connect.py  # ✅ Tests
-│       └── configs/
-│           └── dev_config.json         # ✅ Test config (DO NOT COMMIT)
+│   └── healthcare/              # Healthcare connector
+│       ├── lakeflow_connect.py  # Main implementation
+│       ├── hl7v2_parser.py      # HL7v2 parser
+│       ├── DESIGN.md
+│       └── test/
 │
-├── libs/                               # ✅ Placeholder
-│   └── __init__.py
-├── tests/                              # ✅ Placeholder
-│   └── __init__.py
-└── tools/                              # ✅ Placeholder
-    └── README.md
+├── skills/                      # Development guides
+└── libs/                        # Shared utilities
 ```
-
-Legend: ✅ Complete | 🚧 In Progress | ⏳ Pending
 
 ---
 
-## 6. Testing Requirements
+## 4. Connectors
 
-Per [upstream testing requirements](https://github.com/databrickslabs/lakeflow-community-connectors#tests):
+| Connector | Status | Modes |
+|-----------|--------|-------|
+| `healthcare` | ✅ Ready | FHIR API, HL7v2 Files |
 
-### 6.1 Required Tests
+---
 
-| Test Type | Description | Required |
-|-----------|-------------|----------|
-| Generic test suite | Tests all interface methods against real source | **Yes** |
-| Unit tests | Tests for complex parsing/transformation logic | Recommended |
-| Write-back testing | Write → read → verify cycle | Optional |
-
-### 6.2 Environment Setup
-
-**ALWAYS use a virtual environment for Python-based development**:
+## 5. Development Setup
 
 ```bash
-# Create and activate virtual environment
+# Create venv
 cd connectors
 python -m venv .venv
-source .venv/bin/activate  # Linux/macOS
-# or: .venv\Scripts\activate  # Windows
-
-# Install in editable mode with dev dependencies
-pip install -e ".[dev]"
-```
-
-### 6.3 Test Execution
-
-```bash
-# Activate venv first
 source .venv/bin/activate
 
-# Run connector tests
-pytest sources/{connector}/test/test_{connector}_lakeflow_connect.py -v
+# Install dependencies
+pip install -r requirements.txt
 
-# Run with coverage
-pytest sources/{connector}/test/ --cov=sources/{connector} --cov-report=html
+# Run tests
+pytest sources/healthcare/test/ -v
 ```
 
-### 6.4 Test Configuration
+---
 
-- Create `sources/{connector}/configs/dev_config.json` for test credentials
-- **NEVER commit this file** - add to `.gitignore`
-- Remove after testing
+## 6. Testing in Databricks
 
-### 6.5 External Server Reliability
+1. Upload notebook from `notebooks/`
+2. Configure UC Volume path
+3. Run cells
 
-When testing against public APIs or third-party servers:
+**UC Volume Path**: `/Volumes/<catalog>/<schema>/<volume>/`
 
-| Issue | Impact | Mitigation |
-|-------|--------|------------|
-| Server temporarily unavailable | Tests fail unpredictably | Use `pytest.skip()` with clear message |
-| Rate limiting / 429 errors | Tests fail | Implement exponential backoff |
-| Server returns empty data | Tests may pass/fail | Skip gracefully, don't assert on data presence |
+---
 
-**Pattern for resilient tests**:
+## 7. Key Patterns
+
+| Pattern | Implementation |
+|---------|----------------|
+| Retry with backoff | 3 attempts, exponential delay |
+| Skip unreliable tests | `pytest.skip()` when server unavailable |
+| Mode detection | Check config for `fhir_base_url` vs `storage_path` |
+| UC Volumes | Direct file I/O with `/Volumes/` paths |
+
+---
+
+## 8. Spark Declarative Pipelines (DLT) Best Practices
+
+These patterns apply when building connectors for DLT/Lakeflow Declarative Pipelines:
+
+### What DOESN'T Work in DLT
+
+| Anti-Pattern | Issue |
+|--------------|-------|
+| `%run`, `%sql`, `%md` | Magic commands not supported (except `%pip`) |
+| `dbutils.import_notebook()` | Not supported in pipelines |
+| `.collect()` / `list(iterator)` | Materializes data on driver memory |
+| `createDataFrame(collected_list)` | Breaks streaming semantics |
+| `input_file_name()` | Not Unity Catalog compatible |
+| `dlt.read("table")` | Deprecated API |
+| Notebooks as `__init__.py` | Blocks Python imports |
+
+### What WORKS in DLT
+
+| Pattern | Usage |
+|---------|-------|
+| `from utilities.parser import func` | Import from `.py` files (not notebooks) |
+| Auto Loader (`cloudFiles`) | Streaming file ingestion |
+| `col("_metadata.file_path")` | Unity Catalog compatible source tracking |
+| `spark.read.table("catalog.schema.table")` | Fully qualified table references |
+| `%pip install package` | Only allowed magic command |
+| UDFs returning `MapType` | For parsing to key-value pairs |
+| `from_json(col, schema)` | Parse JSON strings to structured arrays |
+
+### Recommended Architecture for File-Based Connectors
+
+```
+Files (UC Volumes)
+       │
+       ▼
+Auto Loader (cloudFiles, wholetext=true)
+       │
+       ▼
+Split UDF → ArrayType[String]
+       │
+       ▼
+explode(messages) → One row per message
+       │
+       ▼
+Parse UDF → MapType[String, String]
+       │  └─ Nested structures: json.dumps() → String
+       ▼
+from_json(nested_field, schema) → Structured Array
+       │
+       ▼
+Streaming Tables (bronze)
+       │
+       ▼
+Materialized Views (flattened)
+```
+
+### File Organization
+
+```
+/pipeline_root/
+├── transformations/           # DLT table definitions
+│   ├── bronze_source_type.py  # Pure Python, no magic commands
+│   └── bronze_source_type2.py
+└── utilities/                 # Shared modules
+    └── parser.py              # MUST be .py file, NOT notebook
+```
+
+### Configuration Pattern
 
 ```python
-def test_read_returns_data(self, connector):
-    records, offset = connector.read_table("table", None, {})
-    records_list = list(records)
-    
-    # Skip if server returned no data (external issue)
-    if not records_list:
-        pytest.skip("Server returned no data - may be unavailable")
-    
-    # Actual assertions only run if we have data
-    assert all(isinstance(r, dict) for r in records_list)
+# In transformation
+STORAGE_PATH = spark.conf.get("source.storage_path", "/default/path")
+
+# In pipeline settings
+{ "configuration": { "source.storage_path": "/Volumes/prod/data" } }
+```
+
+### Handling Nested Structures
+
+UDFs cannot return complex nested types directly. Use JSON serialization:
+
+```python
+# In UDF
+result["nested_array"] = json.dumps(result["nested_array"])
+
+# In DataFrame
+.withColumn("nested_array", from_json(col("parsed.nested_array"), array_schema))
+```
+
+### Custom Connector vs Auto Loader Decision
+
+| Use Custom Connector When | Use Auto Loader + UDFs When |
+|---------------------------|----------------------------|
+| Multiple pipelines need same source | Simple, one-off transforms |
+| Need to abstract complex parsing | Want maximum flexibility |
+| Consistent schema evolution needed | Prefer explicit over implicit |
+| Building reusable data product | Minimize custom code |
+
+---
+
+## 9. Streaming Sources Architecture
+
+### Files vs Event Streaming
+
+| Aspect | File-Based (Auto Loader) | Event Streaming (Kafka/EventHub) |
+|--------|--------------------------|----------------------------------|
+| **Message Format** | Batch files (multiple messages) | Single message per event |
+| **Batch Splitting** | Required (UDF) | Not needed |
+| **Metadata** | `_metadata.file_path` | `offset`, `partition`, `timestamp` |
+| **Checkpointing** | Auto Loader managed | Platform managed |
+| **Latency** | Minutes | Seconds |
+
+### Code Pattern Differences
+
+```python
+# FILE-BASED: Needs batch splitting
+.withColumn("messages", split_batch_udf(col("value")))
+.withColumn("message", explode(col("messages")))
+.withColumn("parsed", parse_udf(col("message")))
+
+# STREAMING: Direct parsing (no splitting)
+.withColumn("parsed", parse_udf(col("value").cast("string")))
+```
+
+### Streaming Source Patterns
+
+**Kafka:**
+```python
+spark.readStream.format("kafka")
+    .option("kafka.bootstrap.servers", SERVERS)
+    .option("subscribe", TOPIC)
+    .load()
+```
+
+**Azure Event Hubs (Kafka protocol):**
+```python
+spark.readStream.format("kafka")
+    .option("kafka.bootstrap.servers", f"{NAMESPACE}.servicebus.windows.net:9093")
+    .option("kafka.sasl.mechanism", "PLAIN")
+    .option("kafka.security.protocol", "SASL_SSL")
+    .load()
+```
+
+**AWS Kinesis (Recommended: Firehose → S3 → Auto Loader):**
+```python
+spark.readStream.format("cloudFiles")
+    .option("cloudFiles.format", "text")
+    .option("cloudFiles.useNotifications", "true")
+    .load(S3_KINESIS_PATH)
+```
+
+### When to Use Each Source
+
+| Source | Best For |
+|--------|----------|
+| **Auto Loader** | Files in cloud storage, batch OK, simplest, historical data |
+| **Kafka** | High-throughput, low-latency, exactly-once, existing Kafka |
+| **Event Hubs** | Azure cloud, managed Kafka, Azure AD, auto-scaling |
+| **Kinesis** | AWS cloud, use Firehose → S3 → Auto Loader pattern |
+
+### Performance Tuning
+
+```python
+# Control micro-batch size
+.option("maxOffsetsPerTrigger", "10000")
+.option("minPartitions", "10")
+
+# Trigger interval
+@dlt.table(spark_conf={"spark.databricks.delta.streaming.trigger.interval": "10 seconds"})
 ```
 
 ---
 
-## 7. Documentation Requirements
+## 10. Making Connectors Reusable Assets
 
-### 7.1 Required Documentation
+### From Project to Product
 
-| Document | Location | Purpose |
-|----------|----------|---------|
-| API Documentation | `{connector}_api_doc.md` | Internal - research notes |
-| User README | `README.md` | External - how to use |
-| Connector DESIGN | `DESIGN.md` | Internal - design decisions |
+Transform connectors into reusable, distributable assets:
 
-### 7.2 User README Template
+1. **Package as Python library** (wheel file)
+2. **Decouple parsing from pipeline code**
+3. **Store in Unity Catalog Volumes**
+4. **Use dynamic configuration**
+5. **Version and distribute across workspaces**
 
-Per [upstream template](https://github.com/databrickslabs/lakeflow-community-connectors/blob/master/prompts/templates/community_connector_doc_template.md):
+### Package Structure
 
-```markdown
-# Lakeflow {Connector} Community Connector
-
-## Prerequisites
-
-## Setup
-
-### Required Connection Parameters
-
-### Create a Unity Catalog Connection
-
-## Supported Objects
+```
+connector_lib/
+├── setup.py
+├── connector_lib/
+│   ├── __init__.py      # Public API exports
+│   ├── parser.py        # Core parsing (pure Python)
+│   ├── schemas.py       # Spark schema definitions
+│   ├── spark_utils.py   # UDF wrappers
+│   └── validators.py    # Validation logic
+└── tests/
 ```
 
----
+### Separation of Concerns
 
-## 8. Quality Checklist
+| Library | Pipeline |
+|---------|----------|
+| Parsing logic (pure Python) | Data ingestion |
+| Schema definitions | Configuration management |
+| Validation | Data quality expectations |
+| Error handling | Business transformations |
 
-Before a connector is considered complete:
+### Distribution Strategies
 
-### 8.1 Code Quality
+| Strategy | Best For |
+|----------|----------|
+| **UC Volume** | Enterprise sharing, centralized, UC access control |
+| **Databricks Repos** | Team development, Git integration, CI/CD |
+| **Private PyPI** | Enterprise-wide, standard Python packaging |
 
-- [ ] All interface methods implemented
-- [ ] Table name validation in each method
-- [ ] Proper error handling with retry/backoff
-- [ ] No hardcoded credentials
-- [ ] No mock objects
-- [ ] StructType preferred over MapType
-- [ ] LongType preferred over IntegerType
+### Installation Methods
 
-### 8.2 Testing
+**Pipeline libraries (Recommended):**
+```json
+{
+  "libraries": [
+    {"whl": "/Volumes/shared/libraries/connector-1.0.0-py3-none-any.whl"}
+  ]
+}
+```
 
-- [ ] Generic test suite passes
-- [ ] Tests run against real source (not mocked)
-- [ ] Incremental sync tested
-- [ ] Error cases tested
+**%pip in notebook:**
+```python
+%pip install /Volumes/shared/libraries/connector-1.0.0-py3-none-any.whl
+```
 
-### 8.3 Documentation
+### Version Management
 
-- [ ] API doc complete (`{connector}_api_doc.md`)
-- [ ] User README complete (`README.md`)
-- [ ] All connection parameters documented
-- [ ] All supported objects documented
-
-### 8.4 Security
-
-- [ ] No credentials in code
-- [ ] `dev_config.json` not committed
-- [ ] Secrets use Databricks Secrets syntax
-
----
-
-## 9. Connectors in This Repository
-
-| Connector | Status | Description |
-|-----------|--------|-------------|
-| `healthcare` | In Progress | FHIR R4 API, HL7v2 files/streams |
-
----
-
-## Appendix A: Skill Reference
-
-| Skill | When to Use |
-|-------|-------------|
-| `skills/planning-session.md` | Before starting any new connector |
-| `skills/understand-source.md` | Phase 1 - Research source API |
-| `skills/implement-connector.md` | Phase 2 - Implement LakeflowConnect |
-| `skills/test-connector.md` | Phase 3 - Test implementation |
-| `skills/create-documentation.md` | Phase 4 - Create user docs |
+```
+/Volumes/shared/libraries/connector/
+├── connector-1.0.0-py3-none-any.whl
+├── connector-1.1.0-py3-none-any.whl  # New features
+├── connector-2.0.0-py3-none-any.whl  # Breaking changes
+└── latest -> connector-2.0.0-py3-none-any.whl
+```

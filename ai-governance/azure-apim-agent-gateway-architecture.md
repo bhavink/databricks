@@ -331,9 +331,9 @@ flowchart TB
 
 ---
 
-## SSA Collaboration Ask
+## Architecture Review Checklist
 
-### Architecture Review Session Topics
+### Review Session Topics
 
 | Topic | Details |
 |-------|---------|
@@ -345,15 +345,15 @@ flowchart TB
 
 ### Security Documentation Needed
 
-1. **Anthropic Indemnity Clauses** - Security whitepapers for Molina security team approval
+1. **Anthropic Indemnity Clauses** - Security whitepapers for enterprise security team approval
 2. **Serverless Egress Controls** - Documentation on unique FQDN mapping for model serving endpoints
-3. **UC HTTP Connection Security** - Naseer's research validation on secure external MCP connectivity
+3. **UC HTTP Connection Security** - Validation on secure external MCP connectivity patterns
 
-### Key Questions for SSA
+### Key Review Areas
 
 ```mermaid
 mindmap
-    root((SSA<br/>Collaboration))
+    root((Architecture<br/>Review))
         Architecture
             APIM Gateway Design
             Private Link Setup
@@ -367,7 +367,7 @@ mindmap
             Agent Isolation
             MCP Server Access
         Compliance
-            Anthropic Indemnity
+            LLM Provider Indemnity
             Data Residency
             Security Whitepapers
 ```
