@@ -1,0 +1,1763 @@
+{
+  "datasets": [
+    {
+      "name": "ds_admissions",
+      "displayName": "Admissions",
+      "queryLines": [
+        "SELECT COUNT(*) as admissions FROM main.healthcare.bronze_hl7v2_adt WHERE event_type_code = 'A01'"
+      ]
+    },
+    {
+      "name": "ds_discharges",
+      "displayName": "Discharges",
+      "queryLines": [
+        "SELECT COUNT(*) as discharges FROM main.healthcare.bronze_hl7v2_adt WHERE event_type_code = 'A03'"
+      ]
+    },
+    {
+      "name": "ds_abnormal_labs",
+      "displayName": "Abnormal Labs",
+      "queryLines": [
+        "SELECT COUNT(*) as abnormal_count FROM main.healthcare.bronze_hl7v2_oru_observations WHERE abnormal_flags IN ('H', 'L', 'HH', 'LL')"
+      ]
+    },
+    {
+      "name": "ds_messages_by_type",
+      "displayName": "Messages by Type",
+      "queryLines": [
+        "SELECT message_type, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_raw GROUP BY message_type ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_patient_gender",
+      "displayName": "Patient Gender",
+      "queryLines": [
+        "SELECT CASE gender WHEN 'M' THEN 'Male' WHEN 'F' THEN 'Female' ELSE 'Other' END as gender, COUNT(DISTINCT patient_id) as patients FROM main.healthcare.bronze_hl7v2_adt GROUP BY gender"
+      ]
+    },
+    {
+      "name": "ds_adt_events",
+      "displayName": "ADT Events",
+      "queryLines": [
+        "SELECT CASE event_type_code WHEN 'A01' THEN 'Admission' WHEN 'A02' THEN 'Transfer' WHEN 'A03' THEN 'Discharge' WHEN 'A04' THEN 'Registration' WHEN 'A08' THEN 'Update' ELSE event_type_code END as event_name, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_adt GROUP BY event_type_code ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_unit_census",
+      "displayName": "Unit Census",
+      "queryLines": [
+        "SELECT COALESCE(location_unit, 'Unknown') as unit, COUNT(*) as patient_count FROM main.healthcare.bronze_hl7v2_adt WHERE location_unit IS NOT NULL AND location_unit != '' GROUP BY location_unit ORDER BY patient_count DESC"
+      ]
+    },
+    {
+      "name": "ds_recent_admissions",
+      "displayName": "Recent Admissions",
+      "queryLines": [
+        "SELECT patient_id, CONCAT(patient_name_given, ' ', patient_name_family) as patient_name, location_unit, admit_datetime FROM main.healthcare.bronze_hl7v2_adt WHERE event_type_code = 'A01' ORDER BY _ingestion_timestamp DESC LIMIT 10"
+      ]
+    },
+    {
+      "name": "ds_total_tests",
+      "displayName": "Total Tests",
+      "queryLines": [
+        "SELECT COUNT(*) as total_tests FROM main.healthcare.bronze_hl7v2_oru_observations"
+      ]
+    },
+    {
+      "name": "ds_normal_count",
+      "displayName": "Normal Count",
+      "queryLines": [
+        "SELECT COUNT(*) as normal_count FROM main.healthcare.bronze_hl7v2_oru_observations WHERE abnormal_flags = 'N'"
+      ]
+    },
+    {
+      "name": "ds_abnormal_detail",
+      "displayName": "Abnormal Detail",
+      "queryLines": [
+        "SELECT COUNT(*) as abnormal_count FROM main.healthcare.bronze_hl7v2_oru_observations WHERE abnormal_flags IN ('H', 'L', 'HH', 'LL')"
+      ]
+    },
+    {
+      "name": "ds_lab_volume",
+      "displayName": "Lab Volume",
+      "queryLines": [
+        "SELECT observation_text, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_oru_observations GROUP BY observation_text ORDER BY count DESC LIMIT 8"
+      ]
+    },
+    {
+      "name": "ds_flag_distribution",
+      "displayName": "Flag Distribution",
+      "queryLines": [
+        "SELECT CASE abnormal_flags WHEN 'N' THEN 'Normal' WHEN 'H' THEN 'High' WHEN 'L' THEN 'Low' ELSE abnormal_flags END as flag_name, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_oru_observations GROUP BY abnormal_flags"
+      ]
+    },
+    {
+      "name": "ds_critical_labs",
+      "displayName": "Critical Labs",
+      "queryLines": [
+        "SELECT patient_id, observation_text, observation_value, reference_range, abnormal_flags FROM main.healthcare.bronze_hl7v2_oru_observations WHERE abnormal_flags IN ('H', 'L') ORDER BY abnormal_flags, observation_text LIMIT 15"
+      ]
+    },
+    {
+      "name": "ds_total_orders",
+      "displayName": "Total Orders",
+      "queryLines": [
+        "SELECT COUNT(*) as total_orders FROM main.healthcare.bronze_hl7v2_orm"
+      ]
+    },
+    {
+      "name": "ds_new_orders",
+      "displayName": "New Orders",
+      "queryLines": [
+        "SELECT COUNT(*) as new_orders FROM main.healthcare.bronze_hl7v2_orm WHERE order_control = 'NW'"
+      ]
+    },
+    {
+      "name": "ds_cancelled_orders",
+      "displayName": "Cancelled Orders",
+      "queryLines": [
+        "SELECT COUNT(*) as cancelled FROM main.healthcare.bronze_hl7v2_orm WHERE order_control = 'CA'"
+      ]
+    },
+    {
+      "name": "ds_order_status",
+      "displayName": "Order Status",
+      "queryLines": [
+        "SELECT CASE order_control WHEN 'NW' THEN 'New' WHEN 'XO' THEN 'Changed' WHEN 'CA' THEN 'Cancelled' WHEN 'SC' THEN 'Status Changed' ELSE order_control END as status_name, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_orm GROUP BY order_control"
+      ]
+    },
+    {
+      "name": "ds_top_orders",
+      "displayName": "Top Orders",
+      "queryLines": [
+        "SELECT service_text, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_orm GROUP BY service_text ORDER BY count DESC LIMIT 8"
+      ]
+    },
+    {
+      "name": "ds_total_vaccines",
+      "displayName": "Total Vaccines",
+      "queryLines": [
+        "SELECT COUNT(*) as total_vaccines FROM main.healthcare.bronze_hl7v2_vxu_vaccinations"
+      ]
+    },
+    {
+      "name": "ds_patients_vaccinated",
+      "displayName": "Patients Vaccinated",
+      "queryLines": [
+        "SELECT COUNT(DISTINCT patient_id) as patients_vaccinated FROM main.healthcare.bronze_hl7v2_vxu"
+      ]
+    },
+    {
+      "name": "ds_vaccine_types",
+      "displayName": "Vaccine Types",
+      "queryLines": [
+        "SELECT CONCAT('CVX-', vaccine_name) as vaccine_name, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_vxu_vaccinations GROUP BY vaccine_name ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_total_messages",
+      "displayName": "Total Messages",
+      "queryLines": [
+        "SELECT COUNT(*) as total_messages FROM main.healthcare.bronze_hl7v2_raw"
+      ]
+    },
+    {
+      "name": "ds_quarantine_count",
+      "displayName": "Quarantine Count",
+      "queryLines": [
+        "SELECT COUNT(*) as quarantine_count FROM main.healthcare.bronze_hl7v2_quarantine"
+      ]
+    },
+    {
+      "name": "ds_source_count",
+      "displayName": "Source Count",
+      "queryLines": [
+        "SELECT COUNT(DISTINCT sending_application) as source_count FROM main.healthcare.bronze_hl7v2_raw"
+      ]
+    },
+    {
+      "name": "ds_by_facility",
+      "displayName": "By Facility",
+      "queryLines": [
+        "SELECT sending_facility as facility, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_raw GROUP BY sending_facility ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_by_system",
+      "displayName": "By System",
+      "queryLines": [
+        "SELECT sending_application as system, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_raw GROUP BY sending_application ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_source_detail",
+      "displayName": "Source Detail",
+      "queryLines": [
+        "SELECT sending_application, sending_facility, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_raw GROUP BY sending_application, sending_facility ORDER BY count DESC LIMIT 15"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "executive_summary",
+      "displayName": "1. Executive Summary",
+      "layout": [
+        {
+          "widget": {
+            "name": "page-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Hospital Operations at a Glance"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Real-time visibility into patient flow, lab operations, and clinical activity"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-admissions",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_admissions",
+                  "fields": [
+                    {
+                      "name": "admissions",
+                      "expression": "`admissions`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "admissions",
+                  "displayName": "Admissions"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-discharges",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_discharges",
+                  "fields": [
+                    {
+                      "name": "discharges",
+                      "expression": "`discharges`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "discharges",
+                  "displayName": "Discharges"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-abnormal-labs",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_abnormal_labs",
+                  "fields": [
+                    {
+                      "name": "abnormal_count",
+                      "expression": "`abnormal_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "abnormal_count",
+                  "displayName": "Abnormal Labs"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "why-this-matters-1",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: Track patient census. Net positive = capacity pressure. Abnormal labs = patients needing clinical review."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-messages-by-type",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_messages_by_type",
+                  "fields": [
+                    {
+                      "name": "message_type",
+                      "expression": "`message_type`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "message_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Type"
+                },
+                "y": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-patient-gender",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_patient_gender",
+                  "fields": [
+                    {
+                      "name": "gender",
+                      "expression": "`gender`"
+                    },
+                    {
+                      "name": "patients",
+                      "expression": "`patients`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "patients",
+                  "displayName": "Patients"
+                },
+                "color": {
+                  "fieldName": "gender",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Gender"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 6,
+            "width": 3,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "patient_flow",
+      "displayName": "2. Patient Flow",
+      "layout": [
+        {
+          "widget": {
+            "name": "page2-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Patient Flow: Where Are Our Patients?"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page2-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Bed management, capacity planning, and real-time patient tracking"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-adt-events",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_adt_events",
+                  "fields": [
+                    {
+                      "name": "event_name",
+                      "expression": "`event_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "event_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Event"
+                },
+                "y": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-unit-census",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_unit_census",
+                  "fields": [
+                    {
+                      "name": "unit",
+                      "expression": "`unit`"
+                    },
+                    {
+                      "name": "patient_count",
+                      "expression": "`patient_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "patient_count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Patients"
+                },
+                "y": {
+                  "fieldName": "unit",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Unit"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-patient-flow",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: ER at 24 patients may signal backup. ICU at 21 needs staffing review. Track transfers for movement patterns."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-recent-admissions",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_recent_admissions",
+                  "fields": [
+                    {
+                      "name": "patient_id",
+                      "expression": "`patient_id`"
+                    },
+                    {
+                      "name": "patient_name",
+                      "expression": "`patient_name`"
+                    },
+                    {
+                      "name": "location_unit",
+                      "expression": "`location_unit`"
+                    },
+                    {
+                      "name": "admit_datetime",
+                      "expression": "`admit_datetime`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "patient_id",
+                    "displayName": "Patient ID"
+                  },
+                  {
+                    "fieldName": "patient_name",
+                    "displayName": "Name"
+                  },
+                  {
+                    "fieldName": "location_unit",
+                    "displayName": "Unit"
+                  },
+                  {
+                    "fieldName": "admit_datetime",
+                    "displayName": "Admitted"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "lab_operations",
+      "displayName": "3. Lab Operations",
+      "layout": [
+        {
+          "widget": {
+            "name": "page3-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Lab Operations: Results & Quality"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page3-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Monitor lab throughput, identify abnormal results requiring clinical action"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-total-tests",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_tests",
+                  "fields": [
+                    {
+                      "name": "total_tests",
+                      "expression": "`total_tests`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_tests",
+                  "displayName": "Total Tests"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-normal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_normal_count",
+                  "fields": [
+                    {
+                      "name": "normal_count",
+                      "expression": "`normal_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "normal_count",
+                  "displayName": "Normal"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-abnormal",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_abnormal_detail",
+                  "fields": [
+                    {
+                      "name": "abnormal_count",
+                      "expression": "`abnormal_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "abnormal_count",
+                  "displayName": "Abnormal"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-lab-volume",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_lab_volume",
+                  "fields": [
+                    {
+                      "name": "observation_text",
+                      "expression": "`observation_text`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                },
+                "y": {
+                  "fieldName": "observation_text",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Test"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-abnormal-flags",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_flag_distribution",
+                  "fields": [
+                    {
+                      "name": "flag_name",
+                      "expression": "`flag_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count",
+                  "displayName": "Count"
+                },
+                "color": {
+                  "fieldName": "flag_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Result"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-lab-ops",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: 137 abnormal results (22%) need clinical review. High glucose, elevated BUN may indicate patient deterioration."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-abnormal-results",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_critical_labs",
+                  "fields": [
+                    {
+                      "name": "patient_id",
+                      "expression": "`patient_id`"
+                    },
+                    {
+                      "name": "observation_text",
+                      "expression": "`observation_text`"
+                    },
+                    {
+                      "name": "observation_value",
+                      "expression": "`observation_value`"
+                    },
+                    {
+                      "name": "reference_range",
+                      "expression": "`reference_range`"
+                    },
+                    {
+                      "name": "abnormal_flags",
+                      "expression": "`abnormal_flags`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "patient_id",
+                    "displayName": "Patient"
+                  },
+                  {
+                    "fieldName": "observation_text",
+                    "displayName": "Test"
+                  },
+                  {
+                    "fieldName": "observation_value",
+                    "displayName": "Value"
+                  },
+                  {
+                    "fieldName": "reference_range",
+                    "displayName": "Range"
+                  },
+                  {
+                    "fieldName": "abnormal_flags",
+                    "displayName": "Flag"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "clinical_orders",
+      "displayName": "4. Clinical Orders",
+      "layout": [
+        {
+          "widget": {
+            "name": "page4-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Clinical Orders: What's Being Ordered?"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page4-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Resource planning, cost management, and utilization tracking"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-total-orders",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_orders",
+                  "fields": [
+                    {
+                      "name": "total_orders",
+                      "expression": "`total_orders`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_orders",
+                  "displayName": "Total Orders"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-new-orders",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_new_orders",
+                  "fields": [
+                    {
+                      "name": "new_orders",
+                      "expression": "`new_orders`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "new_orders",
+                  "displayName": "New Orders"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-cancelled",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cancelled_orders",
+                  "fields": [
+                    {
+                      "name": "cancelled",
+                      "expression": "`cancelled`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "cancelled",
+                  "displayName": "Cancelled"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-order-status",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_order_status",
+                  "fields": [
+                    {
+                      "name": "status_name",
+                      "expression": "`status_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count",
+                  "displayName": "Count"
+                },
+                "color": {
+                  "fieldName": "status_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Status"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-top-orders",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_top_orders",
+                  "fields": [
+                    {
+                      "name": "service_text",
+                      "expression": "`service_text`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                },
+                "y": {
+                  "fieldName": "service_text",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Order Type"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-orders",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: High cancellation rate (22%) may indicate ordering errors or patient status changes. LFTs top the list - check for liver concerns."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "immunizations",
+      "displayName": "5. Immunizations",
+      "layout": [
+        {
+          "widget": {
+            "name": "page5-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Immunizations: Vaccination Tracking"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page5-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Population health, compliance reporting, and outbreak response"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-total-vaccines",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_vaccines",
+                  "fields": [
+                    {
+                      "name": "total_vaccines",
+                      "expression": "`total_vaccines`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_vaccines",
+                  "displayName": "Total Vaccines"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-patients-vaccinated",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_patients_vaccinated",
+                  "fields": [
+                    {
+                      "name": "patients_vaccinated",
+                      "expression": "`patients_vaccinated`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "patients_vaccinated",
+                  "displayName": "Patients"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-vaccine-types",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_vaccine_types",
+                  "fields": [
+                    {
+                      "name": "vaccine_name",
+                      "expression": "`vaccine_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "vaccine_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Vaccine"
+                },
+                "y": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-vaccines",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: Track vaccination compliance for quality reporting. Monitor outbreak response. Ensure immunization records are complete."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "data_quality",
+      "displayName": "6. Data Quality",
+      "layout": [
+        {
+          "widget": {
+            "name": "page6-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Data Quality: Pipeline Health"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page6-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Monitor integration health, identify data issues, ensure complete ingestion"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-total-messages",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_messages",
+                  "fields": [
+                    {
+                      "name": "total_messages",
+                      "expression": "`total_messages`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_messages",
+                  "displayName": "Total Messages"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-quarantine",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_quarantine_count",
+                  "fields": [
+                    {
+                      "name": "quarantine_count",
+                      "expression": "`quarantine_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "quarantine_count",
+                  "displayName": "Quarantined"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-source-systems",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_source_count",
+                  "fields": [
+                    {
+                      "name": "source_count",
+                      "expression": "`source_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "source_count",
+                  "displayName": "Sources"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-by-facility",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_by_facility",
+                  "fields": [
+                    {
+                      "name": "facility",
+                      "expression": "`facility`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Messages"
+                },
+                "y": {
+                  "fieldName": "facility",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Facility"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-by-system",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_by_system",
+                  "fields": [
+                    {
+                      "name": "system",
+                      "expression": "`system`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Messages"
+                },
+                "y": {
+                  "fieldName": "system",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "EHR System"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-quality",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: 0 quarantined = healthy pipeline. Monitor source system volumes to detect interface failures early."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-source-detail",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_source_detail",
+                  "fields": [
+                    {
+                      "name": "sending_application",
+                      "expression": "`sending_application`"
+                    },
+                    {
+                      "name": "sending_facility",
+                      "expression": "`sending_facility`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "sending_application",
+                    "displayName": "EHR System"
+                  },
+                  {
+                    "fieldName": "sending_facility",
+                    "displayName": "Facility"
+                  },
+                  {
+                    "fieldName": "count",
+                    "displayName": "Messages"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    }
+  ]
+}
