@@ -1,0 +1,48 @@
+{
+  "_comment": "REFERENCE ONLY - Actual configuration is in databricks.yml",
+  "_usage": "These settings are passed via spark.conf in the bundle YAML",
+  
+  "configuration_reference": {
+    "source": {
+      "healthcare.storage_path": "/Volumes/<catalog>/<schema>/<volume>/hl7v2",
+      "healthcare.file_pattern": "*.hl7",
+      "healthcare.max_files_per_trigger": "1000",
+      "healthcare.max_bytes_per_trigger": "10g"
+    },
+    
+    "quality": {
+      "healthcare.quality.error_handling": "quarantine",
+      "healthcare.quality.enable_expectations": "true",
+      "healthcare.quality.quarantine_invalid_records": "true"
+    },
+    
+    "clustering": {
+      "healthcare.clustering.enabled": "true",
+      "healthcare.clustering.raw.columns": "message_type,_ingestion_timestamp",
+      "healthcare.clustering.adt.columns": "patient_id,message_datetime",
+      "healthcare.clustering.orm.columns": "patient_id,order_datetime",
+      "healthcare.clustering.oru.columns": "patient_id,message_datetime",
+      "healthcare.clustering.oru_observations.columns": "patient_id,observation_datetime",
+      "healthcare.clustering.siu.columns": "patient_id,appointment_start_datetime",
+      "healthcare.clustering.vxu.columns": "patient_id,message_datetime",
+      "healthcare.clustering.quarantine.columns": "message_type,_ingestion_timestamp"
+    },
+    
+    "features": {
+      "healthcare.features.parse_composite_fields": "true",
+      "healthcare.features.flatten_observations": "true",
+      "healthcare.features.flatten_vaccinations": "true",
+      "healthcare.features.flatten_resources": "true"
+    },
+    
+    "tables": {
+      "healthcare.tables.raw.enabled": "true",
+      "healthcare.tables.quarantine.enabled": "true",
+      "healthcare.tables.adt.enabled": "true",
+      "healthcare.tables.orm.enabled": "true",
+      "healthcare.tables.oru.enabled": "true",
+      "healthcare.tables.siu.enabled": "true",
+      "healthcare.tables.vxu.enabled": "true"
+    }
+  }
+}

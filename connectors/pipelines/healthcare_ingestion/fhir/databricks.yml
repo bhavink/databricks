@@ -1,0 +1,81 @@
+# FHIR R4 Pipeline - Databricks Asset Bundle
+# ===========================================
+#
+# Run independently:
+#   cd pipelines/healthcare_ingestion/fhir
+#   databricks bundle deploy -t dev
+#   databricks bundle run fhir_pipeline -t dev
+
+bundle:
+  name: healthcare_fhir
+
+variables:
+  catalog:
+    description: Unity Catalog name
+    default: main
+  schema:
+    description: Schema for FHIR tables
+    default: healthcare_fhir
+  volume:
+    description: Volume for raw FHIR files
+    default: raw_data
+
+resources:
+  pipelines:
+    fhir_pipeline:
+      name: "FHIR R4 Ingestion - ${bundle.target}"
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      photon: true
+      channel: CURRENT
+      
+      libraries:
+        - file:
+            path: ./bronze_fhir.py
+        - file:
+            path: ./silver_fhir.py
+      
+      configuration:
+        # Source
+        fhir.storage_path: "/Volumes/${var.catalog}/${var.schema}/${var.volume}/fhir"
+        fhir.file_pattern: "*.ndjson"
+        fhir.max_files_per_trigger: "1000"
+        fhir.max_bytes_per_trigger: "10g"
+        # Quality
+        fhir.quality.enable_expectations: "true"
+        fhir.quality.quarantine_invalid_records: "true"
+        # Clustering
+        fhir.clustering.enabled: "true"
+        fhir.clustering.raw.columns: "resource_type,resource_id"
+        fhir.clustering.quarantine.columns: "resource_type,_ingestion_timestamp"
+        fhir.clustering.patient.columns: "id,gender"
+        fhir.clustering.observation.columns: "subject_id,code_code,effective_datetime"
+        fhir.clustering.encounter.columns: "subject_id,status,period_start"
+        fhir.clustering.condition.columns: "subject_id,clinical_status_code"
+        fhir.clustering.medication_request.columns: "subject_id,status"
+        fhir.clustering.immunization.columns: "patient_id,vaccine_code"
+        # Delta
+        spark.databricks.delta.schema.autoMerge.enabled: "true"
+
+targets:
+  dev:
+    mode: development
+    default: true
+    variables:
+      schema: healthcare_fhir_dev
+    resources:
+      pipelines:
+        fhir_pipeline:
+          development: true
+          continuous: false
+
+  prod:
+    mode: production
+    variables:
+      schema: healthcare_fhir_prod
+    resources:
+      pipelines:
+        fhir_pipeline:
+          development: false
+          continuous: true

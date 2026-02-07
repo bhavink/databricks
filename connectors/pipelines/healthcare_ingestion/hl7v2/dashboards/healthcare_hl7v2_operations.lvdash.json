@@ -195,6 +195,34 @@
       "queryLines": [
         "SELECT sending_application, sending_facility, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_raw GROUP BY sending_application, sending_facility ORDER BY count DESC LIMIT 15"
       ]
+    },
+    {
+      "name": "ds_admission_unit_heatmap",
+      "displayName": "Admission Type x Unit",
+      "queryLines": [
+        "SELECT CASE admission_type WHEN 'E' THEN 'Emergency' WHEN 'U' THEN 'Urgent' WHEN 'C' THEN 'Elective' WHEN 'N' THEN 'Newborn' ELSE admission_type END as admission_type, location_unit as unit, COUNT(*) as patient_count FROM main.healthcare.bronze_hl7v2_adt WHERE location_unit IS NOT NULL AND location_unit != '' GROUP BY admission_type, location_unit"
+      ]
+    },
+    {
+      "name": "ds_app_facility_heatmap",
+      "displayName": "EHR x Facility",
+      "queryLines": [
+        "SELECT sending_application as ehr_system, sending_facility as facility, COUNT(*) as message_count FROM main.healthcare.bronze_hl7v2_raw GROUP BY sending_application, sending_facility"
+      ]
+    },
+    {
+      "name": "ds_orders_stacked",
+      "displayName": "Orders by Test and Status",
+      "queryLines": [
+        "SELECT service_code as test_type, CASE order_control WHEN 'NW' THEN 'New' WHEN 'XO' THEN 'Changed' WHEN 'CA' THEN 'Cancelled' WHEN 'SC' THEN 'Status Changed' ELSE order_control END as order_status, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_orm GROUP BY service_code, order_control"
+      ]
+    },
+    {
+      "name": "ds_lab_results_stacked",
+      "displayName": "Lab Results by Status",
+      "queryLines": [
+        "SELECT CASE WHEN abnormal_flags IN ('H', 'HH') THEN 'High' WHEN abnormal_flags IN ('L', 'LL') THEN 'Low' ELSE 'Normal' END as result_status, COUNT(*) as count FROM main.healthcare.bronze_hl7v2_oru_observations GROUP BY 1"
+      ]
     }
   ],
   "pages": [
@@ -1754,6 +1782,377 @@
             "y": 11,
             "width": 6,
             "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "advanced_analytics",
+      "displayName": "7. Advanced Analytics",
+      "layout": [
+        {
+          "widget": {
+            "name": "page7-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Advanced Analytics: Patterns & Distributions"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page7-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Identify correlations, capacity patterns, and operational bottlenecks with visual heatmaps"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "heatmap-admission-unit",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_admission_unit_heatmap",
+                  "fields": [
+                    {
+                      "name": "admission_type",
+                      "expression": "`admission_type`"
+                    },
+                    {
+                      "name": "unit",
+                      "expression": "`unit`"
+                    },
+                    {
+                      "name": "patient_count",
+                      "expression": "`patient_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "admission_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Admission Type"
+                },
+                "y": {
+                  "fieldName": "unit",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Hospital Unit"
+                },
+                "color": {
+                  "fieldName": "patient_count",
+                  "scale": {
+                    "type": "quantitative",
+                    "colorRamp": {
+                      "mode": "custom-sequential",
+                      "colors": {
+                        "start": "#e8f4f8",
+                        "end": "#1a5276"
+                      }
+                    }
+                  },
+                  "displayName": "Patient Count"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Patient Distribution: Admission Type \u00d7 Unit",
+                "showDescription": true,
+                "description": "Where do different admission types go?"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "heatmap-ehr-facility",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_app_facility_heatmap",
+                  "fields": [
+                    {
+                      "name": "ehr_system",
+                      "expression": "`ehr_system`"
+                    },
+                    {
+                      "name": "facility",
+                      "expression": "`facility`"
+                    },
+                    {
+                      "name": "message_count",
+                      "expression": "`message_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "ehr_system",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "EHR System"
+                },
+                "y": {
+                  "fieldName": "facility",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Facility"
+                },
+                "color": {
+                  "fieldName": "message_count",
+                  "scale": {
+                    "type": "quantitative",
+                    "colorRamp": {
+                      "mode": "custom-sequential",
+                      "colors": {
+                        "start": "#fef9e7",
+                        "end": "#b7950b"
+                      }
+                    }
+                  },
+                  "displayName": "Messages"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Integration Matrix: EHR \u00d7 Facility",
+                "showDescription": true,
+                "description": "Which systems send to which facilities?"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "why-heatmaps",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY HEATMAPS: Instantly spot patterns. Dark cells = high volume. White cells = gaps. Use to identify integration issues and capacity hotspots."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "stacked-orders",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_orders_stacked",
+                  "fields": [
+                    {
+                      "name": "test_type",
+                      "expression": "`test_type`"
+                    },
+                    {
+                      "name": "order_status",
+                      "expression": "`order_status`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "test_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Test Type"
+                },
+                "y": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Order Count"
+                },
+                "color": {
+                  "fieldName": "order_status",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "New",
+                        "color": "#27ae60"
+                      },
+                      {
+                        "value": "Changed",
+                        "color": "#f39c12"
+                      },
+                      {
+                        "value": "Cancelled",
+                        "color": "#e74c3c"
+                      },
+                      {
+                        "value": "Status Changed",
+                        "color": "#3498db"
+                      }
+                    ]
+                  },
+                  "displayName": "Status"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Order Lifecycle by Test Type",
+                "showDescription": true,
+                "description": "Stacked view: New (green), Changed (yellow), Cancelled (red)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "pie-lab-results",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_lab_results_stacked",
+                  "fields": [
+                    {
+                      "name": "result_status",
+                      "expression": "`result_status`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count",
+                  "displayName": "Count"
+                },
+                "color": {
+                  "fieldName": "result_status",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Normal",
+                        "color": "#27ae60"
+                      },
+                      {
+                        "value": "High",
+                        "color": "#e74c3c"
+                      },
+                      {
+                        "value": "Low",
+                        "color": "#f39c12"
+                      }
+                    ]
+                  },
+                  "displayName": "Result"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Lab Result Distribution",
+                "showDescription": true,
+                "description": "Normal vs Abnormal breakdown"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 9,
+            "width": 2,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "why-stacked",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY STACKED BARS: See composition at a glance. High red (cancelled) = possible workflow issue. Compare test types to find anomalies."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 15,
+            "width": 6,
+            "height": 1
           }
         }
       ],

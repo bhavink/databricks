@@ -1,57 +1,56 @@
-# Databricks Asset Bundle Configuration
-# =====================================
+# Healthcare Connectors - Combined Asset Bundle
+# =============================================
 #
-# Usage:
-#   databricks bundle deploy -t dev                            # Deploy to dev
-#   databricks bundle run healthcare_hl7v2_pipeline -t dev     # Run pipeline
-#   databricks bundle deploy -t prod                           # Deploy to production
+# Deploy both pipelines together OR use individual bundles in each folder.
+#
+# Combined deployment:
+#   databricks bundle deploy -t dev                    # Deploy all
+#   databricks bundle run hl7v2_pipeline -t dev        # Run HL7v2 only
+#   databricks bundle run fhir_pipeline -t dev         # Run FHIR only
+#
+# Individual deployment (see hl7v2/ and fhir/ folders):
+#   cd pipelines/healthcare_ingestion/hl7v2
+#   databricks bundle deploy -t dev
 
 bundle:
-  name: healthcare_hl7v2_connector
+  name: healthcare_connectors
 
 variables:
   catalog:
     description: Unity Catalog name
     default: main
-  schema:
-    description: Schema name for pipeline tables
+  hl7v2_schema:
+    description: Schema for HL7v2 tables
     default: healthcare
+  fhir_schema:
+    description: Schema for FHIR tables
+    default: healthcare_fhir
   volume:
-    description: Volume name for raw data
+    description: Volume for raw data
     default: raw_data
-  workspace_root:
-    description: Workspace path for pipeline code
-    default: /Workspace/Users/${workspace.current_user.userName}
 
 resources:
   pipelines:
-    healthcare_hl7v2_pipeline:
-      name: "Healthcare HL7v2 Ingestion - ${bundle.target}"
+    # HL7v2 Pipeline
+    hl7v2_pipeline:
+      name: "HL7v2 Ingestion - ${bundle.target}"
       catalog: ${var.catalog}
-      schema: ${var.schema}
-      
-      # Serverless by default - SDP handles compute automatically
+      schema: ${var.hl7v2_schema}
       serverless: true
       photon: true
       channel: CURRENT
       
       libraries:
         - file:
-            path: ./pipelines/healthcare_ingestion/transformations/bronze_hl7v2.py
+            path: ./pipelines/healthcare_ingestion/hl7v2/transformations/bronze_hl7v2.py
       
       configuration:
-        # === Source Configuration ===
-        healthcare.storage_path: "/Volumes/${var.catalog}/${var.schema}/${var.volume}/hl7v2"
+        healthcare.storage_path: "/Volumes/${var.catalog}/${var.hl7v2_schema}/${var.volume}/hl7v2"
         healthcare.file_pattern: "*.hl7"
         healthcare.max_files_per_trigger: "1000"
         healthcare.max_bytes_per_trigger: "10g"
-
-        # === Data Quality (SDP handles automatically) ===
         healthcare.quality.error_handling: "quarantine"
         healthcare.quality.enable_expectations: "true"
-        healthcare.quality.quarantine_invalid_records: "true"
-
-        # === Liquid Clustering (SDP auto-optimizes) ===
         healthcare.clustering.enabled: "true"
         healthcare.clustering.raw.columns: "message_type,_ingestion_timestamp"
         healthcare.clustering.adt.columns: "patient_id,message_datetime"
@@ -59,46 +58,66 @@ resources:
         healthcare.clustering.oru.columns: "patient_id,message_datetime"
         healthcare.clustering.oru_observations.columns: "patient_id,observation_datetime"
         healthcare.clustering.siu.columns: "patient_id,appointment_start_datetime"
-        healthcare.clustering.siu_resources.columns: "message_control_id,resource_type"
         healthcare.clustering.vxu.columns: "patient_id,message_datetime"
-        healthcare.clustering.vxu_vaccinations.columns: "patient_id,administration_datetime"
         healthcare.clustering.quarantine.columns: "message_type,_ingestion_timestamp"
-
-        # === Auto-Optimization (SDP handles automatically) ===
-        healthcare.optimization.auto_optimize: "true"
-        healthcare.optimization.optimize_write: "true"
-        healthcare.optimization.auto_compact: "true"
-
-        # === Feature Flags ===
         healthcare.features.parse_composite_fields: "true"
         healthcare.features.flatten_observations: "true"
-        healthcare.features.flatten_vaccinations: "true"
-        healthcare.features.flatten_resources: "true"
 
-# Environment-specific targets
+    # FHIR R4 Pipeline
+    fhir_pipeline:
+      name: "FHIR R4 Ingestion - ${bundle.target}"
+      catalog: ${var.catalog}
+      schema: ${var.fhir_schema}
+      serverless: true
+      photon: true
+      channel: CURRENT
+      
+      libraries:
+        - file:
+            path: ./pipelines/healthcare_ingestion/fhir/bronze_fhir.py
+        - file:
+            path: ./pipelines/healthcare_ingestion/fhir/silver_fhir.py
+      
+      configuration:
+        fhir.storage_path: "/Volumes/${var.catalog}/${var.fhir_schema}/${var.volume}/fhir"
+        fhir.file_pattern: "*.ndjson"
+        fhir.max_files_per_trigger: "1000"
+        fhir.max_bytes_per_trigger: "10g"
+        fhir.quality.enable_expectations: "true"
+        fhir.quality.quarantine_invalid_records: "true"
+        fhir.clustering.enabled: "true"
+        fhir.clustering.raw.columns: "resource_type,resource_id"
+        fhir.clustering.patient.columns: "id,gender"
+        fhir.clustering.observation.columns: "subject_id,code_code,effective_datetime"
+        fhir.clustering.encounter.columns: "subject_id,status,period_start"
+        spark.databricks.delta.schema.autoMerge.enabled: "true"
+
 targets:
-  # Development (default)
   dev:
     mode: development
     default: true
     variables:
-      catalog: main
-      schema: healthcare_dev
+      hl7v2_schema: healthcare_dev
+      fhir_schema: healthcare_fhir_dev
     resources:
       pipelines:
-        healthcare_hl7v2_pipeline:
+        hl7v2_pipeline:
+          development: true
+          continuous: false
+        fhir_pipeline:
           development: true
           continuous: false
 
-  # Production
   prod:
     mode: production
     variables:
-      catalog: main
-      schema: healthcare_prod
+      hl7v2_schema: healthcare_prod
+      fhir_schema: healthcare_fhir_prod
     resources:
       pipelines:
-        healthcare_hl7v2_pipeline:
-          name: "Healthcare HL7v2 Ingestion - PROD"
+        hl7v2_pipeline:
           development: false
-          continuous: true  # Always running for real-time ingestion
+          continuous: true
+        fhir_pipeline:
+          development: false
+          continuous: true

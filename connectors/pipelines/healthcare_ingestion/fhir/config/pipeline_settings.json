@@ -1,0 +1,52 @@
+{
+  "_comment": "REFERENCE ONLY - Actual configuration is in databricks.yml",
+  "_usage": "These settings are passed via spark.conf in the bundle YAML",
+  
+  "configuration_reference": {
+    "source": {
+      "fhir.storage_path": "/Volumes/<catalog>/<schema>/<volume>/fhir",
+      "fhir.file_pattern": "*.ndjson",
+      "fhir.max_files_per_trigger": "1000",
+      "fhir.max_bytes_per_trigger": "10g"
+    },
+    
+    "quality": {
+      "fhir.quality.enable_expectations": "true",
+      "fhir.quality.quarantine_invalid_records": "true"
+    },
+    
+    "clustering": {
+      "fhir.clustering.enabled": "true",
+      "fhir.clustering.raw.columns": "resource_type,resource_id",
+      "fhir.clustering.quarantine.columns": "resource_type,_ingestion_timestamp",
+      "fhir.clustering.patient.columns": "id,gender",
+      "fhir.clustering.observation.columns": "subject_id,code_code,effective_datetime",
+      "fhir.clustering.encounter.columns": "subject_id,status,period_start",
+      "fhir.clustering.condition.columns": "subject_id,clinical_status_code",
+      "fhir.clustering.medication_request.columns": "subject_id,status",
+      "fhir.clustering.immunization.columns": "patient_id,vaccine_code"
+    },
+    
+    "delta": {
+      "spark.databricks.delta.schema.autoMerge.enabled": "true",
+      "spark.databricks.delta.properties.defaults.enableChangeDataFeed": "true"
+    }
+  },
+  
+  "supported_resources": [
+    "Patient",
+    "Observation",
+    "Encounter",
+    "MedicationRequest",
+    "Condition",
+    "Immunization",
+    "Bundle"
+  ],
+  
+  "variant_fields": {
+    "bronze": ["raw_resource"],
+    "silver_patient": ["identifiers", "names", "addresses", "telecoms", "extensions"],
+    "silver_observation": ["components", "interpretation", "reference_range"],
+    "rationale": "VARIANT enables schema evolution without DDL changes"
+  }
+}

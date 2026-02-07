@@ -1,0 +1,114 @@
+# FHIR REST API Ingestion - Standalone Bundle
+#
+# This is SEPARATE from the SDP pipeline.
+# Deploy and run when you want to pull data from a FHIR REST API.
+#
+# Usage:
+#   cd fhir/ingestion
+#   databricks bundle deploy -t dev
+#   databricks bundle run fhir_api_ingestion -t dev
+#
+# Switch servers easily:
+#   databricks bundle run fhir_api_ingestion -t dev --var="server_preset=synthea"
+#   databricks bundle run fhir_api_ingestion -t dev --var="server_preset=hapi"
+#
+# Or run notebook interactively and use the dropdown!
+
+bundle:
+  name: fhir-api-ingestion
+
+variables:
+  catalog:
+    description: "Unity Catalog name"
+    default: main
+  schema:
+    description: "Schema for FHIR data"
+    default: healthcare_fhir
+  volume:
+    description: "Volume name for raw data"
+    default: raw_data
+  # Easy server switching!
+  server_preset:
+    description: "Server preset: hapi, synthea, smart_sandbox, cerner_sandbox, hl7_test, custom"
+    default: "hapi"
+  custom_server_url:
+    description: "Custom URL (only used if server_preset=custom)"
+    default: ""
+  resource_types:
+    description: "Comma-separated list of FHIR resource types to fetch"
+    default: "Patient,Observation,Encounter,Condition,MedicationRequest,Immunization"
+  max_per_resource:
+    description: "Maximum resources to fetch per type"
+    default: "100"
+
+resources:
+  jobs:
+    fhir_api_ingestion:
+      name: "FHIR REST API Ingestion - ${bundle.target}"
+      description: |
+        Fetches FHIR resources from REST API and writes to Unity Catalog Volume.
+        The SDP pipeline then processes these files automatically.
+        
+        Server Presets:
+        - hapi: HAPI FHIR Public (fast, general testing)
+        - synthea: Synthea synthetic data (realistic patients)
+        - smart_sandbox: SMART Health IT (OAuth testing)
+        - cerner_sandbox: Cerner Open (EHR vendor)
+        - custom: Your own server URL
+        
+        Switch servers: --var="server_preset=synthea"
+      
+      tasks:
+        - task_key: ingest_from_api
+          notebook_task:
+            notebook_path: ../../notebooks/fhir_api_ingestion
+            source: WORKSPACE
+            base_parameters:
+              server_preset: ${var.server_preset}
+              custom_server_url: ${var.custom_server_url}
+              output_volume: "/Volumes/${var.catalog}/${var.schema}/${var.volume}/fhir"
+              resource_types: ${var.resource_types}
+              max_per_resource: ${var.max_per_resource}
+              auth_type: "none"
+              incremental_from: ""
+          
+          # Use serverless compute
+          environment_key: default
+      
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+      
+      # No schedule by default - user triggers manually
+      # Uncomment to enable scheduled runs:
+      # schedule:
+      #   quartz_cron_expression: "0 0 6 * * ?"
+      #   timezone_id: "UTC"
+      
+      tags:
+        project: healthcare-ingestion
+        layer: ingestion
+        source: fhir-api
+
+targets:
+  dev:
+    mode: development
+    default: true
+    variables:
+      catalog: main
+      schema: healthcare_fhir_dev
+  
+  prod:
+    mode: production
+    variables:
+      catalog: main
+      schema: healthcare_fhir
+    
+    # In prod, you might want a schedule
+    resources:
+      jobs:
+        fhir_api_ingestion:
+          schedule:
+            quartz_cron_expression: "0 0 6 * * ?"  # Daily at 6am UTC
+            timezone_id: "UTC"

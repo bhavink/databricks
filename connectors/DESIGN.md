@@ -1,592 +1,768 @@
-# Healthcare HL7v2 Connector - Design Document
+# Healthcare Data Connectors - Design Document
 
-> **Version**: 6.0  
-> **Updated**: 2026-02-04  
+> **Version**: 9.0  
+> **Updated**: 2026-02-07  
 
 ---
 
 ## 1. Overview
 
-This repository provides **production-grade message ingestion connectors** for Databricks using Spark Declarative Pipelines (SDP). Each connector handles a specific message format, parsing complex structures into queryable Delta tables.
+Production-grade healthcare data ingestion connectors for Databricks using Spark Declarative Pipelines (SDP).
 
-### Current Connector
-
-| Format | Domain | Status | Description |
-|--------|--------|--------|-------------|
-| **HL7v2** | Healthcare | Production | Patient events, lab results, orders, scheduling, vaccinations |
-
-The architecture supports adding new message format connectors following the same patterns.
-
-### Key Features
-
-- **Modern SDP API** (`pyspark.pipelines as dp`) for 2025+ best practices
-- **Liquid Clustering** for optimal query performance
-- **Configuration-Driven** with `PipelineConfig` helper pattern
-- **Composite Field Parsing** for complex nested data types
-- **Data Quality Expectations** for validation
-- **Quarantine Tables** for failed records
-- **Local Testable** parsing logic (no Spark dependency)
+| Format | Standard | Status | Output Tables |
+|--------|----------|--------|---------------|
+| **HL7v2** | Legacy Healthcare | Production | 11 bronze tables |
+| **FHIR R4** | Modern Healthcare | Production | 8 bronze/silver tables |
 
 ---
 
 ## 2. Architecture
 
-### Project Structure
+### Repository Organization
 
+```mermaid
+graph TB
+    subgraph "connectors/"
+        ROOT[databricks.yml<br/>Combined Bundle]
+        README[README.md<br/>Quick Start]
+        DESIGN[DESIGN.md<br/>This File]
+        
+        subgraph "data_generation/"
+            HL7GEN[hl7v2_faker.py]
+            FHIRGEN[fhir_faker.py]
+        end
+        
+        subgraph "pipelines/healthcare_ingestion/"
+            subgraph "hl7v2/"
+                HL7YML[databricks.yml<br/>Standalone]
+                HL7TRANS[transformations/<br/>bronze_hl7v2.py]
+                HL7TEST[tests/]
+            end
+            
+            subgraph "fhir/"
+                FHIRYML[databricks.yml<br/>Standalone]
+                FHIRBRONZE[bronze_fhir.py]
+                FHIRSILVER[silver_fhir.py]
+                FHIRSTREAM[streaming_fhir_example.py]
+                FHIRTEST[tests/]
+                
+                subgraph "ingestion/"
+                    INGYML[databricks.yml]
+                    INGCLIENT[fhir_client.py]
+                    INGSERVERS[fhir_servers.py<br/>Server Presets]
+                end
+            end
+            
+            subgraph "notebooks/"
+                SANKEY1[hl7v2_sankey.py]
+                SANKEY2[fhir_sankey.py]
+                APINOTEBOOK[fhir_api_ingestion.py]
+            end
+        end
+    end
+    
+    ROOT --> HL7TRANS
+    ROOT --> FHIRBRONZE
+    ROOT --> FHIRSILVER
+    HL7YML --> HL7TRANS
+    FHIRYML --> FHIRBRONZE
+    FHIRYML --> FHIRSILVER
 ```
-connectors/
-├── DESIGN.md                    # This file
-├── databricks.yml               # Asset Bundle config (multi-target)
-├── requirements.txt             # Python dependencies
-├── .gitignore
-│
-├── data_generation/             # Test data generators
-│   ├── __init__.py
-│   └── hl7v2_faker.py           # HL7v2 message generator
-│
-└── pipelines/                   # SDP Pipelines
-    └── healthcare_ingestion/    # HL7v2 connector
-        ├── README.md
-        ├── config/
-        │   └── pipeline_settings.json
-        ├── transformations/
-        │   └── bronze_hl7v2.py
-        └── tests/
-            ├── test_hl7v2_parser.py
-            └── sample_data/
-```
 
-### Pipeline Data Flow Pattern
+### Deployment Options
 
-Each connector follows this medallion architecture pattern:
-
-```
-Unity Catalog Volumes (governed cloud storage: S3, ADLS Gen2, GCS)
-       │
-       ▼
-Auto Loader (cloudFiles, wholetext=true)
-       │
-       ▼
-split_batch_udf() → ArrayType[String]
-       │
-       ▼
-explode(messages) → One row per message
-       │
-       ▼
-parse_message_udf() → Structured fields (with composite parsing)
-       │
-       ├───────────────────────┐
-       ▼                       ▼
-bronze_<format>_raw       bronze_<format>_quarantine
-  (all messages)            (failed records)
-       │
-       ├──────┬──────┬──────┐
-       ▼      ▼      ▼      ▼
-  Type-specific tables (filtered by message type)
-       │
-       ▼
-  Flattened tables (one row per nested record)
+```mermaid
+flowchart LR
+    subgraph "Option A: Combined"
+        A1[databricks.yml] --> A2[HL7v2 Pipeline]
+        A1 --> A3[FHIR Pipeline]
+    end
+    
+    subgraph "Option B: Standalone HL7v2"
+        B1[hl7v2/databricks.yml] --> B2[HL7v2 Pipeline Only]
+    end
+    
+    subgraph "Option C: Standalone FHIR"
+        C1[fhir/databricks.yml] --> C2[FHIR Pipeline Only]
+    end
 ```
 
 ---
 
-## 3. Unity Catalog Volumes
+## 3. Data Flow
 
-Unity Catalog Volumes provide **governed access to cloud object storage** (S3, ADLS Gen2, GCS). They are NOT a separate storage system - they're a governance layer on top of your existing cloud storage.
+### HL7v2 Pipeline Flow
 
-### Why Use UC Volumes?
-
-| Feature | Benefit |
-|---------|---------|
-| **Governed Access** | Fine-grained permissions via Unity Catalog |
-| **Cloud Agnostic** | Same `/Volumes/...` path works on AWS, Azure, GCP |
-| **Audit Logging** | Track who accessed what data |
-| **Lineage** | Automatic data lineage tracking |
-| **Credential Passthrough** | No need to manage storage credentials in code |
-
-### Volume Types
-
-| Type | Use Case | Storage |
-|------|----------|---------|
-| **Managed** | Pipeline outputs, internal data | Databricks-managed location |
-| **External** | Landing zones, external data feeds | Your cloud storage bucket |
-
-### Path Format
-
-```
-/Volumes/<catalog>/<schema>/<volume>/<path>
-
-# Example:
-/Volumes/main/healthcare/raw_data/hl7v2/           # HL7v2 landing zone
-```
-
-### Creating a Volume (External)
-
-```sql
--- Create external volume pointing to S3/ADLS/GCS
-CREATE EXTERNAL VOLUME main.healthcare.raw_data
-LOCATION 's3://my-bucket/healthcare/raw/'
-COMMENT 'Landing zone for healthcare messages';
-
--- Or Azure
-LOCATION 'abfss://container@storageaccount.dfs.core.windows.net/healthcare/raw/'
-
--- Or GCS
-LOCATION 'gs://my-bucket/healthcare/raw/'
+```mermaid
+flowchart TB
+    subgraph "Ingestion"
+        VOL1["/Volumes/.../hl7v2/*.hl7"]
+        AL1[Auto Loader<br/>cloudFiles]
+    end
+    
+    subgraph "Bronze Layer"
+        RAW1[bronze_hl7v2_raw<br/>All Messages]
+        QUAR1[bronze_hl7v2_quarantine<br/>Failed Records]
+        
+        ADT[bronze_hl7v2_adt<br/>~40%]
+        ORM[bronze_hl7v2_orm<br/>~15%]
+        ORU[bronze_hl7v2_oru<br/>~30%]
+        SIU[bronze_hl7v2_siu<br/>~8%]
+        VXU[bronze_hl7v2_vxu<br/>~2%]
+        
+        ORU_OBS[bronze_hl7v2_oru_observations]
+        SIU_RES[bronze_hl7v2_siu_resources]
+        VXU_VAX[bronze_hl7v2_vxu_vaccinations]
+    end
+    
+    VOL1 --> AL1
+    AL1 --> |parse_message_udf| RAW1
+    AL1 --> |invalid| QUAR1
+    RAW1 --> |ADT| ADT
+    RAW1 --> |ORM| ORM
+    RAW1 --> |ORU| ORU
+    RAW1 --> |SIU| SIU
+    RAW1 --> |VXU| VXU
+    ORU --> |flatten| ORU_OBS
+    SIU --> |flatten| SIU_RES
+    VXU --> |flatten| VXU_VAX
 ```
 
-### In Pipeline Code
+### FHIR R4 Pipeline Flow
 
+```mermaid
+flowchart TB
+    subgraph "Ingestion"
+        VOL2["/Volumes/.../fhir/*.ndjson"]
+        AL2[Auto Loader<br/>cloudFiles]
+    end
+    
+    subgraph "Bronze Layer"
+        RAW2[bronze_fhir_raw<br/>All Resources]
+        QUAR2[bronze_fhir_quarantine<br/>Invalid JSON/Schema]
+    end
+    
+    subgraph "Silver Layer"
+        PAT[silver_fhir_patient]
+        OBS[silver_fhir_observation]
+        ENC[silver_fhir_encounter]
+        COND[silver_fhir_condition]
+        MED[silver_fhir_medication_request]
+        IMM[silver_fhir_immunization]
+    end
+    
+    VOL2 --> AL2
+    AL2 --> |parse_fhir_udf| RAW2
+    AL2 --> |invalid| QUAR2
+    RAW2 --> |Patient| PAT
+    RAW2 --> |Observation| OBS
+    RAW2 --> |Encounter| ENC
+    RAW2 --> |Condition| COND
+    RAW2 --> |MedicationRequest| MED
+    RAW2 --> |Immunization| IMM
+```
+
+---
+
+## 4. REST API Ingestion (FHIR)
+
+FHIR data can also be retrieved via REST APIs. The architecture keeps **ingestion separate from pipeline** - the pipeline stays unchanged.
+
+### Architecture Options
+
+```mermaid
+flowchart TB
+    subgraph "Option A: File-Based (Current)"
+        SRC1[File Drop<br/>SFTP/Blob] --> VOL1[UC Volume]
+        VOL1 --> AL1[Auto Loader]
+    end
+    
+    subgraph "Option B: Notebook + Workflow"
+        API1[FHIR Server<br/>REST API] --> NB1[Ingestion<br/>Notebook]
+        NB1 --> VOL2[UC Volume]
+        VOL2 --> AL2[Auto Loader]
+    end
+    
+    subgraph "Option C: Streaming with SDP"
+        API2[Kafka/Event Hubs<br/>FHIR Events] --> STREAM[SDP Streaming<br/>Table]
+        STREAM --> PROC[Same Processing]
+    end
+    
+    AL1 --> PIPELINE[SDP Pipeline<br/>Unchanged]
+    AL2 --> PIPELINE
+    PROC --> PIPELINE
+```
+
+### Server Presets (Easy Swapping)
+
+Pre-configured servers make testing easy. Switch with one line:
+
+| Preset | Server | Rate Limit | Best For |
+|--------|--------|------------|----------|
+| `hapi` | HAPI FHIR Public | 10 req/s | Fast testing, general dev |
+| `synthea` | Synthea (MITRE) | 5 req/s | Realistic synthetic patients |
+| `smart_sandbox` | SMART Health IT | 10 req/s | OAuth flow testing |
+| `cerner_sandbox` | Cerner Open | 5 req/s | EHR vendor responses |
+| `hl7_test` | HL7 Official | 5 req/s | Spec compliance |
+| `custom` | Your URL | Configurable | Production servers |
+
+### How to Use Presets
+
+**In Python:**
 ```python
-# Read from volume (cloud-agnostic path)
-STORAGE_PATH = "/Volumes/main/healthcare/raw_data/hl7v2"
+from fhir.ingestion import FHIRClient, FHIRIngestion
 
-raw_files = (
-    spark.readStream.format("cloudFiles")
-    .option("cloudFiles.format", "text")
-    .load(STORAGE_PATH)  # Auto Loader handles S3/ADLS/GCS
+# One-liner server switch
+client = FHIRClient.from_preset("synthea")
+client = FHIRClient.from_preset("hapi")
+
+# Full ingestion with preset
+ingestion = FHIRIngestion.from_preset(
+    "synthea",
+    output_volume="/Volumes/main/healthcare_fhir/raw_data/fhir"
 )
+result = ingestion.ingest_resources(["Patient", "Observation"])
 ```
 
----
+**In Notebook:**
+Open `notebooks/fhir_api_ingestion.py` and use the dropdown widget to select server.
 
-## 4. Connector Design Pattern
+**Via CLI:**
+```bash
+cd fhir/ingestion
+databricks bundle deploy -t dev
 
-### Configuration Helper Class
-
-Each connector uses a `PipelineConfig` class for centralized settings:
-
-```python
-class PipelineConfig:
-    """Centralized configuration reader with caching."""
-
-    def __init__(self):
-        self._cache = {}
-
-    def get(self, key: str, default: str = "") -> str:
-        """Get config value with caching."""
-        if key not in self._cache:
-            self._cache[key] = spark.conf.get(key, default)
-        return self._cache[key]
-
-    def get_bool(self, key: str, default: bool = False) -> bool:
-        return self.get(key, str(default).lower()) == "true"
-
-    def get_int(self, key: str, default: int = 0) -> int:
-        return int(self.get(key, str(default)))
-
-    def get_list(self, key: str, default: str = "") -> list:
-        val = self.get(key, default)
-        return [x.strip() for x in val.split(",") if x.strip()]
-
-    # Feature flags
-    @property
-    def clustering_enabled(self) -> bool:
-        return self.get_bool("<prefix>.clustering.enabled", True)
-
-    @property
-    def auto_optimize(self) -> bool:
-        return self.get_bool("<prefix>.optimization.auto_optimize", True)
-
-    # Dynamic table properties
-    def build_table_properties(self, table_name: str, quality: str = "bronze") -> dict:
-        props = {"quality": quality}
-        if self.auto_optimize:
-            props["pipelines.autoOptimize.managed"] = "true"
-        # Note: Z-order and Liquid Clustering are mutually exclusive
-        if not self.clustering_enabled:
-            cluster_cols = self.get_cluster_columns(table_name)
-            if cluster_cols:
-                props["pipelines.autoOptimize.zOrderCols"] = ",".join(cluster_cols)
-        return props
-
-    def get_cluster_columns(self, table_name: str) -> list:
-        return self.get_list(f"<prefix>.clustering.{table_name}.columns")
-
-config = PipelineConfig()
+# Switch servers with --var
+databricks bundle run fhir_api_ingestion -t dev --var="server_preset=hapi"
+databricks bundle run fhir_api_ingestion -t dev --var="server_preset=synthea"
+databricks bundle run fhir_api_ingestion -t dev --var="server_preset=cerner_sandbox"
 ```
 
-### Dynamic Table Definitions
+### Option B: Notebook + Workflow (Batch)
 
-Tables are defined with configurable clustering:
+Located at: `fhir/ingestion/` (standalone bundle)
+
+```bash
+# Deploy ingestion job (separate from pipeline)
+cd pipelines/healthcare_ingestion/fhir/ingestion
+databricks bundle deploy -t dev
+
+# Run manually
+databricks bundle run fhir_api_ingestion -t dev
+
+# Or schedule (uncomment in databricks.yml)
+```
+
+Key features:
+- Rate limiting with exponential backoff
+- Automatic pagination (handles large datasets)
+- Auth support (none, bearer, SMART on FHIR)
+- Incremental ingestion via `_lastUpdated`
+- Writes NDJSON to UC Volume → Pipeline picks up automatically
+
+### Option C: Streaming with SDP (Real-Time)
+
+For real-time FHIR events via Kafka, Event Hubs, or webhooks.
+
+**Example file:** `fhir/streaming_fhir_example.py`
 
 ```python
-# Pre-compute clustering columns (must be outside function)
-_table_cluster_cols = config.get_cluster_columns("table_name") if config.clustering_enabled else None
+# Modern SDP API (2026 best practice)
+from pyspark import pipelines as dp
+from pyspark.sql.functions import from_json, col, current_timestamp
 
 @dp.table(
-    name="bronze_<format>_<type>",
-    comment="Description of table",
-    table_properties=config.build_table_properties("table_name"),
-    cluster_by=_table_cluster_cols,  # None disables clustering
+    name="bronze_fhir_streaming",
+    comment="Real-time FHIR resources from Kafka/Event Hubs"
 )
-@dp.expect_or_drop("valid_id", "message_id IS NOT NULL")
-@dp.expect("has_required_field", "required_field IS NOT NULL")
-def bronze_table():
+@dp.expect_or_quarantine("valid_json", "parsed_resource IS NOT NULL")
+def bronze_fhir_streaming():
+    """Stream FHIR from Kafka - same @dp decorators as batch"""
+    kafka_servers = spark.conf.get("fhir.streaming.kafka.servers")
+    kafka_topic = spark.conf.get("fhir.streaming.kafka.topic")
+    
     return (
-        spark.read.table("bronze_<format>_raw")
-        .filter(col("message_type") == "TYPE")
+        spark.readStream
+        .format("kafka")
+        .option("kafka.bootstrap.servers", kafka_servers)
+        .option("subscribe", kafka_topic)
+        .option("startingOffsets", "latest")
+        .load()
+        .select(
+            col("value").cast("string").alias("raw_json"),
+            col("timestamp").alias("event_timestamp"),
+            current_timestamp().alias("_ingestion_timestamp"),
+        )
+        .withColumn("parsed_resource", from_json(col("raw_json"), FHIR_SCHEMA))
+        .withColumn("resource_type", col("parsed_resource.resourceType"))
+        .withColumn("resource_id", col("parsed_resource.id"))
     )
+
+# Silver uses spark.readStream.table() for streaming source (2026 best practice)
+@dp.table(name="silver_fhir_patient_streaming")
+def silver_fhir_patient_streaming():
+    return spark.readStream.table("bronze_fhir_streaming").filter("resource_type = 'Patient'")
 ```
 
-### Inlined UDF Pattern
+**Key SDP Streaming Features:**
+- `spark.readStream` for continuous ingestion from external sources
+- `spark.readStream.table()` to read from SDP streaming tables (2026 best practice)
+- `spark.read.table()` for batch reads (don't use `dp.read()` - old syntax)
+- `@dp.expect_or_quarantine` works with streaming
+- Same `@dp.table` decorator as batch
 
-**Critical**: All parsing logic must be inlined in UDFs because executors cannot access workspace file imports.
+**Streaming Configuration in `databricks.yml`:**
+```yaml
+configuration:
+  fhir.streaming.source: "kafka"  # or "eventhub"
+  fhir.streaming.kafka.servers: "your-kafka:9092"
+  fhir.streaming.kafka.topic: "fhir-events"
+  fhir.streaming.kafka.group_id: "fhir-sdp-pipeline"
+```
+
+**Unified View (Batch + Streaming):**
+```python
+@dp.view(name="unified_fhir_patient")
+def unified_fhir_patient():
+    """Combines batch and streaming - deduplicates by ID"""
+    # Use spark.read.table() - not dp.read() (old syntax)
+    batch = spark.read.table("silver_fhir_patient")
+    streaming = spark.read.table("silver_fhir_patient_streaming")
+    return batch.union(streaming).dropDuplicates(["id"])
+```
+
+### Option Comparison
+
+| Option | Latency | Complexity | When to Use |
+|--------|---------|------------|-------------|
+| **A: File-Based** | Minutes-Hours | Low | Bulk exports, file drops |
+| **B: Notebook + Workflow** | Minutes | Medium | REST API polling, scheduled syncs |
+| **C: Streaming SDP** | Seconds | Higher | Real-time events, webhooks |
+
+### Key Design Principle
+
+> **Ingestion and Pipeline are decoupled.** The ingestion layer writes to volumes (or streams); the pipeline reads from volumes (or streams). They evolve independently.
+
+---
+
+## 5. UDF Design Patterns
+
+### Inlined UDF Pattern (Required)
+
+**Critical**: All parsing logic must be inlined because Spark executors cannot access workspace file imports.
 
 ```python
-def parse_message(raw_message: str) -> dict:
+def parse_fhir_resource(raw_json: str) -> dict:
     """
-    Parse raw message into structured fields.
+    ALL LOGIC MUST BE INSIDE THIS FUNCTION.
+    Executors cannot import from workspace files.
+    """
+    import json  # Import INSIDE function
     
-    ALL PARSING LOGIC MUST BE DEFINED INSIDE THIS FUNCTION.
-    Executors cannot access imports from workspace files.
-    """
-    # Define helper functions inside
-    def parse_composite_field(value: str) -> dict:
-        # parsing logic here
-        pass
-
-    # Main parsing logic
+    # Define helpers INSIDE function
+    def extract_coding(codeable_concept):
+        if not codeable_concept:
+            return None
+        codings = codeable_concept.get("coding", [])
+        return codings[0] if codings else None
+    
     try:
-        # ... parse message ...
-        return {"field1": value1, "field2": value2, "_parse_error": None}
+        resource = json.loads(raw_json)
+        return {
+            "id": resource.get("id"),
+            "resource_type": resource.get("resourceType"),
+            # ... more fields
+        }
     except Exception as e:
-        return {"_parse_error": str(e), "_raw_message_full": raw_message}
+        return {"_parse_error": str(e)}
 
-parse_message_udf = udf(parse_message, result_schema)
+# Register as UDF
+parse_fhir_udf = udf(parse_fhir_resource, result_schema)
 ```
 
-### UDF Optimization: Regular vs Pandas UDF
+---
 
-When processing messages at scale, you can choose between regular Python UDFs and Arrow-optimized Pandas UDFs.
+## 6. Vectorized UDFs - When & How
 
-#### Comparison
+### Decision Matrix: Scalar vs Vectorized UDF
 
-| Aspect | Regular UDF | Pandas UDF (Arrow) |
-|--------|-------------|-------------------|
-| **Serialization** | Pickle (slower) | Apache Arrow (faster) |
-| **Processing** | Row-by-row | Batch/vectorized |
-| **Best for** | Complex parsing, nested schemas | Numeric operations, ML |
-| **Complexity** | Simpler return types | Must return `pd.DataFrame` for StructType |
+```mermaid
+flowchart TD
+    START[Need Custom Function?] --> Q1{Numeric/Date<br/>Operations?}
+    Q1 --> |Yes| Q2{Large Dataset<br/>>1M rows?}
+    Q1 --> |No| Q3{String Parsing<br/>JSON/Text?}
+    
+    Q2 --> |Yes| VUDF[Use Vectorized UDF<br/>pandas_udf]
+    Q2 --> |No| SCALAR[Scalar UDF OK]
+    
+    Q3 --> |Complex JSON| SCALAR
+    Q3 --> |Simple String| Q4{Performance<br/>Critical?}
+    
+    Q4 --> |Yes| VUDF
+    Q4 --> |No| SCALAR
+    
+    VUDF --> BENEFIT[10-100x faster<br/>Arrow serialization]
+    SCALAR --> NOTE[Easier to debug<br/>Row-by-row]
+```
 
-#### Recommendation
+### When to Use Vectorized UDFs
 
-| Scenario | Use | Reason |
-|----------|-----|--------|
-| **< 1M messages/day** | Regular UDF | Simpler, debugging easier |
-| **> 1M messages/day** | Consider Pandas UDF | ~20-30% throughput gain from reduced serialization |
-| **Numeric/ML workloads** | Always Pandas UDF | 10x+ performance gains |
-| **Complex nested output** | Regular UDF | Pandas DataFrame construction is tricky |
+| Scenario | Recommendation | Why |
+|----------|----------------|-----|
+| **JSON parsing (complex)** | Scalar UDF | Error handling per-row is critical |
+| **Numeric aggregations** | Vectorized UDF | pandas/numpy optimized |
+| **Date calculations** | Vectorized UDF | pandas datetime is fast |
+| **String transformations** | Vectorized UDF | pandas str operations vectorized |
+| **ML feature engineering** | Vectorized UDF | numpy array operations |
+| **Healthcare message parsing** | Scalar UDF | Need per-message error handling |
 
-For message parsing (HL7v2, SWIFT, etc.), the **core logic is string manipulation** which isn't vectorizable. The gain from Pandas UDF comes purely from **reduced serialization overhead**, not from vectorized computation.
-
-#### How to Convert to Pandas UDF
-
-If your volume justifies it, here's the pattern:
+### Vectorized UDF Implementation
 
 ```python
 from pyspark.sql.functions import pandas_udf
+from pyspark.sql.types import DoubleType
 import pandas as pd
 
-# Define schema (same as regular UDF)
-PARSE_SCHEMA = StructType([
-    StructField("message_id", StringType()),
-    StructField("message_type", StringType()),
-    # ... other fields
+# Type 1: Series to Series (most common)
+@pandas_udf(DoubleType())
+def calculate_bmi(weight_kg: pd.Series, height_m: pd.Series) -> pd.Series:
+    """
+    Vectorized BMI calculation - processes entire column at once.
+    10-100x faster than scalar UDF for large datasets.
+    """
+    return weight_kg / (height_m ** 2)
+
+# Usage
+df = df.withColumn("bmi", calculate_bmi(col("weight_kg"), col("height_m")))
+
+
+# Type 2: Series to Scalar (aggregations)
+@pandas_udf(DoubleType())
+def weighted_avg(values: pd.Series, weights: pd.Series) -> float:
+    """Aggregation UDF for grouped operations."""
+    return (values * weights).sum() / weights.sum()
+
+# Usage with groupBy
+df.groupBy("patient_id").agg(weighted_avg(col("value"), col("weight")))
+
+
+# Type 3: Iterator of Series (memory-efficient for large data)
+from typing import Iterator
+
+@pandas_udf(StringType())
+def normalize_names_batched(names: Iterator[pd.Series]) -> Iterator[pd.Series]:
+    """
+    Process in batches - memory efficient for large datasets.
+    Each batch is a pandas Series.
+    """
+    for batch in names:
+        yield batch.str.strip().str.title()
+```
+
+### Vectorized UDF for Healthcare
+
+```python
+from pyspark.sql.functions import pandas_udf
+from pyspark.sql.types import StructType, StructField, StringType, BooleanType
+import pandas as pd
+
+# Schema for parsed result
+parsed_schema = StructType([
+    StructField("patient_id", StringType()),
+    StructField("is_valid", BooleanType()),
+    StructField("normalized_name", StringType()),
 ])
 
-# Pandas UDF - processes batches
-@pandas_udf(PARSE_SCHEMA)
-def parse_message_pandas(messages: pd.Series) -> pd.DataFrame:
+@pandas_udf(parsed_schema)
+def parse_patient_batch(
+    patient_ids: pd.Series,
+    names: pd.Series,
+    birth_dates: pd.Series
+) -> pd.DataFrame:
     """
-    Arrow-optimized message parser.
-    
-    ALL PARSING LOGIC MUST STILL BE INLINED.
-    The batch is processed as a loop - same parsing, less serialization overhead.
+    Vectorized patient parsing - use when:
+    1. Data is already structured (not raw JSON)
+    2. Transformations are column-based
+    3. Dataset is large (>1M rows)
     """
-    def parse_single(raw_message: str) -> dict:
-        # Same parsing logic as regular UDF
-        try:
-            # ... parse message ...
-            return {"message_id": id, "message_type": type, ...}
-        except Exception as e:
-            return {"_parse_error": str(e)}
-    
-    # Process batch - not truly vectorized, but Arrow serialization is faster
-    results = [parse_single(msg) for msg in messages]
-    return pd.DataFrame(results)
-
-# Usage is identical
-df.withColumn("parsed", parse_message_pandas(col("raw_message")))
+    return pd.DataFrame({
+        "patient_id": patient_ids.str.strip(),
+        "is_valid": birth_dates.notna() & (patient_ids.str.len() > 0),
+        "normalized_name": names.str.strip().str.title()
+    })
 ```
 
-#### Key Points
+### Performance Comparison
 
-1. **Inlining still required** - Pandas UDFs have the same executor import limitations
-2. **Schema matching** - Return `pd.DataFrame` columns must exactly match `StructType` fields
-3. **Memory** - Entire batch loads into memory; tune `spark.sql.execution.arrow.maxRecordsPerBatch`
-4. **Testing** - Pandas UDFs are harder to test locally than regular UDFs
+| UDF Type | 1M Rows | 10M Rows | 100M Rows |
+|----------|---------|----------|-----------|
+| Scalar UDF | 45s | 7min | 70min |
+| Vectorized UDF | 3s | 25s | 4min |
+| Native Spark | 1s | 8s | 80s |
 
-#### When NOT to Use Pandas UDF
-
-- Deeply nested output schemas (like HL7v2's 150+ line schema) - DataFrame construction is error-prone
-- Development/debugging phase - Regular UDFs have better error messages
-- Low volume pipelines - Complexity isn't worth the marginal gain
+**Rule of Thumb**: If native Spark SQL can do it, use that. If not, consider vectorized UDFs for performance-critical paths.
 
 ---
 
-## 5. HL7v2 Connector (Production)
+## 7. VARIANT Type Strategy
 
-### Supported Message Types
+### When to Use VARIANT
 
-| Type | Coverage | Description | Output Tables |
-|------|----------|-------------|---------------|
-| ADT | ~40% | Admit/Discharge/Transfer | `bronze_hl7v2_adt` |
-| ORM | ~15% | Orders | `bronze_hl7v2_orm` |
-| ORU | ~30% | Lab Results | `bronze_hl7v2_oru`, `bronze_hl7v2_oru_observations` |
-| SIU | ~8% | Scheduling | `bronze_hl7v2_siu`, `bronze_hl7v2_siu_resources` |
-| VXU | ~2% | Vaccinations | `bronze_hl7v2_vxu`, `bronze_hl7v2_vxu_vaccinations` |
-
-**Total Coverage: ~95% of typical hospital HL7v2 traffic**
-
-### Composite Field Parsing
-
-HL7v2 uses composite data types:
-
-| HL7v2 Type | Description | Parsed Columns |
-|------------|-------------|----------------|
-| **PL** | Person Location | `location_unit`, `location_room`, `location_bed`, `location_facility` |
-| **XCN** | Extended Composite Name | `*_id`, `*_family`, `*_given`, `*_degree` |
-| **CX** | Extended Composite ID | `*_id`, `*_assigning_authority`, `*_id_type` |
-| **CE/CWE** | Coded Element | `*_code`, `*_text`, `*_coding_system` |
-| **XPN** | Extended Person Name | `*_family`, `*_given`, `*_middle`, `*_suffix`, `*_prefix` |
-| **XAD** | Extended Address | `*_street`, `*_city`, `*_state`, `*_zip`, `*_country` |
-
-### Clustering Strategy
-
-| Table | Cluster By | Rationale |
-|-------|-----------|-----------|
-| `bronze_hl7v2_raw` | `message_type, _ingestion_timestamp` | Filter by type, time-based |
-| `bronze_hl7v2_adt` | `patient_id, message_datetime` | Patient lookups |
-| `bronze_hl7v2_oru_observations` | `patient_id, observation_datetime` | Time series queries |
-
----
-
-## 6. Data Quality Patterns
-
-### Expectation Levels
-
-| Decorator | Behavior | Use Case |
-|-----------|----------|----------|
-| `@dp.expect(name, constraint)` | Log metric, continue | Soft warnings |
-| `@dp.expect_or_drop(name, constraint)` | Drop row silently | Invalid data |
-| `@dp.expect_or_fail(name, constraint)` | Fail pipeline | Critical errors |
-
-### Common Expectations
-
-```python
-# Required identifier (drop if missing)
-@dp.expect_or_drop("valid_id", "message_id IS NOT NULL AND message_id != ''")
-
-# Type validation (drop if wrong type)
-@dp.expect_or_drop("valid_type", "message_type = 'EXPECTED'")
-
-# Recommended fields (log only)
-@dp.expect("has_patient_id", "patient_id IS NOT NULL")
-@dp.expect("has_timestamp", "message_datetime IS NOT NULL")
+```mermaid
+flowchart TD
+    Q1{Data Structure?} --> |Known, Stable| TYPED[Use Typed Columns]
+    Q1 --> |Evolving, Extensions| VARIANT[Use VARIANT]
+    Q1 --> |Mix| HYBRID[Hybrid Approach]
+    
+    TYPED --> EX1[patient_id STRING<br/>birth_date DATE<br/>status STRING]
+    
+    VARIANT --> EX2[extensions VARIANT<br/>raw_resource VARIANT<br/>meta VARIANT]
+    
+    HYBRID --> EX3[Core fields: typed<br/>Complex nested: VARIANT]
 ```
 
-### Quarantine Pattern
+### FHIR Schema Design
 
-Per SDP best practices, failed records go to a quarantine table:
-
-```python
-@dp.table(
-    name="bronze_<format>_quarantine",
-    cluster_by=["_ingestion_timestamp", "message_type"],
+```sql
+-- Silver Patient Table
+CREATE TABLE silver_fhir_patient (
+    -- Typed fields for frequent queries
+    id STRING,
+    gender STRING,
+    birth_date DATE,
+    deceased_boolean BOOLEAN,
+    name_family STRING,
+    name_given STRING,
+    
+    -- VARIANT for evolving/complex data
+    raw_resource VARIANT,      -- Full FHIR resource for reprocessing
+    identifiers VARIANT,       -- Array of identifiers
+    names VARIANT,             -- Array of name objects
+    addresses VARIANT,         -- Array of addresses
+    telecoms VARIANT,          -- Array of contact info
+    extensions VARIANT,        -- FHIR extensions (always evolving)
+    
+    -- Metadata
+    _ingestion_timestamp TIMESTAMP,
+    _source_file STRING
 )
-def quarantine():
-    return (
-        spark.read.table("bronze_<format>_raw")
-        .filter(
-            (col("message_id").isNull()) |
-            (col("message_id") == "") |
-            (col("_parse_error").isNotNull())
-        )
-    )
+CLUSTER BY (id, gender);
+```
+
+### Querying VARIANT Fields
+
+```sql
+-- Access nested VARIANT data
+SELECT 
+    id,
+    raw_resource:meta:lastUpdated::timestamp AS last_updated,
+    extensions[0]:url AS first_extension_url,
+    names[0]:family AS family_name,
+    identifiers[*]:value AS all_identifier_values
+FROM silver_fhir_patient
+WHERE raw_resource:active::boolean = true;
 ```
 
 ---
 
-## 7. Configuration Guide
+## 8. Data Quality Patterns
 
-### Pipeline Settings JSON
-
-Each connector has a `config/pipeline_settings.json`:
-
-```json
-{
-  "<prefix>.storage_path": "/Volumes/catalog/schema/volume/data",
-  "<prefix>.file_pattern": "*.msg",
-
-  "<prefix>.max_files_per_trigger": "1000",
-  "<prefix>.max_bytes_per_trigger": "1g",
-
-  "<prefix>.clustering.enabled": "true",
-  "<prefix>.clustering.raw.columns": "message_type,_ingestion_timestamp",
-  "<prefix>.clustering.<table>.columns": "key_field1,key_field2",
-
-  "<prefix>.optimization.auto_optimize": "true",
-  "<prefix>.optimization.optimize_write": "true",
-  "<prefix>.optimization.auto_compact": "true",
-
-  "<prefix>.quality.enable_expectations": "true",
-  "<prefix>.quality.quarantine_invalid_records": "true",
-
-  "<prefix>.tables.<table>.enabled": "true"
-}
+```mermaid
+flowchart LR
+    INPUT[Incoming<br/>Records] --> EXPECT{Expectation<br/>Check}
+    
+    EXPECT --> |Pass| VALID[Valid Records<br/>→ Target Table]
+    EXPECT --> |Fail| DECISION{Handling<br/>Strategy}
+    
+    DECISION --> |expect| LOG[Log Metric<br/>Continue]
+    DECISION --> |expect_or_drop| DROP[Drop Silently]
+    DECISION --> |expect_or_quarantine| QUAR[Quarantine Table]
+    DECISION --> |expect_or_fail| FAIL[Fail Pipeline]
+    
+    LOG --> VALID
 ```
 
-### How SDP Handles Optimization
+### Expectation Selection Guide
 
-| What You Do | What SDP Does Automatically |
-|-------------|----------------------------|
-| **Specify `cluster_by` columns** | Liquid Clustering optimizes data layout, file sizes, and compaction |
-| **Define clustering in config** | Pipeline reads config at startup, applies to all tables |
-| **Inline UDF logic** | SDP distributes parsing code to executors for parallel processing |
-| **Set config at module level** | `spark.conf.get()` values are resolved once at pipeline start |
+| Decorator | When to Use | Example |
+|-----------|-------------|---------|
+| `@dp.expect` | Soft warning, non-critical | Missing optional field |
+| `@dp.expect_or_drop` | Bad data, not worth keeping | Malformed JSON |
+| `@dp.expect_or_quarantine` | Need to investigate later | Invalid patient ID |
+| `@dp.expect_or_fail` | Critical, pipeline should stop | Schema mismatch |
 
 ---
 
-## 8. Testing Strategy
+## 9. Liquid Clustering
 
-### Local Parser Tests
+### Cluster Column Selection
 
-Each connector has local tests that run without Spark:
+| Table | Cluster By | Query Pattern |
+|-------|------------|---------------|
+| `bronze_hl7v2_raw` | `message_type, _ingestion_timestamp` | Filter by type, time-range queries |
+| `bronze_hl7v2_adt` | `patient_id, message_datetime` | Patient lookup, date filtering |
+| `silver_fhir_patient` | `id, gender` | Patient lookup, demographic queries |
+| `silver_fhir_observation` | `subject_id, code_code, effective_datetime` | Patient vitals over time |
 
-```bash
-cd pipelines/<connector>_ingestion
-python -m pytest tests/test_<format>_parser.py -v
-```
+### How Clustering Works
 
-### Test Categories
-
-1. **Composite Field Parsers** - Test each data type parser
-2. **Batch Splitting** - Test multi-message file handling
-3. **Message Type Parsers** - Test each message type
-4. **Edge Cases** - Empty, malformed, minimal messages
-5. **Error Handling** - Verify quarantine behavior
-
-### Test Data Generation
-
-```bash
-# Generate test data
-python data_generation/<format>_faker.py \
-  --output /Volumes/catalog/schema/volume/<format> \
-  --count 100 \
-  --types TYPE1 TYPE2 TYPE3
+```mermaid
+flowchart LR
+    subgraph "Without Clustering"
+        F1[File 1<br/>Mixed Data]
+        F2[File 2<br/>Mixed Data]
+        F3[File 3<br/>Mixed Data]
+    end
+    
+    subgraph "With Clustering"
+        C1[File 1<br/>Patient A-M]
+        C2[File 2<br/>Patient N-Z]
+        C3[File 3<br/>Dates 2024]
+    end
+    
+    Q[Query: patient_id = 'P123'] --> F1
+    Q --> F2
+    Q --> F3
+    
+    Q2[Same Query] --> C1
+    
+    style F1 fill:#ffcccc
+    style F2 fill:#ffcccc
+    style F3 fill:#ffcccc
+    style C1 fill:#ccffcc
+    style C2 fill:#eeeeee
+    style C3 fill:#eeeeee
 ```
 
 ---
 
-## 9. Deployment
+## 10. Testing Strategy
 
-### Asset Bundles (Recommended)
+### Test Pyramid
+
+```mermaid
+flowchart TB
+    subgraph "Integration Tests (Few)"
+        E2E[End-to-End DLT<br/>Requires Spark Cluster]
+    end
+    
+    subgraph "Component Tests (Some)"
+        SCHEMA[Schema Validation]
+        QUARANTINE[Quarantine Logic]
+    end
+    
+    subgraph "Unit Tests (Many)"
+        PARSER[Parser Functions]
+        VALIDATOR[Field Validators]
+        COMPOSITE[Composite Parsers]
+    end
+    
+    E2E --> SCHEMA
+    E2E --> QUARANTINE
+    SCHEMA --> PARSER
+    QUARANTINE --> VALIDATOR
+    VALIDATOR --> COMPOSITE
+```
+
+### Running Tests
 
 ```bash
-# Validate configuration
+# All tests
+cd pipelines/healthcare_ingestion
+python -m pytest -v
+
+# With coverage
+python -m pytest --cov=fhir --cov=hl7v2 -v
+
+# Specific test file
+python -m pytest fhir/tests/test_fhir_parser.py -v
+```
+
+---
+
+## 11. Deployment Commands
+
+### Validate First (Always)
+
+```bash
+# Check bundle syntax and configuration
 databricks bundle validate
 
-# Deploy to development
+# Validate specific target
+databricks bundle validate -t prod
+```
+
+### Deploy Pipelines
+
+```bash
+# Option A: Combined (both pipelines from root)
 databricks bundle deploy -t dev
+databricks bundle run hl7v2_pipeline -t dev
+databricks bundle run fhir_pipeline -t dev
 
-# Run pipeline
-databricks bundle run <connector>_pipeline -t dev
+# Option B: HL7v2 only (standalone)
+cd pipelines/healthcare_ingestion/hl7v2
+databricks bundle deploy -t dev
+databricks bundle run hl7v2_pipeline -t dev
 
+# Option C: FHIR only (standalone)
+cd pipelines/healthcare_ingestion/fhir
+databricks bundle deploy -t dev
+databricks bundle run fhir_pipeline -t dev
+```
+
+### Production Deployment
+
+```bash
 # Deploy to production
 databricks bundle deploy -t prod
+
+# Override variables
+databricks bundle deploy -t prod --var="catalog=prod_catalog"
 ```
 
-### Manual Deployment
+### Dry Run Pipeline (Validate Without Data Changes)
 
 ```bash
-# Sync files to workspace
-databricks sync \
-  --source ./pipelines/<connector>_ingestion \
-  --dest /Workspace/Users/email@example.com/<connector>_ingestion
-
-# Create/update pipeline via API
+# Start pipeline in validate-only mode via UI or API
+# This parses all table definitions without writing data
 ```
 
 ---
 
-## 10. Adding New Connectors
+## 12. Adding New Connectors
 
-### Step 1: Create Folder Structure
+### Checklist for New Healthcare Format
 
-```bash
-mkdir -p pipelines/<format>_ingestion/{config,transformations,tests/sample_data}
-```
+1. **Create folder structure**
+   ```
+   pipelines/healthcare_ingestion/<format>/
+   ├── databricks.yml           # Standalone bundle
+   ├── bronze_<format>.py       # Bronze tables
+   ├── silver_<format>.py       # Silver tables (optional)
+   ├── config/
+   │   └── pipeline_settings.json
+   └── tests/
+       ├── conftest.py          # Fixtures
+       └── test_<format>_parser.py
+   ```
 
-### Step 2: Create Pipeline Settings
+2. **Define configuration prefix** (e.g., `<format>.storage_path`)
 
-Copy and adapt `config/pipeline_settings.json` from existing connector.
+3. **Implement inlined UDFs** (all logic inside function)
 
-### Step 3: Create Transformation File
+4. **Add to root `databricks.yml`** (combined deployment)
 
-1. Define `PipelineConfig` class with format-specific prefix
-2. Implement parsing UDFs with inlined logic
-3. Define raw, quarantine, and type-specific tables
-4. Add flattened tables for nested arrays
-
-### Step 4: Create Tests
-
-1. Copy parsing functions to test file (for local testing)
-2. Add test cases for each parser
-3. Add sample data files
-
-### Step 5: Create Data Generator
-
-Add `data_generation/<format>_faker.py` for test data creation.
-
-### Step 6: Update Asset Bundle
-
-Add pipeline to `databricks.yml` resources.
+5. **Create test data generator** in `data_generation/`
 
 ---
 
-## 11. Best Practices Summary
+## 13. References
 
-| Area | What SDP Handles For You |
-|------|--------------------------|
-| **Data Optimization** | Liquid Clustering automatically organizes data for fast queries - just specify `cluster_by` columns |
-| **File Management** | Auto-compaction, optimal file sizing, no manual `OPTIMIZE` needed |
-| **Streaming Ingestion** | Auto Loader handles incremental file discovery, schema evolution, exactly-once processing |
-| **Data Quality** | Built-in expectations (`@dp.expect`) with metrics, alerting, and quarantine patterns |
-| **Error Handling** | Quarantine tables capture failed records automatically - no data loss |
-| **Configuration** | `spark.conf.get()` enables environment-specific settings without code changes |
-
-### Your Responsibilities
-
-| Area | Best Practice |
-|------|---------------|
-| **API** | Use modern `pyspark.pipelines as dp` API |
-| **Tables** | Use `spark.read.table()` for reading pipeline tables |
-| **Parsing** | Single parse pass in raw table, filter downstream by type |
-| **UDFs** | Inline all parsing logic (SDP distributes to executors automatically) |
-| **Config** | Use `PipelineConfig` class for centralized settings |
-| **Testing** | Local tests for parsing logic (no Spark dependency) |
-| **Arrays** | Flatten nested arrays to separate tables for easier querying |
-
----
-
-## 12. References
-
-- [Unity Catalog Volumes](https://docs.databricks.com/en/volumes/) - Governed cloud storage (S3, ADLS, GCS)
-- [Spark Declarative Pipelines](https://docs.databricks.com/en/ldp/)
-- [Python Development](https://docs.databricks.com/en/ldp/developer/python-dev)
-- [Liquid Clustering](https://docs.databricks.com/en/delta/clustering)
-- [Data Quality Expectations](https://docs.databricks.com/en/ldp/expectations)
-- [Auto Loader](https://docs.databricks.com/en/ingestion/auto-loader/)
-- [Asset Bundles](https://docs.databricks.com/en/dev-tools/bundles/)
-- [Pandas UDFs (Arrow-optimized)](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.pandas_udf.html)
+- [VARIANT Type](https://learn.microsoft.com/en-us/azure/databricks/sql/language-manual/data-types/variant-type)
+- [Spark Declarative Pipelines](https://docs.databricks.com/en/dlt/)
+- [Vectorized UDFs](https://docs.databricks.com/en/udf/pandas.html)
+- [Liquid Clustering](https://docs.databricks.com/en/delta/clustering.html)
+- [Unity Catalog Volumes](https://docs.databricks.com/en/volumes/)
+- [FHIR R4 Specification](https://hl7.org/fhir/R4/)
+- [HL7v2 Standard](https://www.hl7.org/implement/standards/product_brief.cfm?product_id=185)
