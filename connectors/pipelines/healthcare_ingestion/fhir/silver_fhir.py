@@ -178,468 +178,502 @@ def parse_patient(raw_resource: str) -> dict:
     Parse Patient resource into flattened structure.
     
     ALL LOGIC INLINED - executors cannot access workspace imports.
+    
+    RESILIENCE PATTERN: Catches ALL exceptions to prevent pipeline failures.
+    Returns None on any error - filtered out by downstream expectations.
     """
+    # Outer try/except catches ALL unexpected exceptions
     try:
-        resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
-    except (json.JSONDecodeError, TypeError):
+        try:
+            resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
+        except (json.JSONDecodeError, TypeError):
+            return None
+        
+        if not resource or resource.get("resourceType") != "Patient":
+            return None
+        
+        # Name handling
+        names = resource.get("name", [])
+        name_info = format_name(names)
+        
+        # Identifier handling
+        identifiers = resource.get("identifier", [])
+        mrn = extract_identifier(identifiers, "http://hospital.org/mrn")
+        ssn = extract_identifier(identifiers, "http://hl7.org/fhir/sid/us-ssn")
+        
+        # Address handling
+        addresses = resource.get("address", [])
+        address = addresses[0] if addresses else {}
+        
+        return {
+            "id": resource.get("id"),
+            "resource_type": "Patient",
+            "meta_version_id": safe_get(resource, "meta", "versionId"),
+            "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
+            "active": resource.get("active", True),
+            "gender": resource.get("gender"),
+            "birth_date": resource.get("birthDate"),
+            "deceased_boolean": resource.get("deceasedBoolean"),
+            "deceased_datetime": resource.get("deceasedDateTime"),
+            "family_name": name_info["family"],
+            "given_name": name_info["given"],
+            "full_name": name_info["full"],
+            "mrn": mrn,
+            "ssn": ssn,
+            "address_line": " ".join(address.get("line", [])) if address.get("line") else None,
+            "address_city": address.get("city"),
+            "address_state": address.get("state"),
+            "address_postal_code": address.get("postalCode"),
+            "address_country": address.get("country"),
+            "marital_status_code": safe_get(extract_coding(resource.get("maritalStatus")), "code"),
+            # VARIANT fields stored as JSON strings
+            "names": json.dumps(names) if names else None,
+            "identifiers": json.dumps(identifiers) if identifiers else None,
+            "addresses": json.dumps(addresses) if addresses else None,
+            "telecoms": json.dumps(resource.get("telecom", [])) if resource.get("telecom") else None,
+            "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
+            "raw_resource": raw_resource,
+        }
+    except Exception:
+        # Catch-all: return None on any unexpected error
+        # Downstream expectations will filter these out
         return None
-    
-    if not resource or resource.get("resourceType") != "Patient":
-        return None
-    
-    # Name handling
-    names = resource.get("name", [])
-    name_info = format_name(names)
-    
-    # Identifier handling
-    identifiers = resource.get("identifier", [])
-    mrn = extract_identifier(identifiers, "http://hospital.org/mrn")
-    ssn = extract_identifier(identifiers, "http://hl7.org/fhir/sid/us-ssn")
-    
-    # Address handling
-    addresses = resource.get("address", [])
-    address = addresses[0] if addresses else {}
-    
-    return {
-        "id": resource.get("id"),
-        "resource_type": "Patient",
-        "meta_version_id": safe_get(resource, "meta", "versionId"),
-        "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
-        "active": resource.get("active", True),
-        "gender": resource.get("gender"),
-        "birth_date": resource.get("birthDate"),
-        "deceased_boolean": resource.get("deceasedBoolean"),
-        "deceased_datetime": resource.get("deceasedDateTime"),
-        "family_name": name_info["family"],
-        "given_name": name_info["given"],
-        "full_name": name_info["full"],
-        "mrn": mrn,
-        "ssn": ssn,
-        "address_line": " ".join(address.get("line", [])) if address.get("line") else None,
-        "address_city": address.get("city"),
-        "address_state": address.get("state"),
-        "address_postal_code": address.get("postalCode"),
-        "address_country": address.get("country"),
-        "marital_status_code": safe_get(extract_coding(resource.get("maritalStatus")), "code"),
-        # VARIANT fields stored as JSON strings
-        "names": json.dumps(names) if names else None,
-        "identifiers": json.dumps(identifiers) if identifiers else None,
-        "addresses": json.dumps(addresses) if addresses else None,
-        "telecoms": json.dumps(resource.get("telecom", [])) if resource.get("telecom") else None,
-        "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
-        "raw_resource": raw_resource,
-    }
 
 
 def parse_observation(raw_resource: str) -> dict:
     """
     Parse Observation resource into flattened structure.
+    
+    RESILIENCE PATTERN: Catches ALL exceptions to prevent pipeline failures.
     """
     try:
-        resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
-    except (json.JSONDecodeError, TypeError):
+        try:
+            resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
+        except (json.JSONDecodeError, TypeError):
+            return None
+        
+        if not resource or resource.get("resourceType") != "Observation":
+            return None
+        
+        # Code
+        code_info = extract_coding(resource.get("code"))
+        
+        # Subject reference
+        subject = extract_reference(resource.get("subject"))
+        
+        # Category
+        categories = resource.get("category", [])
+        category_info = extract_coding(categories[0]) if categories else {}
+        
+        # Value extraction (choice type)
+        value = None
+        value_type = None
+        value_unit = None
+        
+        if "valueQuantity" in resource:
+            vq = resource["valueQuantity"]
+            value = str(vq.get("value", ""))
+            value_type = "Quantity"
+            value_unit = vq.get("unit") or vq.get("code")
+        elif "valueString" in resource:
+            value = resource["valueString"]
+            value_type = "String"
+        elif "valueCodeableConcept" in resource:
+            cc = extract_coding(resource["valueCodeableConcept"])
+            value = cc["display"] or cc["code"]
+            value_type = "CodeableConcept"
+        elif "valueBoolean" in resource:
+            value = str(resource["valueBoolean"])
+            value_type = "Boolean"
+        elif "valueInteger" in resource:
+            value = str(resource["valueInteger"])
+            value_type = "Integer"
+        elif "valueDateTime" in resource:
+            value = resource["valueDateTime"]
+            value_type = "DateTime"
+        
+        # Reference ranges
+        ref_ranges = resource.get("referenceRange", [])
+        ref_low = safe_get(ref_ranges[0], "low", "value") if ref_ranges else None
+        ref_high = safe_get(ref_ranges[0], "high", "value") if ref_ranges else None
+        
+        # Components (for panel results)
+        components = resource.get("component", [])
+        
+        return {
+            "id": resource.get("id"),
+            "resource_type": "Observation",
+            "meta_version_id": safe_get(resource, "meta", "versionId"),
+            "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
+            "status": resource.get("status"),
+            "code": code_info.get("code"),
+            "code_system": code_info.get("system"),
+            "code_display": code_info.get("display"),
+            "category_code": category_info.get("code"),
+            "category_display": category_info.get("display"),
+            "subject_type": subject["type"],
+            "subject_id": subject["id"],
+            "encounter_id": safe_get(extract_reference(resource.get("encounter")), "id"),
+            "effective_datetime": resource.get("effectiveDateTime"),
+            "effective_period_start": safe_get(resource, "effectivePeriod", "start"),
+            "effective_period_end": safe_get(resource, "effectivePeriod", "end"),
+            "issued": resource.get("issued"),
+            "value": value,
+            "value_type": value_type,
+            "value_unit": value_unit,
+            "reference_range_low": str(ref_low) if ref_low else None,
+            "reference_range_high": str(ref_high) if ref_high else None,
+            "interpretation_code": safe_get(extract_coding(safe_get(resource, "interpretation", 0)), "code"),
+            "data_absent_reason": safe_get(extract_coding(resource.get("dataAbsentReason")), "code"),
+            # VARIANT fields
+            "components": json.dumps(components) if components else None,
+            "performers": json.dumps(resource.get("performer", [])) if resource.get("performer") else None,
+            "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
+            "raw_resource": raw_resource,
+        }
+    except Exception:
         return None
-    
-    if not resource or resource.get("resourceType") != "Observation":
-        return None
-    
-    # Code
-    code_info = extract_coding(resource.get("code"))
-    
-    # Subject reference
-    subject = extract_reference(resource.get("subject"))
-    
-    # Category
-    categories = resource.get("category", [])
-    category_info = extract_coding(categories[0]) if categories else {}
-    
-    # Value extraction (choice type)
-    value = None
-    value_type = None
-    value_unit = None
-    
-    if "valueQuantity" in resource:
-        vq = resource["valueQuantity"]
-        value = str(vq.get("value", ""))
-        value_type = "Quantity"
-        value_unit = vq.get("unit") or vq.get("code")
-    elif "valueString" in resource:
-        value = resource["valueString"]
-        value_type = "String"
-    elif "valueCodeableConcept" in resource:
-        cc = extract_coding(resource["valueCodeableConcept"])
-        value = cc["display"] or cc["code"]
-        value_type = "CodeableConcept"
-    elif "valueBoolean" in resource:
-        value = str(resource["valueBoolean"])
-        value_type = "Boolean"
-    elif "valueInteger" in resource:
-        value = str(resource["valueInteger"])
-        value_type = "Integer"
-    elif "valueDateTime" in resource:
-        value = resource["valueDateTime"]
-        value_type = "DateTime"
-    
-    # Reference ranges
-    ref_ranges = resource.get("referenceRange", [])
-    ref_low = safe_get(ref_ranges[0], "low", "value") if ref_ranges else None
-    ref_high = safe_get(ref_ranges[0], "high", "value") if ref_ranges else None
-    
-    # Components (for panel results)
-    components = resource.get("component", [])
-    
-    return {
-        "id": resource.get("id"),
-        "resource_type": "Observation",
-        "meta_version_id": safe_get(resource, "meta", "versionId"),
-        "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
-        "status": resource.get("status"),
-        "code": code_info.get("code"),
-        "code_system": code_info.get("system"),
-        "code_display": code_info.get("display"),
-        "category_code": category_info.get("code"),
-        "category_display": category_info.get("display"),
-        "subject_type": subject["type"],
-        "subject_id": subject["id"],
-        "encounter_id": safe_get(extract_reference(resource.get("encounter")), "id"),
-        "effective_datetime": resource.get("effectiveDateTime"),
-        "effective_period_start": safe_get(resource, "effectivePeriod", "start"),
-        "effective_period_end": safe_get(resource, "effectivePeriod", "end"),
-        "issued": resource.get("issued"),
-        "value": value,
-        "value_type": value_type,
-        "value_unit": value_unit,
-        "reference_range_low": str(ref_low) if ref_low else None,
-        "reference_range_high": str(ref_high) if ref_high else None,
-        "interpretation_code": safe_get(extract_coding(safe_get(resource, "interpretation", 0)), "code"),
-        "data_absent_reason": safe_get(extract_coding(resource.get("dataAbsentReason")), "code"),
-        # VARIANT fields
-        "components": json.dumps(components) if components else None,
-        "performers": json.dumps(resource.get("performer", [])) if resource.get("performer") else None,
-        "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
-        "raw_resource": raw_resource,
-    }
 
 
 def parse_encounter(raw_resource: str) -> dict:
     """
     Parse Encounter resource into flattened structure.
+    
+    RESILIENCE PATTERN: Catches ALL exceptions to prevent pipeline failures.
     """
     try:
-        resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
-    except (json.JSONDecodeError, TypeError):
+        try:
+            resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
+        except (json.JSONDecodeError, TypeError):
+            return None
+        
+        if not resource or resource.get("resourceType") != "Encounter":
+            return None
+        
+        # Subject reference
+        subject = extract_reference(resource.get("subject"))
+        
+        # Class
+        enc_class = resource.get("class", {})
+        
+        # Type
+        types = resource.get("type", [])
+        type_info = extract_coding(types[0]) if types else {}
+        
+        # Period
+        period = resource.get("period", {})
+        
+        # Hospitalization
+        hospitalization = resource.get("hospitalization", {})
+        admit_source = extract_coding(hospitalization.get("admitSource"))
+        discharge_disposition = extract_coding(hospitalization.get("dischargeDisposition"))
+        
+        # Service provider
+        service_provider = extract_reference(resource.get("serviceProvider"))
+        
+        # Participants
+        participants = resource.get("participant", [])
+        
+        # Locations
+        locations = resource.get("location", [])
+        primary_location = locations[0] if locations else {}
+        location_ref = extract_reference(primary_location.get("location"))
+        
+        # Reason codes
+        reasons = resource.get("reasonCode", [])
+        reason_info = extract_coding(reasons[0]) if reasons else {}
+        
+        return {
+            "id": resource.get("id"),
+            "resource_type": "Encounter",
+            "meta_version_id": safe_get(resource, "meta", "versionId"),
+            "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
+            "status": resource.get("status"),
+            "class_code": enc_class.get("code"),
+            "class_display": enc_class.get("display"),
+            "type_code": type_info.get("code"),
+            "type_display": type_info.get("display"),
+            "subject_type": subject["type"],
+            "subject_id": subject["id"],
+            "period_start": period.get("start"),
+            "period_end": period.get("end"),
+            "admit_source_code": admit_source.get("code"),
+            "admit_source_display": admit_source.get("display"),
+            "discharge_disposition_code": discharge_disposition.get("code"),
+            "discharge_disposition_display": discharge_disposition.get("display"),
+            "service_provider_type": service_provider["type"],
+            "service_provider_id": service_provider["id"],
+            "location_id": location_ref["id"],
+            "reason_code": reason_info.get("code"),
+            "reason_display": reason_info.get("display"),
+            # VARIANT fields
+            "participants": json.dumps(participants) if participants else None,
+            "locations": json.dumps(locations) if locations else None,
+            "reason_codes": json.dumps(reasons) if reasons else None,
+            "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
+            "raw_resource": raw_resource,
+        }
+    except Exception:
         return None
-    
-    if not resource or resource.get("resourceType") != "Encounter":
-        return None
-    
-    # Subject reference
-    subject = extract_reference(resource.get("subject"))
-    
-    # Class
-    enc_class = resource.get("class", {})
-    
-    # Type
-    types = resource.get("type", [])
-    type_info = extract_coding(types[0]) if types else {}
-    
-    # Period
-    period = resource.get("period", {})
-    
-    # Hospitalization
-    hospitalization = resource.get("hospitalization", {})
-    admit_source = extract_coding(hospitalization.get("admitSource"))
-    discharge_disposition = extract_coding(hospitalization.get("dischargeDisposition"))
-    
-    # Service provider
-    service_provider = extract_reference(resource.get("serviceProvider"))
-    
-    # Participants
-    participants = resource.get("participant", [])
-    
-    # Locations
-    locations = resource.get("location", [])
-    primary_location = locations[0] if locations else {}
-    location_ref = extract_reference(primary_location.get("location"))
-    
-    # Reason codes
-    reasons = resource.get("reasonCode", [])
-    reason_info = extract_coding(reasons[0]) if reasons else {}
-    
-    return {
-        "id": resource.get("id"),
-        "resource_type": "Encounter",
-        "meta_version_id": safe_get(resource, "meta", "versionId"),
-        "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
-        "status": resource.get("status"),
-        "class_code": enc_class.get("code"),
-        "class_display": enc_class.get("display"),
-        "type_code": type_info.get("code"),
-        "type_display": type_info.get("display"),
-        "subject_type": subject["type"],
-        "subject_id": subject["id"],
-        "period_start": period.get("start"),
-        "period_end": period.get("end"),
-        "admit_source_code": admit_source.get("code"),
-        "admit_source_display": admit_source.get("display"),
-        "discharge_disposition_code": discharge_disposition.get("code"),
-        "discharge_disposition_display": discharge_disposition.get("display"),
-        "service_provider_type": service_provider["type"],
-        "service_provider_id": service_provider["id"],
-        "location_id": location_ref["id"],
-        "reason_code": reason_info.get("code"),
-        "reason_display": reason_info.get("display"),
-        # VARIANT fields
-        "participants": json.dumps(participants) if participants else None,
-        "locations": json.dumps(locations) if locations else None,
-        "reason_codes": json.dumps(reasons) if reasons else None,
-        "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
-        "raw_resource": raw_resource,
-    }
 
 
 def parse_condition(raw_resource: str) -> dict:
     """
     Parse Condition resource into flattened structure.
+    
+    RESILIENCE PATTERN: Catches ALL exceptions to prevent pipeline failures.
     """
     try:
-        resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
-    except (json.JSONDecodeError, TypeError):
+        try:
+            resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
+        except (json.JSONDecodeError, TypeError):
+            return None
+        
+        if not resource or resource.get("resourceType") != "Condition":
+            return None
+        
+        # Code
+        code_info = extract_coding(resource.get("code"))
+        
+        # Subject reference
+        subject = extract_reference(resource.get("subject"))
+        
+        # Category
+        categories = resource.get("category", [])
+        category_info = extract_coding(categories[0]) if categories else {}
+        
+        # Clinical status
+        clinical_status = extract_coding(resource.get("clinicalStatus"))
+        
+        # Verification status
+        verification_status = extract_coding(resource.get("verificationStatus"))
+        
+        # Severity
+        severity = extract_coding(resource.get("severity"))
+        
+        # Body site
+        body_sites = resource.get("bodySite", [])
+        body_site_info = extract_coding(body_sites[0]) if body_sites else {}
+        
+        # Onset (choice type)
+        onset_datetime = resource.get("onsetDateTime")
+        onset_age = safe_get(resource, "onsetAge", "value")
+        onset_period_start = safe_get(resource, "onsetPeriod", "start")
+        
+        # Abatement (choice type)
+        abatement_datetime = resource.get("abatementDateTime")
+        abatement_age = safe_get(resource, "abatementAge", "value")
+        
+        return {
+            "id": resource.get("id"),
+            "resource_type": "Condition",
+            "meta_version_id": safe_get(resource, "meta", "versionId"),
+            "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
+            "code": code_info.get("code"),
+            "code_system": code_info.get("system"),
+            "code_display": code_info.get("display"),
+            "category_code": category_info.get("code"),
+            "category_display": category_info.get("display"),
+            "clinical_status_code": clinical_status.get("code"),
+            "verification_status_code": verification_status.get("code"),
+            "severity_code": severity.get("code"),
+            "severity_display": severity.get("display"),
+            "body_site_code": body_site_info.get("code"),
+            "body_site_display": body_site_info.get("display"),
+            "subject_type": subject["type"],
+            "subject_id": subject["id"],
+            "encounter_id": safe_get(extract_reference(resource.get("encounter")), "id"),
+            "onset_datetime": onset_datetime,
+            "onset_age": str(onset_age) if onset_age else None,
+            "onset_period_start": onset_period_start,
+            "abatement_datetime": abatement_datetime,
+            "abatement_age": str(abatement_age) if abatement_age else None,
+            "recorded_date": resource.get("recordedDate"),
+            "recorder_id": safe_get(extract_reference(resource.get("recorder")), "id"),
+            "asserter_id": safe_get(extract_reference(resource.get("asserter")), "id"),
+            # VARIANT fields
+            "stages": json.dumps(resource.get("stage", [])) if resource.get("stage") else None,
+            "evidence": json.dumps(resource.get("evidence", [])) if resource.get("evidence") else None,
+            "notes": json.dumps(resource.get("note", [])) if resource.get("note") else None,
+            "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
+            "raw_resource": raw_resource,
+        }
+    except Exception:
         return None
-    
-    if not resource or resource.get("resourceType") != "Condition":
-        return None
-    
-    # Code
-    code_info = extract_coding(resource.get("code"))
-    
-    # Subject reference
-    subject = extract_reference(resource.get("subject"))
-    
-    # Category
-    categories = resource.get("category", [])
-    category_info = extract_coding(categories[0]) if categories else {}
-    
-    # Clinical status
-    clinical_status = extract_coding(resource.get("clinicalStatus"))
-    
-    # Verification status
-    verification_status = extract_coding(resource.get("verificationStatus"))
-    
-    # Severity
-    severity = extract_coding(resource.get("severity"))
-    
-    # Body site
-    body_sites = resource.get("bodySite", [])
-    body_site_info = extract_coding(body_sites[0]) if body_sites else {}
-    
-    # Onset (choice type)
-    onset_datetime = resource.get("onsetDateTime")
-    onset_age = safe_get(resource, "onsetAge", "value")
-    onset_period_start = safe_get(resource, "onsetPeriod", "start")
-    
-    # Abatement (choice type)
-    abatement_datetime = resource.get("abatementDateTime")
-    abatement_age = safe_get(resource, "abatementAge", "value")
-    
-    return {
-        "id": resource.get("id"),
-        "resource_type": "Condition",
-        "meta_version_id": safe_get(resource, "meta", "versionId"),
-        "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
-        "code": code_info.get("code"),
-        "code_system": code_info.get("system"),
-        "code_display": code_info.get("display"),
-        "category_code": category_info.get("code"),
-        "category_display": category_info.get("display"),
-        "clinical_status_code": clinical_status.get("code"),
-        "verification_status_code": verification_status.get("code"),
-        "severity_code": severity.get("code"),
-        "severity_display": severity.get("display"),
-        "body_site_code": body_site_info.get("code"),
-        "body_site_display": body_site_info.get("display"),
-        "subject_type": subject["type"],
-        "subject_id": subject["id"],
-        "encounter_id": safe_get(extract_reference(resource.get("encounter")), "id"),
-        "onset_datetime": onset_datetime,
-        "onset_age": str(onset_age) if onset_age else None,
-        "onset_period_start": onset_period_start,
-        "abatement_datetime": abatement_datetime,
-        "abatement_age": str(abatement_age) if abatement_age else None,
-        "recorded_date": resource.get("recordedDate"),
-        "recorder_id": safe_get(extract_reference(resource.get("recorder")), "id"),
-        "asserter_id": safe_get(extract_reference(resource.get("asserter")), "id"),
-        # VARIANT fields
-        "stages": json.dumps(resource.get("stage", [])) if resource.get("stage") else None,
-        "evidence": json.dumps(resource.get("evidence", [])) if resource.get("evidence") else None,
-        "notes": json.dumps(resource.get("note", [])) if resource.get("note") else None,
-        "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
-        "raw_resource": raw_resource,
-    }
 
 
 def parse_medication_request(raw_resource: str) -> dict:
     """
     Parse MedicationRequest resource into flattened structure.
+    
+    RESILIENCE PATTERN: Catches ALL exceptions to prevent pipeline failures.
     """
     try:
-        resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
-    except (json.JSONDecodeError, TypeError):
+        try:
+            resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
+        except (json.JSONDecodeError, TypeError):
+            return None
+        
+        if not resource or resource.get("resourceType") != "MedicationRequest":
+            return None
+        
+        # Subject reference
+        subject = extract_reference(resource.get("subject"))
+        
+        # Medication (choice type)
+        med_code = None
+        med_system = None
+        med_display = None
+        med_reference_id = None
+        
+        if "medicationCodeableConcept" in resource:
+            med_info = extract_coding(resource["medicationCodeableConcept"])
+            med_code = med_info.get("code")
+            med_system = med_info.get("system")
+            med_display = med_info.get("display")
+        elif "medicationReference" in resource:
+            med_ref = extract_reference(resource["medicationReference"])
+            med_reference_id = med_ref["id"]
+        
+        # Dosage instructions
+        dosage_instructions = resource.get("dosageInstruction", [])
+        dosage = dosage_instructions[0] if dosage_instructions else {}
+        
+        dose_quantity = safe_get(dosage, "doseAndRate", 0, "doseQuantity")
+        dose_value = safe_get(dose_quantity, "value") if dose_quantity else None
+        dose_unit = safe_get(dose_quantity, "unit") if dose_quantity else None
+        
+        timing = dosage.get("timing", {})
+        frequency = safe_get(timing, "repeat", "frequency")
+        period = safe_get(timing, "repeat", "period")
+        period_unit = safe_get(timing, "repeat", "periodUnit")
+        
+        # Requester
+        requester = extract_reference(resource.get("requester"))
+        
+        # Dispense request
+        dispense_request = resource.get("dispenseRequest", {})
+        quantity = dispense_request.get("quantity", {})
+        
+        return {
+            "id": resource.get("id"),
+            "resource_type": "MedicationRequest",
+            "meta_version_id": safe_get(resource, "meta", "versionId"),
+            "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
+            "status": resource.get("status"),
+            "intent": resource.get("intent"),
+            "priority": resource.get("priority"),
+            "medication_code": med_code,
+            "medication_system": med_system,
+            "medication_display": med_display,
+            "medication_reference_id": med_reference_id,
+            "subject_type": subject["type"],
+            "subject_id": subject["id"],
+            "encounter_id": safe_get(extract_reference(resource.get("encounter")), "id"),
+            "authored_on": resource.get("authoredOn"),
+            "requester_type": requester["type"],
+            "requester_id": requester["id"],
+            "dose_value": str(dose_value) if dose_value else None,
+            "dose_unit": dose_unit,
+            "frequency": str(frequency) if frequency else None,
+            "period": str(period) if period else None,
+            "period_unit": period_unit,
+            "route_code": safe_get(extract_coding(dosage.get("route")), "code"),
+            "route_display": safe_get(extract_coding(dosage.get("route")), "display"),
+            "dispense_quantity_value": str(quantity.get("value")) if quantity.get("value") else None,
+            "dispense_quantity_unit": quantity.get("unit"),
+            "number_of_repeats": dispense_request.get("numberOfRepeatsAllowed"),
+            # VARIANT fields
+            "dosage_instructions": json.dumps(dosage_instructions) if dosage_instructions else None,
+            "reason_codes": json.dumps(resource.get("reasonCode", [])) if resource.get("reasonCode") else None,
+            "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
+            "raw_resource": raw_resource,
+        }
+    except Exception:
         return None
-    
-    if not resource or resource.get("resourceType") != "MedicationRequest":
-        return None
-    
-    # Subject reference
-    subject = extract_reference(resource.get("subject"))
-    
-    # Medication (choice type)
-    med_code = None
-    med_system = None
-    med_display = None
-    med_reference_id = None
-    
-    if "medicationCodeableConcept" in resource:
-        med_info = extract_coding(resource["medicationCodeableConcept"])
-        med_code = med_info.get("code")
-        med_system = med_info.get("system")
-        med_display = med_info.get("display")
-    elif "medicationReference" in resource:
-        med_ref = extract_reference(resource["medicationReference"])
-        med_reference_id = med_ref["id"]
-    
-    # Dosage instructions
-    dosage_instructions = resource.get("dosageInstruction", [])
-    dosage = dosage_instructions[0] if dosage_instructions else {}
-    
-    dose_quantity = safe_get(dosage, "doseAndRate", 0, "doseQuantity")
-    dose_value = safe_get(dose_quantity, "value") if dose_quantity else None
-    dose_unit = safe_get(dose_quantity, "unit") if dose_quantity else None
-    
-    timing = dosage.get("timing", {})
-    frequency = safe_get(timing, "repeat", "frequency")
-    period = safe_get(timing, "repeat", "period")
-    period_unit = safe_get(timing, "repeat", "periodUnit")
-    
-    # Requester
-    requester = extract_reference(resource.get("requester"))
-    
-    # Dispense request
-    dispense_request = resource.get("dispenseRequest", {})
-    quantity = dispense_request.get("quantity", {})
-    
-    return {
-        "id": resource.get("id"),
-        "resource_type": "MedicationRequest",
-        "meta_version_id": safe_get(resource, "meta", "versionId"),
-        "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
-        "status": resource.get("status"),
-        "intent": resource.get("intent"),
-        "priority": resource.get("priority"),
-        "medication_code": med_code,
-        "medication_system": med_system,
-        "medication_display": med_display,
-        "medication_reference_id": med_reference_id,
-        "subject_type": subject["type"],
-        "subject_id": subject["id"],
-        "encounter_id": safe_get(extract_reference(resource.get("encounter")), "id"),
-        "authored_on": resource.get("authoredOn"),
-        "requester_type": requester["type"],
-        "requester_id": requester["id"],
-        "dose_value": str(dose_value) if dose_value else None,
-        "dose_unit": dose_unit,
-        "frequency": str(frequency) if frequency else None,
-        "period": str(period) if period else None,
-        "period_unit": period_unit,
-        "route_code": safe_get(extract_coding(dosage.get("route")), "code"),
-        "route_display": safe_get(extract_coding(dosage.get("route")), "display"),
-        "dispense_quantity_value": str(quantity.get("value")) if quantity.get("value") else None,
-        "dispense_quantity_unit": quantity.get("unit"),
-        "number_of_repeats": dispense_request.get("numberOfRepeatsAllowed"),
-        # VARIANT fields
-        "dosage_instructions": json.dumps(dosage_instructions) if dosage_instructions else None,
-        "reason_codes": json.dumps(resource.get("reasonCode", [])) if resource.get("reasonCode") else None,
-        "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
-        "raw_resource": raw_resource,
-    }
 
 
 def parse_immunization(raw_resource: str) -> dict:
     """
     Parse Immunization resource into flattened structure.
+    
+    RESILIENCE PATTERN: Catches ALL exceptions to prevent pipeline failures.
     """
     try:
-        resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
-    except (json.JSONDecodeError, TypeError):
+        try:
+            resource = json.loads(raw_resource) if isinstance(raw_resource, str) else raw_resource
+        except (json.JSONDecodeError, TypeError):
+            return None
+        
+        if not resource or resource.get("resourceType") != "Immunization":
+            return None
+        
+        # Patient reference
+        patient = extract_reference(resource.get("patient"))
+        
+        # Vaccine code
+        vaccine_info = extract_coding(resource.get("vaccineCode"))
+        
+        # Site
+        site_info = extract_coding(resource.get("site"))
+        
+        # Route
+        route_info = extract_coding(resource.get("route"))
+        
+        # Dose quantity
+        dose_quantity = resource.get("doseQuantity", {})
+        
+        # Performers
+        performers = resource.get("performer", [])
+        primary_performer = performers[0] if performers else {}
+        performer_ref = extract_reference(primary_performer.get("actor"))
+        
+        # Protocol applied
+        protocols = resource.get("protocolApplied", [])
+        protocol = protocols[0] if protocols else {}
+        
+        # Reason codes
+        reasons = resource.get("reasonCode", [])
+        reason_info = extract_coding(reasons[0]) if reasons else {}
+        
+        return {
+            "id": resource.get("id"),
+            "resource_type": "Immunization",
+            "meta_version_id": safe_get(resource, "meta", "versionId"),
+            "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
+            "status": resource.get("status"),
+            "vaccine_code": vaccine_info.get("code"),
+            "vaccine_system": vaccine_info.get("system"),
+            "vaccine_display": vaccine_info.get("display"),
+            "patient_id": patient["id"],
+            "encounter_id": safe_get(extract_reference(resource.get("encounter")), "id"),
+            "occurrence_datetime": resource.get("occurrenceDateTime"),
+            "occurrence_string": resource.get("occurrenceString"),
+            "recorded": resource.get("recorded"),
+            "primary_source": resource.get("primarySource"),
+            "lot_number": resource.get("lotNumber"),
+            "expiration_date": resource.get("expirationDate"),
+            "site_code": site_info.get("code"),
+            "site_display": site_info.get("display"),
+            "route_code": route_info.get("code"),
+            "route_display": route_info.get("display"),
+            "dose_value": str(dose_quantity.get("value")) if dose_quantity.get("value") else None,
+            "dose_unit": dose_quantity.get("unit"),
+            "performer_type": performer_ref["type"],
+            "performer_id": performer_ref["id"],
+            "reason_code": reason_info.get("code"),
+            "reason_display": reason_info.get("display"),
+            "dose_number": str(protocol.get("doseNumberPositiveInt")) if protocol.get("doseNumberPositiveInt") else protocol.get("doseNumberString"),
+            "series_doses": str(protocol.get("seriesDosesPositiveInt")) if protocol.get("seriesDosesPositiveInt") else protocol.get("seriesDosesString"),
+            # VARIANT fields
+            "performers": json.dumps(performers) if performers else None,
+            "protocols_applied": json.dumps(protocols) if protocols else None,
+            "reactions": json.dumps(resource.get("reaction", [])) if resource.get("reaction") else None,
+            "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
+            "raw_resource": raw_resource,
+        }
+    except Exception:
         return None
-    
-    if not resource or resource.get("resourceType") != "Immunization":
-        return None
-    
-    # Patient reference
-    patient = extract_reference(resource.get("patient"))
-    
-    # Vaccine code
-    vaccine_info = extract_coding(resource.get("vaccineCode"))
-    
-    # Site
-    site_info = extract_coding(resource.get("site"))
-    
-    # Route
-    route_info = extract_coding(resource.get("route"))
-    
-    # Dose quantity
-    dose_quantity = resource.get("doseQuantity", {})
-    
-    # Performers
-    performers = resource.get("performer", [])
-    primary_performer = performers[0] if performers else {}
-    performer_ref = extract_reference(primary_performer.get("actor"))
-    
-    # Protocol applied
-    protocols = resource.get("protocolApplied", [])
-    protocol = protocols[0] if protocols else {}
-    
-    # Reason codes
-    reasons = resource.get("reasonCode", [])
-    reason_info = extract_coding(reasons[0]) if reasons else {}
-    
-    return {
-        "id": resource.get("id"),
-        "resource_type": "Immunization",
-        "meta_version_id": safe_get(resource, "meta", "versionId"),
-        "meta_last_updated": safe_get(resource, "meta", "lastUpdated"),
-        "status": resource.get("status"),
-        "vaccine_code": vaccine_info.get("code"),
-        "vaccine_system": vaccine_info.get("system"),
-        "vaccine_display": vaccine_info.get("display"),
-        "patient_id": patient["id"],
-        "encounter_id": safe_get(extract_reference(resource.get("encounter")), "id"),
-        "occurrence_datetime": resource.get("occurrenceDateTime"),
-        "occurrence_string": resource.get("occurrenceString"),
-        "recorded": resource.get("recorded"),
-        "primary_source": resource.get("primarySource"),
-        "lot_number": resource.get("lotNumber"),
-        "expiration_date": resource.get("expirationDate"),
-        "site_code": site_info.get("code"),
-        "site_display": site_info.get("display"),
-        "route_code": route_info.get("code"),
-        "route_display": route_info.get("display"),
-        "dose_value": str(dose_quantity.get("value")) if dose_quantity.get("value") else None,
-        "dose_unit": dose_quantity.get("unit"),
-        "performer_type": performer_ref["type"],
-        "performer_id": performer_ref["id"],
-        "reason_code": reason_info.get("code"),
-        "reason_display": reason_info.get("display"),
-        "dose_number": str(protocol.get("doseNumberPositiveInt")) if protocol.get("doseNumberPositiveInt") else protocol.get("doseNumberString"),
-        "series_doses": str(protocol.get("seriesDosesPositiveInt")) if protocol.get("seriesDosesPositiveInt") else protocol.get("seriesDosesString"),
-        # VARIANT fields
-        "performers": json.dumps(performers) if performers else None,
-        "protocols_applied": json.dumps(protocols) if protocols else None,
-        "reactions": json.dumps(resource.get("reaction", [])) if resource.get("reaction") else None,
-        "extensions": json.dumps(resource.get("extension", [])) if resource.get("extension") else None,
-        "raw_resource": raw_resource,
-    }
 
 
 # ---------------------------------------------------------------------------

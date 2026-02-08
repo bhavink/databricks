@@ -1,7 +1,7 @@
 # Healthcare Data Connectors - Design Document
 
-> **Version**: 9.0  
-> **Updated**: 2026-02-07  
+> **Version**: 10.0  
+> **Updated**: 2026-02-04  
 
 ---
 
@@ -593,7 +593,205 @@ flowchart LR
 
 ---
 
-## 9. Liquid Clustering
+## 9. Resilience Patterns
+
+Production pipelines must handle failures gracefully without crashing. These patterns ensure a single bad record never brings down the entire pipeline.
+
+### 9.1 Broader Exception Handling in UDFs
+
+**Critical**: All UDFs wrap entire logic in try/except to prevent any single malformed record from crashing the pipeline.
+
+```python
+def parse_fhir_resource(raw_json: str) -> dict:
+    """
+    RESILIENCE PATTERN: Outer try/except catches ALL exceptions.
+    
+    This ensures:
+    1. A single bad record never crashes the pipeline
+    2. Errors are captured for debugging
+    3. Pipeline continues processing other records
+    """
+    # Default result for failures
+    result = {
+        "is_valid": False,
+        "resource_type": None,
+        "resource_id": None,
+        "validation_errors": []
+    }
+    
+    # OUTER try/except catches ALL unexpected exceptions
+    try:
+        # Handle null/empty input first
+        if raw_json is None or not raw_json.strip():
+            result["validation_errors"].append("Input is null or empty")
+            return result
+        
+        # Inner try for specific JSON errors
+        try:
+            resource = json.loads(raw_json)
+        except (json.JSONDecodeError, TypeError) as e:
+            result["validation_errors"].append(f"JSON parse error: {str(e)}")
+            return result
+        
+        # ... parsing logic ...
+        return result
+        
+    except Exception as e:
+        # Catch-all: captures ANY unexpected error
+        result["validation_errors"].append(f"Unexpected error: {type(e).__name__}: {str(e)}")
+        return result  # Never throw, always return
+```
+
+### 9.2 Watermarking for Late-Arriving Data
+
+Streaming pipelines use watermarks to handle late-arriving data while preventing unbounded state growth.
+
+```python
+@dp.table(name="bronze_fhir_raw")
+def bronze_fhir_raw():
+    """
+    WATERMARK: 2-hour threshold balances late data handling vs memory.
+    - Data arriving within 2 hours: processed normally
+    - Data arriving after 2 hours: dropped to prevent unbounded state
+    """
+    raw_files = (
+        spark.readStream
+        .format("cloudFiles")
+        .load(STORAGE_PATH)
+    )
+    
+    with_timestamp = (
+        raw_files
+        .withColumn("_ingestion_timestamp", current_timestamp())
+    )
+    
+    # Apply watermark - critical for production streaming
+    watermarked = with_timestamp.withWatermark("_ingestion_timestamp", "2 hours")
+    
+    return watermarked
+```
+
+**Watermark Thresholds Guide:**
+
+| Scenario | Threshold | Why |
+|----------|-----------|-----|
+| Real-time analytics | 10-30 minutes | Fresh data matters most |
+| Healthcare ingestion | 2 hours | Balance freshness vs completeness |
+| Batch backfill | 24 hours | Allow delayed file drops |
+| Compliance reporting | 7 days | Regulatory data cannot be lost |
+
+### 9.3 Quality Monitoring Views
+
+Built-in views for monitoring data quality and pipeline health.
+
+```python
+@dp.temporary_view(name="bronze_fhir_quality_metrics")
+def bronze_fhir_quality_metrics():
+    """
+    OBSERVABILITY: Tracks validation success rates by resource type.
+    
+    Provides:
+    - Total/valid/invalid counts
+    - Validation success rate percentage
+    - Quality status (HEALTHY/WARNING/CRITICAL)
+    - Sample errors for debugging
+    """
+    return (
+        spark.read.table("bronze_fhir_raw")
+        .groupBy("resource_type")
+        .agg(
+            count("*").alias("total_records"),
+            sum(when(col("is_valid"), 1).otherwise(0)).alias("valid_records"),
+            round(
+                sum(when(col("is_valid"), 1).otherwise(0)) * 100.0 / count("*"),
+                2
+            ).alias("validation_success_rate_pct"),
+        )
+        .withColumn(
+            "quality_status",
+            when(col("validation_success_rate_pct") >= 99.0, "HEALTHY")
+            .when(col("validation_success_rate_pct") >= 95.0, "WARNING")
+            .otherwise("CRITICAL")
+        )
+    )
+```
+
+**Quality Status Thresholds:**
+
+| Status | Threshold | Action |
+|--------|-----------|--------|
+| **HEALTHY** | >= 99% validation rate | Normal operation |
+| **WARNING** | >= 95% validation rate | Investigate source data |
+| **CRITICAL** | < 95% validation rate | Alert, check data source |
+
+### 9.4 Data Freshness Monitoring
+
+```python
+@dp.temporary_view(name="bronze_fhir_freshness")
+def bronze_fhir_freshness():
+    """
+    OBSERVABILITY: Monitors data freshness for SLA tracking.
+    
+    Helps detect:
+    - Ingestion delays
+    - Pipeline stalls
+    - Source system issues
+    """
+    return (
+        spark.read.table("bronze_fhir_raw")
+        .groupBy("resource_type")
+        .agg(max("_ingestion_timestamp").alias("latest_ingestion"))
+        .withColumn(
+            "minutes_since_last_record",
+            (current_timestamp().cast("long") - col("latest_ingestion").cast("long")) / 60
+        )
+        .withColumn(
+            "freshness_status",
+            when(col("minutes_since_last_record") <= 60, "FRESH")
+            .when(col("minutes_since_last_record") <= 360, "STALE")
+            .otherwise("VERY_STALE")
+        )
+    )
+```
+
+**Freshness Status Thresholds:**
+
+| Status | Threshold | Action |
+|--------|-----------|--------|
+| **FRESH** | <= 60 minutes | Normal operation |
+| **STALE** | <= 6 hours | Check ingestion job |
+| **VERY_STALE** | > 6 hours | Alert, investigate |
+
+### 9.5 GDPR/CCPA Protection
+
+Prevent accidental pipeline resets that could undo data deletions (Right to be Forgotten).
+
+```yaml
+# In databricks.yml
+pipelines:
+  fhir_pipeline:
+    configuration:
+      # CRITICAL: Prevent accidental reset undoing deletions
+      pipelines.reset.allowed: "false"
+```
+
+### 9.6 Resilience Testing Checklist
+
+Every parser/UDF should have tests for:
+
+- [ ] Null input → returns error result, doesn't crash
+- [ ] Empty string → returns error result, doesn't crash
+- [ ] Invalid JSON → returns parse error, doesn't crash
+- [ ] Wrong resource type → returns None or error, doesn't crash
+- [ ] Deeply nested malformed data → doesn't crash
+- [ ] Unicode characters → handled correctly
+- [ ] Very large input → doesn't timeout/OOM
+- [ ] Empty arrays → handled gracefully
+- [ ] Null field values → handled gracefully
+
+---
+
+## 10. Liquid Clustering
 
 ### Cluster Column Selection
 
@@ -636,7 +834,7 @@ flowchart LR
 
 ---
 
-## 10. Testing Strategy
+## 11. Testing Strategy
 
 ### Test Pyramid
 
@@ -680,7 +878,7 @@ python -m pytest fhir/tests/test_fhir_parser.py -v
 
 ---
 
-## 11. Deployment Commands
+## 12. Deployment Commands
 
 ### Validate First (Always)
 
@@ -730,7 +928,7 @@ databricks bundle deploy -t prod --var="catalog=prod_catalog"
 
 ---
 
-## 12. Adding New Connectors
+## 13. Adding New Connectors
 
 ### Checklist for New Healthcare Format
 

@@ -175,12 +175,16 @@ def validate_and_extract_fhir(raw_json: str) -> dict:
     
     ALL LOGIC IS INLINED - executors cannot access workspace imports.
     
+    RESILIENCE PATTERN: Catches ALL exceptions to prevent pipeline failures.
+    Unexpected errors are captured in validation_errors for debugging.
+    
     Args:
         raw_json: JSON string of FHIR resource
         
     Returns:
         Dict with validation result and extracted fields
     """
+    # Default result structure - returned on any failure
     result = {
         "is_valid": True,
         "resource_type": None,
@@ -190,62 +194,81 @@ def validate_and_extract_fhir(raw_json: str) -> dict:
         "validation_errors": []
     }
     
-    # Parse JSON
+    # Outer try/except catches ALL unexpected exceptions
+    # This prevents any single malformed record from crashing the pipeline
     try:
-        resource = json.loads(raw_json) if isinstance(raw_json, str) else raw_json
-    except (json.JSONDecodeError, TypeError) as e:
-        result["is_valid"] = False
-        result["validation_errors"].append(f"JSON parse error: {str(e)}")
-        return result
-    
-    if not resource:
-        result["is_valid"] = False
-        result["validation_errors"].append("Resource is empty or null")
-        return result
-    
-    # Check resourceType
-    resource_type = resource.get("resourceType")
-    if not resource_type:
-        result["is_valid"] = False
-        result["validation_errors"].append("Missing required field: resourceType")
-        return result
-    
-    result["resource_type"] = resource_type
-    result["resource_id"] = resource.get("id")
-    
-    # Extract meta
-    meta = resource.get("meta", {})
-    result["meta_version_id"] = meta.get("versionId")
-    result["meta_last_updated"] = meta.get("lastUpdated")
-    
-    # Check if supported type
-    if resource_type not in SUPPORTED_RESOURCE_TYPES:
-        result["validation_errors"].append(f"Unknown resourceType: {resource_type}")
-        # Still valid but with warning
-    
-    # Basic required field validation by type
-    for field in REQUIRED_FIELDS.get(resource_type, []):
-        if not resource.get(field):
+        # Handle null/empty input
+        if raw_json is None or (isinstance(raw_json, str) and not raw_json.strip()):
             result["is_valid"] = False
-            result["validation_errors"].append(f"Missing required field: {field}")
-    
-    # Check choice fields
-    if resource_type == "MedicationRequest":
-        if not resource.get("medicationCodeableConcept") and not resource.get("medicationReference"):
+            result["validation_errors"].append("Input is null or empty")
+            return result
+        
+        # Parse JSON
+        try:
+            resource = json.loads(raw_json) if isinstance(raw_json, str) else raw_json
+        except (json.JSONDecodeError, TypeError) as e:
             result["is_valid"] = False
-            result["validation_errors"].append("Missing required field: medication[x]")
-    
-    if resource_type == "Immunization":
-        if not resource.get("occurrenceDateTime") and not resource.get("occurrenceString"):
+            result["validation_errors"].append(f"JSON parse error: {str(e)}")
+            return result
+        
+        if not resource:
             result["is_valid"] = False
-            result["validation_errors"].append("Missing required field: occurrence[x]")
-    
-    return result
+            result["validation_errors"].append("Resource is empty or null")
+            return result
+        
+        # Check resourceType
+        resource_type = resource.get("resourceType")
+        if not resource_type:
+            result["is_valid"] = False
+            result["validation_errors"].append("Missing required field: resourceType")
+            return result
+        
+        result["resource_type"] = resource_type
+        result["resource_id"] = resource.get("id")
+        
+        # Extract meta
+        meta = resource.get("meta", {})
+        result["meta_version_id"] = meta.get("versionId")
+        result["meta_last_updated"] = meta.get("lastUpdated")
+        
+        # Check if supported type
+        if resource_type not in SUPPORTED_RESOURCE_TYPES:
+            result["validation_errors"].append(f"Unknown resourceType: {resource_type}")
+            # Still valid but with warning
+        
+        # Basic required field validation by type
+        for field in REQUIRED_FIELDS.get(resource_type, []):
+            if not resource.get(field):
+                result["is_valid"] = False
+                result["validation_errors"].append(f"Missing required field: {field}")
+        
+        # Check choice fields
+        if resource_type == "MedicationRequest":
+            if not resource.get("medicationCodeableConcept") and not resource.get("medicationReference"):
+                result["is_valid"] = False
+                result["validation_errors"].append("Missing required field: medication[x]")
+        
+        if resource_type == "Immunization":
+            if not resource.get("occurrenceDateTime") and not resource.get("occurrenceString"):
+                result["is_valid"] = False
+                result["validation_errors"].append("Missing required field: occurrence[x]")
+        
+        return result
+        
+    except Exception as e:
+        # Catch-all for ANY unexpected exception
+        # This ensures pipeline never crashes due to a single bad record
+        result["is_valid"] = False
+        result["validation_errors"].append(f"Unexpected error during validation: {type(e).__name__}: {str(e)}")
+        return result
 
 
 def extract_bundle_entries(raw_json: str) -> list:
     """
     Extract individual resources from a FHIR Bundle.
+    
+    RESILIENCE PATTERN: Catches ALL exceptions to prevent pipeline failures.
+    On any error, returns the original input as a single-element list.
     
     Args:
         raw_json: JSON string of Bundle or resource
@@ -253,8 +276,16 @@ def extract_bundle_entries(raw_json: str) -> list:
     Returns:
         List of resource JSON strings
     """
+    # Outer try/except catches ALL unexpected exceptions
     try:
-        resource = json.loads(raw_json) if isinstance(raw_json, str) else raw_json
+        # Handle null/empty input
+        if raw_json is None or (isinstance(raw_json, str) and not raw_json.strip()):
+            return []
+        
+        try:
+            resource = json.loads(raw_json) if isinstance(raw_json, str) else raw_json
+        except (json.JSONDecodeError, TypeError):
+            return [raw_json]  # Return as-is, validation will catch the error
         
         if not resource or resource.get("resourceType") != "Bundle":
             return [raw_json]  # Not a bundle, return as-is
@@ -263,14 +294,19 @@ def extract_bundle_entries(raw_json: str) -> list:
         resources = []
         
         for entry in entries:
-            entry_resource = entry.get("resource")
-            if entry_resource:
-                resources.append(json.dumps(entry_resource))
+            try:
+                entry_resource = entry.get("resource")
+                if entry_resource:
+                    resources.append(json.dumps(entry_resource))
+            except Exception:
+                # Skip malformed entries but continue processing
+                continue
         
         return resources if resources else [raw_json]
         
-    except (json.JSONDecodeError, TypeError):
-        return [raw_json]
+    except Exception:
+        # Catch-all: return original on any unexpected error
+        return [raw_json] if raw_json else []
 
 
 # ---------------------------------------------------------------------------
@@ -314,8 +350,14 @@ def bronze_fhir_raw():
     - Auto Loader for incremental NDJSON ingestion
     - Bundle extraction (individual resources from Bundles)
     - Inline validation with error tracking
+    - Watermarking for late-arriving data (2 hour threshold)
     
     Clustering: Configurable via fhir.clustering.raw.columns
+    
+    RESILIENCE PATTERN: 
+    - Watermark handles late-arriving data gracefully
+    - Data older than watermark threshold is dropped to prevent unbounded state
+    - 2 hour threshold balances late data handling vs memory usage
     """
     # Read NDJSON files from Volume
     raw_files = (
@@ -330,7 +372,6 @@ def bronze_fhir_raw():
     )
     
     # Add source metadata - use _metadata.file_path (Unity Catalog compatible)
-    # Note: monotonically_increasing_id() not supported in streaming, use row_number at read time
     with_metadata = (
         raw_files
         .withColumn("_source_file", col("_metadata.file_path"))
@@ -338,9 +379,14 @@ def bronze_fhir_raw():
         .withColumnRenamed("value", "raw_json_line")
     )
     
+    # Apply watermark for late-arriving data handling
+    # Records arriving more than 2 hours after their ingestion timestamp are dropped
+    # This prevents unbounded state growth while allowing reasonable late data
+    watermarked = with_metadata.withWatermark("_ingestion_timestamp", "2 hours")
+    
     # Explode bundles into individual resources
     exploded = (
-        with_metadata
+        watermarked
         .withColumn("resource_list", extract_bundle_udf(col("raw_json_line")))
         .withColumn("raw_resource", explode(col("resource_list")))
         .drop("resource_list", "raw_json_line")
@@ -424,5 +470,99 @@ def bronze_fhir_stats():
             count("*").alias("record_count"),
             countDistinct("resource_id").alias("unique_resources"),
             countDistinct("_source_file").alias("source_files"),
+        )
+    )
+
+
+@dp.temporary_view(
+    name="bronze_fhir_quality_metrics",
+    comment="Data quality metrics for monitoring and alerting"
+)
+def bronze_fhir_quality_metrics():
+    """
+    Calculate data quality metrics for observability.
+    
+    OBSERVABILITY PATTERN:
+    - Provides metrics for alerting on data quality issues
+    - Tracks validation failure rates by resource type
+    - Can be used by downstream dashboards or alerting systems
+    
+    Metrics:
+    - Total records, valid records, invalid records
+    - Validation success rate percentage
+    - Top validation errors
+    - Records by resource type
+    """
+    from pyspark.sql.functions import (
+        count, countDistinct, sum as spark_sum, when,
+        round as spark_round, collect_list, slice, flatten,
+        array_distinct
+    )
+    
+    base = spark.read.table("bronze_fhir_raw")
+    
+    # Calculate metrics
+    return (
+        base
+        .groupBy("resource_type")
+        .agg(
+            count("*").alias("total_records"),
+            spark_sum(when(col("is_valid") == True, 1).otherwise(0)).alias("valid_records"),
+            spark_sum(when(col("is_valid") == False, 1).otherwise(0)).alias("invalid_records"),
+            countDistinct("resource_id").alias("unique_resource_ids"),
+            countDistinct("_source_file").alias("source_file_count"),
+            # Calculate success rate
+            spark_round(
+                spark_sum(when(col("is_valid") == True, 1).otherwise(0)) * 100.0 / count("*"),
+                2
+            ).alias("validation_success_rate_pct"),
+            # Collect sample of error messages for debugging
+            slice(
+                array_distinct(flatten(collect_list(col("validation_errors")))),
+                1, 10
+            ).alias("sample_errors"),
+        )
+        .withColumn(
+            "quality_status",
+            when(col("validation_success_rate_pct") >= 99.0, "HEALTHY")
+            .when(col("validation_success_rate_pct") >= 95.0, "WARNING")
+            .otherwise("CRITICAL")
+        )
+    )
+
+
+@dp.temporary_view(
+    name="bronze_fhir_freshness",
+    comment="Data freshness metrics for SLA monitoring"
+)
+def bronze_fhir_freshness():
+    """
+    Track data freshness for SLA monitoring.
+    
+    OBSERVABILITY PATTERN:
+    - Monitors how recent the latest data is
+    - Helps detect ingestion delays or pipeline stalls
+    - Can trigger alerts when data is stale
+    """
+    from pyspark.sql.functions import max as spark_max, min as spark_min, current_timestamp, count as spark_count
+    
+    return (
+        spark.read.table("bronze_fhir_raw")
+        .groupBy("resource_type")
+        .agg(
+            spark_max("_ingestion_timestamp").alias("latest_ingestion"),
+            spark_min("_ingestion_timestamp").alias("earliest_ingestion"),
+            spark_count("*").alias("record_count"),
+        )
+        .withColumn("current_time", current_timestamp())
+        .withColumn(
+            "minutes_since_last_record",
+            (col("current_time").cast("long") - col("latest_ingestion").cast("long")) / 60
+        )
+        .withColumn(
+            "freshness_status",
+            when(col("minutes_since_last_record") <= 60, "FRESH")
+            .when(col("minutes_since_last_record") <= 360, "STALE")
+            .otherwise("VERY_STALE")
         )
     )
