@@ -1306,7 +1306,7 @@ def silver_fhir_immunization():
 # Gold Views (Business-Level Aggregations)
 # ---------------------------------------------------------------------------
 
-@dp.view(
+@dp.temporary_view(
     name="gold_patient_demographics",
     comment="Patient demographics summary for analytics"
 )
@@ -1329,7 +1329,7 @@ def gold_patient_demographics():
     )
 
 
-@dp.view(
+@dp.temporary_view(
     name="gold_clinical_observations",
     comment="Clinical observations summary for analytics"
 )

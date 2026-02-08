@@ -37,6 +37,8 @@ resources:
             path: ./silver_fhir.py
       
       configuration:
+        # Pipeline Protection (GDPR - prevent accidental reset undoing deletions)
+        pipelines.reset.allowed: "false"
         # Source
         fhir.storage_path: "/Volumes/${var.catalog}/${var.schema}/${var.volume}/fhir"
         fhir.file_pattern: "*.ndjson"

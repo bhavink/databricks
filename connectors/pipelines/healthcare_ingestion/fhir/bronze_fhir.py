@@ -403,7 +403,7 @@ def bronze_fhir_quarantine():
 # Data Quality Views
 # ---------------------------------------------------------------------------
 
-@dp.view(
+@dp.temporary_view(
     name="bronze_fhir_stats",
     comment="Aggregated statistics for FHIR ingestion monitoring"
 )

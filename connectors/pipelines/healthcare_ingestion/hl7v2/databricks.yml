@@ -35,6 +35,8 @@ resources:
             path: ./transformations/bronze_hl7v2.py
       
       configuration:
+        # Pipeline Protection (GDPR - prevent accidental reset undoing deletions)
+        pipelines.reset.allowed: "false"
         # Source
         healthcare.storage_path: "/Volumes/${var.catalog}/${var.schema}/${var.volume}/hl7v2"
         healthcare.file_pattern: "*.hl7"
