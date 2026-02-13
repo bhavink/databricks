@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Essential Outputs (Simple Use)
-***REMOVED*** ==============================================
+# ==============================================
+# Essential Outputs (Simple Use)
+# ==============================================
 
 output "vnet_id" {
   description = "Virtual Network ID"
@@ -50,7 +50,7 @@ output "nat_gateway_public_ip" {
   value       = var.enable_nat_gateway ? azurerm_public_ip.nat[0].ip_address : null
 }
 
-***REMOVED*** NSG Association IDs (required for workspace)
+# NSG Association IDs (required for workspace)
 output "public_subnet_nsg_association_id" {
   description = "Public subnet NSG association ID"
   value       = local.using_existing ? var.existing_public_subnet_nsg_association_id : azurerm_subnet_network_security_group_association.public[0].id
@@ -61,9 +61,9 @@ output "private_subnet_nsg_association_id" {
   value       = local.using_existing ? var.existing_private_subnet_nsg_association_id : azurerm_subnet_network_security_group_association.private[0].id
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Documentation Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# Documentation Outputs
+# ==============================================
 
 output "nsg_rules_added" {
   description = "List of NSG rules automatically added by this module (for documentation)"
@@ -96,9 +96,9 @@ output "network_configuration" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Advanced Outputs (Full Objects)
-***REMOVED*** ==============================================
+# ==============================================
+# Advanced Outputs (Full Objects)
+# ==============================================
 
 output "vnet" {
   description = "Complete VNet object (for advanced use)"

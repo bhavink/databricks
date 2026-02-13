@@ -47,49 +47,49 @@ graph TB
             NAT[Cloud NAT]
         end
     end
-    
+
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Workspace"
             WS[Workspace<br/>Notebooks & Clusters]
-            
+
             subgraph "Cluster Policies"
                 CP1[Fair Use Policy<br/>Max 10 DBU/hr]
                 CP2[Auto-termination<br/>20 minutes]
                 TAGS[Custom Tags<br/>Team & CostCenter]
             end
         end
-        
+
         subgraph "Unity Catalog"
             META[Metastore<br/>Data Governance]
-            
+
             subgraph "Catalogs"
                 MAIN[Main Catalog<br/>Default]
                 DEV[Dev Catalog<br/>Development]
             end
-            
+
             subgraph "Schemas"
                 DEVDB[DevDB Schema<br/>Dev Database]
             end
         end
-        
+
         subgraph "Storage Accounts"
             GCS_META[GCS Bucket<br/>Metastore Storage]
             GCS_EXT[GCS Bucket<br/>External Location]
         end
-        
+
         subgraph "Storage Credentials"
             CRED1[Default Credentials<br/>Databricks SA]
             CRED2[External Credentials<br/>Databricks SA]
         end
     end
-    
+
     subgraph "Databricks Account"
         subgraph "Groups"
             UC_ADMIN[UC Admins Group]
             GROUP1[Data Engineering Group]
             GROUP2[Data Science Group]
         end
-        
+
         subgraph "Users"
             ADMIN1[Admin User 1]
             ADMIN2[Service Account]
@@ -97,35 +97,35 @@ graph TB
             USER2[Data Scientist]
         end
     end
-    
+
     subgraph "Databricks Control Plane"
         CONTROL[Databricks Control Plane<br/>accounts.gcp.databricks.com]
     end
-    
+
     META --> GCS_META
     CRED1 --> GCS_META
     CRED2 --> GCS_EXT
     DEV --> DEVDB
-    
+
     META --> MAIN
     META --> DEV
-    
+
     WS --> META
     WS --> CP1
     CP1 --> CP2
     CP2 --> TAGS
-    
+
     UC_ADMIN --> ADMIN1
     UC_ADMIN --> ADMIN2
     GROUP1 --> USER1
     GROUP2 --> USER2
-    
+
     WS --> GROUP1
     WS --> GROUP2
-    
+
     SUBNET --> CONTROL
     CONTROL --> WS
-    
+
     style META fill:#FF3621
     style UC_ADMIN fill:#FBBC04
     style WS fill:#4285F4
@@ -560,56 +560,56 @@ sequenceDiagram
     participant DB_ACC as Databricks Account
     participant DB_WS as Databricks Workspace
     participant UC as Unity Catalog
-    
+
     Note over TF,DB_ACC: Phase 1: Workspace
     TF->>DB_ACC: Create Network Configuration
     TF->>DB_ACC: Create Workspace
     DB_ACC->>GCP: Deploy GKE Cluster
     DB_ACC->>GCP: Create DBFS Bucket
     DB_ACC-->>TF: Workspace URL
-    
+
     Note over TF,DB_ACC: Phase 2: Groups and Users
     TF->>DB_ACC: Create UC Admins Group
     TF->>DB_ACC: Create Data Engineering Group
     TF->>DB_ACC: Create Data Science Group
     TF->>DB_ACC: Create Users
     TF->>DB_ACC: Add Users to Groups
-    
+
     Note over TF,GCP: Phase 3: Storage
     TF->>GCP: Create Metastore GCS Bucket
     TF->>GCP: Create External GCS Bucket
-    
+
     Note over TF,UC: Phase 4: Unity Catalog
     TF->>UC: Create Metastore
     TF->>UC: Create Default Storage Credential
     TF->>GCP: Grant Bucket Permissions to SA
     TF->>UC: Assign Metastore to Workspace
     TF->>UC: Grant Metastore Permissions
-    
+
     Note over TF,DB_ACC: Phase 5: Workspace Assignments
     TF->>DB_ACC: Assign Data Science Group (ADMIN)
     TF->>DB_ACC: Assign Data Engineering Group (USER)
-    
+
     Note over TF,DB_WS: Phase 6: Catalogs & Schemas
     TF->>DB_WS: Create Dev Catalog
     TF->>DB_WS: Grant Catalog Permissions
     TF->>DB_WS: Create DevDB Schema
     TF->>DB_WS: Grant Schema Permissions
-    
+
     Note over TF,UC: Phase 7: External Storage
     TF->>UC: Create Storage Credential
     TF->>GCP: Grant External Bucket Permissions
     TF->>UC: Create External Location
     TF->>UC: Grant External Location Permissions
-    
+
     Note over TF,DB_WS: Phase 8: Cluster Policies
     TF->>DB_WS: Create Fair Use Policy
     TF->>DB_WS: Grant Policy Permissions
-    
+
     Note over TF,DB_WS: Phase 9: Workspace Config
     TF->>DB_WS: Enable IP Access Lists
     TF->>DB_WS: Configure Allowed IPs
-    
+
     Note over DB_WS: Complete Platform Ready
 ```
 

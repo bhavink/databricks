@@ -338,12 +338,12 @@ terraform destroy -auto-approve
 
 ### Deployment Success
 
-✅ All resources created without errors  
-✅ Workspace accessible at returned URL  
-✅ Unity Catalog metastore assigned  
-✅ External location created and accessible  
-✅ **NCC attached to workspace** (serverless-ready)  
-✅ Tags applied to all resources  
+✅ All resources created without errors
+✅ Workspace accessible at returned URL
+✅ Unity Catalog metastore assigned
+✅ External location created and accessible
+✅ **NCC attached to workspace** (serverless-ready)
+✅ Tags applied to all resources
 ✅ Random suffixes prevent naming conflicts
 
 **Verify NCC**:
@@ -363,10 +363,10 @@ terraform output ncc_name
 
 ### Destroy Success
 
-✅ All Azure resources deleted  
-✅ No orphaned resources remain  
-✅ Terraform state is clean  
-✅ (Optional) Metastore deleted if intended  
+✅ All Azure resources deleted
+✅ No orphaned resources remain
+✅ Terraform state is clean
+✅ (Optional) Metastore deleted if intended
 ✅ NCC binding removed (or kept for reuse)
 
 ---
@@ -387,5 +387,5 @@ If you encounter issues:
 
 ---
 
-**Document Version**: 1.1  
+**Document Version**: 1.1
 **Next Review**: Before each major deployment

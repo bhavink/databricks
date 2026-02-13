@@ -83,7 +83,7 @@ if [ -n "$INSTANCE_IDS" ]; then
     --instance-ids $INSTANCE_IDS \
     --profile your-profile \
     --region your-region
-  
+
   # Wait for termination
   aws ec2 wait instance-terminated \
     --instance-ids $INSTANCE_IDS \

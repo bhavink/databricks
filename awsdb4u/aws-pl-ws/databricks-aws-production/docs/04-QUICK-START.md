@@ -10,9 +10,9 @@
 
 ## Prerequisites Complete?
 
-✅ [00-PREREQUISITES.md](00-PREREQUISITES.md) - System configured  
-✅ `TF_VAR_*` environment variables set  
-✅ AWS credentials working  
+✅ [00-PREREQUISITES.md](00-PREREQUISITES.md) - System configured
+✅ `TF_VAR_*` environment variables set
+✅ AWS credentials working
 
 **Not ready?** → [00-PREREQUISITES.md](00-PREREQUISITES.md)
 
@@ -71,7 +71,7 @@ enable_encryption    = true   # S3 KMS encryption
 enable_workspace_cmk = false  # Workspace CMK (DBFS/EBS/MS) - set to true for full encryption
 ```
 
-**Note**: Credentials are set via environment variables (see Prerequisites)  
+**Note**: Credentials are set via environment variables (see Prerequisites)
 **Tip**: Random suffix auto-added to bucket names (avoids conflicts)
 
 ---
@@ -180,9 +180,9 @@ terraform destroy
 
 ## Next Steps
 
-✅ **Understand architecture** → [01-ARCHITECTURE.md](01-ARCHITECTURE.md)  
-✅ **Learn IAM roles** → [02-IAM-SECURITY.md](02-IAM-SECURITY.md)  
-✅ **Review network/security** → [03-NETWORK-ENCRYPTION.md](03-NETWORK-ENCRYPTION.md)  
+✅ **Understand architecture** → [01-ARCHITECTURE.md](01-ARCHITECTURE.md)
+✅ **Learn IAM roles** → [02-IAM-SECURITY.md](02-IAM-SECURITY.md)
+✅ **Review network/security** → [03-NETWORK-ENCRYPTION.md](03-NETWORK-ENCRYPTION.md)
 ✅ **Troubleshooting** → [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md)
 
 ---

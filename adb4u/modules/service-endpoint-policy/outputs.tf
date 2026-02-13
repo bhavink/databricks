@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Service Endpoint Policy Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# Service Endpoint Policy Outputs
+# ==============================================
 
 output "service_endpoint_policy_id" {
   description = "ID of the Service Endpoint Policy for subnet association"

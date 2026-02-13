@@ -17,13 +17,13 @@ This module provisions KMS keys for encrypting Databricks S3 buckets (optional).
 ```hcl
 module "kms" {
   source = "./modules/kms"
-  
+
   prefix                   = "dbx-abc123"
   aws_account_id           = "123456789012"
   cross_account_role_arn   = module.iam.cross_account_role_arn
   enable_encryption        = true
   kms_key_deletion_window  = 30
-  
+
   tags = {
     Environment = "Production"
   }

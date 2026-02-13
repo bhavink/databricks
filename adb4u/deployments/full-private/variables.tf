@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Deployment Mode (Master Control)
-***REMOVED*** ==============================================
+# ==============================================
+# Deployment Mode (Master Control)
+# ==============================================
 
 variable "use_byor_infrastructure" {
   description = "Set to true to use network and CMK resources provisioned by the BYOR deployment. When true, existing_* network and CMK variables must be provided. When false, new network and CMK resources will be created based on other variables."
@@ -8,9 +8,9 @@ variable "use_byor_infrastructure" {
   default     = false
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Core Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Core Configuration
+# ==============================================
 
 variable "workspace_prefix" {
   description = "Prefix for resource naming (lowercase alphanumeric, max 12 chars). Used in all resource names."
@@ -32,9 +32,9 @@ variable "resource_group_name" {
   type        = string
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Databricks Account Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Databricks Account Configuration
+# ==============================================
 
 variable "databricks_account_id" {
   description = "Databricks Account ID (format: 12345678-1234-1234-1234-123456789012)"
@@ -46,9 +46,9 @@ variable "databricks_account_id" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Configuration (BYOV or Create New)
-***REMOVED*** ==============================================
+# ==============================================
+# Network Configuration (BYOV or Create New)
+# ==============================================
 
 variable "use_existing_network" {
   description = "Use existing VNet/Subnets/NSG (true) or create new (false). When true, ALL network resources must exist."
@@ -56,7 +56,7 @@ variable "use_existing_network" {
   default     = false
 }
 
-***REMOVED*** Existing Network (BYOV)
+# Existing Network (BYOV)
 variable "existing_vnet_name" {
   description = "Name of existing VNet (required if use_existing_network=true)"
   type        = string
@@ -105,7 +105,7 @@ variable "existing_private_subnet_nsg_association_id" {
   default     = ""
 }
 
-***REMOVED*** New Network Configuration
+# New Network Configuration
 variable "vnet_address_space" {
   description = "Address space for VNet (CIDR /16 to /24). Used when creating new VNet."
   type        = list(string)
@@ -133,12 +133,12 @@ variable "privatelink_subnet_address_prefix" {
 variable "enable_nat_gateway" {
   description = "Create NAT Gateway for egress. For Full Private (air-gapped), set to false. Only relevant when use_byor_infrastructure=false."
   type        = bool
-  default     = false  ***REMOVED*** Disabled by default for Full Private
+  default     = false  # Disabled by default for Full Private
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Connectivity Configuration (NCC)
-***REMOVED*** ==============================================
+# ==============================================
+# Network Connectivity Configuration (NCC)
+# ==============================================
 
 variable "enable_ncc" {
   description = "Enable Network Connectivity Configuration (NCC) for Databricks Serverless compute. Requires manual approval of Private Endpoint connections in Azure Portal. Set to false for initial deployment, enable later if serverless is needed."
@@ -146,14 +146,14 @@ variable "enable_ncc" {
   default     = false
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Service Endpoint Policy (SEP) - Optional
-***REMOVED*** ==============================================
+# ==============================================
+# Service Endpoint Policy (SEP) - Optional
+# ==============================================
 
 variable "enable_service_endpoint_policy" {
   description = "Enable Service Endpoint Policy for storage egress control (classic compute only). Restricts VNet storage access to allow-listed accounts only."
   type        = bool
-  default     = true  ***REMOVED*** Enabled by default
+  default     = true  # Enabled by default
 }
 
 variable "additional_allowed_storage_ids" {
@@ -162,9 +162,9 @@ variable "additional_allowed_storage_ids" {
   default     = []
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Unity Catalog Configuration
+# ==============================================
 
 variable "create_metastore" {
   description = "Create new Unity Catalog metastore (true) or use existing (false). Metastores are regional - create one for first workspace, reuse for subsequent workspaces in same region."
@@ -184,7 +184,7 @@ variable "metastore_name" {
   default     = ""
 }
 
-***REMOVED*** Access Connector Configuration
+# Access Connector Configuration
 variable "create_access_connector" {
   description = "Create new Access Connector (true) or use existing (false). Recommended: one per workspace for isolation."
   type        = bool
@@ -203,7 +203,7 @@ variable "existing_access_connector_principal_id" {
   default     = ""
 }
 
-***REMOVED*** Storage Account Name Prefixes (Optional)
+# Storage Account Name Prefixes (Optional)
 variable "metastore_storage_name_prefix" {
   description = "Custom name prefix for Unity Catalog metastore root storage account (lowercase alphanumeric, max 18 chars). If empty, defaults to '{workspace_prefix}metastore'. Random suffix will be added."
   type        = string
@@ -216,29 +216,29 @@ variable "external_storage_name_prefix" {
   default     = ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Customer-Managed Keys (CMK) - Optional
-***REMOVED*** ==============================================
+# ==============================================
+# Customer-Managed Keys (CMK) - Optional
+# ==============================================
 
 variable "enable_cmk_managed_services" {
   description = "Enable CMK for Databricks managed services (notebooks, secrets). Requires cmk_key_vault_key_id."
   type        = bool
-  default     = true  ***REMOVED*** Enabled by default for Full Private
+  default     = true  # Enabled by default for Full Private
 }
 
 variable "enable_cmk_managed_disks" {
   description = "Enable CMK for managed disks (cluster VM disks). Requires cmk_key_vault_key_id and cmk_key_vault_id."
   type        = bool
-  default     = true  ***REMOVED*** Enabled by default for Full Private
+  default     = true  # Enabled by default for Full Private
 }
 
 variable "enable_cmk_dbfs_root" {
   description = "Enable CMK for DBFS root storage. Requires cmk_key_vault_key_id."
   type        = bool
-  default     = true  ***REMOVED*** Enabled by default for Full Private
+  default     = true  # Enabled by default for Full Private
 }
 
-***REMOVED*** Key Vault Configuration (Create or Bring)
+# Key Vault Configuration (Create or Bring)
 variable "create_key_vault" {
   description = "Create new Key Vault (true) or use existing (false). When use_byor_infrastructure=true with CMK enabled, this is automatically set to false."
   type        = bool
@@ -269,9 +269,9 @@ variable "cmk_key_vault_id" {
   default     = ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Access Control
-***REMOVED*** ==============================================
+# ==============================================
+# Network Access Control
+# ==============================================
 
 variable "enable_public_network_access" {
   description = "Enable public network access to the workspace. Set to 'true' for initial deployment from outside VNet, then set to 'false' to lock down to Private Link only (air-gapped)."
@@ -279,9 +279,9 @@ variable "enable_public_network_access" {
   default     = true
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** IP Access Lists - Optional
-***REMOVED*** ==============================================
+# ==============================================
+# IP Access Lists - Optional
+# ==============================================
 
 variable "enable_ip_access_lists" {
   description = "Enable IP Access Lists to restrict workspace access by source IP. Recommended for additional security."
@@ -295,9 +295,9 @@ variable "allowed_ip_ranges" {
   default     = []
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Resource Tagging
-***REMOVED*** ==============================================
+# ==============================================
+# Resource Tagging
+# ==============================================
 
 variable "tags" {
   description = "Tags to apply to all resources (e.g., {Environment = 'Production', Project = 'DataPlatform'})"

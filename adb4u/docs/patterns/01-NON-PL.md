@@ -1,6 +1,6 @@
 # Non-Private Link (Non-PL) Deployment Pattern
 
-**Pattern**: `deployments/non-pl`  
+**Pattern**: `deployments/non-pl`
 **Status**: ✅ **Production Ready**
 
 ---
@@ -17,9 +17,9 @@ The Non-Private Link (Non-PL) pattern provides a **secure** Azure Databricks dep
 
 ### Use Cases
 
-✅ **Standard production workloads**  
-✅ **Teams needing internet access** (PyPI, Maven, etc.)  
-✅ **Development and testing environments**  
+✅ **Standard production workloads**
+✅ **Teams needing internet access** (PyPI, Maven, etc.)
+✅ **Development and testing environments**
 ✅ **Proof of concepts and demos**
 
 ---
@@ -114,24 +114,24 @@ graph LR
         VM[Cluster VMs<br/>No Public IPs]
         NSG[NSG Outbound Rules]
     end
-    
+
     subgraph Destinations
         DB[Databricks Control Plane]
         ST[Azure Storage]
         EH[Event Hub]
         INT[Internet<br/>PyPI/Maven/Docker]
     end
-    
+
     NAT[NAT Gateway<br/>Public IP]
-    
+
     VM --> NSG
-    
+
     NSG -->|Service Tag:<br/>AzureDatabricks| DB
     NSG -->|Service Tag:<br/>Storage<br/>+Service Endpoint| ST
     NSG -->|Service Tag:<br/>EventHub| EH
     NSG -->|Default Route| NAT
     NAT -->|SNAT| INT
-    
+
     style NSG fill:#f3e5f5
     style NAT fill:#ffebee
     style DB fill:#e1f5ff
@@ -208,7 +208,7 @@ Serverless Compute → NCC → Private Endpoint → Storage
 ```hcl
 module "ncc" {
   source = "../../modules/ncc"
-  
+
   workspace_id_numeric = module.workspace.workspace_id_numeric
   workspace_prefix     = var.workspace_prefix
   location             = var.location
@@ -317,7 +317,7 @@ sequenceDiagram
     participant CP as Control Plane
     participant ARM as Azure ARM
     participant VNet as Customer VNet
-    
+
     CP->>ARM: Create VMs (no public IPs)
     ARM->>VNet: Provision Driver (Public Subnet)
     ARM->>VNet: Provision Workers (Private Subnet)
@@ -378,19 +378,19 @@ graph LR
     Cluster[Cluster VMs]
     NSG[NSG: Storage Tag]
     SE[Service Endpoint]
-    
+
     subgraph Storage["Azure Storage (Customer)"]
         DBFS[DBFS Root]
         UC[UC Metastore]
         ExtLoc[External Location]
     end
-    
+
     Cluster --> NSG
     NSG --> SE
     SE --> DBFS
     SE --> UC
     SE --> ExtLoc
-    
+
     style NSG fill:#f3e5f5
     style SE fill:#e8f5e9
 ```
@@ -883,6 +883,6 @@ If migrating from legacy templates in `templates/terraform-scripts/adb-npip`:
 
 ---
 
-**Pattern Version**: 1.0  
-**Status**: ✅ Production Ready  
+**Pattern Version**: 1.0
+**Status**: ✅ Production Ready
 **Terraform Version**: >= 1.5

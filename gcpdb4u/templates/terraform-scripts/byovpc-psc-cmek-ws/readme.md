@@ -43,26 +43,26 @@ graph TB
         subgraph "Customer VPC"
             SUBNET[Node Subnet<br/>Databricks Clusters]
             PSC_SUBNET[PSC Subnet<br/>Private Endpoints]
-            
+
             subgraph "Private Service Connect"
                 FE_EP[Frontend PSC Endpoint<br/>Workspace UI & REST API]
                 BE_EP[Backend PSC Endpoint<br/>Cluster Relay]
                 FE_IP[Frontend Private IP]
                 BE_IP[Backend Private IP]
             end
-            
+
             subgraph "Cloud DNS"
                 DNS_ZONE[Private DNS Zone<br/>gcp.databricks.com]
                 A_REC[4 A Records<br/>Workspace URLs]
             end
         end
-        
+
         subgraph "Cloud KMS"
             KEYRING[Key Ring<br/>Customer Key Ring]
             KEY[Crypto Key<br/>CMEK for Databricks]
         end
     end
-    
+
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Managed - Encrypted & Private"
             GKE[GKE Cluster<br/>Encrypted with CMEK]
@@ -70,40 +70,40 @@ graph TB
             DISK[Persistent Disks<br/>Encrypted with CMEK]
         end
     end
-    
+
     subgraph "Databricks Control Plane - Private"
         FE_SA[Frontend Service Attachment]
         BE_SA[Backend Service Attachment]
     end
-    
+
     subgraph "Users"
         USER[Users via VPN<br/>Private Access Only]
     end
-    
+
     KEYRING --> KEY
     KEY -.Encrypts.-> GCS
     KEY -.Encrypts.-> DISK
     KEY -.Encrypts.-> GKE
-    
+
     SUBNET --> FE_EP
     SUBNET --> BE_EP
     FE_EP --> FE_IP
     BE_EP --> BE_IP
     FE_IP -.PSC.-> FE_SA
     BE_IP -.PSC.-> BE_SA
-    
+
     FE_SA --> GKE
     BE_SA --> GKE
     GKE --> SUBNET
     SUBNET --> GCS
-    
+
     DNS_ZONE --> A_REC
     A_REC --> FE_IP
     A_REC --> BE_IP
-    
+
     USER -.DNS.-> DNS_ZONE
     USER -.Private.-> FE_EP
-    
+
     style FE_SA fill:#FF3621
     style BE_SA fill:#FF3621
     style KEY fill:#FBBC04
@@ -319,9 +319,9 @@ graph LR
     H -->|Yes| J{Databricks Auth?}
     J -->|No| K[Access Denied - Auth]
     J -->|Yes| L[Access Granted]
-    
+
     L --> M[Data Encrypted with CMEK]
-    
+
     style L fill:#34A853
     style M fill:#FBBC04
     style C fill:#EA4335
@@ -660,18 +660,18 @@ sequenceDiagram
     participant GCP as Google Cloud
     participant DB_ACC as Databricks Account
     participant DB_WS as Databricks Workspace
-    
+
     Note over TF,KMS: Phase 1: CMEK Validation
     TF->>KMS: Verify KMS Key Exists
     TF->>KMS: Verify Service Account Has Access
     KMS-->>TF: Key Accessible
-    
+
     Note over TF,DB_ACC: Phase 2: CMEK Registration
     TF->>DB_ACC: Register CMEK with Databricks
     DB_ACC->>KMS: Test Key Access
     KMS-->>DB_ACC: Access Granted
     DB_ACC-->>TF: CMEK ID
-    
+
     Note over TF,GCP: Phase 3: PSC Endpoints
     TF->>GCP: Allocate Frontend Private IP
     TF->>GCP: Allocate Backend Private IP
@@ -679,17 +679,17 @@ sequenceDiagram
     TF->>GCP: Create Backend PSC Endpoint
     GCP->>GCP: Connect to Databricks Service Attachments
     GCP-->>TF: PSC Status = ACCEPTED
-    
+
     Note over TF,DB_ACC: Phase 4: VPC Endpoint Registration
     TF->>DB_ACC: Register Frontend VPC Endpoint
     TF->>DB_ACC: Register Backend VPC Endpoint
     DB_ACC-->>TF: VPC Endpoint IDs
-    
+
     Note over TF,DB_ACC: Phase 5: Private Access & Network
     TF->>DB_ACC: Create Private Access Settings
     TF->>DB_ACC: Create Network Configuration with VPC Endpoints
     DB_ACC-->>TF: Configuration IDs
-    
+
     Note over TF,DB_ACC: Phase 6: Encrypted Workspace
     TF->>DB_ACC: Create Workspace with PSC + CMEK
     DB_ACC->>GCP: Deploy GKE Cluster (Encrypted)
@@ -697,19 +697,19 @@ sequenceDiagram
     DB_ACC->>KMS: Encrypt with Customer Key
     GCP-->>DB_ACC: Resources Ready (Encrypted & Private)
     DB_ACC-->>TF: Workspace URL
-    
+
     Note over TF,GCP: Phase 7: DNS Configuration
     TF->>GCP: Create Private DNS Zone
     TF->>GCP: Create 4 DNS A Records
     GCP-->>TF: DNS Configured
-    
+
     Note over TF,DB_WS: Phase 8: Workspace Configuration
     TF->>DB_WS: Enable IP Access Lists
     TF->>DB_WS: Configure Allowed IPs
     TF->>DB_WS: Create Admin User
     TF->>DB_WS: Add to Admins Group
     DB_WS-->>TF: Configuration Complete
-    
+
     Note over DB_WS: Secure Workspace Ready<br/>(Private + Encrypted)
 ```
 
@@ -1141,7 +1141,7 @@ Workspace becomes completely inaccessible after disabling KMS key
      --keyring=databricks-keyring \
      --location=us-central1 \
      --project=my-project
-   
+
    # Re-enable the primary version
    gcloud kms keys versions enable <VERSION> \
      --key=databricks-key \

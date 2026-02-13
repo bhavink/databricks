@@ -24,17 +24,17 @@ This module provisions IAM roles and policies for Databricks workspace and Unity
 ```hcl
 module "iam" {
   source = "./modules/iam"
-  
+
   prefix                             = "dbx-abc123"
   aws_account_id                     = "123456789012"
   databricks_account_id              = "743862e4-fdac-4504-a9cc-2d69bd1605e8"
   unity_catalog_bucket_arn           = module.storage.unity_catalog_bucket_arn
   unity_catalog_external_bucket_arn  = module.storage.unity_catalog_external_bucket_arn
-  
+
   tags = {
     Environment = "Production"
   }
-  
+
   providers = {
     databricks.account = databricks.account
   }

@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Required Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Required Configuration
+# ==============================================
 
 variable "workspace_prefix" {
   description = "Prefix for resource naming (lowercase alphanumeric, max 12 chars)"
@@ -32,9 +32,9 @@ variable "resource_group_name" {
   type        = string
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Storage Account Resource IDs
-***REMOVED*** ==============================================
+# ==============================================
+# Storage Account Resource IDs
+# ==============================================
 
 variable "dbfs_storage_resource_id" {
   description = "DBFS storage account resource ID (always required)"
@@ -81,9 +81,9 @@ variable "additional_storage_ids" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Tags
-***REMOVED*** ==============================================
+# ==============================================
+# Tags
+# ==============================================
 
 variable "tags" {
   description = "Tags to apply to Service Endpoint Policy"

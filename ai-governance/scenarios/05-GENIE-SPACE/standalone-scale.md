@@ -8,7 +8,7 @@
 
 ## 📋 Scenario Overview
 
-**Problem Statement:**  
+**Problem Statement:**
 Global organization needs an HR analytics Genie Space where 5000+ employees across 50 countries and 20 departments can query workforce data. Access levels vary by role: employees see only their own data, managers see their team's data, directors see department aggregates, executives see org-wide metrics, and HR admins see everything including PII.
 
 **Business Requirements:**
@@ -42,50 +42,50 @@ flowchart TD
         EXEC[Executives<br/>10 users]
         HR[HR Admins<br/>20 users]
     end
-    
+
     subgraph "Genie Space"
         GS[Global HR Analytics Genie<br/>OBO Mode<br/>Serverless SQL Warehouse]
     end
-    
+
     subgraph "Unity Catalog ABAC"
         UC[UC Governance Engine]
         ABAC{Attribute-Based<br/>Access Control}
-        
+
         ABAC --> RoleCheck[Role Check<br/>employee/manager/director/exec/admin]
         ABAC --> DeptCheck[Department Check<br/>20 departments]
         ABAC --> RegionCheck[Region Check<br/>50 countries]
         ABAC --> SensCheck[Sensitivity Check<br/>public/internal/confidential]
     end
-    
+
     subgraph "Performance Layer"
         Cache[Result Cache]
         MV[Materialized Views]
         Partition[Partitioned Tables]
     end
-    
+
     subgraph "Data Layer"
         Base[(Base Tables<br/>10M+ employee records)]
         PII[(PII Tables<br/>Column masks)]
         Perf[(Performance Tables<br/>Row filters)]
     end
-    
+
     EMP --> GS
     MGR --> GS
     DIR --> GS
     EXEC --> GS
     HR --> GS
-    
+
     GS --> UC
     UC --> ABAC
-    
+
     ABAC --> Cache
     Cache --> MV
     MV --> Partition
-    
+
     Partition --> Base
     Partition --> PII
     Partition --> Perf
-    
+
     style EMP fill:#d5f5e3,stroke:#27ae60
     style MGR fill:#d5f5e3,stroke:#27ae60
     style DIR fill:#fdebd0,stroke:#e67e22
@@ -215,44 +215,44 @@ CREATE FUNCTION hr_analytics.employees.can_access_employee(
 )
 RETURNS BOOLEAN
 COMMENT 'ABAC: Hierarchical access with multi-dimensional checks'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- HR Admins see everything
         WHEN is_member('hr-admins') THEN true
-        
+
         -- Executives see all except individual PII
         WHEN is_member('executives') AND record_sensitivity != 'confidential' THEN true
-        
+
         -- Directors see department aggregates
-        WHEN is_member('directors') AND 
+        WHEN is_member('directors') AND
              is_member(CONCAT(record_department, '-directors')) AND
              record_sensitivity IN ('public', 'internal') THEN true
-        
+
         -- Managers see their direct reports
-        WHEN is_member('managers') AND 
+        WHEN is_member('managers') AND
              record_manager = current_user() THEN true
-        
+
         -- Managers see team aggregates in their department
         WHEN is_member('managers') AND
              is_member(CONCAT(record_department, '-managers')) AND
              record_sensitivity = 'public' THEN true
-        
+
         -- Employees see only their own record
         WHEN record_email = current_user() THEN true
-        
+
         -- Regional data access restrictions (for data residency requirements)
         WHEN record_region = 'EMEA' AND NOT is_member('emea-authorized') THEN false
-        
+
         -- Level-based restrictions (executives data)
         WHEN record_level >= 9 AND NOT is_member('executives') THEN false
-        
+
         -- Default deny
         ELSE false
     END;
 
 -- Apply to core employee table
 ALTER TABLE hr_analytics.employees.core_data
-  SET ROW FILTER hr_analytics.employees.can_access_employee 
+  SET ROW FILTER hr_analytics.employees.can_access_employee
   ON (email, manager_email, department, region, data_sensitivity, job_level);
 ```
 
@@ -266,27 +266,27 @@ CREATE FUNCTION hr_analytics.employees.can_access_compensation(
 )
 RETURNS BOOLEAN
 COMMENT 'ABAC: Compensation data access (highly restricted)'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- HR Admins see everything
         WHEN is_member('hr-admins') THEN true
-        
+
         -- HR Analysts see aggregates only (via views, not raw table)
         WHEN is_member('hr-analysts') THEN false  -- Force to use aggregate views
-        
+
         -- Executives see department aggregates (via views)
         WHEN is_member('executives') THEN false  -- Force to use aggregate views
-        
+
         -- Employees see only their own compensation
         WHEN record_email = current_user() THEN true
-        
+
         -- Default deny
         ELSE false
     END;
 
 -- Apply to compensation table
 ALTER TABLE hr_analytics.employees.compensation
-  SET ROW FILTER hr_analytics.employees.can_access_compensation 
+  SET ROW FILTER hr_analytics.employees.can_access_compensation
   ON (email, department);
 ```
 
@@ -302,31 +302,31 @@ CREATE FUNCTION hr_analytics.employees.can_access_performance(
 )
 RETURNS BOOLEAN
 COMMENT 'ABAC: Performance review access with time-based restrictions'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- HR Admins see everything
         WHEN is_member('hr-admins') THEN true
-        
+
         -- Managers see their direct reports
         WHEN is_member('managers') AND record_manager = current_user() THEN true
-        
+
         -- Directors see department aggregates (via views only)
         WHEN is_member('directors') THEN false  -- Force to use aggregate views
-        
+
         -- Employees see their own reviews
         WHEN record_email = current_user() THEN true
-        
+
         -- Time-based: Historical reviews (> 2 years) restricted to HR only
-        WHEN CAST(SUBSTRING(review_period, 1, 4) AS INT) < YEAR(current_date()) - 2 
+        WHEN CAST(SUBSTRING(review_period, 1, 4) AS INT) < YEAR(current_date()) - 2
              AND NOT is_member('hr-admins') THEN false
-        
+
         -- Default deny
         ELSE false
     END;
 
 -- Apply to performance table
 ALTER TABLE hr_analytics.employees.performance
-  SET ROW FILTER hr_analytics.employees.can_access_performance 
+  SET ROW FILTER hr_analytics.employees.can_access_performance
   ON (email, manager_email, department, review_period);
 ```
 
@@ -341,21 +341,21 @@ ALTER TABLE hr_analytics.employees.performance
 CREATE FUNCTION hr_analytics.employees.mask_salary()
 RETURNS DECIMAL(15,2)
 COMMENT 'Column mask: Progressive salary disclosure'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- HR admins see exact values
         WHEN is_member('hr-admins') THEN VALUE
-        
+
         -- Executives see rounded to nearest 10K
         WHEN is_member('executives') THEN ROUND(VALUE, -4)
-        
+
         -- Directors see salary band only (via separate column)
         WHEN is_member('directors') THEN NULL
-        
+
         -- Employees see own exact salary
         -- (row filter ensures they only see own record)
         WHEN is_member('employees') THEN VALUE
-        
+
         -- Default: NULL
         ELSE NULL
     END;
@@ -377,14 +377,14 @@ ALTER TABLE hr_analytics.employees.compensation
 CREATE FUNCTION hr_analytics.employees.mask_email()
 RETURNS STRING
 COMMENT 'Column mask: Email masking for privacy'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- HR admins see full email
         WHEN is_member('hr-admins') THEN VALUE
-        
+
         -- Managers see full email for direct reports (row filter handles access)
         WHEN is_member('managers') THEN VALUE
-        
+
         -- Others see masked: "j***@company.com"
         ELSE CONCAT(
             SUBSTRING(VALUE, 1, 1),
@@ -404,18 +404,18 @@ RETURN
 CREATE FUNCTION hr_analytics.employees.mask_comments()
 RETURNS STRING
 COMMENT 'Column mask: Hide sensitive manager comments'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- HR admins see everything
         WHEN is_member('hr-admins') THEN VALUE
-        
+
         -- Managers see comments for their direct reports
         WHEN is_member('managers') THEN VALUE
-        
+
         -- Employee sees own comments
         -- (row filter ensures they see only their own record)
         WHEN NOT is_member('directors') AND NOT is_member('executives') THEN VALUE
-        
+
         -- Directors/Executives don't see individual comments
         ELSE NULL
     END;
@@ -437,7 +437,7 @@ ALTER TABLE hr_analytics.employees.performance
 ```sql
 -- Pre-aggregate headcount by department/region/level
 CREATE MATERIALIZED VIEW hr_analytics.analytics.headcount_mv AS
-SELECT 
+SELECT
     department,
     region,
     country,
@@ -451,7 +451,7 @@ WHERE employment_status = 'active'
 GROUP BY department, region, country, job_level, employment_status;
 
 -- Refresh daily
-ALTER MATERIALIZED VIEW hr_analytics.analytics.headcount_mv 
+ALTER MATERIALIZED VIEW hr_analytics.analytics.headcount_mv
   SET TBLPROPERTIES('pipelines.autoUpdate.enabled' = 'true');
 
 -- Grant access via UC UI: All roles can see aggregated data
@@ -465,7 +465,7 @@ ALTER MATERIALIZED VIEW hr_analytics.analytics.headcount_mv
 -- Pre-calculate attrition rates
 CREATE MATERIALIZED VIEW hr_analytics.analytics.attrition_mv AS
 WITH active_employees AS (
-    SELECT 
+    SELECT
         department,
         region,
         DATE_TRUNC('month', hire_date) as hire_month,
@@ -475,7 +475,7 @@ WITH active_employees AS (
     GROUP BY department, region, DATE_TRUNC('month', hire_date)
 ),
 terminated_employees AS (
-    SELECT 
+    SELECT
         department,
         region,
         DATE_TRUNC('month', termination_date) as term_month,
@@ -485,7 +485,7 @@ terminated_employees AS (
       AND termination_date IS NOT NULL
     GROUP BY department, region, DATE_TRUNC('month', termination_date)
 )
-SELECT 
+SELECT
     COALESCE(a.department, t.department) as department,
     COALESCE(a.region, t.region) as region,
     COALESCE(a.hire_month, t.term_month) as month,
@@ -493,9 +493,9 @@ SELECT
     COALESCE(t.terminations, 0) as terminations,
     ROUND(COALESCE(t.terminations, 0) * 100.0 / NULLIF(COALESCE(a.hires, 0), 0), 2) as attrition_rate_pct
 FROM active_employees a
-FULL OUTER JOIN terminated_employees t 
-    ON a.department = t.department 
-    AND a.region = t.region 
+FULL OUTER JOIN terminated_employees t
+    ON a.department = t.department
+    AND a.region = t.region
     AND a.hire_month = t.term_month;
 
 -- Grant access via UC UI: Management and HR only
@@ -511,13 +511,13 @@ FULL OUTER JOIN terminated_employees t
 DESCRIBE DETAIL hr_analytics.employees.core_data;
 
 -- Optimize partitions
-OPTIMIZE hr_analytics.employees.core_data 
+OPTIMIZE hr_analytics.employees.core_data
   ZORDER BY (email, manager_email);
 
-OPTIMIZE hr_analytics.employees.compensation 
+OPTIMIZE hr_analytics.employees.compensation
   ZORDER BY (email, department);
 
-OPTIMIZE hr_analytics.employees.performance 
+OPTIMIZE hr_analytics.employees.performance
   ZORDER BY (email, manager_email, review_period);
 ```
 
@@ -528,7 +528,7 @@ OPTIMIZE hr_analytics.employees.performance
 -- (Done via UI or API when configuring serverless warehouse)
 
 -- Monitor cache hit rate
-SELECT 
+SELECT
     query_start_time,
     query_id,
     cache_hit,
@@ -600,7 +600,7 @@ You are the Global HR Analytics assistant serving 5000+ employees worldwide.
 User: "What's my PTO balance?"
 
 Genie translates to:
-SELECT 
+SELECT
     first_name,
     last_name,
     pto_balance_days,
@@ -616,7 +616,7 @@ WHERE email = current_user()
 User: "Show my team's average performance rating for Q4"
 
 Genie translates to:
-SELECT 
+SELECT
     AVG(performance_rating) as avg_rating,
     COUNT(*) as team_size,
     review_period
@@ -631,7 +631,7 @@ GROUP BY review_period;
 User: "Engineering headcount by region"
 
 Genie translates to:
-SELECT 
+SELECT
     region,
     SUM(active_count) as headcount
 FROM hr_analytics.analytics.headcount_mv
@@ -645,7 +645,7 @@ ORDER BY headcount DESC;
 User: "What's the global attrition trend over the last 12 months?"
 
 Genie translates to:
-SELECT 
+SELECT
     month,
     SUM(hires) as total_hires,
     SUM(terminations) as total_terminations,
@@ -698,7 +698,7 @@ WHERE email = current_user();
 -- Benchmark query: Manager team query
 -- Target: < 2s
 EXPLAIN ANALYZE
-SELECT 
+SELECT
     email,
     job_title,
     performance_rating
@@ -709,7 +709,7 @@ WHERE manager_email = current_user()
 -- Benchmark query: Executive dashboard
 -- Target: < 3s
 EXPLAIN ANALYZE
-SELECT 
+SELECT
     department,
     region,
     SUM(active_count) as headcount
@@ -726,8 +726,8 @@ ORDER BY headcount DESC;
 
 ```sql
 -- Track query costs by department
-SELECT 
-    CASE 
+SELECT
+    CASE
         WHEN user_identity.email LIKE '%@engineering%' THEN 'Engineering'
         WHEN user_identity.email LIKE '%@sales%' THEN 'Sales'
         WHEN user_identity.email LIKE '%@hr%' THEN 'HR'
@@ -761,7 +761,7 @@ ORDER BY date DESC, total_compute_hours DESC;
 
 ```sql
 -- Identify slow queries
-SELECT 
+SELECT
     query_id,
     user_identity.email,
     query_start_time,
@@ -787,9 +787,9 @@ LIMIT 20;
 -- Create dashboard with these queries:
 
 -- 1. Active users by role
-SELECT 
+SELECT
     DATE(event_time) as date,
-    CASE 
+    CASE
         WHEN is_member('hr-admins') THEN 'HR Admin'
         WHEN is_member('executives') THEN 'Executive'
         WHEN is_member('directors') THEN 'Director'
@@ -803,8 +803,8 @@ WHERE action_name = 'commandSubmit'
 GROUP BY DATE(event_time), role;
 
 -- 2. Query performance by role
-SELECT 
-    CASE 
+SELECT
+    CASE
         WHEN is_member('hr-admins') THEN 'HR Admin'
         WHEN is_member('executives') THEN 'Executive'
         WHEN is_member('directors') THEN 'Director'
@@ -820,7 +820,7 @@ WHERE action_name = 'commandSubmit'
 GROUP BY role;
 
 -- 3. Failed queries (permission denied)
-SELECT 
+SELECT
     user_identity.email,
     request_params.full_name_arg as attempted_table,
     response.status_code,
@@ -940,12 +940,12 @@ ORDER BY failure_count DESC;
 DESCRIBE DETAIL hr_analytics.employees.core_data;
 
 -- 2. Add Z-ORDER
-OPTIMIZE hr_analytics.employees.core_data 
+OPTIMIZE hr_analytics.employees.core_data
   ZORDER BY (email, manager_email, department, region);
 
 -- 3. Create materialized views for frequent queries
 CREATE MATERIALIZED VIEW hr_analytics.analytics.my_team_summary AS
-SELECT 
+SELECT
     manager_email,
     department,
     COUNT(*) as team_size,
@@ -963,7 +963,7 @@ GROUP BY manager_email, department;
 **Diagnosis:**
 ```sql
 -- Check failed access attempts
-SELECT 
+SELECT
     user_identity.email,
     request_params.full_name_arg as table_name,
     response.status_code,
@@ -989,7 +989,7 @@ ORDER BY error_count DESC;
 **Diagnosis:**
 ```sql
 -- Identify expensive queries
-SELECT 
+SELECT
     user_identity.email,
     query_text,
     total_time_ms,

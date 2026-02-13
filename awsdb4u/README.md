@@ -121,44 +121,44 @@ graph TB
             NAT2[NAT Gateway 2<br/>10.0.0.64/26]
             IGW[Internet Gateway]
         end
-        
+
         subgraph "Private Subnets (/24 - Databricks Clusters)"
             PRIV1[Private Subnet 1<br/>10.0.1.0/24<br/>251 usable IPs]
             PRIV2[Private Subnet 2<br/>10.0.2.0/24<br/>251 usable IPs]
         end
-        
+
         subgraph "PrivateLink Subnets (/26 - VPC Endpoints)"
             VPCE1[Workspace VPCE<br/>10.0.3.0/26]
             VPCE2[Relay VPCE<br/>10.0.3.64/26]
             STS[STS VPCE]
             KINESIS[Kinesis VPCE]
         end
-        
+
         subgraph "Storage"
             S3[S3 Buckets<br/>DBFS + UC]
             S3GW[S3 Gateway Endpoint]
         end
     end
-    
+
     subgraph "Databricks Control Plane"
         CONTROL[Databricks Control Plane<br/>accounts.cloud.databricks.com]
     end
-    
+
     PRIV1 -->|NAT| NAT1
     PRIV2 -->|NAT| NAT2
     NAT1 --> IGW
     NAT2 --> IGW
-    
+
     PRIV1 -.->|Private Link| VPCE1
     PRIV2 -.->|Private Link| VPCE2
-    
+
     VPCE1 -.->|Backend Private Link| CONTROL
     VPCE2 -.->|Secure Cluster Connectivity| CONTROL
-    
+
     PRIV1 -->|S3 Access| S3GW
     PRIV2 -->|S3 Access| S3GW
     S3GW --> S3
-    
+
     style CONTROL fill:#FF3621
     style S3 fill:#569A31
     style VPCE1 fill:#FF9900
@@ -909,22 +909,22 @@ graph TD
     A --> C[Storage Module]
     A --> D[IAM Module]
     A --> E[KMS Module - Optional]
-    
+
     B --> F[VPC + Subnets]
     B --> G[Security Groups]
     B --> H[NAT Gateways]
     B --> I[VPC Endpoints]
-    
+
     I --> J[Register with Databricks]
-    
+
     E --> K[Create KMS Key]
     K --> L[Apply Key Policy]
-    
+
     J --> M[Databricks Workspace Module]
     C --> M
     D --> M
     L --> M
-    
+
     M --> N[Private Access Settings]
     M --> O[Credentials Config]
     M --> P[Storage Config]
@@ -933,18 +933,18 @@ graph TD
     O --> R
     P --> R
     Q --> R
-    
+
     R --> S[Unity Catalog Module]
     C --> S
-    
+
     S --> T[Create Metastore]
     T --> U[Assign to Workspace]
     U --> V[Storage Credentials]
     V --> W[External Locations]
     W --> X[Workspace Catalog]
-    
+
     U --> Y[User Assignment Module]
-    
+
     style A fill:#f9f,stroke:#333
     style M fill:#bbf,stroke:#333
     style S fill:#bfb,stroke:#333
@@ -960,7 +960,7 @@ sequenceDiagram
     participant AWS as AWS
     participant DB_ACC as Databricks Account
     participant DB_WS as Databricks Workspace
-    
+
     Note over TF,AWS: Phase 1: AWS Infrastructure
     TF->>AWS: Create VPC + Subnets
     TF->>AWS: Create Security Groups
@@ -968,17 +968,17 @@ sequenceDiagram
     TF->>AWS: Create S3 Buckets
     TF->>AWS: Create IAM Roles
     TF->>AWS: Create VPC Endpoints
-    
+
     Note over TF,DB_ACC: Phase 2: Register Endpoints
     TF->>DB_ACC: Register Workspace VPCE
     TF->>DB_ACC: Register Relay VPCE
     DB_ACC-->>TF: VPC Endpoint IDs
-    
+
     Note over TF,AWS: Phase 3: KMS (Optional)
     TF->>AWS: Create KMS Key
     TF->>AWS: Apply Key Policy
     TF->>DB_ACC: Register CMK
-    
+
     Note over TF,DB_ACC: Phase 4: Workspace
     TF->>DB_ACC: Create Private Access Settings
     TF->>DB_ACC: Create Credentials Config
@@ -986,18 +986,18 @@ sequenceDiagram
     TF->>DB_ACC: Create Network Config
     TF->>DB_ACC: Create Workspace
     DB_ACC-->>TF: Workspace ID + URL
-    
+
     Note over TF,DB_ACC: Phase 5: Unity Catalog
     TF->>DB_ACC: Create UC Metastore
     TF->>DB_ACC: Assign Metastore to Workspace
     TF->>DB_WS: Create Storage Credentials
     TF->>DB_WS: Create External Locations
     TF->>DB_WS: Create Workspace Catalog
-    
+
     Note over TF,DB_ACC: Phase 6: User Assignment
     TF->>DB_ACC: Lookup User
     TF->>DB_ACC: Assign User as Admin
-    
+
     Note over DB_ACC: Wait 20 minutes for<br/>Backend Private Link
 ```
 

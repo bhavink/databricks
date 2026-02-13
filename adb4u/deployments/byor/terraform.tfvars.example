@@ -1,71 +1,71 @@
-***REMOVED*** ==============================================
-***REMOVED*** BYOR (Bring Your Own Resources) Configuration
-***REMOVED*** ==============================================
-***REMOVED***
-***REMOVED*** This configuration creates Databricks-ready infrastructure
-***REMOVED*** that can be reused across multiple workspace deployments.
-***REMOVED***
-***REMOVED*** Output: Copy-paste ready configuration for Non-PL or Full-Private patterns
-***REMOVED***
-***REMOVED*** ==============================================
+# ==============================================
+# BYOR (Bring Your Own Resources) Configuration
+# ==============================================
+#
+# This configuration creates Databricks-ready infrastructure
+# that can be reused across multiple workspace deployments.
+#
+# Output: Copy-paste ready configuration for Non-PL or Full-Private patterns
+#
+# ==============================================
 
-***REMOVED*** ==============================================
-***REMOVED*** Core Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Core Configuration
+# ==============================================
 
-workspace_prefix    = "proddb"                              ***REMOVED*** Prefix for all resources (lowercase, max 12 chars)
-location            = "eastus2"                              ***REMOVED*** Azure region
-resource_group_name = "rg-databricks-byor-eastus2"         ***REMOVED*** Resource group name
+workspace_prefix    = "proddb"                              # Prefix for all resources (lowercase, max 12 chars)
+location            = "eastus2"                              # Azure region
+resource_group_name = "rg-databricks-byor-eastus2"         # Resource group name
 
-***REMOVED*** Use existing resource group or create new
-use_existing_resource_group = false  ***REMOVED*** Set to true to use existing RG
+# Use existing resource group or create new
+use_existing_resource_group = false  # Set to true to use existing RG
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Network Configuration
+# ==============================================
 
-***REMOVED*** VNet and Subnets (adjust CIDRs based on your network plan)
-vnet_address_space           = ["10.100.0.0/16"]           ***REMOVED*** VNet CIDR
-public_subnet_address_prefix  = "10.100.1.0/26"            ***REMOVED*** Public/Host subnet (min /26)
-private_subnet_address_prefix = "10.100.2.0/26"            ***REMOVED*** Private/Container subnet (min /26)
+# VNet and Subnets (adjust CIDRs based on your network plan)
+vnet_address_space           = ["10.100.0.0/16"]           # VNet CIDR
+public_subnet_address_prefix  = "10.100.1.0/26"            # Public/Host subnet (min /26)
+private_subnet_address_prefix = "10.100.2.0/26"            # Private/Container subnet (min /26)
 
-***REMOVED*** ==============================================
-***REMOVED*** Optional: NAT Gateway (for Non-PL pattern)
-***REMOVED*** ==============================================
-***REMOVED*** Enable NAT Gateway for internet egress (required for Non-PL workspaces)
-***REMOVED*** Set to false for Full-Private (air-gapped) deployments
+# ==============================================
+# Optional: NAT Gateway (for Non-PL pattern)
+# ==============================================
+# Enable NAT Gateway for internet egress (required for Non-PL workspaces)
+# Set to false for Full-Private (air-gapped) deployments
 
-enable_nat_gateway = true  ***REMOVED*** true = Non-PL | false = Full-Private
+enable_nat_gateway = true  # true = Non-PL | false = Full-Private
 
-***REMOVED*** ==============================================
-***REMOVED*** Optional: Private Link Subnet (for Full-Private pattern)
-***REMOVED*** ==============================================
-***REMOVED*** Create a Private Link subnet for Full-Private workspace deployments
-***REMOVED*** Not needed for Non-PL pattern
+# ==============================================
+# Optional: Private Link Subnet (for Full-Private pattern)
+# ==============================================
+# Create a Private Link subnet for Full-Private workspace deployments
+# Not needed for Non-PL pattern
 
-create_privatelink_subnet         = false                   ***REMOVED*** Set to true for Full-Private
-privatelink_subnet_address_prefix = "10.100.3.0/26"        ***REMOVED*** Private Link subnet (min /26)
+create_privatelink_subnet         = false                   # Set to true for Full-Private
+privatelink_subnet_address_prefix = "10.100.3.0/26"        # Private Link subnet (min /26)
 
-***REMOVED*** ==============================================
-***REMOVED*** Optional: Customer-Managed Keys (CMK)
-***REMOVED*** ==============================================
-***REMOVED*** Create Key Vault and CMK key for Databricks encryption
-***REMOVED*** This Key Vault can be shared across multiple workspaces
+# ==============================================
+# Optional: Customer-Managed Keys (CMK)
+# ==============================================
+# Create Key Vault and CMK key for Databricks encryption
+# This Key Vault can be shared across multiple workspaces
 
-create_key_vault = false                                    ***REMOVED*** Set to true to create Key Vault + CMK
+create_key_vault = false                                    # Set to true to create Key Vault + CMK
 
-***REMOVED*** CMK Key Configuration (if create_key_vault = true)
-cmk_key_type = "RSA"                                        ***REMOVED*** Key type: RSA or RSA-HSM
-cmk_key_size = 2048                                         ***REMOVED*** Key size: 2048, 3072, or 4096 bits
+# CMK Key Configuration (if create_key_vault = true)
+cmk_key_type = "RSA"                                        # Key type: RSA or RSA-HSM
+cmk_key_size = 2048                                         # Key size: 2048, 3072, or 4096 bits
 
-***REMOVED*** ==============================================
-***REMOVED*** Tags (Mandatory)
-***REMOVED*** ==============================================
+# ==============================================
+# Tags (Mandatory)
+# ==============================================
 
-tag_owner     = "platform-team@company.com"                 ***REMOVED*** Owner email or team name
-tag_keepuntil = "12/31/2026"                                ***REMOVED*** Resource retention date
+tag_owner     = "platform-team@company.com"                 # Owner email or team name
+tag_keepuntil = "12/31/2026"                                # Resource retention date
 
-***REMOVED*** Additional custom tags (optional)
+# Additional custom tags (optional)
 tags = {
   Environment = "Production"
   ManagedBy   = "Terraform"
@@ -74,87 +74,87 @@ tags = {
   Purpose     = "Databricks-Infrastructure"
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** EXAMPLE CONFIGURATIONS
-***REMOVED*** ==============================================
+# ==============================================
+# EXAMPLE CONFIGURATIONS
+# ==============================================
 
-***REMOVED*** Example 1: Non-PL Infrastructure (with NAT Gateway, no CMK)
-***REMOVED*** ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-***REMOVED*** workspace_prefix                  = "proddb"
-***REMOVED*** location                          = "eastus2"
-***REMOVED*** resource_group_name               = "rg-databricks-byor-eastus2"
-***REMOVED*** use_existing_resource_group       = false
-***REMOVED*** vnet_address_space                = ["10.100.0.0/16"]
-***REMOVED*** public_subnet_address_prefix      = "10.100.1.0/26"
-***REMOVED*** private_subnet_address_prefix     = "10.100.2.0/26"
-***REMOVED*** enable_nat_gateway                = true
-***REMOVED*** create_privatelink_subnet         = false
-***REMOVED*** create_key_vault                  = false
-***REMOVED***
-***REMOVED*** Output: Network + NAT Gateway (ready for Non-PL workspaces)
+# Example 1: Non-PL Infrastructure (with NAT Gateway, no CMK)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# workspace_prefix                  = "proddb"
+# location                          = "eastus2"
+# resource_group_name               = "rg-databricks-byor-eastus2"
+# use_existing_resource_group       = false
+# vnet_address_space                = ["10.100.0.0/16"]
+# public_subnet_address_prefix      = "10.100.1.0/26"
+# private_subnet_address_prefix     = "10.100.2.0/26"
+# enable_nat_gateway                = true
+# create_privatelink_subnet         = false
+# create_key_vault                  = false
+#
+# Output: Network + NAT Gateway (ready for Non-PL workspaces)
 
-***REMOVED*** Example 2: Full-Private Infrastructure (with Private Link subnet, no NAT, no CMK)
-***REMOVED*** ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-***REMOVED*** workspace_prefix                  = "proddb"
-***REMOVED*** location                          = "eastus2"
-***REMOVED*** resource_group_name               = "rg-databricks-byor-eastus2"
-***REMOVED*** use_existing_resource_group       = false
-***REMOVED*** vnet_address_space                = ["10.100.0.0/16"]
-***REMOVED*** public_subnet_address_prefix      = "10.100.1.0/26"
-***REMOVED*** private_subnet_address_prefix     = "10.100.2.0/26"
-***REMOVED*** enable_nat_gateway                = false
-***REMOVED*** create_privatelink_subnet         = true
-***REMOVED*** privatelink_subnet_address_prefix = "10.100.3.0/26"
-***REMOVED*** create_key_vault                  = false
-***REMOVED***
-***REMOVED*** Output: Network + Private Link Subnet (ready for Full-Private workspaces)
+# Example 2: Full-Private Infrastructure (with Private Link subnet, no NAT, no CMK)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# workspace_prefix                  = "proddb"
+# location                          = "eastus2"
+# resource_group_name               = "rg-databricks-byor-eastus2"
+# use_existing_resource_group       = false
+# vnet_address_space                = ["10.100.0.0/16"]
+# public_subnet_address_prefix      = "10.100.1.0/26"
+# private_subnet_address_prefix     = "10.100.2.0/26"
+# enable_nat_gateway                = false
+# create_privatelink_subnet         = true
+# privatelink_subnet_address_prefix = "10.100.3.0/26"
+# create_key_vault                  = false
+#
+# Output: Network + Private Link Subnet (ready for Full-Private workspaces)
 
-***REMOVED*** Example 3: Non-PL Infrastructure with CMK
-***REMOVED*** ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-***REMOVED*** workspace_prefix                  = "proddb"
-***REMOVED*** location                          = "eastus2"
-***REMOVED*** resource_group_name               = "rg-databricks-byor-eastus2"
-***REMOVED*** use_existing_resource_group       = false
-***REMOVED*** vnet_address_space                = ["10.100.0.0/16"]
-***REMOVED*** public_subnet_address_prefix      = "10.100.1.0/26"
-***REMOVED*** private_subnet_address_prefix     = "10.100.2.0/26"
-***REMOVED*** enable_nat_gateway                = true
-***REMOVED*** create_privatelink_subnet         = false
-***REMOVED*** create_key_vault                  = true
-***REMOVED*** cmk_key_type                      = "RSA"
-***REMOVED*** cmk_key_size                      = 2048
-***REMOVED***
-***REMOVED*** Output: Network + NAT Gateway + Key Vault + CMK (ready for Non-PL workspaces with encryption)
+# Example 3: Non-PL Infrastructure with CMK
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# workspace_prefix                  = "proddb"
+# location                          = "eastus2"
+# resource_group_name               = "rg-databricks-byor-eastus2"
+# use_existing_resource_group       = false
+# vnet_address_space                = ["10.100.0.0/16"]
+# public_subnet_address_prefix      = "10.100.1.0/26"
+# private_subnet_address_prefix     = "10.100.2.0/26"
+# enable_nat_gateway                = true
+# create_privatelink_subnet         = false
+# create_key_vault                  = true
+# cmk_key_type                      = "RSA"
+# cmk_key_size                      = 2048
+#
+# Output: Network + NAT Gateway + Key Vault + CMK (ready for Non-PL workspaces with encryption)
 
-***REMOVED*** Example 4: Full-Private Infrastructure with CMK
-***REMOVED*** ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-***REMOVED*** workspace_prefix                  = "proddb"
-***REMOVED*** location                          = "eastus2"
-***REMOVED*** resource_group_name               = "rg-databricks-byor-eastus2"
-***REMOVED*** use_existing_resource_group       = false
-***REMOVED*** vnet_address_space                = ["10.100.0.0/16"]
-***REMOVED*** public_subnet_address_prefix      = "10.100.1.0/26"
-***REMOVED*** private_subnet_address_prefix     = "10.100.2.0/26"
-***REMOVED*** enable_nat_gateway                = false
-***REMOVED*** create_privatelink_subnet         = true
-***REMOVED*** privatelink_subnet_address_prefix = "10.100.3.0/26"
-***REMOVED*** create_key_vault                  = true
-***REMOVED*** cmk_key_type                      = "RSA"
-***REMOVED*** cmk_key_size                      = 2048
-***REMOVED***
-***REMOVED*** Output: Network + Private Link Subnet + Key Vault + CMK (ready for Full-Private workspaces with encryption)
+# Example 4: Full-Private Infrastructure with CMK
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# workspace_prefix                  = "proddb"
+# location                          = "eastus2"
+# resource_group_name               = "rg-databricks-byor-eastus2"
+# use_existing_resource_group       = false
+# vnet_address_space                = ["10.100.0.0/16"]
+# public_subnet_address_prefix      = "10.100.1.0/26"
+# private_subnet_address_prefix     = "10.100.2.0/26"
+# enable_nat_gateway                = false
+# create_privatelink_subnet         = true
+# privatelink_subnet_address_prefix = "10.100.3.0/26"
+# create_key_vault                  = true
+# cmk_key_type                      = "RSA"
+# cmk_key_size                      = 2048
+#
+# Output: Network + Private Link Subnet + Key Vault + CMK (ready for Full-Private workspaces with encryption)
 
-***REMOVED*** Example 5: Using Existing Resource Group
-***REMOVED*** ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-***REMOVED*** workspace_prefix                  = "proddb"
-***REMOVED*** location                          = "eastus2"
-***REMOVED*** resource_group_name               = "existing-rg-name"  ***REMOVED*** Must already exist
-***REMOVED*** use_existing_resource_group       = true
-***REMOVED*** vnet_address_space                = ["10.100.0.0/16"]
-***REMOVED*** public_subnet_address_prefix      = "10.100.1.0/26"
-***REMOVED*** private_subnet_address_prefix     = "10.100.2.0/26"
-***REMOVED*** enable_nat_gateway                = true
-***REMOVED*** create_privatelink_subnet         = false
-***REMOVED*** create_key_vault                  = false
-***REMOVED***
-***REMOVED*** Output: Network resources created in existing RG
+# Example 5: Using Existing Resource Group
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# workspace_prefix                  = "proddb"
+# location                          = "eastus2"
+# resource_group_name               = "existing-rg-name"  # Must already exist
+# use_existing_resource_group       = true
+# vnet_address_space                = ["10.100.0.0/16"]
+# public_subnet_address_prefix      = "10.100.1.0/26"
+# private_subnet_address_prefix     = "10.100.2.0/26"
+# enable_nat_gateway                = true
+# create_privatelink_subnet         = false
+# create_key_vault                  = false
+#
+# Output: Network resources created in existing RG

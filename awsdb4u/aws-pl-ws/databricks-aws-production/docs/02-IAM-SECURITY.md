@@ -39,52 +39,52 @@ flowchart TD
     subgraph "Databricks Control Plane"
         CP["Databricks SaaS<br/>414351767826"]
     end
-    
+
     subgraph "Customer AWS Account"
         subgraph "Workspace Layer"
             CROSS["Cross-Account Role<br/>dbx-*-cross-account-role<br/>EC2 + VPC Management"]
             STORAGE["Storage Config Role<br/>dbx-*-storage-role<br/>DBFS Root Access"]
         end
-        
+
         subgraph "Unity Catalog Layer"
             UCMETA["UC Metastore Role<br/>dbx-*-unity-catalog-role<br/>Shared Across Workspaces"]
             UCEXT["UC External Role<br/>dbx-*-catalog-<workspace-id><br/>Per-Workspace Storage"]
         end
-        
+
         subgraph "Compute Layer"
             INSTANCE["Instance Profile<br/>dbx-*-instance-profile<br/>Cluster Data Access"]
         end
-        
+
         subgraph "Storage Layer"
             DBFS["DBFS Root Bucket<br/>Workspace Assets"]
             META["UC Metastore Bucket<br/>Shared Catalog Data"]
             EXT["UC External Bucket<br/>Workspace Catalog Data"]
         end
-        
+
         subgraph "Encryption Layer"
             KMS["KMS Keys<br/>S3 + Workspace CMK"]
         end
     end
-    
+
     CP -.->|AssumeRole| CROSS
     CROSS -->|Launch/Manage| EC2["EC2 Instances"]
     CROSS -->|Configure| VPC["VPC/Subnets/SG"]
-    
+
     CP -.->|AssumeRole| STORAGE
     STORAGE -->|Read/Write| DBFS
-    
+
     CP -.->|AssumeRole| UCMETA
     UCMETA -->|Read/Write| META
-    
+
     UCEXT -.->|AssumeRole Self| UCEXT
     UCEXT -->|Read/Write| EXT
-    
+
     INSTANCE -->|Attached to EC2| EXT
-    
+
     STORAGE -->|Decrypt/Encrypt| KMS
     UCMETA -->|Decrypt/Encrypt| KMS
     UCEXT -->|Decrypt/Encrypt| KMS
-    
+
     style CP fill:#FF3621
     style CROSS fill:#FF9900
     style STORAGE fill:#FF9900
@@ -106,23 +106,23 @@ sequenceDiagram
     participant S3 as S3 Buckets
     participant KMS as KMS Module
     participant UC as Unity Catalog Module
-    
+
     TF->>IAM: Create IAM roles (Step 1)
     IAM->>IAM: Create cross-account role
     IAM->>IAM: Create storage configuration role
     IAM->>IAM: Create UC metastore role
     IAM->>IAM: Create instance profile role
-    
+
     TF->>S3: Create S3 buckets (Step 2)
     S3->>S3: Create DBFS root bucket
     S3->>S3: Create UC metastore bucket
     S3->>S3: Create UC external bucket
-    
+
     TF->>KMS: Create encryption (Step 3)
     KMS->>KMS: Create KMS keys
     KMS->>IAM: Attach KMS policy to storage role
     KMS->>IAM: Attach KMS policy to UC metastore role
-    
+
     TF->>UC: Create UC resources (Step 4)
     UC->>UC: Create UC external role (workspace-specific)
     UC->>UC: Attach KMS policy to UC external role
@@ -140,8 +140,8 @@ sequenceDiagram
 
 ### 2.1 Purpose & Trust Policy
 
-**Role Name**: `{prefix}-cross-account-role`  
-**Created By**: IAM module  
+**Role Name**: `{prefix}-cross-account-role`
+**Created By**: IAM module
 **Can Be Pre-Created**: ✅ Yes
 
 ```mermaid
@@ -151,7 +151,7 @@ flowchart LR
     ROLE -->|Launch| EC2["EC2 Instances<br/>Clusters"]
     ROLE -->|Attach| ENI["Network<br/>Interfaces"]
     ROLE -->|Configure| VPC["VPC/Subnets<br/>Security Groups"]
-    
+
     style DB fill:#FF3621
     style ROLE fill:#FF9900
 ```
@@ -175,7 +175,7 @@ flowchart LR
 }
 ```
 
-**Permissions Policy** (What it can do):  
+**Permissions Policy** (What it can do):
 Generated dynamically by Databricks provider: `databricks_aws_crossaccount_policy`
 
 **Used By:**
@@ -194,9 +194,9 @@ Generated dynamically by Databricks provider: `databricks_aws_crossaccount_polic
 
 ### 3.1 Purpose & Architecture
 
-**Role Name**: `{prefix}-storage-role`  
-**Created By**: IAM module  
-**Can Be Pre-Created**: ✅ Yes  
+**Role Name**: `{prefix}-storage-role`
+**Created By**: IAM module
+**Can Be Pre-Created**: ✅ Yes
 **Scope**: DBFS root bucket access for workspace
 
 ```mermaid
@@ -205,19 +205,19 @@ flowchart TD
     DB["Databricks<br/>Control Plane<br/>414351767826"] -.->|AssumeRole| ROLE["Storage Config<br/>Role"]
     ROLE -->|Read/Write| DBFS["DBFS Root<br/>S3 Bucket"]
     ROLE -->|Decrypt/Encrypt| KMS["KMS Key<br/>if encryption enabled"]
-    
+
     subgraph "DBFS Root Contents"
         INIT["Init Scripts"]
         LIBS["Libraries & JARs"]
         LOGS["Cluster Logs"]
         DATA["Workspace Data"]
     end
-    
+
     DBFS -->|Contains| INIT
     DBFS -->|Contains| LIBS
     DBFS -->|Contains| LOGS
     DBFS -->|Contains| DATA
-    
+
     style DB fill:#FF3621
     style ROLE fill:#FF9900
     style KMS fill:#569A31
@@ -452,7 +452,7 @@ flowchart LR
     IAM["Storage Role<br/>Created"] --> BUCKET["DBFS Root Bucket<br/>Created"]
     BUCKET --> POLICY["Bucket Policy<br/>Applied"]
     POLICY --> WORKSPACE["Workspace<br/>Created"]
-    
+
     style IAM fill:#FF9900
     style WORKSPACE fill:#1B72E8
 ```
@@ -567,9 +567,9 @@ terraform import module.storage.aws_s3_bucket.dbfs_root my-dbfs-root-bucket
 
 ### 4.1 Metastore Role (Shared)
 
-**Role Name**: `{prefix}-unity-catalog-role`  
-**Created By**: IAM module  
-**Can Be Pre-Created**: ✅ Yes  
+**Role Name**: `{prefix}-unity-catalog-role`
+**Created By**: IAM module
+**Can Be Pre-Created**: ✅ Yes
 **Scope**: Shared across all workspaces using same metastore
 
 ```mermaid
@@ -578,7 +578,7 @@ flowchart TD
     UC["Unity Catalog<br/>Service Principal<br/>414351767826"] -.->|AssumeRole| ROLE["UC Metastore<br/>Role"]
     ROLE -->|Read/Write| META["UC Metastore<br/>S3 Bucket"]
     ROLE -->|Decrypt/Encrypt| KMS["KMS Key<br/>if encryption enabled"]
-    
+
     style UC fill:#1B72E8
     style ROLE fill:#FF9900
 ```
@@ -642,9 +642,9 @@ flowchart TD
 
 ### 4.2 External Location Role (Per-Workspace)
 
-**Role Name**: `{prefix}-catalog-{workspace-id}`  
-**Created By**: Unity Catalog module  
-**Can Be Pre-Created**: ⚠️ No (requires workspace ID)  
+**Role Name**: `{prefix}-catalog-{workspace-id}`
+**Created By**: Unity Catalog module
+**Can Be Pre-Created**: ⚠️ No (requires workspace ID)
 **Scope**: Specific to one workspace
 
 ```mermaid
@@ -655,7 +655,7 @@ flowchart TD
     ROLE -->|Read/Write| EXT["UC External<br/>S3 Bucket"]
     ROLE -->|Read/Write| CAT["Workspace Catalog<br/>S3 Location"]
     ROLE -->|Decrypt/Encrypt| KMS["KMS Key<br/>if encryption enabled"]
-    
+
     style UC fill:#1B72E8
     style ROLE fill:#FF9900
 ```
@@ -698,7 +698,7 @@ flowchart TD
 }
 ```
 
-**Permissions Policy**:  
+**Permissions Policy**:
 Generated by Databricks provider: `databricks_aws_unity_catalog_policy` + KMS permissions
 
 **Used By:**
@@ -714,8 +714,8 @@ Generated by Databricks provider: `databricks_aws_unity_catalog_policy` + KMS pe
 
 ### 5.1 Cluster Compute Access
 
-**Role Name**: `{prefix}-instance-profile-role`  
-**Created By**: IAM module  
+**Role Name**: `{prefix}-instance-profile-role`
+**Created By**: IAM module
 **Can Be Pre-Created**: ✅ Yes
 
 ```mermaid
@@ -725,7 +725,7 @@ flowchart LR
     PROFILE -->|Contains| ROLE["Instance Profile<br/>Role"]
     ROLE -->|Read/Write| S3["External Data<br/>S3 Buckets"]
     ROLE -->|Optional| OTHER["Additional<br/>AWS Services"]
-    
+
     style CLUSTER fill:#569A31
     style ROLE fill:#FF9900
 ```
@@ -788,24 +788,24 @@ flowchart TD
         POL1["IAM Policy<br/>Storage Role KMS"]
         POL2["IAM Policy<br/>UC Metastore KMS"]
     end
-    
+
     subgraph "Unity Catalog Module"
         POL3["IAM Policy<br/>UC External KMS"]
     end
-    
+
     subgraph "IAM Module"
         STORAGE["Storage Config<br/>Role"]
         META["UC Metastore<br/>Role"]
         EXT["UC External<br/>Role"]
     end
-    
+
     POL1 -.->|Attached to| STORAGE
     POL2 -.->|Attached to| META
     POL3 -.->|Attached to| EXT
     STORAGE -->|Uses| KMS
     META -->|Uses| KMS
     EXT -->|Uses| KMS
-    
+
     style KMS fill:#569A31
     style POL1 fill:#FF9900
     style POL2 fill:#FF9900
@@ -942,7 +942,7 @@ sequenceDiagram
     participant TF as Terraform
     participant IAM as AWS IAM
     participant UC as Unity Catalog
-    
+
     TF->>IAM: Create role + policy
     IAM-->>TF: Creation complete
     TF->>TF: Wait 60 seconds

@@ -6,13 +6,16 @@ Extract IP ranges from Databricks published IP ranges for egress allowlisting.
 Filters by cloud provider and region, outputs JSON suitable for firewall rules.
 
 Usage:
-    python extract-databricks-ips.py                           # All clouds, all regions
-    python extract-databricks-ips.py --cloud aws               # AWS only, all regions
-    python extract-databricks-ips.py --cloud aws --region us-east-1
-    python extract-databricks-ips.py --cloud azure --region eastus --ipv4-only
-    python extract-databricks-ips.py --list-regions aws        # List available regions
+    python extract-databricks-ips.py --cloud aws
+        # Per cloud: CSV (default) with cloud, region, type, cidr, ipVersion, service
+    python extract-databricks-ips.py --cloud aws --region us-east-1,us-west-2,eu-west-1
+        # Multiple regions (comma-separated); output includes both inbound and outbound
+    python extract-databricks-ips.py --cloud aws --region us-east-1 --type outbound
+        # Single region, outbound only (egress allowlisting)
+    python extract-databricks-ips.py --list-regions --cloud aws
 
-No external dependencies required - uses Python standard library only.
+Default output: CSV. Omit --type to include both inbound and outbound.
+Input: --source or --file with URL or local JSON path.
 """
 
 import argparse
@@ -23,56 +26,128 @@ import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Public URL for Databricks IP ranges
-DEFAULT_URL = "https://<insert-url-here>"
+# Official Databricks IP ranges (AWS, Azure, GCP – inbound/outbound)
+# https://docs.databricks.com/security/network/ip-ranges.html
+DEFAULT_URL = "https://www.databricks.com/networking/v1/ip-ranges.json"
 
 # For local development/testing, use sample file
 LOCAL_FILE = Path(__file__).parent / "databricks-ip-ranges-sample.json"
 
 
-def load_ip_ranges(source=None):
-    """Load IP ranges from URL or local file."""
+def _normalize_prefixes(data):
+    """
+    Normalize API response to a flat list of prefix entries.
+    Official API uses: platform, region, service, type, ipv4Prefixes[], ipv6Prefixes[].
+    Sample/legacy uses: cidr, ipVersion, cloudProvider, region, service.
+    Output: list of {cidr, ipVersion, cloudProvider, region, service, type (optional)}.
+    """
+    prefixes = data.get("prefixes", [])
+    if not prefixes:
+        return []
 
-    # Priority: explicit source > URL > local file
+    first = prefixes[0]
+    # Official API format: has ipv4Prefixes or ipv6Prefixes arrays
+    if "ipv4Prefixes" in first or "ipv6Prefixes" in first:
+        out = []
+        for entry in prefixes:
+            platform = entry.get("platform", "").lower()
+            region = entry.get("region", "")
+            service = entry.get("service", "")
+            typ = entry.get("type", "")
+            for cidr in entry.get("ipv4Prefixes") or []:
+                out.append({
+                    "cidr": cidr,
+                    "ipVersion": "ipv4",
+                    "cloudProvider": platform,
+                    "region": region,
+                    "service": service,
+                    "type": typ,
+                })
+            for cidr in entry.get("ipv6Prefixes") or []:
+                out.append({
+                    "cidr": cidr,
+                    "ipVersion": "ipv6",
+                    "cloudProvider": platform,
+                    "region": region,
+                    "service": service,
+                    "type": typ,
+                })
+        return out
+
+    # Legacy/sample format: already has cidr, cloudProvider, etc.
+    return list(prefixes)
+
+
+def load_ip_ranges(source=None):
+    """Load IP ranges from URL or local file. Normalizes official API format to flat prefix list."""
+
+    data = None
+
+    # Priority: explicit source (URL or path) > local file > default URL
     if source and source.startswith(("http://", "https://")):
         try:
             with urllib.request.urlopen(source, timeout=30) as response:
-                return json.loads(response.read().decode("utf-8"))
+                data = json.loads(response.read().decode("utf-8"))
         except urllib.error.URLError as e:
             print(f"Error fetching URL: {e}", file=sys.stderr)
             sys.exit(1)
 
-    # Try local file
-    local_path = Path(source) if source else LOCAL_FILE
-    if local_path.exists():
-        with open(local_path, "r") as f:
-            return json.load(f)
+    if data is None:
+        local_path = Path(source) if source else LOCAL_FILE
+        if local_path.exists():
+            with open(local_path, "r") as f:
+                data = json.load(f)
 
-    # Try default URL as fallback
-    try:
-        with urllib.request.urlopen(DEFAULT_URL, timeout=30) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except urllib.error.URLError as e:
-        print(f"Error: Cannot load IP ranges from URL or local file", file=sys.stderr)
-        print(f"URL error: {e}", file=sys.stderr)
-        print(f"Local file not found: {local_path}", file=sys.stderr)
-        sys.exit(1)
+    if data is None:
+        try:
+            with urllib.request.urlopen(DEFAULT_URL, timeout=30) as response:
+                data = json.loads(response.read().decode("utf-8"))
+        except urllib.error.URLError as e:
+            print("Error: Cannot load IP ranges from URL or local file", file=sys.stderr)
+            print(f"URL error: {e}", file=sys.stderr)
+            print(f"Local file not found: {local_path}", file=sys.stderr)
+            sys.exit(1)
+
+    # Normalize prefixes to flat list (official API uses ipv4Prefixes/ipv6Prefixes per entry)
+    data["prefixes"] = _normalize_prefixes(data)
+    return data
+
+
+def _parse_regions(region_arg):
+    """Parse --region into 'all' or a list of region names (comma-separated)."""
+    if not region_arg or region_arg.strip().lower() == "all":
+        return "all"
+    parts = [p.strip() for p in region_arg.split(",") if p.strip()]
+    return parts if parts else "all"
 
 
 def extract_ips(data, cloud="all", region="all", ipv4_only=False, ipv6_only=False,
-                service=None, active_only=False):
-    """Extract and filter IP ranges based on criteria."""
-
+                service=None, active_only=False, type_filter="all"):
+    """Extract and filter IP ranges based on criteria.
+    region: 'all' or a list of region names (e.g. ['us-east-1', 'eu-west-1']).
+    """
     prefixes = data.get("prefixes", [])
     filtered = []
+    regions_set = None
+    if isinstance(region, list) and len(region) > 0:
+        regions_set = {r.lower() for r in region}
 
     for entry in prefixes:
-        # Filter by cloud provider
+        # Filter by cloud provider (API uses "platform", normalized to "cloudProvider")
         if cloud != "all" and entry.get("cloudProvider", "").lower() != cloud.lower():
             continue
 
-        # Filter by region
-        if region != "all" and entry.get("region", "").lower() != region.lower():
+        # Filter by region (single or multiple)
+        if regions_set is not None:
+            if entry.get("region", "").lower() not in regions_set:
+                continue
+        elif region != "all" and not isinstance(region, list):
+            if entry.get("region", "").lower() != region.lower():
+                continue
+
+        # Filter by type (inbound/outbound) – for egress allowlisting use "outbound"
+        # Legacy/sample data may have no "type"; then we include the entry
+        if type_filter != "all" and entry.get("type") and entry.get("type", "").lower() != type_filter.lower():
             continue
 
         # Filter by IP version
@@ -116,24 +191,44 @@ def extract_ips(data, cloud="all", region="all", ipv4_only=False, ipv6_only=Fals
 def format_output(filtered_entries, data, cloud, region, output_format="json"):
     """Format the output for egress appliance consumption."""
 
-    # Build flat records for both JSON and CSV
+    # Build flat records for both JSON and CSV (include type when present, e.g. from official API)
     flat_records = []
     for entry in filtered_entries:
-        flat_records.append({
+        rec = {
             "cidr": entry.get("cidr"),
             "ipVersion": entry.get("ipVersion"),
             "cloudProvider": entry.get("cloudProvider"),
             "region": entry.get("region"),
-            "service": entry.get("service")
-        })
+            "service": entry.get("service"),
+        }
+        if entry.get("type"):
+            rec["type"] = entry.get("type")
+        flat_records.append(rec)
 
     if output_format == "json":
         return flat_records
 
     elif output_format == "csv":
-        lines = ["cidr,ipVersion,cloudProvider,region,service"]
+        # Standard columns: cloud, region, type (inbound/outbound), cidr, ipVersion, service
+        # Type column always present; empty when data has no type (legacy).
+        def csv_escape(s):
+            s = str(s) if s is not None else ""
+            if "," in s or '"' in s or "\n" in s:
+                return '"' + s.replace('"', '""') + '"'
+            return s
+
+        header = "cloud,region,type,cidr,ipVersion,service"
+        lines = [header]
         for entry in filtered_entries:
-            lines.append(f"{entry['cidr']},{entry.get('ipVersion','')},{entry.get('cloudProvider','')},{entry.get('region','')},{entry.get('service','')}")
+            row = ",".join([
+                csv_escape(entry.get("cloudProvider", "")),
+                csv_escape(entry.get("region", "")),
+                csv_escape(entry.get("type", "")),
+                csv_escape(entry.get("cidr", "")),
+                csv_escape(entry.get("ipVersion", "")),
+                csv_escape(entry.get("service", "")),
+            ])
+            lines.append(row)
         return "\n".join(lines)
 
     elif output_format == "simple":
@@ -187,7 +282,8 @@ Examples:
   %(prog)s --list-regions                     # Show all available regions
   %(prog)s --list-regions --cloud gcp         # Show GCP regions only
   %(prog)s --format simple                    # One CIDR per line
-  %(prog)s --source https://example.com/ips.json  # Custom source URL
+  %(prog)s --file https://www.databricks.com/networking/v1/ip-ranges.json
+  %(prog)s --file ./downloaded-ip-ranges.json     # Local file
         """
     )
 
@@ -201,7 +297,8 @@ Examples:
     parser.add_argument(
         "--region", "-r",
         default="all",
-        help="Region filter (default: all). Use --list-regions to see available regions"
+        metavar="REGION[,REGION,...]",
+        help="Region(s): one name, or comma-separated (e.g. us-east-1,us-east-2,eu-west-1). Default: all"
     )
 
     parser.add_argument(
@@ -218,7 +315,15 @@ Examples:
 
     parser.add_argument(
         "--service", "-s",
-        help="Filter by service type (e.g., serverless-egress, control-plane-egress)"
+        help="Filter by service type (e.g., Databricks, serverless-egress)"
+    )
+
+    parser.add_argument(
+        "--type", "-t",
+        choices=["inbound", "outbound", "all"],
+        default="all",
+        dest="type_filter",
+        help="Filter by direction: outbound for egress allowlisting (default: all)"
     )
 
     parser.add_argument(
@@ -230,8 +335,8 @@ Examples:
     parser.add_argument(
         "--format", "-f",
         choices=["json", "csv", "simple"],
-        default="json",
-        help="Output format: json (array of objects), csv (header + rows), simple (one CIDR per line). Default: json"
+        default="csv",
+        help="Output format: csv (cloud,region,type,cidr,...), json, or simple. Default: csv"
     )
 
     parser.add_argument(
@@ -248,7 +353,15 @@ Examples:
 
     parser.add_argument(
         "--source",
-        help="Source URL or file path (default: tries URL then local file)"
+        dest="source",
+        metavar="URL_OR_PATH",
+        help="URL (https://...) or path to local JSON file. Same as --file."
+    )
+    parser.add_argument(
+        "--file",
+        dest="source",
+        metavar="URL_OR_PATH",
+        help="URL or path to local IP ranges JSON (online or downloaded file)"
     )
 
     parser.add_argument(
@@ -287,15 +400,19 @@ Examples:
                 print(f"  {s}")
         return
 
+    # Parse region: "all" or list of regions (comma-separated)
+    regions_parsed = _parse_regions(args.region)
+
     # Extract and filter
     filtered = extract_ips(
         data,
         cloud=args.cloud,
-        region=args.region,
+        region=regions_parsed,
         ipv4_only=args.ipv4_only,
         ipv6_only=args.ipv6_only,
         service=args.service,
-        active_only=args.active_only
+        active_only=args.active_only,
+        type_filter=args.type_filter,
     )
 
     # Format output

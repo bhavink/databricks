@@ -41,14 +41,14 @@ graph TB
         subgraph "Customer VPC"
             SUBNET[Node Subnet<br/>Databricks Clusters]
             PSC_SUBNET[PSC Subnet<br/>Private Endpoints]
-            
+
             subgraph "Private Service Connect"
                 FE_EP[Frontend PSC Endpoint<br/>Workspace UI & REST API]
                 BE_EP[Backend PSC Endpoint<br/>Cluster Relay]
                 FE_IP[Frontend Private IP]
                 BE_IP[Backend Private IP]
             end
-            
+
             subgraph "Cloud DNS"
                 DNS_ZONE[Private DNS Zone<br/>gcp.databricks.com]
                 A_REC1[A Record: workspace-id.gcp.databricks.com]
@@ -58,48 +58,48 @@ graph TB
             end
         end
     end
-    
+
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Managed"
             GKE[GKE Cluster<br/>Control Plane Components]
             GCS[GCS Bucket<br/>DBFS Storage]
         end
     end
-    
+
     subgraph "Databricks Control Plane - Private"
         FE_SA[Frontend Service Attachment<br/>plproxy-psc-endpoint]
         BE_SA[Backend Service Attachment<br/>ngrok-psc-endpoint]
     end
-    
+
     subgraph "Users"
         USER[Workspace Users<br/>Via VPN/Private Network]
     end
-    
+
     SUBNET --> FE_EP
     SUBNET --> BE_EP
     FE_EP --> FE_IP
     BE_EP --> BE_IP
     FE_IP -.PSC Connection.-> FE_SA
     BE_IP -.PSC Connection.-> BE_SA
-    
+
     FE_SA --> GKE
     BE_SA --> GKE
     GKE --> SUBNET
     SUBNET --> GCS
-    
+
     DNS_ZONE --> A_REC1
     DNS_ZONE --> A_REC2
     DNS_ZONE --> A_REC3
     DNS_ZONE --> A_REC4
-    
+
     A_REC1 --> FE_IP
     A_REC2 --> FE_IP
     A_REC3 --> FE_IP
     A_REC4 --> BE_IP
-    
+
     USER -.DNS Lookup.-> DNS_ZONE
     USER -.Private Access.-> FE_EP
-    
+
     style FE_SA fill:#FF3621
     style BE_SA fill:#FF3621
     style GCS fill:#4285F4
@@ -268,7 +268,7 @@ sequenceDiagram
     participant BE as Backend PSC Endpoint
     participant DB as Databricks Control Plane
     participant Cluster as Databricks Cluster
-    
+
     Note over User,DNS: User Access Flow
     User->>DNS: Resolve workspace-id.gcp.databricks.com
     DNS-->>User: Returns Frontend Private IP (10.1.0.5)
@@ -276,7 +276,7 @@ sequenceDiagram
     FE->>DB: Via PSC to Frontend Service Attachment
     DB-->>FE: Response
     FE-->>User: Workspace UI
-    
+
     Note over Cluster,BE: Cluster Communication Flow
     Cluster->>DNS: Resolve tunnel.region.gcp.databricks.com
     DNS-->>Cluster: Returns Backend Private IP (10.1.0.6)
@@ -530,8 +530,8 @@ Four A records are created automatically:
 resource "google_dns_record_set" "record_set_workspace_url"
 ```
 
-**Format**: `<workspace-id>.gcp.databricks.com`  
-**Points to**: Frontend PSC endpoint IP  
+**Format**: `<workspace-id>.gcp.databricks.com`
+**Points to**: Frontend PSC endpoint IP
 **Purpose**: Main workspace URL
 
 #### 2. Dataplane Prefix Record
@@ -540,8 +540,8 @@ resource "google_dns_record_set" "record_set_workspace_url"
 resource "google_dns_record_set" "record_set_workspace_dp"
 ```
 
-**Format**: `dp-<workspace-id>.gcp.databricks.com`  
-**Points to**: Frontend PSC endpoint IP  
+**Format**: `dp-<workspace-id>.gcp.databricks.com`
+**Points to**: Frontend PSC endpoint IP
 **Purpose**: Dataplane API access
 
 #### 3. PSC Auth Record
@@ -550,8 +550,8 @@ resource "google_dns_record_set" "record_set_workspace_dp"
 resource "google_dns_record_set" "record_set_workspace_psc_auth"
 ```
 
-**Format**: `<region>.psc-auth.gcp.databricks.com`  
-**Points to**: Frontend PSC endpoint IP  
+**Format**: `<region>.psc-auth.gcp.databricks.com`
+**Points to**: Frontend PSC endpoint IP
 **Purpose**: PSC authentication
 
 #### 4. Tunnel Record
@@ -560,8 +560,8 @@ resource "google_dns_record_set" "record_set_workspace_psc_auth"
 resource "google_dns_record_set" "record_set_relay"
 ```
 
-**Format**: `tunnel.<region>.gcp.databricks.com`  
-**Points to**: Backend PSC endpoint IP  
+**Format**: `tunnel.<region>.gcp.databricks.com`
+**Points to**: Backend PSC endpoint IP
 **Purpose**: Cluster relay traffic
 
 ---
@@ -576,7 +576,7 @@ sequenceDiagram
     participant GCP as Google Cloud
     participant DB_ACC as Databricks Account
     participant DB_WS as Databricks Workspace
-    
+
     Note over TF,GCP: Phase 1: PSC Endpoints
     TF->>GCP: Allocate Frontend Private IP
     TF->>GCP: Allocate Backend Private IP
@@ -584,16 +584,16 @@ sequenceDiagram
     TF->>GCP: Create Backend PSC Endpoint
     GCP->>GCP: Connect to Databricks Service Attachments
     GCP-->>TF: PSC Endpoints Ready (ACCEPTED status)
-    
+
     Note over TF,DB_ACC: Phase 2: VPC Endpoint Registration
     TF->>DB_ACC: Register Frontend VPC Endpoint
     TF->>DB_ACC: Register Backend VPC Endpoint
     DB_ACC-->>TF: VPC Endpoint IDs
-    
+
     Note over TF,DB_ACC: Phase 3: Private Access Configuration
     TF->>DB_ACC: Create Private Access Settings
     DB_ACC-->>TF: Private Access Settings ID
-    
+
     Note over TF,DB_ACC: Phase 4: Network & Workspace
     TF->>DB_ACC: Create Network Configuration
     TF->>DB_ACC: Create Workspace
@@ -601,7 +601,7 @@ sequenceDiagram
     DB_ACC->>GCP: Create GCS Bucket
     GCP-->>DB_ACC: Resources Ready
     DB_ACC-->>TF: Workspace URL + ID
-    
+
     Note over TF,GCP: Phase 5: DNS Configuration
     TF->>GCP: Create Private DNS Zone
     TF->>GCP: Create A Records (workspace URL)
@@ -609,14 +609,14 @@ sequenceDiagram
     TF->>GCP: Create A Records (psc-auth)
     TF->>GCP: Create A Records (tunnel)
     GCP-->>TF: DNS Configured
-    
+
     Note over TF,DB_WS: Phase 6: Workspace Configuration
     TF->>DB_WS: Enable IP Access Lists
     TF->>DB_WS: Configure IP Allowlist
     TF->>DB_WS: Create Admin User
     TF->>DB_WS: Add User to Admins Group
     DB_WS-->>TF: Configuration Complete
-    
+
     Note over DB_WS: Workspace Ready (Private Access)
 ```
 
@@ -638,7 +638,7 @@ graph TD
     K --> L[Enable IP Access Lists]
     L --> M[Create Admin User]
     M --> N[Workspace Ready]
-    
+
     style A fill:#4285F4
     style N fill:#34A853
     style H fill:#FF3621

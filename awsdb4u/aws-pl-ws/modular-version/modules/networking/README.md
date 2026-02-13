@@ -31,7 +31,7 @@ This module provisions AWS networking resources for Databricks workspace with Pr
 ```hcl
 module "networking" {
   source = "./modules/networking"
-  
+
   prefix                   = "dbx-abc123"
   region                   = "us-west-2"
   vpc_cidr                 = "10.0.0.0/16"
@@ -39,7 +39,7 @@ module "networking" {
   privatelink_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]
   public_subnet_cidrs      = ["10.0.101.0/24", "10.0.102.0/24"]
   availability_zones       = ["us-west-2a", "us-west-2b"]
-  
+
   tags = {
     Environment = "Production"
     Project     = "Databricks"

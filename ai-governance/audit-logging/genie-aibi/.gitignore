@@ -1,0 +1,6 @@
+
+# Backups and archives (git history provides versioning)
+**/backups/
+**/*backup*.json
+**/archive_*/
+*_backup_*

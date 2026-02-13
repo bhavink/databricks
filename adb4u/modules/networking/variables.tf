@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Bring Your Own VNet (BYOV) Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Bring Your Own VNet (BYOV) Configuration
+# ==============================================
 
 variable "use_existing_network" {
   description = "Use existing VNet/Subnets/NSG (true) or create new (false). When true, ALL network resources must exist."
@@ -38,9 +38,9 @@ variable "existing_nsg_name" {
   default     = ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** New Network Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# New Network Configuration
+# ==============================================
 
 variable "vnet_address_space" {
   description = "Address space for VNet (CIDR /16 to /24). Used when creating new VNet."
@@ -75,9 +75,9 @@ variable "private_subnet_address_prefix" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Private Link Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Private Link Configuration
+# ==============================================
 
 variable "enable_private_link" {
   description = "Enable Private Link for front-end (UI/API) and back-end (data plane). When true, workspace is fully private (no public access)."
@@ -120,9 +120,9 @@ variable "existing_private_subnet_nsg_association_id" {
   default     = ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Service Endpoint Policy Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Service Endpoint Policy Configuration
+# ==============================================
 
 variable "service_endpoint_policy_ids" {
   description = "List of Service Endpoint Policy IDs to associate with Databricks subnets (for storage egress control)"
@@ -130,9 +130,9 @@ variable "service_endpoint_policy_ids" {
   default     = []
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** NAT Gateway Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# NAT Gateway Configuration
+# ==============================================
 
 variable "enable_nat_gateway" {
   description = "Create NAT Gateway for stable egress IP. Recommended for Non-PL pattern to download packages (PyPI, Maven, etc.). Mutually exclusive with enable_private_link (air-gapped)."
@@ -140,9 +140,9 @@ variable "enable_nat_gateway" {
   default     = true
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Required Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Required Configuration
+# ==============================================
 
 variable "location" {
   description = "Azure region for network resources"

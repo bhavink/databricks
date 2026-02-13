@@ -167,7 +167,7 @@ az storage account network-rule add \
    ```sql
    -- Test Unity Catalog access
    SHOW CATALOGS;
-   
+
    -- Test external location access
    SELECT * FROM <catalog>.<schema>.<table> LIMIT 10;
    ```
@@ -307,7 +307,7 @@ az storage account update \
   --public-network-access Disabled
 ```
 
-⚠️ **Important**: 
+⚠️ **Important**:
 - Classic clusters will break unless they also use Private Endpoints
 - Consider keeping public access enabled with firewall rules instead
 - Or deploy Private Endpoints for classic clusters as well
@@ -337,7 +337,7 @@ SHOW SCHEMAS IN <catalog>;
 SELECT * FROM <catalog>.<schema>.<table> LIMIT 10;
 
 -- 4. Test write operations
-CREATE TABLE <catalog>.<schema>.test_table AS 
+CREATE TABLE <catalog>.<schema>.test_table AS
 SELECT 1 as id, 'test' as name;
 ```
 
@@ -425,7 +425,7 @@ Error: Permission denied
    ```sql
    -- Verify storage credential exists
    SHOW STORAGE CREDENTIALS;
-   
+
    -- Verify external location exists
    SHOW EXTERNAL LOCATIONS;
    ```
@@ -474,5 +474,5 @@ Error: Permission denied
 
 ---
 
-**Applies to**: Non-PL and Full-Private patterns  
+**Applies to**: Non-PL and Full-Private patterns
 **Status**: ✅ Serverless Ready (requires post-deployment setup)

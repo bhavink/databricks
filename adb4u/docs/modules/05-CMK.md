@@ -18,10 +18,10 @@ The CMK module enables encryption of Databricks workspace data using customer-ma
 
 ### Key Features
 
-✅ **Auto-Rotation** - Keys automatically rotate every 90 days  
-✅ **Flexible** - Create new Key Vault or use existing  
-✅ **Comprehensive** - All three scopes supported  
-✅ **Access Control** - Automatic access policy configuration  
+✅ **Auto-Rotation** - Keys automatically rotate every 90 days
+✅ **Flexible** - Create new Key Vault or use existing
+✅ **Comprehensive** - All three scopes supported
+✅ **Access Control** - Automatic access policy configuration
 ✅ **Single Apply** - Works in one `terraform apply` for fresh deployments
 
 ---
@@ -71,33 +71,33 @@ sequenceDiagram
     participant DBX as Databricks Workspace
     participant DES as Disk Encryption Set
     participant DBFS as DBFS Storage
-    
+
     Note over TF,DBFS: Workspace Creation with CMK
-    
+
     TF->>KV: 1. Create Key Vault + CMK Key
     TF->>KV: 2. Grant access to Terraform
     TF->>KV: 3. Grant access to Databricks SP
-    
+
     TF->>DBX: 4. Create workspace with CMK enabled
     Note right of DBX: Sets managed_services_cmk<br/>managed_disk_cmk<br/>dbfs_cmk
-    
+
     DBX-->>DES: 5. Azure auto-creates DES
     Note right of DES: System-assigned<br/>managed identity
-    
+
     TF->>DES: 6. Read DES identity
     TF->>KV: 7. Grant DES access to Key Vault
     Note right of KV: Get, WrapKey, UnwrapKey
-    
+
     DBX-->>DBFS: 8. Create DBFS storage account
     Note right of DBFS: customer_managed_key_enabled
-    
+
     TF->>DBFS: 9. Read storage identity
     TF->>KV: 10. Grant DBFS access to Key Vault
-    
+
     TF->>DBX: 11. Apply DBFS root CMK
-    
+
     Note over TF,DBFS: ✅ Workspace Ready with CMK
-    
+
     rect rgb(240, 255, 240)
     Note over DBX,KV: Runtime: Encryption in Action
     DBX->>KV: Encrypt/Decrypt (Managed Services)

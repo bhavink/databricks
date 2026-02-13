@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "11ece169-eb8a-4cf9-9a53-677c748bfdcd",
 		"name": "E2E automation accelerator",
-		"description": "***REMOVED******REMOVED*** End to End [Azure Databricks](https://docs.microsoft.com/en-us/azure/databricks/workspace/) workspace provisioning, setup and configuration.\n\n***REMOVED******REMOVED******REMOVED*** Pre-requistes:\n- [Azure Service Principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)\n    Please keep aside service principal\n    - client_id\n    - client_secret\n- [Azure Resource Group](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal***REMOVED***what-is-a-resource-group)\n- [AAD Contributor](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles***REMOVED***contributor) role assigned to `service principal` on `resource group` used to deploy `azure databricks workspace`\n\n***REMOVED******REMOVED******REMOVED*** Modules:\n- Provisioning Workspace\n- Authentication\n- Users and Groups Management\n- Cluster Policies & Permissions\n- Secure acess to workspace within corporate network (IP Access List)\n- Databricks Access Token Management",
+		"description": "## End to End [Azure Databricks](https://docs.microsoft.com/en-us/azure/databricks/workspace/) workspace provisioning, setup and configuration.\n\n### Pre-requistes:\n- [Azure Service Principal](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)\n    Please keep aside service principal\n    - client_id\n    - client_secret\n- [Azure Resource Group](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal#what-is-a-resource-group)\n- [AAD Contributor](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#contributor) role assigned to `service principal` on `resource group` used to deploy `azure databricks workspace`\n\n### Modules:\n- Provisioning Workspace\n- Authentication\n- Users and Groups Management\n- Cluster Policies & Permissions\n- Secure acess to workspace within corporate network (IP Access List)\n- Databricks Access Token Management",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -106,7 +106,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n   \"properties\": {\n   \"mode\": \"Incremental\",\n   \"template\": {\n   \t \"$schema\": \"https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json***REMOVED***\",\n    \"contentVersion\": \"1.0.0.0\",\n    \"parameters\": {\n        \"nsgName\": {\n            \"defaultValue\": \"{{nsgName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the network security group to create.\"\n            }\n        },\n        \"vnetName\": {\n            \"defaultValue\": \"{{vnetName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the virtual network to create.\"\n            }\n        },\n        \"workspaceName\": {\n        \t\"defaultValue\":\"{{workspaceName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the Azure Databricks workspace to create.\"\n            }\n        },\n        \"privateSubnetName\": {\n            \"defaultValue\": \"{{privateSubnetName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the private subnet to create.\"\n            }\n        },\n        \"publicSubnetName\": {\n            \"defaultValue\": \"{{publicSubnetName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the public subnet to create.\"\n            }\n        },\n        \"pricingTier\": {\n            \"defaultValue\": \"{{pricingTier}}\",\n            \"allowedValues\": [\n                \"trial\",\n                \"standard\",\n                \"premium\"\n            ],\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The pricing tier of workspace.\"\n            }\n        },\n        \"location\": {\n            \"type\": \"string\",\n            \"defaultValue\": \"[resourceGroup().location]\",\n            \"metadata\": {\n                \"description\": \"Location for all resources.\"\n            }\n        },\n        \"vnetCidr\": {\n            \"defaultValue\": \"{{vnetCidr}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the vnet.\"\n            }\n        },\n        \"privateSubnetCidr\": {\n            \"defaultValue\": \"{{privateSubnetCidr}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the private subnet.\"\n            }\n        },\n        \"publicSubnetCidr\": {\n            \"defaultValue\": \"{{publicSubnetCidr}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the public subnet..\"\n            }\n        },\n        \"tag1\": {\n            \"type\": \"string\",\n            \"defaultValue\": \"{{tag1}}\",\n            \"metadata\": {\n                \"description\": \"workspace tag\"\n            }\n        }\n    },\n    \"variables\": {\n        \"nsgId\": \"[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]\",\n        \"vnetId\": \"[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]\",\n        \"managedResourceGroupId\": \"[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]\",\n        \"managedResourceGroupName\": \"[concat('databricks-rg-', parameters('workspaceName'), '-', uniqueString(parameters('workspaceName'), resourceGroup().id))]\"\n    },\n    \"resources\": [\n        {\n            \"apiVersion\": \"2019-06-01\",\n            \"type\": \"Microsoft.Network/networkSecurityGroups\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('nsgName')]\"\n        },\n        {\n            \"apiVersion\": \"2019-06-01\",\n            \"type\": \"Microsoft.Network/virtualNetworks\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('vnetName')]\",\n            \"dependsOn\": [\n                \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\"\n            ],\n            \"properties\": {\n                \"addressSpace\": {\n                    \"addressPrefixes\": [\n                        \"[parameters('vnetCidr')]\"\n                    ]\n                },\n                \"subnets\": [\n                    {\n                        \"name\": \"[parameters('publicSubnetName')]\",\n                        \"properties\": {\n                            \"addressPrefix\": \"[parameters('publicSubnetCidr')]\",\n                            \"networkSecurityGroup\": {\n                                \"id\": \"[variables('nsgId')]\"\n                            },\n                            \"delegations\": [\n                                {\n                                    \"name\": \"databricks-del-public\",\n                                    \"properties\": {\n                                        \"serviceName\": \"Microsoft.Databricks/workspaces\"\n                                    }\n                                }\n                            ]\n                        }\n                    },\n                    {\n                        \"name\": \"[parameters('privateSubnetName')]\",\n                        \"properties\": {\n                            \"addressPrefix\": \"[parameters('privateSubnetCidr')]\",\n                            \"networkSecurityGroup\": {\n                                \"id\": \"[variables('nsgId')]\"\n                            },\n                            \"delegations\": [\n                                {\n                                    \"name\": \"databricks-del-private\",\n                                    \"properties\": {\n                                        \"serviceName\": \"Microsoft.Databricks/workspaces\"\n                                    }\n                                }\n                            ]\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"apiVersion\": \"2018-04-01\",\n            \"type\": \"Microsoft.Databricks/workspaces\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('workspaceName')]\",\n            \"tags\": {\n                \"tag1\": \"[parameters('tag1')]\"\n            },\n            \"dependsOn\": [\n                \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\",\n                \"[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]\"\n            ],\n            \"sku\": {\n                \"name\": \"[parameters('pricingTier')]\"\n            },\n            \"comments\": \"The managed resource group specified will be locked after deployment.\",\n            \"properties\": {\n                \"ManagedResourceGroupId\": \"[variables('managedResourceGroupId')]\",\n                \"parameters\": {\n                    \"customVirtualNetworkId\": {\n                        \"value\": \"[variables('vnetId')]\"\n                    },\n                    \"customPublicSubnetName\": {\n                        \"value\": \"[parameters('publicSubnetName')]\"\n                    },\n                    \"customPrivateSubnetName\": {\n                        \"value\": \"[parameters('privateSubnetName')]\"\n                    }\n                }\n            }\n        }\n    \t]\n\t\t}\n\t}\n}",
+							"raw": "{\n   \"properties\": {\n   \"mode\": \"Incremental\",\n   \"template\": {\n   \t \"$schema\": \"https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json\",\n    \"contentVersion\": \"1.0.0.0\",\n    \"parameters\": {\n        \"nsgName\": {\n            \"defaultValue\": \"{{nsgName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the network security group to create.\"\n            }\n        },\n        \"vnetName\": {\n            \"defaultValue\": \"{{vnetName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the virtual network to create.\"\n            }\n        },\n        \"workspaceName\": {\n        \t\"defaultValue\":\"{{workspaceName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the Azure Databricks workspace to create.\"\n            }\n        },\n        \"privateSubnetName\": {\n            \"defaultValue\": \"{{privateSubnetName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the private subnet to create.\"\n            }\n        },\n        \"publicSubnetName\": {\n            \"defaultValue\": \"{{publicSubnetName}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The name of the public subnet to create.\"\n            }\n        },\n        \"pricingTier\": {\n            \"defaultValue\": \"{{pricingTier}}\",\n            \"allowedValues\": [\n                \"trial\",\n                \"standard\",\n                \"premium\"\n            ],\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"The pricing tier of workspace.\"\n            }\n        },\n        \"location\": {\n            \"type\": \"string\",\n            \"defaultValue\": \"[resourceGroup().location]\",\n            \"metadata\": {\n                \"description\": \"Location for all resources.\"\n            }\n        },\n        \"vnetCidr\": {\n            \"defaultValue\": \"{{vnetCidr}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the vnet.\"\n            }\n        },\n        \"privateSubnetCidr\": {\n            \"defaultValue\": \"{{privateSubnetCidr}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the private subnet.\"\n            }\n        },\n        \"publicSubnetCidr\": {\n            \"defaultValue\": \"{{publicSubnetCidr}}\",\n            \"type\": \"string\",\n            \"metadata\": {\n                \"description\": \"Cidr range for the public subnet..\"\n            }\n        },\n        \"tag1\": {\n            \"type\": \"string\",\n            \"defaultValue\": \"{{tag1}}\",\n            \"metadata\": {\n                \"description\": \"workspace tag\"\n            }\n        }\n    },\n    \"variables\": {\n        \"nsgId\": \"[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]\",\n        \"vnetId\": \"[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]\",\n        \"managedResourceGroupId\": \"[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]\",\n        \"managedResourceGroupName\": \"[concat('databricks-rg-', parameters('workspaceName'), '-', uniqueString(parameters('workspaceName'), resourceGroup().id))]\"\n    },\n    \"resources\": [\n        {\n            \"apiVersion\": \"2019-06-01\",\n            \"type\": \"Microsoft.Network/networkSecurityGroups\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('nsgName')]\"\n        },\n        {\n            \"apiVersion\": \"2019-06-01\",\n            \"type\": \"Microsoft.Network/virtualNetworks\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('vnetName')]\",\n            \"dependsOn\": [\n                \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\"\n            ],\n            \"properties\": {\n                \"addressSpace\": {\n                    \"addressPrefixes\": [\n                        \"[parameters('vnetCidr')]\"\n                    ]\n                },\n                \"subnets\": [\n                    {\n                        \"name\": \"[parameters('publicSubnetName')]\",\n                        \"properties\": {\n                            \"addressPrefix\": \"[parameters('publicSubnetCidr')]\",\n                            \"networkSecurityGroup\": {\n                                \"id\": \"[variables('nsgId')]\"\n                            },\n                            \"delegations\": [\n                                {\n                                    \"name\": \"databricks-del-public\",\n                                    \"properties\": {\n                                        \"serviceName\": \"Microsoft.Databricks/workspaces\"\n                                    }\n                                }\n                            ]\n                        }\n                    },\n                    {\n                        \"name\": \"[parameters('privateSubnetName')]\",\n                        \"properties\": {\n                            \"addressPrefix\": \"[parameters('privateSubnetCidr')]\",\n                            \"networkSecurityGroup\": {\n                                \"id\": \"[variables('nsgId')]\"\n                            },\n                            \"delegations\": [\n                                {\n                                    \"name\": \"databricks-del-private\",\n                                    \"properties\": {\n                                        \"serviceName\": \"Microsoft.Databricks/workspaces\"\n                                    }\n                                }\n                            ]\n                        }\n                    }\n                ]\n            }\n        },\n        {\n            \"apiVersion\": \"2018-04-01\",\n            \"type\": \"Microsoft.Databricks/workspaces\",\n            \"location\": \"[parameters('location')]\",\n            \"name\": \"[parameters('workspaceName')]\",\n            \"tags\": {\n                \"tag1\": \"[parameters('tag1')]\"\n            },\n            \"dependsOn\": [\n                \"[concat('Microsoft.Network/networkSecurityGroups/', parameters('nsgName'))]\",\n                \"[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]\"\n            ],\n            \"sku\": {\n                \"name\": \"[parameters('pricingTier')]\"\n            },\n            \"comments\": \"The managed resource group specified will be locked after deployment.\",\n            \"properties\": {\n                \"ManagedResourceGroupId\": \"[variables('managedResourceGroupId')]\",\n                \"parameters\": {\n                    \"customVirtualNetworkId\": {\n                        \"value\": \"[variables('vnetId')]\"\n                    },\n                    \"customPublicSubnetName\": {\n                        \"value\": \"[parameters('publicSubnetName')]\"\n                    },\n                    \"customPrivateSubnetName\": {\n                        \"value\": \"[parameters('privateSubnetName')]\"\n                    }\n                }\n            }\n        }\n    \t]\n\t\t}\n\t}\n}",
 							"options": {}
 						},
 						"url": {
@@ -134,7 +134,7 @@
 								}
 							]
 						},
-						"description": "***REMOVED******REMOVED******REMOVED*** Request body contains ARM template which is parameterized using global environment variables"
+						"description": "### Request body contains ARM template which is parameterized using global environment variables"
 					},
 					"response": []
 				},
@@ -198,7 +198,7 @@
 					"response": []
 				}
 			],
-			"description": "***REMOVED******REMOVED******REMOVED*** This section provisions Azure Databricks workspace.",
+			"description": "### This section provisions Azure Databricks workspace.",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -300,7 +300,7 @@
 								"token"
 							]
 						},
-						"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***--get-an-azure-active-directory-access-token)\n\n- To access the Databricks REST API with the service principal, you get an Azure AD access token for the service principal. You can use the client credentials flow to get an access token (with the AzureDatabricks login application as the resource)."
+						"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-an-azure-active-directory-access-token)\n\n- To access the Databricks REST API with the service principal, you get an Azure AD access token for the service principal. You can use the client credentials flow to get an access token (with the AzureDatabricks login application as the resource)."
 					},
 					"response": []
 				},
@@ -415,7 +415,7 @@
 								"ServicePrincipals"
 							]
 						},
-						"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***get-service-principals)"
+						"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principals)"
 					},
 					"response": []
 				},
@@ -460,7 +460,7 @@
 								"ServicePrincipals"
 							]
 						},
-						"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***get-service-principals)"
+						"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principals)"
 					},
 					"response": []
 				}
@@ -528,7 +528,7 @@
 								"Me"
 							]
 						},
-						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users***REMOVED***--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
+						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
 					},
 					"response": []
 				},
@@ -567,7 +567,7 @@
 								"Users"
 							]
 						},
-						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users***REMOVED***--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
+						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
 					},
 					"response": []
 				},
@@ -606,7 +606,7 @@
 								"Groups"
 							]
 						},
-						"description": "[list groups](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-groups***REMOVED***get-groups)\n\n*Admin users*: Retrieve a list of all groups in the Azure Databricks workspace.\n \n*Non-admin users*: Retrieve a list of all groups in the Azure Databricks workspace, returning group display name and object ID only"
+						"description": "[list groups](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-groups#get-groups)\n\n*Admin users*: Retrieve a list of all groups in the Azure Databricks workspace.\n \n*Non-admin users*: Retrieve a list of all groups in the Azure Databricks workspace, returning group display name and object ID only"
 					},
 					"response": []
 				},
@@ -668,7 +668,7 @@
 								"Groups"
 							]
 						},
-						"description": "[create group](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-groups***REMOVED***create-group)\n\n*Admin users*: Create a group in Azure Databricks.\n\n*Request parameters follow the standard SCIM 2.0 protocol.*\n\nRequests must include the following attributes:\n\n`schemas set to urn:ietf:params:scim:schemas:core:2.0:Group`\n\n`displayName`\n\nMembers list is optional and can include users and other groups. You can also add members to a group using `PATCH`."
+						"description": "[create group](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-groups#create-group)\n\n*Admin users*: Create a group in Azure Databricks.\n\n*Request parameters follow the standard SCIM 2.0 protocol.*\n\nRequests must include the following attributes:\n\n`schemas set to urn:ietf:params:scim:schemas:core:2.0:Group`\n\n`displayName`\n\nMembers list is optional and can include users and other groups. You can also add members to a group using `PATCH`."
 					},
 					"response": []
 				},
@@ -715,7 +715,7 @@
 								"{{groupId}}"
 							]
 						},
-						"description": "[update user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users***REMOVED***update-user-by-id-patch)<br>\n- **Admin users**: Update a user resource with operations on specific attributes, except those that are immutable. \n- **The PATCH method is recommended over the PUT method for setting or updating user entitlements.**"
+						"description": "[update user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#update-user-by-id-patch)<br>\n- **Admin users**: Update a user resource with operations on specific attributes, except those that are immutable. \n- **The PATCH method is recommended over the PUT method for setting or updating user entitlements.**"
 					},
 					"response": []
 				},
@@ -777,7 +777,7 @@
 								"Users"
 							]
 						},
-						"description": "[create user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users***REMOVED***create-user)\n\n*Admin users*: Create a user in the Azure Databricks workspace.\n\n*Request parameters follow the standard SCIM 2.0 protocol.*\n\nRequests must include the following attributes:\n\n`schemas set to urn:ietf:params:scim:schemas:core:2.0:User`\n\n`userName`"
+						"description": "[create user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#create-user)\n\n*Admin users*: Create a user in the Azure Databricks workspace.\n\n*Request parameters follow the standard SCIM 2.0 protocol.*\n\nRequests must include the following attributes:\n\n`schemas set to urn:ietf:params:scim:schemas:core:2.0:User`\n\n`userName`"
 					},
 					"response": []
 				},
@@ -824,7 +824,7 @@
 								"{{groupId}}"
 							]
 						},
-						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users***REMOVED***--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
+						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
 					},
 					"response": []
 				},
@@ -864,7 +864,7 @@
 								"ServicePrincipals"
 							]
 						},
-						"description": "[Add a service principal in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***add-service-principal)"
+						"description": "[Add a service principal in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#add-service-principal)"
 					},
 					"response": []
 				},
@@ -912,7 +912,7 @@
 								"{{groupId}}"
 							]
 						},
-						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users***REMOVED***--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
+						"description": "[list users](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#--get-users)\n\n*Admin users*: Retrieve a list of all users in the Azure Databricks workspace.\n\n*Non-admin users*: Retrieve a list of all users in the Azure Databricks workspace, returning user display name and object ID only."
 					},
 					"response": []
 				},
@@ -959,7 +959,7 @@
 								"{{groupId}}"
 							]
 						},
-						"description": "[update user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users***REMOVED***update-user-by-id-patch)<br>\n- **Admin users**: Update a user resource with operations on specific attributes, except those that are immutable. \n- **The PATCH method is recommended over the PUT method for setting or updating user entitlements.**"
+						"description": "[update user](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-users#update-user-by-id-patch)<br>\n- **Admin users**: Update a user resource with operations on specific attributes, except those that are immutable. \n- **The PATCH method is recommended over the PUT method for setting or updating user entitlements.**"
 					},
 					"response": []
 				}
@@ -1043,7 +1043,7 @@
 								"create"
 							]
 						},
-						"description": "[create cluster policy](https://docs.databricks.com/administration-guide/clusters/policies.html***REMOVED***create-policies)"
+						"description": "[create cluster policy](https://docs.databricks.com/administration-guide/clusters/policies.html#create-policies)"
 					},
 					"response": []
 				},
@@ -1085,7 +1085,7 @@
 								"list"
 							]
 						},
-						"description": "[list policies](https://docs.databricks.com/dev-tools/api/latest/policies.html***REMOVED***list)"
+						"description": "[list policies](https://docs.databricks.com/dev-tools/api/latest/policies.html#list)"
 					},
 					"response": []
 				},
@@ -1125,7 +1125,7 @@
 								"{{clusterPolicyId}}"
 							]
 						},
-						"description": "[modify permissions](https://docs.databricks.com/dev-tools/api/latest/policies.html***REMOVED***cluster-policy-permissions-rest-api)\n\nThe Cluster Policy Permissions API enables you to set permissions on a cluster policy. When you grant `CAN_USE` permission on a policy to a user, the user will be able to create new clusters based on it. A user does not need the `cluster_create` permission to create new clusters.\n\n\nOnly admin users can set permissions on cluster policies."
+						"description": "[modify permissions](https://docs.databricks.com/dev-tools/api/latest/policies.html#cluster-policy-permissions-rest-api)\n\nThe Cluster Policy Permissions API enables you to set permissions on a cluster policy. When you grant `CAN_USE` permission on a policy to a user, the user will be able to create new clusters based on it. A user does not need the `cluster_create` permission to create new clusters.\n\n\nOnly admin users can set permissions on cluster policies."
 					},
 					"response": []
 				}
@@ -2330,7 +2330,7 @@
 					"response": []
 				}
 			],
-			"description": "Token Management provides Databricks administrators with more insight and control over [Personal Access Tokens](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication?toc=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fazure-databricks%2Ftoc.json&bc=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fbread%2Ftoc.json***REMOVED***--generate-a-personal-access-token) in their workspaces. It consists of three pieces: \n\n - The Token Management API enables Databricks admins to monitor these Personal Access Tokens.\n\n - The Maximum Token Lifetime workspace configuration gives admins the ability to control the lifetime of future tokens in their workspaces. \n\n - Token Permissions allow admins to control which users can create and use tokens.",
+			"description": "Token Management provides Databricks administrators with more insight and control over [Personal Access Tokens](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication?toc=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fazure-databricks%2Ftoc.json&bc=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fbread%2Ftoc.json#--generate-a-personal-access-token) in their workspaces. It consists of three pieces: \n\n - The Token Management API enables Databricks admins to monitor these Personal Access Tokens.\n\n - The Maximum Token Lifetime workspace configuration gives admins the ability to control the lifetime of future tokens in their workspaces. \n\n - Token Permissions allow admins to control which users can create and use tokens.",
 			"event": [
 				{
 					"listen": "prerequest",

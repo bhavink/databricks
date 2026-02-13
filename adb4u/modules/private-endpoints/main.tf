@@ -1,15 +1,15 @@
-***REMOVED*** ==============================================
-***REMOVED*** Private DNS Zones for Databricks
-***REMOVED*** ==============================================
+# ==============================================
+# Private DNS Zones for Databricks
+# ==============================================
 
-***REMOVED*** DNS Zone for Databricks Control Plane (UI/API)
+# DNS Zone for Databricks Control Plane (UI/API)
 resource "azurerm_private_dns_zone" "databricks" {
   name                = "privatelink.azuredatabricks.net"
   resource_group_name = var.resource_group_name
   tags                = var.tags
 }
 
-***REMOVED*** Link Databricks DNS zone to customer VNet
+# Link Databricks DNS zone to customer VNet
 resource "azurerm_private_dns_zone_virtual_network_link" "databricks" {
   name                  = "${var.workspace_prefix}-databricks-vnet-link"
   resource_group_name   = var.resource_group_name
@@ -18,18 +18,18 @@ resource "azurerm_private_dns_zone_virtual_network_link" "databricks" {
   tags                  = var.tags
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Private DNS Zones for Storage
-***REMOVED*** ==============================================
+# ==============================================
+# Private DNS Zones for Storage
+# ==============================================
 
-***REMOVED*** DNS Zone for ADLS Gen2 DFS (Data Lake Storage)
+# DNS Zone for ADLS Gen2 DFS (Data Lake Storage)
 resource "azurerm_private_dns_zone" "dfs" {
   name                = "privatelink.dfs.core.windows.net"
   resource_group_name = var.resource_group_name
   tags                = var.tags
 }
 
-***REMOVED*** Link DFS DNS zone to customer VNet
+# Link DFS DNS zone to customer VNet
 resource "azurerm_private_dns_zone_virtual_network_link" "dfs" {
   name                  = "${var.workspace_prefix}-dfs-vnet-link"
   resource_group_name   = var.resource_group_name
@@ -38,14 +38,14 @@ resource "azurerm_private_dns_zone_virtual_network_link" "dfs" {
   tags                  = var.tags
 }
 
-***REMOVED*** DNS Zone for Blob Storage
+# DNS Zone for Blob Storage
 resource "azurerm_private_dns_zone" "blob" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.resource_group_name
   tags                = var.tags
 }
 
-***REMOVED*** Link Blob DNS zone to customer VNet
+# Link Blob DNS zone to customer VNet
 resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
   name                  = "${var.workspace_prefix}-blob-vnet-link"
   resource_group_name   = var.resource_group_name
@@ -54,11 +54,11 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
   tags                  = var.tags
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Databricks Front-End Private Endpoints
-***REMOVED*** ==============================================
+# ==============================================
+# Databricks Front-End Private Endpoints
+# ==============================================
 
-***REMOVED*** Private Endpoint for Databricks Data Plane to Control Plane (DP-CP)
+# Private Endpoint for Databricks Data Plane to Control Plane (DP-CP)
 resource "azurerm_private_endpoint" "databricks_ui_api" {
   name                = "${var.workspace_prefix}-dpcp-private-endpoint"
   location            = var.location
@@ -79,7 +79,7 @@ resource "azurerm_private_endpoint" "databricks_ui_api" {
   }
 }
 
-***REMOVED*** Private Endpoint for Browser Authentication
+# Private Endpoint for Browser Authentication
 resource "azurerm_private_endpoint" "browser_authentication" {
   name                = "${var.workspace_prefix}-auth-private-endpoint"
   location            = var.location
@@ -102,11 +102,11 @@ resource "azurerm_private_endpoint" "browser_authentication" {
   depends_on = [azurerm_private_endpoint.databricks_ui_api]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** DBFS Storage Private Endpoints
-***REMOVED*** ==============================================
+# ==============================================
+# DBFS Storage Private Endpoints
+# ==============================================
 
-***REMOVED*** Private Endpoint for DBFS DFS (Data Lake Storage)
+# Private Endpoint for DBFS DFS (Data Lake Storage)
 resource "azurerm_private_endpoint" "dbfs_dfs" {
   name                = "${var.workspace_prefix}-dbfs-dfs-private-endpoint"
   location            = var.location
@@ -131,7 +131,7 @@ resource "azurerm_private_endpoint" "dbfs_dfs" {
   ]
 }
 
-***REMOVED*** Private Endpoint for DBFS Blob
+# Private Endpoint for DBFS Blob
 resource "azurerm_private_endpoint" "dbfs_blob" {
   name                = "${var.workspace_prefix}-dbfs-blob-private-endpoint"
   location            = var.location
@@ -157,11 +157,11 @@ resource "azurerm_private_endpoint" "dbfs_blob" {
   ]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Metastore Storage Private Endpoints
-***REMOVED*** ==============================================
+# ==============================================
+# Unity Catalog Metastore Storage Private Endpoints
+# ==============================================
 
-***REMOVED*** Private Endpoint for UC Metastore DFS
+# Private Endpoint for UC Metastore DFS
 resource "azurerm_private_endpoint" "uc_metastore_dfs" {
   count               = var.enable_uc_storage_private_endpoints && var.create_uc_metastore_storage ? 1 : 0
   name                = "${var.workspace_prefix}-uc-metastore-dfs-private-endpoint"
@@ -187,7 +187,7 @@ resource "azurerm_private_endpoint" "uc_metastore_dfs" {
   ]
 }
 
-***REMOVED*** Private Endpoint for UC Metastore Blob
+# Private Endpoint for UC Metastore Blob
 resource "azurerm_private_endpoint" "uc_metastore_blob" {
   count               = var.enable_uc_storage_private_endpoints && var.create_uc_metastore_storage ? 1 : 0
   name                = "${var.workspace_prefix}-uc-metastore-blob-private-endpoint"
@@ -214,11 +214,11 @@ resource "azurerm_private_endpoint" "uc_metastore_blob" {
   ]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog External Storage Private Endpoints
-***REMOVED*** ==============================================
+# ==============================================
+# Unity Catalog External Storage Private Endpoints
+# ==============================================
 
-***REMOVED*** Private Endpoint for UC External Storage DFS
+# Private Endpoint for UC External Storage DFS
 resource "azurerm_private_endpoint" "uc_external_dfs" {
   count               = var.enable_uc_storage_private_endpoints ? 1 : 0
   name                = "${var.workspace_prefix}-uc-external-dfs-private-endpoint"
@@ -244,7 +244,7 @@ resource "azurerm_private_endpoint" "uc_external_dfs" {
   ]
 }
 
-***REMOVED*** Private Endpoint for UC External Storage Blob
+# Private Endpoint for UC External Storage Blob
 resource "azurerm_private_endpoint" "uc_external_blob" {
   count               = var.enable_uc_storage_private_endpoints ? 1 : 0
   name                = "${var.workspace_prefix}-uc-external-blob-private-endpoint"

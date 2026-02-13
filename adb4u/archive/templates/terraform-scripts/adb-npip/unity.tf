@@ -1,13 +1,13 @@
-***REMOVED*** locals {
-***REMOVED*** ***REMOVED***   resource_regex            = "(?i)subscriptions/(.+)/resourceGroups/(.+)/providers/Microsoft.Databricks/workspaces/(.+)"
-***REMOVED***   subscription_id           = var.subscription_id
-***REMOVED***   resource_group            = azurerm_resource_group.adb_rg.name
-***REMOVED***   databricks_workspace_name = azurerm_databricks_workspace.adb_ws.name
-***REMOVED***   tenant_id                 = data.azurerm_client_config.current.tenant_id
-***REMOVED***   databricks_workspace_host = azurerm_databricks_workspace.adb_ws.workspace_url
-***REMOVED***   databricks_workspace_id   = azurerm_databricks_workspace.adb_ws.workspace_id
-***REMOVED***   prefix                    = replace(replace(lower(azurerm_resource_group.adb_rg.name), "rg", ""), "-", "")
-***REMOVED*** }
+# locals {
+# #   resource_regex            = "(?i)subscriptions/(.+)/resourceGroups/(.+)/providers/Microsoft.Databricks/workspaces/(.+)"
+#   subscription_id           = var.subscription_id
+#   resource_group            = azurerm_resource_group.adb_rg.name
+#   databricks_workspace_name = azurerm_databricks_workspace.adb_ws.name
+#   tenant_id                 = data.azurerm_client_config.current.tenant_id
+#   databricks_workspace_host = azurerm_databricks_workspace.adb_ws.workspace_url
+#   databricks_workspace_id   = azurerm_databricks_workspace.adb_ws.workspace_id
+#   prefix                    = replace(replace(lower(azurerm_resource_group.adb_rg.name), "rg", ""), "-", "")
+# }
 
 data "azurerm_client_config" "current" {
 }

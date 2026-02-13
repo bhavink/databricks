@@ -5,7 +5,7 @@ This module creates the Databricks workspace and all required MWS (Multi-Workspa
 ## Features
 
 - ✅ MWS credentials configuration
-- ✅ MWS storage configuration  
+- ✅ MWS storage configuration
 - ✅ MWS network configuration
 - ✅ MWS private access settings (Backend Private Link)
 - ✅ Databricks workspace creation
@@ -35,16 +35,16 @@ module "databricks_workspace" {
   workspace_admin_email       = "admin@company.com"
   client_id                   = var.databricks_client_id
   client_secret               = var.databricks_client_secret
-  
+
   vpc_id                      = module.networking.vpc_id
   private_subnet_ids          = module.networking.private_subnet_ids
   workspace_security_group_id = module.networking.workspace_security_group_id
   workspace_vpce_id           = module.networking.workspace_vpce_id
   relay_vpce_id               = module.networking.relay_vpce_id
-  
+
   root_storage_bucket         = module.storage.root_storage_bucket
   cross_account_role_arn      = module.iam.cross_account_role_arn
-  
+
   tags = {
     Environment = "production"
   }

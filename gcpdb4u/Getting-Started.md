@@ -16,24 +16,24 @@ Databricks is a `Managed Service` and is fully hosted, managed, and supported by
 stateDiagram-v2
     [*] --> Trial: Sign up for 14-day trial
     Trial --> EvaluatePlan: Day 14 approaching
-    
+
     EvaluatePlan --> PayAsYouGo: Continue with current plan
     EvaluatePlan --> ExtendTrial: Contact Databricks Sales
     EvaluatePlan --> CancelTrial: End subscription
-    
+
     ExtendTrial --> PrivateOffer: Negotiate with Databricks
     PrivateOffer --> ContractSubscription: Sign agreement
-    
+
     PayAsYouGo --> [*]: Active subscription
     ContractSubscription --> [*]: Active subscription
     CancelTrial --> [*]: Subscription ended
-    
+
     note right of Trial
         Requires credit card
         Full feature access
         14 days free
     end note
-    
+
     note right of ContractSubscription
         Custom pricing
         Volume discounts
@@ -60,17 +60,17 @@ stateDiagram-v2
 graph TB
     subgraph "GCP Cloud"
         BA[GCP Billing Account]
-        
+
         subgraph "GCP Organization"
             CP1[Consumer Project 1]
             CP2[Consumer Project 2]
-            
+
             subgraph CP1
                 VPC1[VPC Network]
                 WS1[Databricks Workspace 1]
                 GCE1[GCE Clusters<br/>Classic Dataplane]
             end
-            
+
             subgraph CP2
                 VPC2[VPC Network]
                 WS2[Databricks Workspace 2]
@@ -78,13 +78,13 @@ graph TB
             end
         end
     end
-    
+
     subgraph "Databricks Control Plane"
         DBA[Databricks Account<br/>1:1 with Billing Account]
         SUB[Subscription/Entitlements<br/>Premium/Enterprise]
         SCP[Serverless Compute Plane<br/>Managed by Databricks]
     end
-    
+
     BA -.1:1 mapping.-> DBA
     DBA --> SUB
     SUB --> WS1
@@ -93,10 +93,10 @@ graph TB
     WS2 --> GCE2
     WS1 -.serverless.-> SCP
     WS2 -.serverless.-> SCP
-    
+
     GCE1 -.resides in.-> VPC1
     GCE2 -.resides in.-> VPC2
-    
+
     style DBA fill:#1E88E5
     style WS1 fill:#1E88E5
     style WS2 fill:#1E88E5
@@ -127,20 +127,20 @@ Please refer to public doc site for [supported regions](https://docs.gcp.databri
 ```mermaid
 graph TB
     TC[Total Cost]
-    
+
     TC --> DBC[Databricks Cost]
     TC --> GCPC[GCP Cloud Cost]
-    
+
     DBC --> DBU[DBU Consumption<br/>Based on compute usage]
     DBU --> WL1[Workload Type]
     DBU --> CT[Cluster Type]
     DBU --> RT[Runtime Duration]
-    
+
     GCPC --> COMP[Compute<br/>GCE Instances]
     GCPC --> STOR[Storage<br/>GCS Buckets]
     GCPC --> NET[Networking<br/>Egress/VPC]
     GCPC --> OTHER[Other Services<br/>BigQuery, etc.]
-    
+
     style TC fill:#FF6F00
     style DBC fill:#1E88E5
     style GCPC fill:#4285F4
@@ -156,14 +156,14 @@ graph LR
         PREMIUM[Premium Tier<br/>+ Security Features<br/>+ Customer Managed VPC<br/>+ IP Access Lists]
         ENTERPRISE[Enterprise Tier<br/>+ Advanced Security<br/>+ Unity Catalog<br/>+ Compliance Features]
     end
-    
+
     STANDARD -->|Upgrade| PREMIUM
     PREMIUM -->|Upgrade| ENTERPRISE
-    
+
     STANDARD -.applies to.-> WS1[All Workspaces]
     PREMIUM -.applies to.-> WS1
     ENTERPRISE -.applies to.-> WS1
-    
+
     style STANDARD fill:#90CAF9
     style PREMIUM fill:#1E88E5
     style ENTERPRISE fill:#0D47A1
@@ -188,26 +188,26 @@ sequenceDiagram
     participant GMP as GCP Marketplace
     participant DBA as Databricks Account Console
     participant GCP as GCP Project
-    
+
     Admin->>GMP: Subscribe to Databricks
     GMP->>DBA: Create Databricks Account<br/>(1:1 with GCP Billing Account)
     Admin->>DBA: Login to accounts.gcp.databricks.com
-    
+
     Note over Admin,DBA: Initial Account Configuration
-    
+
     Admin->>DBA: Add Account Admins
     Admin->>DBA: Configure Audit Log Delivery
     Admin->>DBA: Configure Firewall Rules
-    
+
     Note over Admin,GCP: Prepare GCP Environment
-    
+
     Admin->>GCP: Review & Increase Resource Quotas
     Admin->>GCP: Create Consumer Project(s)
     Admin->>GCP: Setup VPC Network(s)
     Admin->>GCP: Configure IAM Permissions
-    
+
     Note over Admin,DBA: Ready to Create Workspaces
-    
+
     Admin->>DBA: Create Workspace(s)
     DBA->>GCP: Deploy Workspace in Consumer Project
 ```
@@ -216,7 +216,7 @@ sequenceDiagram
 
 Workspace deployment is influenced by your organization structure on GCP. Workspace is created within your GCP project utilizing your VPC so there are several options available to us. Taking a cue from the GCP recommendations on [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy)
 ![resource-layout](https://cloud.google.com/resource-manager/img/cloud-hierarchy.svg)
- 
+
 here we share few options
 ![deployment-patterns](./images/GCP-Databricks%20Workspace-Deployment%20Patterns.png)
 
@@ -228,42 +228,42 @@ graph TB
         O1P1[GCP Project 1]
         O1V1[VPC 1]
         O1W1[Workspace 1]
-        
+
         O1P2[GCP Project 2]
         O1V2[VPC 2]
         O1W2[Workspace 2]
-        
+
         O1P1 --> O1V1 --> O1W1
         O1P2 --> O1V2 --> O1W2
     end
-    
+
     subgraph "Option 2: Shared Project + Shared VPC"
         O2P[GCP Project]
         O2V[Shared VPC]
         O2W1[Workspace 1]
         O2W2[Workspace 2]
         O2W3[Workspace 3]
-        
+
         O2P --> O2V
         O2V --> O2W1
         O2V --> O2W2
         O2V --> O2W3
     end
-    
+
     subgraph "Option 3: Separate Projects + Shared VPC Host"
         O3HP[Host Project<br/>Shared VPC]
         O3SV[Shared VPC Network]
-        
+
         O3SP1[Service Project 1<br/>Workspace 1]
         O3SP2[Service Project 2<br/>Workspace 2]
         O3SP3[Service Project 3<br/>Workspace 3]
-        
+
         O3HP --> O3SV
         O3SV -.attached.-> O3SP1
         O3SV -.attached.-> O3SP2
         O3SV -.attached.-> O3SP3
     end
-    
+
     style O1P1 fill:#4285F4
     style O1P2 fill:#4285F4
     style O2P fill:#4285F4
@@ -302,30 +302,30 @@ sequenceDiagram
     participant VPC as VPC Network
     participant CP as Control Plane
     participant DP as Data Plane
-    
+
     Admin->>DBA: Create Workspace Request
     DBA->>GCP: Validate Project Access
     GCP-->>DBA: Project Confirmed
-    
+
     DBA->>VPC: Validate VPC Configuration
     VPC-->>DBA: VPC Confirmed
-    
+
     DBA->>CP: Provision Control Plane Resources
     activate CP
     CP-->>DBA: Control Plane Ready
     deactivate CP
-    
+
     DBA->>DP: Initialize Data Plane in GCP Project
     activate DP
     DP->>GCP: Create Service Account
     DP->>VPC: Configure Subnets & Firewall Rules
     DP-->>DBA: Data Plane Ready
     deactivate DP
-    
+
     DBA-->>Admin: Workspace URL
-    
+
     Note over Admin,DP: Workspace is now operational
-    
+
     Admin->>DBA: Access Workspace
     DBA->>CP: Authenticate User
     CP->>DP: Authorize Cluster Creation

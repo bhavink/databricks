@@ -1,40 +1,40 @@
-***REMOVED*** ==============================================
-***REMOVED*** NSG Rules for Secure Cluster Connectivity (SCC/NPIP)
-***REMOVED*** ==============================================
-***REMOVED***
-***REMOVED*** Reference: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject***REMOVED***network-security-group-rules-for-workspaces
-***REMOVED***
-***REMOVED*** IMPORTANT: NSG rules are only created when BOTH conditions are met:
-***REMOVED*** 1. Private Link is enabled (enable_private_link = true)
-***REMOVED*** 2. Public network access is disabled (enable_public_network_access = false)
-***REMOVED***
-***REMOVED*** Why? When public network access is enabled, Azure Databricks automatically creates 
-***REMOVED*** these rules (with "Microsoft.Databricks-workspaces_UseOnly_" prefix). We must NOT
-***REMOVED*** create duplicate rules as they will conflict.
-***REMOVED***
-***REMOVED*** When fully locked down (Private Link + no public access), Databricks doesn't auto-create
-***REMOVED*** rules, so we must create them explicitly.
-***REMOVED***
-***REMOVED*** NOTE: When SCC/NPIP is enabled, inbound rules on ports 22 and 5557 from 
-***REMOVED*** AzureDatabricks service tag are NOT required (and would be security risk).
-***REMOVED***
-***REMOVED*** ==============================================
+# ==============================================
+# NSG Rules for Secure Cluster Connectivity (SCC/NPIP)
+# ==============================================
+#
+# Reference: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject#network-security-group-rules-for-workspaces
+#
+# IMPORTANT: NSG rules are only created when BOTH conditions are met:
+# 1. Private Link is enabled (enable_private_link = true)
+# 2. Public network access is disabled (enable_public_network_access = false)
+#
+# Why? When public network access is enabled, Azure Databricks automatically creates 
+# these rules (with "Microsoft.Databricks-workspaces_UseOnly_" prefix). We must NOT
+# create duplicate rules as they will conflict.
+#
+# When fully locked down (Private Link + no public access), Databricks doesn't auto-create
+# rules, so we must create them explicitly.
+#
+# NOTE: When SCC/NPIP is enabled, inbound rules on ports 22 and 5557 from 
+# AzureDatabricks service tag are NOT required (and would be security risk).
+#
+# ==============================================
 
-***REMOVED*** Get the NSG ID (works for both new and existing)
+# Get the NSG ID (works for both new and existing)
 locals {
   nsg_id_for_rules = local.nsg_id
   
-  ***REMOVED*** Only create custom NSG rules when workspace is fully locked down
+  # Only create custom NSG rules when workspace is fully locked down
   create_custom_nsg_rules = var.enable_private_link && !var.enable_public_network_access
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Inbound Rules
-***REMOVED*** ==============================================
+# ==============================================
+# Inbound Rules
+# ==============================================
 
-***REMOVED*** Allow inbound from VirtualNetwork to VirtualNetwork (Any protocol/port)
-***REMOVED*** This enables internal cluster communication
-***REMOVED*** Only create for Private Link deployments
+# Allow inbound from VirtualNetwork to VirtualNetwork (Any protocol/port)
+# This enables internal cluster communication
+# Only create for Private Link deployments
 resource "azurerm_network_security_rule" "inbound_vnet_to_vnet" {
   count = local.create_custom_nsg_rules ? 1 : 0
 
@@ -55,13 +55,13 @@ resource "azurerm_network_security_rule" "inbound_vnet_to_vnet" {
   ]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Outbound Rules
-***REMOVED*** ==============================================
+# ==============================================
+# Outbound Rules
+# ==============================================
 
-***REMOVED*** Allow outbound to AzureDatabricks service tag
-***REMOVED*** Required ports: 443 (HTTPS), 3306 (MySQL), 8443-8451 (internal)
-***REMOVED*** Only create for Private Link deployments
+# Allow outbound to AzureDatabricks service tag
+# Required ports: 443 (HTTPS), 3306 (MySQL), 8443-8451 (internal)
+# Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_to_databricks" {
   count = local.create_custom_nsg_rules ? 1 : 0
 
@@ -82,9 +82,9 @@ resource "azurerm_network_security_rule" "outbound_to_databricks" {
   ]
 }
 
-***REMOVED*** Allow outbound to SQL service tag (port 3306)
-***REMOVED*** Required for metadata operations
-***REMOVED*** Only create for Private Link deployments
+# Allow outbound to SQL service tag (port 3306)
+# Required for metadata operations
+# Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_to_sql" {
   count = local.create_custom_nsg_rules ? 1 : 0
 
@@ -105,9 +105,9 @@ resource "azurerm_network_security_rule" "outbound_to_sql" {
   ]
 }
 
-***REMOVED*** Allow outbound to Storage service tag (port 443)
-***REMOVED*** Required for Unity Catalog and workspace storage
-***REMOVED*** Only create for Private Link deployments
+# Allow outbound to Storage service tag (port 443)
+# Required for Unity Catalog and workspace storage
+# Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_to_storage" {
   count = local.create_custom_nsg_rules ? 1 : 0
 
@@ -128,9 +128,9 @@ resource "azurerm_network_security_rule" "outbound_to_storage" {
   ]
 }
 
-***REMOVED*** Allow outbound within VirtualNetwork (Any protocol/port)
-***REMOVED*** Required for internal cluster communication
-***REMOVED*** Only create for Private Link deployments
+# Allow outbound within VirtualNetwork (Any protocol/port)
+# Required for internal cluster communication
+# Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_vnet_to_vnet" {
   count = local.create_custom_nsg_rules ? 1 : 0
 
@@ -151,9 +151,9 @@ resource "azurerm_network_security_rule" "outbound_vnet_to_vnet" {
   ]
 }
 
-***REMOVED*** Allow outbound to EventHub service tag (port 9093)
-***REMOVED*** Required for log delivery and diagnostics
-***REMOVED*** Only create for Private Link deployments
+# Allow outbound to EventHub service tag (port 9093)
+# Required for log delivery and diagnostics
+# Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_to_eventhub" {
   count = local.create_custom_nsg_rules ? 1 : 0
 
@@ -174,9 +174,9 @@ resource "azurerm_network_security_rule" "outbound_to_eventhub" {
   ]
 }
 
-***REMOVED*** Optional: Allow outbound for library installs (ports 111, 2049)
-***REMOVED*** Recommended by Databricks to enable certain library installations
-***REMOVED*** Only create for Private Link deployments
+# Optional: Allow outbound for library installs (ports 111, 2049)
+# Recommended by Databricks to enable certain library installations
+# Only create for Private Link deployments
 resource "azurerm_network_security_rule" "outbound_for_library_installs" {
   count = local.create_custom_nsg_rules ? 1 : 0
 

@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** NCC Configuration Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# NCC Configuration Outputs
+# ==============================================
 
 output "ncc_id" {
   description = "Network Connectivity Configuration ID"

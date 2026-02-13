@@ -36,28 +36,28 @@ graph TB
             NAT[Cloud NAT<br/>Optional]
         end
     end
-    
+
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Managed"
             GKE[GKE Cluster<br/>Control Plane Components]
             GCS[GCS Bucket<br/>DBFS Storage]
         end
     end
-    
+
     subgraph "Databricks Control Plane"
         CONTROL[Databricks Control Plane<br/>accounts.gcp.databricks.com]
     end
-    
+
     subgraph "Users"
         USER[Workspace Users<br/>Web Browser]
     end
-    
+
     SUBNET --> CONTROL
     SUBNET --> GCS
     GKE --> SUBNET
     USER --> CONTROL
     CONTROL --> GKE
-    
+
     style CONTROL fill:#FF3621
     style GCS fill:#4285F4
     style GKE fill:#4285F4
@@ -259,7 +259,7 @@ Before deploying the workspace, ensure you have:
 #### Node Subnet
 - Name: Referenced in `node_subnet` variable
 - Purpose: Hosts Databricks cluster nodes (GKE)
-- IP Range: 
+- IP Range:
   - Primary CIDR: Minimum `/24` (251 IPs)
   - Secondary ranges: Auto-created by Databricks for pods/services
 - Region: Must match `google_region` variable
@@ -367,7 +367,7 @@ graph TD
     H --> I[Create User in Workspace]
     I --> J[Add User to Admins Group]
     J --> K[Workspace Ready]
-    
+
     style A fill:#4285F4
     style K fill:#34A853
     style F fill:#FF3621
@@ -382,16 +382,16 @@ sequenceDiagram
     participant GCP as Google Cloud
     participant DB_ACC as Databricks Account
     participant DB_WS as Databricks Workspace
-    
+
     Note over TF,GCP: Phase 1: Validation
     TF->>GCP: Verify VPC exists
     TF->>GCP: Verify Subnet exists
     TF->>GCP: Verify Service Account permissions
-    
+
     Note over TF,DB_ACC: Phase 2: Network Configuration
     TF->>DB_ACC: Create Network Config
     DB_ACC-->>TF: Network ID
-    
+
     Note over TF,DB_ACC: Phase 3: Workspace Creation
     TF->>DB_ACC: Create Workspace
     DB_ACC->>GCP: Deploy GKE Cluster
@@ -399,13 +399,13 @@ sequenceDiagram
     DB_ACC->>GCP: Configure Networking
     GCP-->>DB_ACC: Resources Ready
     DB_ACC-->>TF: Workspace URL + ID
-    
+
     Note over TF,DB_WS: Phase 4: User Assignment
     TF->>DB_WS: Lookup Admins Group
     TF->>DB_WS: Create User
     TF->>DB_WS: Add User to Admins Group
     DB_WS-->>TF: User Configured
-    
+
     Note over DB_WS: Workspace Ready for Use
 ```
 
@@ -720,7 +720,7 @@ This can happen if GCP resource quotas are exceeded or there are networking issu
    ```bash
    # Remove from Terraform state
    terraform state rm databricks_mws_workspaces.databricks_workspace
-   
+
    # Delete manually in Account Console
    # Then re-run terraform apply
    ```

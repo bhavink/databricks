@@ -79,7 +79,7 @@
 						"token"
 					]
 				},
-				"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***--get-an-azure-active-directory-access-token)\n\n- To access the Databricks REST API with the service principal, you get an Azure AD access token for the service principal. You can use the client credentials flow to get an access token (with the AzureDatabricks login application as the resource).\n\n- Replace the following parameters in the curl request:\n\n\t- **Databricks instance**: URL of your Databricks instance. See [Get workspace, cluster, notebook, and job identifiers](https://docs.microsoft.com/en-us/azure/databricks/workspace/workspace-details)\n\t- **Access token**: Token returned from the request in   Get an Azure Active Directory access token.\n\t- **Databricks workspace org ID** | The org ID of the workspace. See [Get workspace, cluster, notebook, and job identifiers](https://docs.microsoft.com/en-us/azure/databricks/workspace/workspace-details)"
+				"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-an-azure-active-directory-access-token)\n\n- To access the Databricks REST API with the service principal, you get an Azure AD access token for the service principal. You can use the client credentials flow to get an access token (with the AzureDatabricks login application as the resource).\n\n- Replace the following parameters in the curl request:\n\n\t- **Databricks instance**: URL of your Databricks instance. See [Get workspace, cluster, notebook, and job identifiers](https://docs.microsoft.com/en-us/azure/databricks/workspace/workspace-details)\n\t- **Access token**: Token returned from the request in   Get an Azure Active Directory access token.\n\t- **Databricks workspace org ID** | The org ID of the workspace. See [Get workspace, cluster, notebook, and job identifiers](https://docs.microsoft.com/en-us/azure/databricks/workspace/workspace-details)"
 			},
 			"response": []
 		},
@@ -157,7 +157,7 @@
 						"token"
 					]
 				},
-				"description": "[get aad access token for management resource](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***--get-the-azure-management-resource-endpoint-token)"
+				"description": "[get aad access token for management resource](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-the-azure-management-resource-endpoint-token)"
 			},
 			"response": []
 		},
@@ -237,7 +237,7 @@
 						"ServicePrincipals"
 					]
 				},
-				"description": "[Add a service principal in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***add-service-principal)"
+				"description": "[Add a service principal in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#add-service-principal)"
 			},
 			"response": []
 		},
@@ -282,7 +282,7 @@
 						"ServicePrincipals"
 					]
 				},
-				"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***get-service-principals)"
+				"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principals)"
 			},
 			"response": []
 		},
@@ -323,7 +323,7 @@
 						"2260490761530565"
 					]
 				},
-				"description": "[Update a service principal resource with operations on specific attributes, except those that are immutable](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***update-service-principal-by-id-patch)\n\n- The `PATCH` method is recommended over the PUT method for setting or updating user entitlements."
+				"description": "[Update a service principal resource with operations on specific attributes, except those that are immutable](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#update-service-principal-by-id-patch)\n\n- The `PATCH` method is recommended over the PUT method for setting or updating user entitlements."
 			},
 			"response": []
 		},
@@ -377,7 +377,7 @@
 						"2260490761530565"
 					]
 				},
-				"description": "[Update service principal by ID (PUT)](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***update-service-principal-by-id-put)\n\n- Overwrite the service principal resource across multiple attributes, except those that are immutable."
+				"description": "[Update service principal by ID (PUT)](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#update-service-principal-by-id-put)\n\n- Overwrite the service principal resource across multiple attributes, except those that are immutable."
 			},
 			"response": []
 		},
@@ -464,7 +464,7 @@
 						"{{spIdFromListSPCall}}"
 					]
 				},
-				"description": "[Get service principal by ID](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***get-service-principal-by-id)\n\n- Retrieve a single service principal resource from the Azure Databricks workspace, given an Azure Databricks ID."
+				"description": "[Get service principal by ID](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principal-by-id)\n\n- Retrieve a single service principal resource from the Azure Databricks workspace, given an Azure Databricks ID."
 			},
 			"response": []
 		},
@@ -505,7 +505,7 @@
 						"{{spIdFromListSPCall}}"
 					]
 				},
-				"description": "[Delete service principal by ID](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***delete-service-principal-by-id)"
+				"description": "[Delete service principal by ID](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#delete-service-principal-by-id)"
 			},
 			"response": []
 		},

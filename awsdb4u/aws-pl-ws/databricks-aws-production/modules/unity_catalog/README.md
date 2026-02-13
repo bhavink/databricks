@@ -41,7 +41,7 @@ This module follows the Databricks Security Reference Architecture (SRA) pattern
 ```hcl
 module "unity_catalog" {
   source = "./modules/unity_catalog"
-  
+
   prefix                              = "dbx-abc123"
   region                              = "us-west-2"
   workspace_name                      = "my-workspace"
@@ -54,11 +54,11 @@ module "unity_catalog" {
   create_workspace_catalog            = true
   unity_catalog_root_storage_bucket   = "my-uc-root-storage"
   unity_catalog_external_bucket       = "my-uc-external"
-  
+
   tags = {
     Environment = "Production"
   }
-  
+
   providers = {
     databricks.account   = databricks.account
     databricks.workspace = databricks.workspace

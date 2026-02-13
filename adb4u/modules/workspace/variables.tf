@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Workspace Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Workspace Configuration
+# ==============================================
 
 variable "workspace_name" {
   description = "Name of the Databricks workspace"
@@ -22,9 +22,9 @@ variable "location" {
   type        = string
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Network Configuration
+# ==============================================
 
 variable "vnet_id" {
   description = "Virtual Network ID for VNet injection"
@@ -63,9 +63,9 @@ variable "enable_private_link" {
   default     = false
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Customer-Managed Keys (Optional)
-***REMOVED*** ==============================================
+# ==============================================
+# Customer-Managed Keys (Optional)
+# ==============================================
 
 variable "enable_cmk_managed_services" {
   description = "Enable CMK for control plane data (notebooks, secrets, queries)"
@@ -103,9 +103,9 @@ variable "databricks_account_id" {
   default     = ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Access Control
-***REMOVED*** ==============================================
+# ==============================================
+# Network Access Control
+# ==============================================
 
 variable "enable_public_network_access" {
   description = "Enable public network access to the workspace. For Full Private deployments, set to 'true' initially for deployment, then 'false' to lock down."
@@ -113,9 +113,9 @@ variable "enable_public_network_access" {
   default     = true
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** IP Access Lists (Optional)
-***REMOVED*** ==============================================
+# ==============================================
+# IP Access Lists (Optional)
+# ==============================================
 
 variable "enable_ip_access_lists" {
   description = "Enable workspace IP access list restrictions"
@@ -129,9 +129,9 @@ variable "allowed_ip_ranges" {
   default     = []
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Additional Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Additional Configuration
+# ==============================================
 
 variable "additional_workspace_config" {
   description = "Additional workspace configuration settings (key-value map)"

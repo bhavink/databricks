@@ -40,9 +40,9 @@ select * from csv.`abfss://container@labsdatalake.dfs.core.windows.net/readonly/
 
 -- MAGIC %md
 -- MAGIC 
--- MAGIC ***REMOVED******REMOVED******REMOVED*** ADB with an [egress appliance](https://databricks.com/blog/2020/03/27/data-exfiltration-protection-with-azure-databricks.html) and ADLS access
+-- MAGIC ------ ADB with an [egress appliance](https://databricks.com/blog/2020/03/27/data-exfiltration-protection-with-azure-databricks.html) and ADLS access
 -- MAGIC 
--- MAGIC ***REMOVED******REMOVED******REMOVED******REMOVED*** If you have a firewall in front of ADB then the access pattern would like this:
+-- MAGIC -------- If you have a firewall in front of ADB then the access pattern would like this:
 -- MAGIC 
 -- MAGIC   -  AAD Servcie endpoint enabled on ADB subnets
 -- MAGIC   -  Storage service endpoint disabled on ADB subnets (yes you have to disable service endpoint)

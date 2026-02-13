@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Access Connector for Unity Catalog
-***REMOVED*** ==============================================
+# ==============================================
+# Access Connector for Unity Catalog
+# ==============================================
 
 resource "azurerm_databricks_access_connector" "this" {
   count               = var.create_access_connector ? 1 : 0
@@ -15,16 +15,16 @@ resource "azurerm_databricks_access_connector" "this" {
   tags = var.tags
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Metastore Root Storage Account
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Metastore Storage Account
-***REMOVED*** ==============================================
-***REMOVED*** ⚠️ IMPORTANT: Storage accounts containing Unity Catalog schemas/tables
-***REMOVED*** may require manual cleanup before destroy. Consider:
-***REMOVED*** - DROP SCHEMA cascade operations before terraform destroy
-***REMOVED*** - Backup critical data before destruction
-***REMOVED*** - Storage accounts will be destroyed even with data (no force_destroy needed)
+# ==============================================
+# Metastore Root Storage Account
+# ==============================================
+# Unity Catalog Metastore Storage Account
+# ==============================================
+# ⚠️ IMPORTANT: Storage accounts containing Unity Catalog schemas/tables
+# may require manual cleanup before destroy. Consider:
+# - DROP SCHEMA cascade operations before terraform destroy
+# - Backup critical data before destruction
+# - Storage accounts will be destroyed even with data (no force_destroy needed)
 
 resource "azurerm_storage_account" "metastore" {
   count                     = var.create_metastore_storage ? 1 : 0
@@ -33,14 +33,14 @@ resource "azurerm_storage_account" "metastore" {
   location                  = var.location
   account_tier              = "Standard"
   account_replication_type  = "LRS"
-  is_hns_enabled            = true  ***REMOVED*** Hierarchical namespace for ADLS Gen2
+  is_hns_enabled            = true  # Hierarchical namespace for ADLS Gen2
   min_tls_version           = "TLS1_2"
 
-  ***REMOVED*** Public network access control
+  # Public network access control
   public_network_access_enabled = !var.enable_private_link_storage
 
-  ***REMOVED*** Network rules - Allow by default for initial setup
-  ***REMOVED*** Service Endpoint Policies will be configured separately for security
+  # Network rules - Allow by default for initial setup
+  # Service Endpoint Policies will be configured separately for security
   network_rules {
     default_action = "Allow"
     bypass         = ["AzureServices"]
@@ -56,7 +56,7 @@ resource "azurerm_storage_container" "metastore" {
   container_access_type = "private"
 }
 
-***REMOVED*** Grant Access Connector permissions to metastore storage
+# Grant Access Connector permissions to metastore storage
 resource "azurerm_role_assignment" "metastore_contributor" {
   count                = var.create_metastore_storage ? 1 : 0
   scope                = azurerm_storage_account.metastore[0].id
@@ -64,9 +64,9 @@ resource "azurerm_role_assignment" "metastore_contributor" {
   principal_id         = local.access_connector_principal_id
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** External Location Storage Account
-***REMOVED*** ==============================================
+# ==============================================
+# External Location Storage Account
+# ==============================================
 
 resource "azurerm_storage_account" "external" {
   count                     = var.create_external_location_storage ? 1 : 0
@@ -75,14 +75,14 @@ resource "azurerm_storage_account" "external" {
   location                  = var.location
   account_tier              = "Standard"
   account_replication_type  = "LRS"
-  is_hns_enabled            = true  ***REMOVED*** Hierarchical namespace for ADLS Gen2
+  is_hns_enabled            = true  # Hierarchical namespace for ADLS Gen2
   min_tls_version           = "TLS1_2"
 
-  ***REMOVED*** Public network access control
+  # Public network access control
   public_network_access_enabled = !var.enable_private_link_storage
 
-  ***REMOVED*** Network rules - Allow by default for initial setup
-  ***REMOVED*** Service Endpoint Policies will be configured separately for security
+  # Network rules - Allow by default for initial setup
+  # Service Endpoint Policies will be configured separately for security
   network_rules {
     default_action = "Allow"
     bypass         = ["AzureServices"]
@@ -98,7 +98,7 @@ resource "azurerm_storage_container" "external" {
   container_access_type = "private"
 }
 
-***REMOVED*** Grant Access Connector permissions to external storage
+# Grant Access Connector permissions to external storage
 resource "azurerm_role_assignment" "external_contributor" {
   count                = var.create_external_location_storage ? 1 : 0
   scope                = azurerm_storage_account.external[0].id
@@ -106,11 +106,11 @@ resource "azurerm_role_assignment" "external_contributor" {
   principal_id         = local.access_connector_principal_id
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Private Endpoints for Storage (if enabled)
-***REMOVED*** ==============================================
+# ==============================================
+# Private Endpoints for Storage (if enabled)
+# ==============================================
 
-***REMOVED*** Metastore Storage Private Endpoints
+# Metastore Storage Private Endpoints
 resource "azurerm_private_endpoint" "metastore_blob" {
   count               = var.create_metastore_storage && var.enable_private_link_storage ? 1 : 0
   name                = local.metastore_storage_pe_name_blob
@@ -145,7 +145,7 @@ resource "azurerm_private_endpoint" "metastore_dfs" {
   tags = var.tags
 }
 
-***REMOVED*** External Storage Private Endpoints
+# External Storage Private Endpoints
 resource "azurerm_private_endpoint" "external_blob" {
   count               = var.create_external_location_storage && var.enable_private_link_storage ? 1 : 0
   name                = local.external_storage_pe_name_blob
@@ -180,11 +180,11 @@ resource "azurerm_private_endpoint" "external_dfs" {
   tags = var.tags
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Metastore
-***REMOVED*** ==============================================
-***REMOVED*** Metastore is an account-level resource
-***REMOVED*** Must use the account provider
+# ==============================================
+# Unity Catalog Metastore
+# ==============================================
+# Metastore is an account-level resource
+# Must use the account provider
 
 resource "databricks_metastore" "this" {
   provider = databricks.account
@@ -195,18 +195,18 @@ resource "databricks_metastore" "this" {
   storage_root = "abfss://${azurerm_storage_container.metastore[0].name}@${azurerm_storage_account.metastore[0].name}.dfs.core.windows.net/"
   
   region        = var.location
-  force_destroy = true  ***REMOVED*** CRITICAL: Must be true to allow clean destroy of metastore with root credential
+  force_destroy = true  # CRITICAL: Must be true to allow clean destroy of metastore with root credential
   
-  ***REMOVED*** IMPORTANT: Do not add lifecycle.ignore_changes for force_destroy
-  ***REMOVED*** It will prevent clean destroy when you need to tear down resources
+  # IMPORTANT: Do not add lifecycle.ignore_changes for force_destroy
+  # It will prevent clean destroy when you need to tear down resources
 
   depends_on = [
     azurerm_role_assignment.metastore_contributor
   ]
 }
 
-***REMOVED*** Metastore Data Access Configuration
-***REMOVED*** Account-level resource
+# Metastore Data Access Configuration
+# Account-level resource
 resource "databricks_metastore_data_access" "this" {
   provider = databricks.account
   
@@ -225,8 +225,8 @@ resource "databricks_metastore_data_access" "this" {
   ]
 }
 
-***REMOVED*** Attach Workspace to Metastore
-***REMOVED*** Account-level resource
+# Attach Workspace to Metastore
+# Account-level resource
 resource "databricks_metastore_assignment" "this" {
   provider = databricks.account
   
@@ -239,11 +239,11 @@ resource "databricks_metastore_assignment" "this" {
   ]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Storage Credential for External Locations
-***REMOVED*** ==============================================
-***REMOVED*** Storage credentials are workspace-level resources
-***REMOVED*** Must use the workspace provider (not account provider)
+# ==============================================
+# Storage Credential for External Locations
+# ==============================================
+# Storage credentials are workspace-level resources
+# Must use the workspace provider (not account provider)
 
 resource "databricks_storage_credential" "external" {
   provider = databricks.workspace
@@ -261,11 +261,11 @@ resource "databricks_storage_credential" "external" {
   ]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** External Location
-***REMOVED*** ==============================================
-***REMOVED*** External locations are workspace-level resources
-***REMOVED*** Must use the workspace provider (not account provider)
+# ==============================================
+# External Location
+# ==============================================
+# External locations are workspace-level resources
+# Must use the workspace provider (not account provider)
 
 resource "databricks_external_location" "this" {
   provider = databricks.workspace

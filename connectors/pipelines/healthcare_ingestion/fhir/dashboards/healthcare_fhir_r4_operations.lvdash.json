@@ -1,0 +1,2396 @@
+{
+  "datasets": [
+    {
+      "name": "ds_total_patients",
+      "displayName": "Total Patients",
+      "queryLines": [
+        "SELECT COUNT(*) as patient_count FROM main.healthcare_fhir.silver_fhir_patient"
+      ]
+    },
+    {
+      "name": "ds_active_patients",
+      "displayName": "Active Patients",
+      "queryLines": [
+        "SELECT COUNT(*) as active_count FROM main.healthcare_fhir.silver_fhir_patient WHERE active = true"
+      ]
+    },
+    {
+      "name": "ds_total_encounters",
+      "displayName": "Total Encounters",
+      "queryLines": [
+        "SELECT COUNT(*) as encounter_count FROM main.healthcare_fhir.silver_fhir_encounter"
+      ]
+    },
+    {
+      "name": "ds_total_observations",
+      "displayName": "Total Observations",
+      "queryLines": [
+        "SELECT COUNT(*) as observation_count FROM main.healthcare_fhir.silver_fhir_observation"
+      ]
+    },
+    {
+      "name": "ds_patient_gender",
+      "displayName": "Patient Gender Distribution",
+      "queryLines": [
+        "SELECT CASE gender WHEN 'male' THEN 'Male' WHEN 'female' THEN 'Female' ELSE 'Other' END as gender, COUNT(*) as patients FROM main.healthcare_fhir.silver_fhir_patient GROUP BY gender"
+      ]
+    },
+    {
+      "name": "ds_resource_counts",
+      "displayName": "Resource Type Distribution",
+      "queryLines": [
+        "SELECT resource_type, COUNT(*) as count FROM main.healthcare_fhir.bronze_fhir_raw WHERE is_valid = true GROUP BY resource_type ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_patients_by_birth_year",
+      "displayName": "Patients by Birth Year",
+      "queryLines": [
+        "SELECT YEAR(birth_date) as birth_year, COUNT(*) as patient_count FROM main.healthcare_fhir.silver_fhir_patient WHERE birth_date IS NOT NULL GROUP BY YEAR(birth_date) ORDER BY birth_year DESC LIMIT 20"
+      ]
+    },
+    {
+      "name": "ds_active_vs_inactive",
+      "displayName": "Active vs Inactive Patients",
+      "queryLines": [
+        "SELECT CASE WHEN active = true THEN 'Active' ELSE 'Inactive' END as status, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_patient GROUP BY 1"
+      ]
+    },
+    {
+      "name": "ds_recent_patients",
+      "displayName": "Recent Patient Records",
+      "queryLines": [
+        "SELECT id, CONCAT(given_name, ' ', family_name) as patient_name, gender, birth_date FROM main.healthcare_fhir.silver_fhir_patient ORDER BY _ingestion_timestamp DESC LIMIT 10"
+      ]
+    },
+    {
+      "name": "ds_encounter_status",
+      "displayName": "Encounter Status",
+      "queryLines": [
+        "SELECT CASE status WHEN 'finished' THEN 'Finished' WHEN 'in-progress' THEN 'In Progress' WHEN 'planned' THEN 'Planned' ELSE status END as status_name, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_encounter GROUP BY status ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_encounter_class",
+      "displayName": "Encounter Class",
+      "queryLines": [
+        "SELECT class_display as encounter_class, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_encounter WHERE class_display IS NOT NULL GROUP BY class_display ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_finished_encounters",
+      "displayName": "Finished Encounters",
+      "queryLines": [
+        "SELECT COUNT(*) as finished_count FROM main.healthcare_fhir.silver_fhir_encounter WHERE status = 'finished'"
+      ]
+    },
+    {
+      "name": "ds_inprogress_encounters",
+      "displayName": "In Progress Encounters",
+      "queryLines": [
+        "SELECT COUNT(*) as inprogress_count FROM main.healthcare_fhir.silver_fhir_encounter WHERE status = 'in-progress'"
+      ]
+    },
+    {
+      "name": "ds_encounter_types",
+      "displayName": "Encounter Types",
+      "queryLines": [
+        "SELECT type_display as encounter_type, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_encounter WHERE type_display IS NOT NULL GROUP BY type_display ORDER BY count DESC LIMIT 10"
+      ]
+    },
+    {
+      "name": "ds_observation_categories",
+      "displayName": "Observation Categories",
+      "queryLines": [
+        "SELECT category_display as category, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_observation WHERE category_display IS NOT NULL GROUP BY category_display ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_observation_codes",
+      "displayName": "Top Observation Codes",
+      "queryLines": [
+        "SELECT code_display as observation_name, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_observation WHERE code_display IS NOT NULL GROUP BY code_display ORDER BY count DESC LIMIT 10"
+      ]
+    },
+    {
+      "name": "ds_observation_status",
+      "displayName": "Observation Status",
+      "queryLines": [
+        "SELECT CASE status WHEN 'final' THEN 'Final' WHEN 'preliminary' THEN 'Preliminary' WHEN 'registered' THEN 'Registered' ELSE status END as status_name, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_observation GROUP BY status"
+      ]
+    },
+    {
+      "name": "ds_final_observations",
+      "displayName": "Final Observations",
+      "queryLines": [
+        "SELECT COUNT(*) as final_count FROM main.healthcare_fhir.silver_fhir_observation WHERE status = 'final'"
+      ]
+    },
+    {
+      "name": "ds_preliminary_observations",
+      "displayName": "Preliminary Observations",
+      "queryLines": [
+        "SELECT COUNT(*) as preliminary_count FROM main.healthcare_fhir.silver_fhir_observation WHERE status = 'preliminary'"
+      ]
+    },
+    {
+      "name": "ds_recent_observations",
+      "displayName": "Recent Observations",
+      "queryLines": [
+        "SELECT subject_id as patient_ref, code_display as observation_type, value, value_unit, status FROM main.healthcare_fhir.silver_fhir_observation WHERE code_display IS NOT NULL ORDER BY _ingestion_timestamp DESC LIMIT 15"
+      ]
+    },
+    {
+      "name": "ds_total_conditions",
+      "displayName": "Total Conditions",
+      "queryLines": [
+        "SELECT COUNT(*) as condition_count FROM main.healthcare_fhir.silver_fhir_condition"
+      ]
+    },
+    {
+      "name": "ds_active_conditions",
+      "displayName": "Active Conditions",
+      "queryLines": [
+        "SELECT COUNT(*) as active_count FROM main.healthcare_fhir.silver_fhir_condition WHERE clinical_status_code = 'active'"
+      ]
+    },
+    {
+      "name": "ds_condition_categories",
+      "displayName": "Condition Categories",
+      "queryLines": [
+        "SELECT category_display as category, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_condition WHERE category_display IS NOT NULL GROUP BY category_display ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_top_conditions",
+      "displayName": "Top Conditions",
+      "queryLines": [
+        "SELECT code_display as condition_name, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_condition WHERE code_display IS NOT NULL GROUP BY code_display ORDER BY count DESC LIMIT 10"
+      ]
+    },
+    {
+      "name": "ds_total_medications",
+      "displayName": "Total Medication Requests",
+      "queryLines": [
+        "SELECT COUNT(*) as medication_count FROM main.healthcare_fhir.silver_fhir_medication_request"
+      ]
+    },
+    {
+      "name": "ds_active_medications",
+      "displayName": "Active Medications",
+      "queryLines": [
+        "SELECT COUNT(*) as active_count FROM main.healthcare_fhir.silver_fhir_medication_request WHERE status = 'active'"
+      ]
+    },
+    {
+      "name": "ds_medication_status",
+      "displayName": "Medication Status",
+      "queryLines": [
+        "SELECT CASE status WHEN 'active' THEN 'Active' WHEN 'completed' THEN 'Completed' WHEN 'stopped' THEN 'Stopped' ELSE status END as status_name, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_medication_request GROUP BY status"
+      ]
+    },
+    {
+      "name": "ds_top_medications",
+      "displayName": "Top Medications",
+      "queryLines": [
+        "SELECT medication_display as medication_name, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_medication_request WHERE medication_display IS NOT NULL GROUP BY medication_display ORDER BY count DESC LIMIT 10"
+      ]
+    },
+    {
+      "name": "ds_total_immunizations",
+      "displayName": "Total Immunizations",
+      "queryLines": [
+        "SELECT COUNT(*) as immunization_count FROM main.healthcare_fhir.silver_fhir_immunization"
+      ]
+    },
+    {
+      "name": "ds_patients_immunized",
+      "displayName": "Patients Immunized",
+      "queryLines": [
+        "SELECT COUNT(DISTINCT patient_id) as patients_immunized FROM main.healthcare_fhir.silver_fhir_immunization"
+      ]
+    },
+    {
+      "name": "ds_immunization_status",
+      "displayName": "Immunization Status",
+      "queryLines": [
+        "SELECT CASE status WHEN 'completed' THEN 'Completed' WHEN 'entered-in-error' THEN 'Entered in Error' WHEN 'not-done' THEN 'Not Done' ELSE status END as status_name, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_immunization GROUP BY status"
+      ]
+    },
+    {
+      "name": "ds_vaccine_types",
+      "displayName": "Vaccine Types",
+      "queryLines": [
+        "SELECT vaccine_display as vaccine_name, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_immunization WHERE vaccine_display IS NOT NULL GROUP BY vaccine_display ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_total_resources",
+      "displayName": "Total Resources",
+      "queryLines": [
+        "SELECT COUNT(*) as total_resources FROM main.healthcare_fhir.bronze_fhir_raw"
+      ]
+    },
+    {
+      "name": "ds_valid_resources",
+      "displayName": "Valid Resources",
+      "queryLines": [
+        "SELECT COUNT(*) as valid_count FROM main.healthcare_fhir.bronze_fhir_raw WHERE is_valid = true"
+      ]
+    },
+    {
+      "name": "ds_quarantined",
+      "displayName": "Quarantined Resources",
+      "queryLines": [
+        "SELECT COUNT(*) as quarantine_count FROM main.healthcare_fhir.bronze_fhir_quarantine"
+      ]
+    },
+    {
+      "name": "ds_resource_types",
+      "displayName": "Resource Type Counts",
+      "queryLines": [
+        "SELECT resource_type, COUNT(*) as count FROM main.healthcare_fhir.bronze_fhir_raw WHERE is_valid = true GROUP BY resource_type ORDER BY count DESC"
+      ]
+    },
+    {
+      "name": "ds_validation_quality",
+      "displayName": "Validation Quality",
+      "queryLines": [
+        "SELECT resource_type, COUNT(*) as total, SUM(CASE WHEN is_valid THEN 1 ELSE 0 END) as valid, ROUND(SUM(CASE WHEN is_valid THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as success_rate FROM main.healthcare_fhir.bronze_fhir_raw GROUP BY resource_type ORDER BY success_rate ASC LIMIT 15"
+      ]
+    },
+    {
+      "name": "ds_encounter_patient_heatmap",
+      "displayName": "Encounter Class x Patient Gender",
+      "queryLines": [
+        "SELECT e.class_display as encounter_class, p.gender, COUNT(*) as encounter_count FROM main.healthcare_fhir.silver_fhir_encounter e JOIN main.healthcare_fhir.silver_fhir_patient p ON e.subject_id = CONCAT('Patient/', p.id) WHERE e.class_display IS NOT NULL GROUP BY e.class_display, p.gender"
+      ]
+    },
+    {
+      "name": "ds_resource_status_heatmap",
+      "displayName": "Resource Type x Status",
+      "queryLines": [
+        "SELECT 'Encounter' as resource_type, status, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_encounter GROUP BY status UNION ALL SELECT 'Observation' as resource_type, status, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_observation GROUP BY status UNION ALL SELECT 'Medication' as resource_type, status, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_medication_request GROUP BY status"
+      ]
+    },
+    {
+      "name": "ds_condition_status_stacked",
+      "displayName": "Conditions by Status",
+      "queryLines": [
+        "SELECT code_display as condition_type, clinical_status_code as status, COUNT(*) as count FROM main.healthcare_fhir.silver_fhir_condition WHERE code_display IS NOT NULL AND clinical_status_code IS NOT NULL GROUP BY code_display, clinical_status_code"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "executive_summary",
+      "displayName": "1. Executive Summary",
+      "layout": [
+        {
+          "widget": {
+            "name": "page-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Healthcare Operations at a Glance"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Real-time visibility into patient data, encounters, observations, and clinical activity using FHIR R4 resources"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-patients",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_patients",
+                  "fields": [
+                    {
+                      "name": "patient_count",
+                      "expression": "`patient_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "patient_count",
+                  "displayName": "Total Patients"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-encounters",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_encounters",
+                  "fields": [
+                    {
+                      "name": "encounter_count",
+                      "expression": "`encounter_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "encounter_count",
+                  "displayName": "Encounters"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-observations",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_observations",
+                  "fields": [
+                    {
+                      "name": "observation_count",
+                      "expression": "`observation_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "observation_count",
+                  "displayName": "Observations"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "why-this-matters-1",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: Track patient population and clinical activity. Monitor encounters and observations for operational insights."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-resources",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_resource_counts",
+                  "fields": [
+                    {
+                      "name": "resource_type",
+                      "expression": "`resource_type`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "resource_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Resource Type"
+                },
+                "y": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-gender",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_patient_gender",
+                  "fields": [
+                    {
+                      "name": "gender",
+                      "expression": "`gender`"
+                    },
+                    {
+                      "name": "patients",
+                      "expression": "`patients`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "patients",
+                  "displayName": "Patients"
+                },
+                "color": {
+                  "fieldName": "gender",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Gender"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 6,
+            "width": 3,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "patient_demographics",
+      "displayName": "2. Patient Demographics",
+      "layout": [
+        {
+          "widget": {
+            "name": "page2-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Patient Demographics: Who Are Our Patients?"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page2-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Population health management, demographic analysis, and patient registry tracking"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-birth-years",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_patients_by_birth_year",
+                  "fields": [
+                    {
+                      "name": "birth_year",
+                      "expression": "`birth_year`"
+                    },
+                    {
+                      "name": "patient_count",
+                      "expression": "`patient_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "birth_year",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Birth Year"
+                },
+                "y": {
+                  "fieldName": "patient_count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Patients"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-active-status",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_active_vs_inactive",
+                  "fields": [
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count",
+                  "displayName": "Count"
+                },
+                "color": {
+                  "fieldName": "status",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Status"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-demographics",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: Understand patient population age distribution and active status for capacity planning and targeted care programs."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-recent-patients",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_recent_patients",
+                  "fields": [
+                    {
+                      "name": "id",
+                      "expression": "`id`"
+                    },
+                    {
+                      "name": "patient_name",
+                      "expression": "`patient_name`"
+                    },
+                    {
+                      "name": "gender",
+                      "expression": "`gender`"
+                    },
+                    {
+                      "name": "birth_date",
+                      "expression": "`birth_date`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "id",
+                    "displayName": "Patient ID"
+                  },
+                  {
+                    "fieldName": "patient_name",
+                    "displayName": "Name"
+                  },
+                  {
+                    "fieldName": "gender",
+                    "displayName": "Gender"
+                  },
+                  {
+                    "fieldName": "birth_date",
+                    "displayName": "Birth Date"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "encounters",
+      "displayName": "3. Encounters",
+      "layout": [
+        {
+          "widget": {
+            "name": "page3-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Encounters: Patient Visit Tracking"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page3-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Track patient visits, encounter types, and care delivery patterns"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-finished",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_finished_encounters",
+                  "fields": [
+                    {
+                      "name": "finished_count",
+                      "expression": "`finished_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "finished_count",
+                  "displayName": "Finished"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-inprogress",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_inprogress_encounters",
+                  "fields": [
+                    {
+                      "name": "inprogress_count",
+                      "expression": "`inprogress_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "inprogress_count",
+                  "displayName": "In Progress"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-encounter-status",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_encounter_status",
+                  "fields": [
+                    {
+                      "name": "status_name",
+                      "expression": "`status_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "status_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Status"
+                },
+                "y": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-encounter-class",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_encounter_class",
+                  "fields": [
+                    {
+                      "name": "encounter_class",
+                      "expression": "`encounter_class`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                },
+                "y": {
+                  "fieldName": "encounter_class",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Class"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-encounters",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: Monitor patient flow through the healthcare system. Track encounter completion and identify bottlenecks."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "observations",
+      "displayName": "4. Observations",
+      "layout": [
+        {
+          "widget": {
+            "name": "page4-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Observations: Lab Results & Vital Signs"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page4-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Monitor clinical measurements, lab results, and patient vital signs"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-final-obs",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_final_observations",
+                  "fields": [
+                    {
+                      "name": "final_count",
+                      "expression": "`final_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "final_count",
+                  "displayName": "Final"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-preliminary",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_preliminary_observations",
+                  "fields": [
+                    {
+                      "name": "preliminary_count",
+                      "expression": "`preliminary_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "preliminary_count",
+                  "displayName": "Preliminary"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-obs-codes",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_observation_codes",
+                  "fields": [
+                    {
+                      "name": "observation_name",
+                      "expression": "`observation_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                },
+                "y": {
+                  "fieldName": "observation_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Observation"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-obs-status",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_observation_status",
+                  "fields": [
+                    {
+                      "name": "status_name",
+                      "expression": "`status_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count",
+                  "displayName": "Count"
+                },
+                "color": {
+                  "fieldName": "status_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Status"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-observations",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: Track clinical measurements and lab results. Monitor observation completion rates for quality assurance."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-recent-obs",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_recent_observations",
+                  "fields": [
+                    {
+                      "name": "patient_ref",
+                      "expression": "`patient_ref`"
+                    },
+                    {
+                      "name": "observation_type",
+                      "expression": "`observation_type`"
+                    },
+                    {
+                      "name": "value_quantity_value",
+                      "expression": "`value_quantity_value`"
+                    },
+                    {
+                      "name": "value_quantity_unit",
+                      "expression": "`value_quantity_unit`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "patient_ref",
+                    "displayName": "Patient"
+                  },
+                  {
+                    "fieldName": "observation_type",
+                    "displayName": "Type"
+                  },
+                  {
+                    "fieldName": "value_quantity_value",
+                    "displayName": "Value"
+                  },
+                  {
+                    "fieldName": "value_quantity_unit",
+                    "displayName": "Unit"
+                  },
+                  {
+                    "fieldName": "status",
+                    "displayName": "Status"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "conditions",
+      "displayName": "5. Conditions",
+      "layout": [
+        {
+          "widget": {
+            "name": "page5-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Conditions: Diagnoses & Problem Lists"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page5-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Track patient diagnoses, chronic conditions, and disease management"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-total-conditions",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_conditions",
+                  "fields": [
+                    {
+                      "name": "condition_count",
+                      "expression": "`condition_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "condition_count",
+                  "displayName": "Total Conditions"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-active-conditions",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_active_conditions",
+                  "fields": [
+                    {
+                      "name": "active_count",
+                      "expression": "`active_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "active_count",
+                  "displayName": "Active Conditions"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-condition-categories",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_condition_categories",
+                  "fields": [
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count",
+                  "displayName": "Count"
+                },
+                "color": {
+                  "fieldName": "category",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Category"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-top-conditions",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_top_conditions",
+                  "fields": [
+                    {
+                      "name": "condition_name",
+                      "expression": "`condition_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                },
+                "y": {
+                  "fieldName": "condition_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Condition"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-conditions",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: Track disease burden and chronic condition prevalence for population health management and care coordination."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "medications_immunizations",
+      "displayName": "6. Medications & Immunizations",
+      "layout": [
+        {
+          "widget": {
+            "name": "page6-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Medications & Immunizations: Prescription Tracking"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page6-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Monitor medication orders, compliance, and vaccination coverage"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-medications",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_medications",
+                  "fields": [
+                    {
+                      "name": "medication_count",
+                      "expression": "`medication_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "medication_count",
+                  "displayName": "Medication Requests"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-active-meds",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_active_medications",
+                  "fields": [
+                    {
+                      "name": "active_count",
+                      "expression": "`active_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "active_count",
+                  "displayName": "Active"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-immunizations",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_immunizations",
+                  "fields": [
+                    {
+                      "name": "immunization_count",
+                      "expression": "`immunization_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "immunization_count",
+                  "displayName": "Immunizations"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-medications",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_top_medications",
+                  "fields": [
+                    {
+                      "name": "medication_name",
+                      "expression": "`medication_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                },
+                "y": {
+                  "fieldName": "medication_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Medication"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-vaccines",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_vaccine_types",
+                  "fields": [
+                    {
+                      "name": "vaccine_name",
+                      "expression": "`vaccine_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "vaccine_name",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Vaccine"
+                },
+                "y": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-meds-immunizations",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: Track medication adherence and vaccination coverage for quality reporting and population health interventions."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "data_quality",
+      "displayName": "7. Data Quality",
+      "layout": [
+        {
+          "widget": {
+            "name": "page7-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Data Quality: Pipeline Health"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page7-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Monitor FHIR ingestion pipeline health, validate data quality, and identify integration issues"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-total-resources",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_total_resources",
+                  "fields": [
+                    {
+                      "name": "total_resources",
+                      "expression": "`total_resources`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_resources",
+                  "displayName": "Total Resources"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-valid",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_valid_resources",
+                  "fields": [
+                    {
+                      "name": "valid_count",
+                      "expression": "`valid_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "valid_count",
+                  "displayName": "Valid"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-quarantined",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_quarantined",
+                  "fields": [
+                    {
+                      "name": "quarantine_count",
+                      "expression": "`quarantine_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "quarantine_count",
+                  "displayName": "Quarantined"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-resource-types",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_resource_types",
+                  "fields": [
+                    {
+                      "name": "resource_type",
+                      "expression": "`resource_type`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Count"
+                },
+                "y": {
+                  "fieldName": "resource_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Resource Type"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "why-quality",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY: 0 quarantined = healthy pipeline. Monitor resource volumes to detect FHIR source issues early."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-validation-quality",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_validation_quality",
+                  "fields": [
+                    {
+                      "name": "resource_type",
+                      "expression": "`resource_type`"
+                    },
+                    {
+                      "name": "total",
+                      "expression": "`total`"
+                    },
+                    {
+                      "name": "valid",
+                      "expression": "`valid`"
+                    },
+                    {
+                      "name": "success_rate",
+                      "expression": "`success_rate`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "resource_type",
+                    "displayName": "Resource Type"
+                  },
+                  {
+                    "fieldName": "total",
+                    "displayName": "Total"
+                  },
+                  {
+                    "fieldName": "valid",
+                    "displayName": "Valid"
+                  },
+                  {
+                    "fieldName": "success_rate",
+                    "displayName": "Success Rate %"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "advanced_analytics",
+      "displayName": "8. Advanced Analytics",
+      "layout": [
+        {
+          "widget": {
+            "name": "page8-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Advanced Analytics: Patterns & Correlations"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "page8-subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "USE CASE: Identify patterns across FHIR resources, visualize correlations, and discover operational insights"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "heatmap-encounter-gender",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_encounter_patient_heatmap",
+                  "fields": [
+                    {
+                      "name": "encounter_class",
+                      "expression": "`encounter_class`"
+                    },
+                    {
+                      "name": "gender",
+                      "expression": "`gender`"
+                    },
+                    {
+                      "name": "encounter_count",
+                      "expression": "`encounter_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "encounter_class",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Encounter Class"
+                },
+                "y": {
+                  "fieldName": "gender",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Gender"
+                },
+                "color": {
+                  "fieldName": "encounter_count",
+                  "scale": {
+                    "type": "quantitative",
+                    "colorRamp": {
+                      "mode": "custom-sequential",
+                      "colors": {
+                        "start": "#e8f4f8",
+                        "end": "#1a5276"
+                      }
+                    }
+                  },
+                  "displayName": "Encounter Count"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Encounter Distribution: Class \u00d7 Gender",
+                "showDescription": true,
+                "description": "How do encounter types vary by patient gender?"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "heatmap-resource-status",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_resource_status_heatmap",
+                  "fields": [
+                    {
+                      "name": "resource_type",
+                      "expression": "`resource_type`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "resource_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Resource Type"
+                },
+                "y": {
+                  "fieldName": "status",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Status"
+                },
+                "color": {
+                  "fieldName": "count",
+                  "scale": {
+                    "type": "quantitative",
+                    "colorRamp": {
+                      "mode": "custom-sequential",
+                      "colors": {
+                        "start": "#fef9e7",
+                        "end": "#b7950b"
+                      }
+                    }
+                  },
+                  "displayName": "Count"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Status Matrix: Resource Type \u00d7 Status",
+                "showDescription": true,
+                "description": "Which resources have which status codes?"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "why-heatmaps",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY HEATMAPS: Instantly spot patterns in FHIR data. Dark cells = high volume. White cells = gaps. Use to identify integration issues."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-medication-status",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_medication_status",
+                  "fields": [
+                    {
+                      "name": "status_name",
+                      "expression": "`status_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count",
+                  "displayName": "Count"
+                },
+                "color": {
+                  "fieldName": "status_name",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Active",
+                        "color": "#27ae60"
+                      },
+                      {
+                        "value": "Completed",
+                        "color": "#3498db"
+                      },
+                      {
+                        "value": "Stopped",
+                        "color": "#e74c3c"
+                      }
+                    ]
+                  },
+                  "displayName": "Status"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Medication Status Distribution",
+                "showDescription": true,
+                "description": "Active vs Completed vs Stopped medications"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-immunization-status",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_immunization_status",
+                  "fields": [
+                    {
+                      "name": "status_name",
+                      "expression": "`status_name`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count",
+                  "displayName": "Count"
+                },
+                "color": {
+                  "fieldName": "status_name",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Completed",
+                        "color": "#27ae60"
+                      },
+                      {
+                        "value": "Not Done",
+                        "color": "#e74c3c"
+                      },
+                      {
+                        "value": "Entered in Error",
+                        "color": "#95a5a6"
+                      }
+                    ]
+                  },
+                  "displayName": "Status"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Immunization Status Distribution",
+                "showDescription": true,
+                "description": "Completed vs Not Done vs Errors"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 9,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "why-status-charts",
+            "multilineTextboxSpec": {
+              "lines": [
+                "WHY PIE CHARTS: See completion at a glance. High red (stopped/not-done) may indicate compliance issues. Monitor for quality improvement."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 15,
+            "width": 6,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    }
+  ]
+}

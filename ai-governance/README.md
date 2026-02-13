@@ -154,23 +154,23 @@ The "mother of all" scenarios — how to build governed AI applications that orc
 ```mermaid
 flowchart TD
     Start[What are you building?]
-    
+
     Start --> Q1{Product?}
-    
+
     Q1 -->|Genie Space| GQ{How many users?}
     Q1 -->|Agent Bricks| AQ{Use case?}
-    
+
     GQ -->|50-150 users<br/>Few teams| GMT[Multi-Team Scenario]
     GQ -->|1000+ users<br/>Complex hierarchy| GS[Scale Scenario]
-    
+
     AQ -->|Knowledge base<br/>Multiple teams| KA[Knowledge Assistant]
     AQ -->|Coordinate multiple<br/>Genie spaces| MA[Multi-Agent Supervisor]
-    
+
     GMT --> Auth1[✅ Use OBO + UC row filters<br/>See standalone-multi-team.md]
     GS --> Auth2[✅ Use OBO + ABAC + Scale patterns<br/>See standalone-scale.md]
     KA --> Auth3[✅ Use OBO + UC on Vector Search<br/>See multi-team.md]
     MA --> Auth4[✅ Use hybrid authentication<br/>See genie-coordination.md]
-    
+
     style GMT fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
     style GS fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
     style KA fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
@@ -185,25 +185,25 @@ flowchart TD
 
 ## 💡 Common Questions
 
-**Q: Which authentication pattern should I use?**  
+**Q: Which authentication pattern should I use?**
 A: See [Authentication Patterns](01-AUTHENTICATION-PATTERNS.md#decision-tree) decision tree.
 
-**Q: How do I enforce per-user data access?**  
+**Q: How do I enforce per-user data access?**
 A: Use On-Behalf-Of-User (OBO) pattern + Unity Catalog row filters. See [Authorization with UC](02-AUTHORIZATION-WITH-UC.md).
 
-**Q: Can I combine multiple patterns?**  
+**Q: Can I combine multiple patterns?**
 A: Yes! See [Genie Space Deep Dive](03-GENIE-SPACE-DEEP-DIVE.md#hybrid-authentication-scenarios) for hybrid approaches.
 
-**Q: How do I handle 1000+ users?**  
+**Q: How do I handle 1000+ users?**
 A: See [Genie Space at Scale](scenarios/05-GENIE-SPACE/standalone-scale.md).
 
-**Q: What about external data sources?**  
+**Q: What about external data sources?**
 A: Use Manual Credentials pattern. See [Authentication Patterns](01-AUTHENTICATION-PATTERNS.md#pattern-3-manual-credentials).
 
-**Q: How do I audit access?**  
+**Q: How do I audit access?**
 A: Use Unity Catalog audit logs via `system.access.audit` table. See [Authorization with UC](02-AUTHORIZATION-WITH-UC.md#audit-logging) and [Audit Logging & Monitoring](audit-logging/README.md) for comprehensive monitoring solutions.
 
-**Q: How do I monitor Genie conversations and query performance?**  
+**Q: How do I monitor Genie conversations and query performance?**
 A: Use the system tables-based monitoring solution in [Audit Logging & Monitoring](audit-logging/README.md). Provides conversation tracking, user analytics, query insights, and real-time alerting.
 
 ---

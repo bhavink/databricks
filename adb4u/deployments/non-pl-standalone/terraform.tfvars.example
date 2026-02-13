@@ -1,0 +1,15 @@
+# Copy to terraform.tfvars and set values.
+
+location             = "East US"
+resource_group_name  = "rg-adb-nonpl-standalone"
+workspace_prefix     = "adb-nonpl"
+
+# Optional: attach to existing Unity Catalog metastore
+# existing_metastore_id = "your-metastore-uuid"
+# databricks_host      = "https://adb-xxxx.azuredatabricks.net"  # set after first apply
+# default_catalog_name = "hive_metastore"
+
+# tags = {}
+# vnet_address_space             = ["10.139.0.0/16"]
+# public_subnet_address_prefix   = ["10.139.0.0/24"]
+# private_subnet_address_prefix  = ["10.139.1.0/24"]

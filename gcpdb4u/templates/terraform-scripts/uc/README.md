@@ -40,41 +40,41 @@ graph TB
     subgraph "Existing Infrastructure"
         WS[Existing Databricks Workspace<br/>Already Deployed]
     end
-    
+
     subgraph "Unity Catalog - Added by This Config"
         subgraph "Metastore"
             META[Unity Catalog Metastore<br/>Central Metadata Repository]
             META_BUCKET[GCS Bucket<br/>Metastore Storage]
         end
-        
+
         subgraph "Groups"
             UC_ADMIN[UC Admins Group]
             GROUP1[Data Engineering Group]
             GROUP2[Data Science Group]
         end
-        
+
         subgraph "Users"
             USER1[Admin User 1<br/>Auto-generated]
             USER2[Admin User 2<br/>From variable]
             USER3[Service Account<br/>From variable]
         end
-        
+
         subgraph "Permissions"
             WS_ASSIGN1[Data Science → ADMIN]
             WS_ASSIGN2[Data Eng → USER]
         end
     end
-    
+
     META --> META_BUCKET
-    
+
     UC_ADMIN --> USER1
     UC_ADMIN --> USER2
     UC_ADMIN --> USER3
-    
+
     META --> WS
     WS_ASSIGN1 --> WS
     WS_ASSIGN2 --> WS
-    
+
     style WS fill:#4285F4
     style META fill:#FF3621
     style UC_ADMIN fill:#FBBC04
@@ -207,7 +207,7 @@ terraform state show databricks_mws_workspaces.databricks_workspace
 
 #### 4. Account-Level Groups
 - **UC Admins Group**: Metastore owners and administrators
-- **Data Engineering Group**: For engineering workloads  
+- **Data Engineering Group**: For engineering workloads
 - **Data Science Group**: For data science workloads
 
 #### 5. Users
@@ -384,40 +384,40 @@ sequenceDiagram
     participant DB_ACC as Databricks Account
     participant WS as Existing Workspace
     participant UC as Unity Catalog
-    
+
     Note over WS: Workspace Already Exists
-    
+
     Note over TF,DB_ACC: Phase 1: Groups and Users
     TF->>DB_ACC: Create UC Admins Group
     TF->>DB_ACC: Create Data Engineering Group
     TF->>DB_ACC: Create Data Science Group
     TF->>DB_ACC: Create/Retrieve Users
     TF->>DB_ACC: Add Users to Groups
-    
+
     Note over TF,GCP: Phase 2: Storage
     TF->>GCP: Create Metastore GCS Bucket
     GCP-->>TF: Bucket Created
-    
+
     Note over TF,UC: Phase 3: Metastore
     TF->>UC: Create Unity Catalog Metastore
     UC-->>TF: Metastore ID
-    
+
     Note over TF,UC: Phase 4: Storage Credentials
     TF->>UC: Create Default Storage Credential
     UC-->>TF: Databricks Service Account
     TF->>GCP: Grant Bucket Permissions to SA
     GCP-->>TF: Permissions Granted
-    
+
     Note over TF,WS: Phase 5: Metastore Assignment
     TF->>DB_ACC: Assign Metastore to Workspace
     DB_ACC->>WS: Enable Unity Catalog
     WS-->>TF: UC Enabled
-    
+
     Note over TF,WS: Phase 6: Workspace Assignments
     TF->>DB_ACC: Assign Data Science Group (ADMIN)
     TF->>DB_ACC: Assign Data Engineering Group (USER)
     DB_ACC-->>TF: Groups Assigned
-    
+
     Note over WS: Workspace Now Has Unity Catalog
 ```
 
@@ -612,7 +612,7 @@ CREATE TABLE main.test_schema.test_table (
 );
 
 -- Insert test data
-INSERT INTO main.test_schema.test_table 
+INSERT INTO main.test_schema.test_table
 VALUES (1, 'test', current_timestamp());
 
 -- Query test table
@@ -640,7 +640,7 @@ DESCRIBE EXTENDED main.test_schema.test_table;
 - Verify user role (should be USER)
 - Test creating schema in main catalog
 
-- Log in as member of `data-science` group  
+- Log in as member of `data-science` group
 - Verify admin role (should be ADMIN)
 - Test creating schemas and managing workspace
 
@@ -702,8 +702,8 @@ Error: cannot assign metastore: workspace not found
    ```hcl
    # Correct
    workspace_id = "1234567890123456"
-   
-   # Incorrect  
+
+   # Incorrect
    workspace_id = "https://1234567890123456.1.gcp.databricks.com"
    workspace_id = "my-workspace"
    ```

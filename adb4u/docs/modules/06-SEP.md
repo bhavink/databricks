@@ -19,11 +19,11 @@ The Service Endpoint Policy module restricts storage access from your Databricks
 
 ### Key Features
 
-✅ **Egress Control** - Prevent data leaving via unauthorized storage  
-✅ **Automatic** - DBFS and UC storage automatically included  
-✅ **Flexible** - Add custom storage accounts via list  
-✅ **System Storage** - Databricks system accounts via alias  
-✅ **BYOV Support** - Works with bring-your-own VNet  
+✅ **Egress Control** - Prevent data leaving via unauthorized storage
+✅ **Automatic** - DBFS and UC storage automatically included
+✅ **Flexible** - Add custom storage accounts via list
+✅ **System Storage** - Databricks system accounts via alias
+✅ **BYOV Support** - Works with bring-your-own VNet
 
 ⚠️ **Applies to**: Classic compute only (not serverless)
 

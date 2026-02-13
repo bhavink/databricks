@@ -1,10 +1,10 @@
 databricks rest api for platform token management
 =================================================
-- Token Management provides Databricks administrators with more insight and control over  Personal Access Tokens in their workspaces. It consists of three pieces: 
+- Token Management provides Databricks administrators with more insight and control over  Personal Access Tokens in their workspaces. It consists of three pieces:
 
 - The Token Management API enables Databricks admins to monitor these Personal Access Tokens.
 
-- The Maximum Token Lifetime workspace configuration gives admins the ability to control the lifetime of future tokens in their workspaces. 
+- The Maximum Token Lifetime workspace configuration gives admins the ability to control the lifetime of future tokens in their workspaces.
 
 - Token Permissions allow admins to control which users can create and use tokens.
 

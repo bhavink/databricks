@@ -39,14 +39,14 @@ graph TB
             SUBNET[Node Subnet<br/>Databricks Clusters]
             NAT[Cloud NAT<br/>Internet Access]
         end
-        
+
         subgraph "Cloud KMS"
             KEYRING[Key Ring<br/>databricks-keyring]
             KEY[Crypto Key<br/>databricks-key]
             KEY_VER[Key Version<br/>Auto-rotated annually]
         end
     end
-    
+
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Managed - Encrypted"
             GKE[GKE Cluster<br/>Encrypted with CMEK]
@@ -55,29 +55,29 @@ graph TB
             DISK[Persistent Disks<br/>Encrypted with CMEK]
         end
     end
-    
+
     subgraph "Databricks Control Plane"
         CONTROL[Databricks Control Plane<br/>accounts.gcp.databricks.com]
     end
-    
+
     subgraph "Users"
         USER[Workspace Users<br/>Web Browser]
     end
-    
+
     KEYRING --> KEY
     KEY --> KEY_VER
-    
+
     KEY -.Encrypts.-> GCS_DBFS
     KEY -.Encrypts.-> GCS_SYS
     KEY -.Encrypts.-> DISK
     KEY -.Encrypts.-> GKE
-    
+
     SUBNET --> CONTROL
     SUBNET --> NAT
     GKE --> SUBNET
     USER --> CONTROL
     CONTROL --> GKE
-    
+
     style CONTROL fill:#FF3621
     style KEY fill:#FBBC04
     style KEYRING fill:#FBBC04
@@ -208,9 +208,9 @@ The CMEK created in this configuration encrypts:
 resource "google_kms_key_ring" "databricks_key_ring"
 ```
 
-**Purpose**: Logical grouping of encryption keys  
-**Name**: `databricks-keyring`  
-**Location**: Same region as workspace  
+**Purpose**: Logical grouping of encryption keys
+**Name**: `databricks-keyring`
+**Location**: Same region as workspace
 **Note**: Cannot be deleted, only disabled
 
 #### 2. Crypto Key
@@ -219,10 +219,10 @@ resource "google_kms_key_ring" "databricks_key_ring"
 resource "google_kms_crypto_key" "databricks_key"
 ```
 
-**Purpose**: Actual encryption key used by Databricks  
-**Name**: `databricks-key`  
-**Key Purpose**: `ENCRYPT_DECRYPT`  
-**Rotation Period**: 1 year (31536000 seconds)  
+**Purpose**: Actual encryption key used by Databricks
+**Name**: `databricks-key`
+**Key Purpose**: `ENCRYPT_DECRYPT`
+**Rotation Period**: 1 year (31536000 seconds)
 **Algorithm**: Google-managed symmetric encryption
 
 **Use Cases:**
@@ -412,7 +412,7 @@ Before deploying the workspace, ensure you have:
 #### Node Subnet
 - Name: Referenced in `node_subnet` variable
 - Purpose: Hosts Databricks cluster nodes (GKE)
-- IP Range: 
+- IP Range:
   - Primary CIDR: Minimum `/24` (251 IPs)
   - Secondary ranges: Auto-created by Databricks for pods/services
 - Region: Must match `google_region` variable
@@ -581,7 +581,7 @@ graph TD
     K --> L[Create User in Workspace]
     L --> M[Add User to Admins Group]
     M --> N[Workspace Ready - Encrypted]
-    
+
     style A fill:#4285F4
     style N fill:#34A853
     style I fill:#FF3621
@@ -597,28 +597,28 @@ sequenceDiagram
     participant KMS as Cloud KMS
     participant DB_ACC as Databricks Account
     participant DB_WS as Databricks Workspace
-    
+
     Note over TF,GCP: Phase 1: Validation
     TF->>GCP: Verify VPC exists
     TF->>GCP: Verify Subnet exists
     TF->>GCP: Verify Service Account permissions
-    
+
     Note over TF,KMS: Phase 2: KMS Key Creation
     TF->>KMS: Create Key Ring
     TF->>KMS: Create Crypto Key
     TF->>KMS: Configure Key Rotation (365 days)
     KMS-->>TF: Key Resource ID
-    
+
     Note over TF,DB_ACC: Phase 3: CMEK Registration
     TF->>DB_ACC: Register CMEK
     DB_ACC->>KMS: Verify Key Access
     KMS-->>DB_ACC: Access Granted
     DB_ACC-->>TF: CMEK ID
-    
+
     Note over TF,DB_ACC: Phase 4: Network Configuration
     TF->>DB_ACC: Create Network Config
     DB_ACC-->>TF: Network ID
-    
+
     Note over TF,DB_ACC: Phase 5: Workspace Creation
     TF->>DB_ACC: Create Workspace with CMEK
     DB_ACC->>GCP: Deploy GKE Cluster (CMEK encrypted)
@@ -626,13 +626,13 @@ sequenceDiagram
     DB_ACC->>KMS: Encrypt with Customer Key
     GCP-->>DB_ACC: Resources Ready (Encrypted)
     DB_ACC-->>TF: Workspace URL + ID
-    
+
     Note over TF,DB_WS: Phase 6: User Assignment
     TF->>DB_WS: Lookup Admins Group
     TF->>DB_WS: Create User
     TF->>DB_WS: Add User to Admins Group
     DB_WS-->>TF: User Configured
-    
+
     Note over DB_WS: Workspace Ready (Encrypted with CMEK)
 ```
 

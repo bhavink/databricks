@@ -26,7 +26,7 @@ Databricks CLI
 To install databricks cli simply run
 ``pip install --upgrade databricks-cli``
 
-Then set up authentication using username/password or 
+Then set up authentication using username/password or
 
 [authentication token](https://docs.databricks.com/api/latest/authentication.html***REMOVED***token-management) Credentials are stored at ``~/.databrickscfg``.
 

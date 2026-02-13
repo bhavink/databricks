@@ -14,53 +14,53 @@ graph TB
     subgraph "Databricks Lakehouse Platform"
         UI[Web UI & APIs]
         WS[Workspaces]
-        
+
         subgraph "Data Processing"
             NB[Notebooks]
             JOBS[Jobs & Workflows]
             SQL[SQL Analytics]
             ML[ML & MLflow]
         end
-        
+
         subgraph "Compute Options"
             CLASSIC[Classic Compute<br/>Customer VPC]
             SERVERLESS[Serverless Compute<br/>Databricks Managed]
         end
-        
+
         subgraph "Data Governance"
             UC[Unity Catalog]
             SEC[Security & Access Control]
             AUDIT[Audit Logs]
         end
-        
+
         subgraph "Storage Layer"
             DL[Data Lake<br/>GCS Buckets]
             DW[Data Warehouse<br/>BigQuery]
             EXT[External Sources]
         end
     end
-    
+
     UI --> WS
     WS --> NB
     WS --> JOBS
     WS --> SQL
     WS --> ML
-    
+
     NB --> CLASSIC
     NB --> SERVERLESS
     JOBS --> CLASSIC
     JOBS --> SERVERLESS
     SQL --> SERVERLESS
     ML --> CLASSIC
-    
+
     UC --> SEC
     UC --> AUDIT
-    
+
     CLASSIC --> DL
     SERVERLESS --> DL
     SQL --> DW
     CLASSIC --> EXT
-    
+
     style UI fill:#1E88E5
     style WS fill:#1E88E5
     style CLASSIC fill:#43A047
@@ -94,7 +94,7 @@ graph TB
     IAM[Identity & Access<br/>Users, Groups,<br/>Service Principals]
     OBS[Observability<br/>Job Monitoring,<br/>Performance Metrics]
     COST[Cost Management<br/>Budgets, Analysis,<br/>Optimization]
-    
+
     Start --> GS
     GS --> WA
     WA --> WP
@@ -106,7 +106,7 @@ graph TB
     IAM -.->|applies to| WP
     OBS -.->|monitors| WP
     COST -.->|optimizes| WP
-    
+
     style Start fill:#FF6F00
     style GS fill:#1E88E5
     style WA fill:#43A047

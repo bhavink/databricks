@@ -67,7 +67,7 @@ terraform output -raw resources | jq -r '.network.subnet_names'
 
 **Error Message**:
 ```
-Error: Network Connectivity Config is unable to be deleted because 
+Error: Network Connectivity Config is unable to be deleted because
 it is attached to one or more workspaces
 ```
 
@@ -96,7 +96,7 @@ terraform destroy
 
 **Error Message**:
 ```
-Error: cannot delete metastore data access: Storage credential 'xxx-metastore-access' 
+Error: cannot delete metastore data access: Storage credential 'xxx-metastore-access'
 cannot be deleted because it is configured as this metastore's root credential.
 ```
 
@@ -136,7 +136,7 @@ resource "databricks_metastore" "this" {
 
 **Error Message**:
 ```
-Error: cannot update metastore: UpdateMetastore delta_sharing_recipient_token_lifetime_in_seconds 
+Error: cannot update metastore: UpdateMetastore delta_sharing_recipient_token_lifetime_in_seconds
 can not be 0, which is infinite token lifetime.
 ```
 
@@ -159,7 +159,7 @@ terraform destroy
 
 **Error Message**:
 ```
-Error: Security rule AllowVnetInBound conflicts with rule 
+Error: Security rule AllowVnetInBound conflicts with rule
 Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-worker-inbound.
 ```
 
@@ -231,7 +231,7 @@ provider "databricks" {
 
 **Error Message**:
 ```
-Error: checking for existing Container "metastore": unexpected status 403 
+Error: checking for existing Container "metastore": unexpected status 403
 (403 This request is not authorized to perform this operation.)
 ```
 
@@ -250,7 +250,7 @@ resource "azurerm_storage_account" "metastore" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   is_hns_enabled          = true
-  
+
   network_rules {
     default_action = "Allow"  # Required for initial container creation
     bypass         = ["AzureServices"]

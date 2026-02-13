@@ -1,11 +1,11 @@
-***REMOVED*** variable "prefix" {}
-***REMOVED*** variable "adb_vnet_cidr" {}
-***REMOVED*** variable "adb_host_subnet" {}
-***REMOVED*** variable "adb_container_subnet" {}
-***REMOVED*** variable "tag_environment" {}
-***REMOVED*** variable "tag_pricing" {}
-***REMOVED*** variable "tag_owner" {}
-***REMOVED*** variable "tag_keepuntil" {}
+# variable "prefix" {}
+# variable "adb_vnet_cidr" {}
+# variable "adb_host_subnet" {}
+# variable "adb_container_subnet" {}
+# variable "tag_environment" {}
+# variable "tag_pricing" {}
+# variable "tag_owner" {}
+# variable "tag_keepuntil" {}
 
 
 resource "azurerm_resource_group" "adb_rg" {

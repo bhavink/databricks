@@ -30,7 +30,7 @@ This module provisions all S3 buckets for Databricks workspace and Unity Catalog
 ```hcl
 module "storage" {
   source = "./modules/storage"
-  
+
   prefix                                  = "dbx-abc123"
   suffix                                  = "jp6k"
   databricks_account_id                   = "743862e4-fdac-4504-a9cc-2d69bd1605e8"
@@ -40,11 +40,11 @@ module "storage" {
   unity_catalog_root_storage_bucket_name  = "bk-uc-root-storage"
   enable_encryption                       = false
   kms_key_arn                             = null
-  
+
   tags = {
     Environment = "Production"
   }
-  
+
   providers = {
     databricks.account = databricks.account
   }

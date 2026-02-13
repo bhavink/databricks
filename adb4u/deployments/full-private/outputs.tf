@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Primary Outputs (Most Commonly Used)
-***REMOVED*** ==============================================
+# ==============================================
+# Primary Outputs (Most Commonly Used)
+# ==============================================
 
 output "workspace_url" {
   description = "Databricks workspace URL (accessible via Private Link only)"
@@ -17,9 +17,9 @@ output "metastore_id" {
   value       = var.create_metastore ? module.unity_catalog.metastore_id : var.existing_metastore_id
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Detailed Resource Outputs (Hidden by Default)
-***REMOVED*** ==============================================
+# ==============================================
+# Detailed Resource Outputs (Hidden by Default)
+# ==============================================
 
 output "resources" {
   description = "Detailed resource information (workspace, network, Unity Catalog, Private Endpoints, NCC, SEP)"
@@ -77,9 +77,9 @@ output "resources" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Deployment Summary
-***REMOVED*** ==============================================
+# ==============================================
+# Deployment Summary
+# ==============================================
 
 output "deployment_summary" {
   description = "Quick status overview of deployed resources"

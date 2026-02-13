@@ -71,36 +71,36 @@ flowchart TB
         User["User<br/>(Pattern 2)"]
         SP["Service Principal<br/>(Pattern 1)"]
     end
-    
+
     subgraph Products["Databricks AI Products"]
         Genie[Genie Space]
         Agent[Agent Bricks]
         App[Databricks Apps]
     end
-    
+
     subgraph UC["Unity Catalog: Four Authorization Layers"]
         Layer1["Layer 1: Workspace Restrictions<br/>WHERE can they access?"]
         Layer2["Layer 2: Privileges & Ownership<br/>WHO can access WHAT?"]
         Layer3["Layer 3: ABAC Policies<br/>WHAT data based on tags?"]
         Layer4["Layer 4: Table-Level Filtering<br/>WHAT rows/columns?"]
     end
-    
+
     subgraph Data["Data Resources"]
         Tables[(Tables/Views)]
     end
-    
+
     User -->|Authenticated request| Products
     SP -->|Authenticated request| Products
-    
+
     Products -->|Query data| Layer1
-    
+
     Layer1 -->|Workspace OK| Layer2
     Layer2 -->|Has GRANTs| Layer3
     Layer3 -->|Tags match policy| Layer4
     Layer4 -->|Filter & mask| Tables
-    
+
     Tables -->|Return governed data| Products
-    
+
     style UC fill:#e8f8f5,stroke:#1abc9c,stroke-width:3px
     style Layer1 fill:#cffafe,stroke:#06b6d4,stroke-width:2px
     style Layer2 fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
@@ -108,7 +108,7 @@ flowchart TB
     style Layer4 fill:#ffedd5,stroke:#f97316,stroke-width:2px
 ```
 
-**Official Documentation:** 
+**Official Documentation:**
 - [Access Control in Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/access-control)
 - [Unity Catalog Overview](https://docs.databricks.com/aws/en/data-governance/unity-catalog/index.html)
 
@@ -121,31 +121,31 @@ Unity Catalog enforces authorization at multiple levels in a hierarchical struct
 ```mermaid
 flowchart TD
     Metastore[Metastore<br/>Account-wide data catalog<br/><br/>Highest level]
-    
+
     Catalog1[Catalog: finance_prod<br/>Domain or tenant<br/><br/>Contains schemas]
     Catalog2[Catalog: marketing_prod<br/>Domain or tenant]
-    
+
     Schema1[Schema: accounting<br/>Functional area<br/><br/>Contains tables]
     Schema2[Schema: campaigns<br/>Functional area]
-    
+
     Table1[Table: transactions<br/>Data object<br/><br/>Contains columns/rows]
     Table2[Table: email_campaigns<br/>Data object]
-    
+
     Column1[Column: amount<br/>Table attribute]
     Row1[Row: Individual record<br/>Data row]
-    
+
     Metastore --> Catalog1
     Metastore --> Catalog2
-    
+
     Catalog1 --> Schema1
     Catalog2 --> Schema2
-    
+
     Schema1 --> Table1
     Schema2 --> Table2
-    
+
     Table1 --> Column1
     Table1 --> Row1
-    
+
     style Metastore fill:#e8f8f5,stroke:#1abc9c,stroke-width:2px
     style Catalog1 fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
     style Catalog2 fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
@@ -175,17 +175,17 @@ flowchart TD
     Top[Permission granted at higher level]
     Cascade[Cascades down to child objects]
     Override[More specific permissions override general ones]
-    
+
     Top --> Cascade
     Cascade --> Override
-    
+
     Example1["Example:<br/>GRANT USE CATALOG ON finance_prod<br/>↓<br/>Can access all schemas within"]
-    
+
     Example2["But if:<br/>DENY SELECT ON specific_table<br/>↓<br/>Cannot read that specific table"]
-    
+
     Override --> Example1
     Override --> Example2
-    
+
     style Top fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
     style Cascade fill:#fef5e7,stroke:#f39c12,stroke-width:2px
     style Override fill:#fce4ec,stroke:#c2185b,stroke-width:2px
@@ -251,7 +251,7 @@ GRANT SELECT ON TABLE finance_prod.accounting.transactions TO `analysts`;
 | **Table Owner** | Specific table | Individual table |
 | **Users with GRANT permission** | Objects they have GRANT on | Delegated scope |
 
-**Documentation:** 
+**Documentation:**
 - [GRANT Statement](https://docs.databricks.com/aws/en/sql/language-manual/security-grant.html)
 - [Unity Catalog Privileges](https://docs.databricks.com/aws/en/data-governance/unity-catalog/manage-privileges/index.html)
 
@@ -280,15 +280,15 @@ sequenceDiagram
     participant UC as Unity Catalog
     participant Filter as Row Filter Function
     participant Table as Table Data
-    
+
     User->>Product: Query: SELECT * FROM sales_data
     Product->>UC: Execute query (with user context)
-    
+
     UC->>UC: Identify current_user()<br/>= alice@company.com
-    
+
     UC->>Filter: Evaluate filter for each row<br/>filter_by_owner(owner_email)
     Filter->>Filter: Check: owner_email = current_user()?
-    
+
     alt Row matches filter
         Filter->>UC: Return TRUE
         UC->>Table: Include row in results
@@ -296,11 +296,11 @@ sequenceDiagram
         Filter->>UC: Return FALSE
         UC->>UC: Exclude row from results
     end
-    
+
     Table-->>UC: Filtered dataset
     UC-->>Product: Return only Alice's rows
     Product-->>User: Display results
-    
+
     Note over UC,Filter: Different users see<br/>different rows from<br/>same query
 ```
 
@@ -347,7 +347,7 @@ ALTER TABLE sales.data.opportunities
 -- Filter: Managers see team data, employees see own data
 CREATE FUNCTION hr.filters.hierarchical(employee STRING, manager STRING)
 RETURNS BOOLEAN
-RETURN 
+RETURN
     employee = current_user() OR         -- Own records
     manager = current_user() OR          -- Managed records
     is_member('hr-admins');              -- HR sees all
@@ -401,26 +401,26 @@ sequenceDiagram
     participant UC as Unity Catalog
     participant Mask as Column Mask Function
     participant Table as Table Data
-    
+
     User->>Product: Query: SELECT ssn FROM customers
     Product->>UC: Execute query (with user context)
-    
+
     UC->>UC: Identify user groups<br/>is_member('analysts') = TRUE
-    
+
     UC->>Table: Retrieve raw column value<br/>SSN: 123-45-6789
     Table->>Mask: Pass value to mask function<br/>mask_ssn()
-    
+
     Mask->>Mask: Evaluate:<br/>CASE WHEN is_member('admins')<br/>THEN VALUE<br/>ELSE '***-**-' || SUBSTR(VALUE, -4)
-    
+
     alt User is admin
         Mask->>UC: Return: 123-45-6789
     else User is not admin
         Mask->>UC: Return: ***-**-6789
     end
-    
+
     UC-->>Product: Return masked value
     Product-->>User: Display: ***-**-6789
-    
+
     Note over Mask: Original value never<br/>leaves UC unmasked
 ```
 
@@ -430,8 +430,8 @@ sequenceDiagram
 -- Create mask function
 CREATE FUNCTION catalog.schema.mask_function_name()
 RETURNS DATA_TYPE
-RETURN 
-    CASE 
+RETURN
+    CASE
         WHEN condition THEN VALUE              -- Original value
         WHEN other_condition THEN transform    -- Transformed value
         ELSE default_mask                      -- Default mask
@@ -450,8 +450,8 @@ ALTER TABLE catalog.schema.table_name
 -- Mask: Show last 4 digits only to non-admins
 CREATE FUNCTION customer.masks.mask_ssn()
 RETURNS STRING
-RETURN 
-    CASE 
+RETURN
+    CASE
         WHEN is_member('admins') THEN VALUE
         ELSE CONCAT('***-**-', SUBSTR(VALUE, -4))
     END;
@@ -466,10 +466,10 @@ ALTER TABLE customer.data.customers
 -- Mask: Show partial email for verification
 CREATE FUNCTION customer.masks.mask_email()
 RETURNS STRING
-RETURN 
-    CASE 
+RETURN
+    CASE
         WHEN is_member('customer-service') THEN VALUE
-        WHEN is_member('analysts') THEN 
+        WHEN is_member('analysts') THEN
             CONCAT(SUBSTR(VALUE, 1, 2), '***@', SPLIT_PART(VALUE, '@', 2))
         ELSE '***@***'
     END;
@@ -484,8 +484,8 @@ ALTER TABLE customer.data.customers
 -- Mask: Different masking based on data sensitivity
 CREATE FUNCTION data.masks.conditional_mask()
 RETURNS STRING
-RETURN 
-    CASE 
+RETURN
+    CASE
         WHEN is_member('data-owners') THEN VALUE
         WHEN sensitivity_level = 'high' AND is_member('managers') THEN VALUE
         WHEN sensitivity_level = 'medium' THEN SUBSTR(VALUE, 1, 10) || '***'
@@ -559,24 +559,24 @@ flowchart TB
         TagDef["Account-level tag definitions<br/>sensitivity: [low, medium, high, critical]<br/>region: [EMEA, AMER, APAC]"]
         TagAssign["Tags applied to tables<br/>customer_data: sensitivity=high, region=EMEA"]
     end
-    
+
     subgraph ABAC["ABAC Policies (Enforcement)"]
         Policy["Policy: If sensitivity=high<br/>THEN require compliance-team"]
         UDF["UDF: filter_by_region()<br/>Row filter logic"]
     end
-    
+
     subgraph Query["Query Execution"]
         User["User: alice@company.com<br/>Groups: compliance-team"]
         Eval["UC evaluates:<br/>1. Table has sensitivity=high<br/>2. Policy requires compliance-team<br/>3. Alice is in compliance-team"]
         Result["✅ Access granted<br/>with policy filters applied"]
     end
-    
+
     TagDef --> TagAssign
     TagAssign --> Policy
     Policy --> UDF
     User --> Eval
     Eval --> Result
-    
+
     style Tags fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
     style ABAC fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
     style Query fill:#d1fae5,stroke:#10b981,stroke-width:2px
@@ -671,24 +671,24 @@ Dynamic views use SQL logic to implement complex access control patterns that go
 ```sql
 -- Create view with conditional logic
 CREATE VIEW catalog.schema.dynamic_view AS
-SELECT 
+SELECT
     column1,
-    
+
     -- Conditional column visibility
-    CASE 
+    CASE
         WHEN is_member('group1') THEN column2
         ELSE NULL
     END AS column2,
-    
+
     -- Conditional aggregation
-    CASE 
+    CASE
         WHEN is_member('executives') THEN SUM(amount)
         WHEN is_member('managers') THEN SUM(amount) OVER (PARTITION BY team)
         ELSE NULL
     END AS total_amount
-    
+
 FROM catalog.schema.base_table
-WHERE 
+WHERE
     -- Row-level filtering
     (owner_email = current_user() OR is_member('managers'));
 ```
@@ -698,22 +698,22 @@ WHERE
 ```sql
 -- Different users see different aggregations
 CREATE VIEW sales.views.revenue_by_role AS
-SELECT 
+SELECT
     date,
     region,
-    
+
     -- Executives see exact amounts
-    CASE 
+    CASE
         WHEN is_member('executives') THEN revenue
-        WHEN is_member('regional-managers') THEN 
+        WHEN is_member('regional-managers') THEN
             -- Regional managers see regional totals
             SUM(revenue) OVER (PARTITION BY region, date)
-        WHEN is_member('sales-reps') THEN 
+        WHEN is_member('sales-reps') THEN
             -- Sales reps see only their contribution
             CASE WHEN rep_email = current_user() THEN revenue ELSE NULL END
         ELSE NULL
     END AS revenue_amount
-    
+
 FROM sales.data.daily_revenue;
 ```
 
@@ -766,7 +766,7 @@ RETURN record_date >= current_date() - INTERVAL '365' DAY;
 -- Example 4: Combined logic
 CREATE FUNCTION filters.complex_access(owner STRING, dept STRING, created_date DATE)
 RETURNS BOOLEAN
-RETURN 
+RETURN
     (owner = current_user() OR is_member(dept)) AND
     (created_date >= current_date() - INTERVAL '90' DAY OR is_member('admins'));
 ```
@@ -787,43 +787,43 @@ flowchart TB
         SP[Service Principal<br/>sp-agent-prod]
         SP1[Fixed Identity]
     end
-    
+
     subgraph Pattern2["Pattern 2: User Auth"]
         User[End User<br/>alice@company.com]
         User1[Variable Identity]
     end
-    
+
     subgraph Pattern3["Pattern 3: Manual"]
         Ext[External API<br/>Not UC-managed]
     end
-    
+
     subgraph UC["Unity Catalog Enforcement"]
         Grants[Check GRANTs<br/>on objects]
         RowCheck{Row filters<br/>defined?}
         ColCheck{Column masks<br/>defined?}
         Data[(Tables)]
     end
-    
+
     SP --> SP1
     User --> User1
-    
+
     SP1 -->|Query as SP| Grants
     User1 -->|Query as user| Grants
-    
+
     Grants -->|Permission OK| RowCheck
-    
+
     RowCheck -->|Yes| EvalRow[Evaluate:<br/>current_user = user<br/>or SP identity]
     RowCheck -->|No| ColCheck
-    
+
     EvalRow -->|Filter rows| ColCheck
-    
+
     ColCheck -->|Yes| EvalCol[Evaluate:<br/>is_member<br/>for user/SP groups]
     ColCheck -->|No| Data
-    
+
     EvalCol -->|Mask columns| Data
-    
+
     Ext -.->|No UC enforcement| ExtData[(External Data)]
-    
+
     style Pattern1 fill:#fdebd0,stroke:#e67e22,stroke-width:2px
     style Pattern2 fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
     style Pattern3 fill:#fce4ec,stroke:#c2185b,stroke-width:2px
@@ -971,7 +971,7 @@ SELECT ssn FROM catalog.schema.table LIMIT 1;
 SHOW CREATE FUNCTION catalog.schema.row_filter_name;
 
 -- Test filter independently (as admin with bypass)
-SELECT 
+SELECT
     COUNT(*) as total_rows,
     COUNT(*) FILTER (WHERE owner_email = 'alice@company.com') as alice_rows
 FROM catalog.schema.table;
@@ -981,7 +981,7 @@ FROM catalog.schema.table;
 
 ```sql
 -- Query audit logs to see who accessed what
-SELECT 
+SELECT
     user_identity.email,
     request_params.full_name_arg AS object_accessed,
     action_name,
@@ -1052,7 +1052,7 @@ ALTER TABLE catalog.schema.partitioned_table
 -- ❌ Complex (slower)
 CREATE FUNCTION filters.complex(dept STRING, region STRING, level STRING)
 RETURNS BOOLEAN
-RETURN 
+RETURN
     (dept = 'sales' AND is_member('sales-' || region || '-' || level)) OR
     (dept = 'marketing' AND is_member('marketing-team')) OR
     is_member('executives');
@@ -1060,7 +1060,7 @@ RETURN
 -- ✅ Simplified (faster)
 CREATE FUNCTION filters.simple(dept STRING)
 RETURNS BOOLEAN
-RETURN 
+RETURN
     is_member(dept) OR is_member('executives');
 ```
 
@@ -1076,7 +1076,7 @@ CREATE INDEX idx_dept ON catalog.schema.table (department);
 
 ```sql
 -- Check query execution time
-SELECT 
+SELECT
     query_id,
     execution_duration_ms,
     query_text
@@ -1123,7 +1123,7 @@ GRANT SELECT ON TABLE data TO `analysts`;
 CREATE FUNCTION filters.sales_access(owner STRING, team STRING)
 RETURNS BOOLEAN
 COMMENT 'Row filter: Sales reps see own data | Managers see team data | Executives see all'
-RETURN 
+RETURN
     CASE
         -- Executives bypass filter
         WHEN is_member('executives') THEN TRUE
@@ -1173,7 +1173,7 @@ SHOW GRANTS ON SCHEMA production.sales;
 SHOW GRANTS ON TABLE production.sales.sensitive_data;
 
 -- Review row filters and masks
-SELECT 
+SELECT
     table_catalog,
     table_schema,
     table_name,
@@ -1227,25 +1227,25 @@ SELECT is_member('group_name') AS user_in_group;
 ```mermaid
 flowchart TD
     Start[User reports access issue]
-    
+
     Q1{Can user query<br/>the table at all?}
     Q2{Does query<br/>return 0 rows?}
     Q3{Are columns<br/>masked?}
-    
+
     Q1 -->|No, error| CheckGrants[Check GRANTs:<br/>SHOW GRANTS ON TABLE]
     Q1 -->|Yes, but wrong data| Q2
-    
+
     Q2 -->|Yes, 0 rows| CheckFilter[Check row filter:<br/>DESCRIBE TABLE EXTENDED]
     Q2 -->|No, some rows| Q3
-    
+
     Q3 -->|Yes, incorrectly| CheckMask[Check column mask:<br/>DESCRIBE TABLE<br/>SHOW CREATE FUNCTION]
     Q3 -->|No mask issue| CheckPerf[Check performance:<br/>Query execution time]
-    
+
     CheckGrants --> FixGrants[Grant missing permissions:<br/>USE CATALOG, USE SCHEMA, SELECT]
     CheckFilter --> FixFilter[Fix filter logic or<br/>check group membership]
     CheckMask --> FixMask[Fix mask function or<br/>check is_member conditions]
     CheckPerf --> Optimize[Optimize with<br/>materialized views or partitioning]
-    
+
     style Start fill:#ebf5fb,stroke:#3498db,stroke-width:2px
     style FixGrants fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
     style FixFilter fill:#d5f5e3,stroke:#27ae60,stroke-width:2px

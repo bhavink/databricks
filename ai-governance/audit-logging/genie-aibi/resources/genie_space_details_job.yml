@@ -1,0 +1,26 @@
+# Job: Genie space details (full config including serialized_space).
+#
+# SERVERLESS ONLY. Use environments + environment_key; do not add new_cluster.
+# Fetches GET /api/2.0/genie/spaces/{space_id}?include_serialized_space=true and merges
+# into main.genie_analytics.genie_space_details. Space list from genie_messages_to_fetch.
+# Same secrets (genie-obs) and config as message ingestion. Replace python_file path.
+
+name: genie_space_details_run
+
+# Required for serverless Python task (no new_cluster).
+environments:
+  - environment_key: serverless_default
+    spec: { client: "4" }
+
+tasks:
+  - task_key: run_space_details
+    description: Fetch full space config (title, description, serialized_space) and merge into genie_space_details
+    environment_key: serverless_default
+    spark_python_task:
+      python_file: "/Workspace/Users/<your-user>/genie-analytics/genie observability/python/genie_space_details.py"
+      source: WORKSPACE
+
+# Recommended: run daily or after pipeline (e.g. 0 0 2 * * ? for 02:00 UTC).
+schedule:
+  quartz_cron_expression: "0 0 2 * * ?"
+  timezone_id: "UTC"

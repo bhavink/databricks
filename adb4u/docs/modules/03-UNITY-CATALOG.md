@@ -1,6 +1,6 @@
 # Unity Catalog Module
 
-**Module**: `modules/unity-catalog`  
+**Module**: `modules/unity-catalog`
 **Purpose**: Creates and configures Unity Catalog metastore, storage, and external locations
 
 ---
@@ -288,33 +288,33 @@ resource "azurerm_role_assignment" "metastore_contributor" {
 ```hcl
 module "unity_catalog" {
   source = "../../modules/unity-catalog"
-  
+
   # Metastore configuration (create new)
   create_metastore      = true
   metastore_name        = "prod-eastus2-metastore"
   databricks_account_id = var.databricks_account_id
-  
+
   # Workspace configuration
   workspace_id     = module.workspace.workspace_id_numeric
   workspace_prefix = "proddb"
-  
+
   # Storage configuration
   location            = "eastus2"
   resource_group_name = azurerm_resource_group.this.name
-  
+
   # Access Connector (create new)
   create_access_connector = true
-  
+
   # Storage connectivity (Service Endpoints - default)
   enable_private_link_storage = false
   service_endpoints_enabled   = true
-  
+
   # Databricks providers
   providers = {
     databricks.account   = databricks.account
     databricks.workspace = databricks.workspace
   }
-  
+
   tags = {
     Environment = "Production"
   }
@@ -326,34 +326,34 @@ module "unity_catalog" {
 ```hcl
 module "unity_catalog" {
   source = "../../modules/unity-catalog"
-  
+
   # Metastore configuration (use existing)
   create_metastore       = false
   existing_metastore_id  = "abc-123-def-456"  # From first workspace
   databricks_account_id  = var.databricks_account_id
-  
+
   # Workspace configuration
   workspace_id     = module.workspace.workspace_id_numeric
   workspace_prefix = "devdb"
-  
+
   # Storage configuration
   location                        = "eastus2"
   resource_group_name             = azurerm_resource_group.this.name
   create_metastore_storage        = false  # Skip metastore storage
   create_external_location_storage = true   # Create workspace storage
-  
+
   # Access Connector (create new per workspace)
   create_access_connector = true
-  
+
   # Storage connectivity
   enable_private_link_storage = false
   service_endpoints_enabled   = true
-  
+
   providers = {
     databricks.account   = databricks.account
     databricks.workspace = databricks.workspace
   }
-  
+
   tags = {
     Environment = "Development"
   }
@@ -365,28 +365,28 @@ module "unity_catalog" {
 ```hcl
 module "unity_catalog" {
   source = "../../modules/unity-catalog"
-  
+
   create_metastore      = true
   metastore_name        = "private-eastus2-metastore"
   databricks_account_id = var.databricks_account_id
-  
+
   workspace_id     = module.workspace.workspace_id_numeric
   workspace_prefix = "privatedb"
-  
+
   location            = "eastus2"
   resource_group_name = azurerm_resource_group.this.name
-  
+
   create_access_connector = true
-  
+
   # Private Link enabled
   enable_private_link_storage         = true
   storage_private_endpoint_subnet_id  = module.networking.private_subnet_id
-  
+
   providers = {
     databricks.account   = databricks.account
     databricks.workspace = databricks.workspace
   }
-  
+
   tags = {
     Environment = "Production"
     Connectivity = "PrivateLink"
@@ -400,9 +400,9 @@ module "unity_catalog" {
 # First workspace: Create Access Connector
 module "unity_catalog_ws1" {
   source = "../../modules/unity-catalog"
-  
+
   # ... other config ...
-  
+
   create_access_connector = true
 }
 
@@ -418,9 +418,9 @@ output "shared_access_connector_principal_id" {
 # Second workspace: Use existing Access Connector
 module "unity_catalog_ws2" {
   source = "../../modules/unity-catalog"
-  
+
   # ... other config ...
-  
+
   # Use shared Access Connector
   create_access_connector                = false
   existing_access_connector_id           = module.unity_catalog_ws1.access_connector_id
@@ -528,5 +528,5 @@ See [Troubleshooting Guide](../TROUBLESHOOTING.md) for more details.
 
 ---
 
-**Module Version**: 1.0  
+**Module Version**: 1.0
 **Terraform Version**: >= 1.5

@@ -29,11 +29,11 @@ This repository provides **production-ready Terraform configurations** for deplo
 
 ### Key Features
 
-✅ **Modular Design**: Choose the configuration that matches your requirements  
-✅ **Production Ready**: Battle-tested configurations with security best practices  
-✅ **Well Documented**: Comprehensive README in each folder with architecture diagrams  
-✅ **Mermaid Diagrams**: Visual architecture and deployment flow diagrams  
-✅ **Troubleshooting**: Common issues and solutions included  
+✅ **Modular Design**: Choose the configuration that matches your requirements
+✅ **Production Ready**: Battle-tested configurations with security best practices
+✅ **Well Documented**: Comprehensive README in each folder with architecture diagrams
+✅ **Mermaid Diagrams**: Visual architecture and deployment flow diagrams
+✅ **Troubleshooting**: Common issues and solutions included
 ✅ **GCP Best Practices**: Follows Google Cloud Platform recommendations
 
 ### Repository Structure Overview
@@ -41,23 +41,23 @@ This repository provides **production-ready Terraform configurations** for deplo
 ```mermaid
 graph TB
     ROOT[Terraform Scripts Root]
-    
+
     ROOT --> INFRA[infra4db/<br/>📦 Infrastructure Foundation<br/>VPC, Subnets, NAT, Firewall]
-    
+
     ROOT --> WS_GROUP[Workspace Configurations]
     WS_GROUP --> BASIC[byovpc-ws/<br/>🟦 Basic Workspace]
     WS_GROUP --> CMEK[byovpc-cmek-ws/<br/>🟨 + Encryption]
     WS_GROUP --> PSC[byovpc-psc-ws/<br/>🟩 + Private Access]
     WS_GROUP --> SECURE[byovpc-psc-cmek-ws/<br/>🟥 Maximum Security]
-    
+
     ROOT --> GOV_GROUP[Governance Configurations]
     GOV_GROUP --> E2E[end2end/<br/>🎯 Complete Platform]
     GOV_GROUP --> UC[uc/<br/>📊 Unity Catalog Only]
-    
+
     ROOT --> DOCS[Documentation]
     DOCS --> SA_DOC[sa-impersonation.md<br/>📖 Auth Guide]
     DOCS --> README[README.md<br/>📖 This File]
-    
+
     style ROOT fill:#4285F4
     style INFRA fill:#FBBC04
     style BASIC fill:#4285F4
@@ -77,31 +77,31 @@ graph TB
 ```mermaid
 graph TB
     START[Choose Your Deployment]
-    
+
     START --> Q1{Need Infrastructure?}
     Q1 -->|Yes| INFRA[infra4db/<br/>Create VPC, Subnets, Firewall]
     Q1 -->|No, Have VPC| Q2{Need Encryption?}
-    
+
     INFRA --> Q2
-    
+
     Q2 -->|Yes, CMEK Only| Q3{Need Private Access?}
     Q2 -->|No| Q4{Need Private Access?}
-    
+
     Q3 -->|Yes, PSC + CMEK| PSC_CMEK[byovpc-psc-cmek-ws/<br/>Most Secure: PSC + CMEK]
     Q3 -->|No, Just CMEK| CMEK[byovpc-cmek-ws/<br/>Encrypted: BYOVPC + CMEK]
-    
+
     Q4 -->|Yes, PSC Only| PSC[byovpc-psc-ws/<br/>Private: BYOVPC + PSC]
     Q4 -->|No| BASIC[byovpc-ws/<br/>Basic: BYOVPC Only]
-    
+
     PSC_CMEK --> Q5{Need Unity Catalog?}
     CMEK --> Q5
     PSC --> Q5
     BASIC --> Q5
-    
+
     Q5 -->|Include Everything| E2E[end2end/<br/>Complete Deployment<br/>Workspace + Unity Catalog]
     Q5 -->|Add to Existing WS| UC[uc/<br/>Unity Catalog Only<br/>For Existing Workspace]
     Q5 -->|Not Now| DONE[Deploy Workspace]
-    
+
     style START fill:#4285F4
     style PSC_CMEK fill:#EA4335
     style E2E fill:#34A853
@@ -170,52 +170,52 @@ graph TB
     subgraph "GCP Project - Host/Shared VPC"
         subgraph "VPC Network"
             VPC[VPC Network<br/>Custom Mode]
-            
+
             subgraph "Subnets"
                 NODE_SUB[Node Subnet /24<br/>For Databricks Clusters<br/>251 usable IPs]
                 PSC_SUB[PSC Subnet /28<br/>For Private Endpoints<br/>11 usable IPs]
             end
-            
+
             subgraph "Routing"
                 ROUTER[Cloud Router]
                 NAT[Cloud NAT<br/>Internet Access]
             end
-            
+
             subgraph "Firewall Rules"
                 FW_IN[Ingress Rules<br/>Internal Traffic]
                 FW_OUT[Egress Rules<br/>Internet + GCP APIs]
             end
         end
-        
+
         subgraph "Optional: Private DNS"
             DNS[Private DNS Zone<br/>gcp.databricks.com]
         end
-        
+
         subgraph "Optional: Cloud KMS"
             KMS[KMS Key Ring<br/>+ Crypto Keys]
         end
-        
+
         subgraph "Optional: PSC Endpoints"
             PSC_FE[Frontend PSC Endpoint<br/>Workspace UI/API]
             PSC_BE[Backend PSC Endpoint<br/>Cluster Relay]
         end
     end
-    
+
     VPC --> NODE_SUB
     VPC --> PSC_SUB
     NODE_SUB --> ROUTER
     ROUTER --> NAT
     VPC --> FW_IN
     VPC --> FW_OUT
-    
+
     style VPC fill:#4285F4
     style NODE_SUB fill:#34A853
     style PSC_SUB fill:#FBBC04
     style NAT fill:#4285F4
 ```
 
-**Use Case**: Starting from scratch, no existing GCP infrastructure  
-**What It Creates**: VPC, subnets, NAT, firewall rules, optionally PSC endpoints and KMS keys  
+**Use Case**: Starting from scratch, no existing GCP infrastructure
+**What It Creates**: VPC, subnets, NAT, firewall rules, optionally PSC endpoints and KMS keys
 **Next Step**: Deploy workspace using one of the `byovpc-*` configurations
 
 ---
@@ -231,36 +231,36 @@ graph TB
         SUBNET[Node Subnet<br/>Databricks Clusters]
         NAT[Cloud NAT]
     end
-    
+
     subgraph "GCP - Service/Consumer Project"
         subgraph "Databricks Workspace"
             GKE[GKE Cluster<br/>Control Plane]
             GCS[GCS Bucket<br/>DBFS Storage]
         end
     end
-    
+
     subgraph "Internet"
         USERS[Users<br/>Public Internet]
         CONTROL[Databricks Control Plane<br/>accounts.gcp.databricks.com]
     end
-    
+
     USERS -->|HTTPS| CONTROL
     CONTROL -->|Public| GKE
     SUBNET --> NAT
     NAT -->|Public Internet| CONTROL
     GKE --> SUBNET
     GKE --> GCS
-    
+
     style CONTROL fill:#FF3621
     style GKE fill:#4285F4
     style GCS fill:#34A853
     style USERS fill:#FBBC04
 ```
 
-**Security Level**: ⭐ Basic  
-**Access**: Public internet  
-**Encryption**: Google-managed keys  
-**Best For**: Development, testing, proof-of-concept  
+**Security Level**: ⭐ Basic
+**Access**: Public internet
+**Encryption**: Google-managed keys
+**Best For**: Development, testing, proof-of-concept
 **Deployment Time**: ~12 minutes
 
 ---
@@ -275,13 +275,13 @@ graph TB
         VPC[Customer VPC]
         SUBNET[Node Subnet]
         NAT[Cloud NAT]
-        
+
         subgraph "Cloud KMS"
             KEYRING[Key Ring]
             KEY[Crypto Key<br/>Annual Rotation]
         end
     end
-    
+
     subgraph "GCP - Service/Consumer Project"
         subgraph "Databricks Workspace - Encrypted"
             GKE[GKE Cluster<br/>🔒 Encrypted with CMEK]
@@ -289,33 +289,33 @@ graph TB
             DISK[Persistent Disks<br/>🔒 Encrypted with CMEK]
         end
     end
-    
+
     subgraph "Internet"
         USERS[Users<br/>Public Access]
         CONTROL[Databricks Control Plane]
     end
-    
+
     KEYRING --> KEY
     KEY -.Encrypts.-> GCS
     KEY -.Encrypts.-> DISK
     KEY -.Encrypts.-> GKE
-    
+
     USERS --> CONTROL
     CONTROL --> GKE
     SUBNET --> NAT
     NAT --> CONTROL
     GKE --> SUBNET
-    
+
     style KEY fill:#FBBC04
     style GCS fill:#34A853
     style GKE fill:#4285F4
     style CONTROL fill:#FF3621
 ```
 
-**Security Level**: ⭐⭐ Enhanced  
-**Access**: Public internet  
-**Encryption**: Customer-managed keys (you control the keys)  
-**Best For**: Compliance requirements, sensitive data  
+**Security Level**: ⭐⭐ Enhanced
+**Access**: Public internet
+**Encryption**: Customer-managed keys (you control the keys)
+**Best For**: Compliance requirements, sensitive data
 **Deployment Time**: ~15 minutes
 
 ---
@@ -330,32 +330,32 @@ graph TB
         subgraph "Customer VPC"
             NODE_SUB[Node Subnet<br/>Clusters]
             PSC_SUB[PSC Subnet<br/>Private IPs]
-            
+
             subgraph "Private Service Connect"
                 FE_EP[Frontend PSC<br/>UI/API<br/>10.x.x.5]
                 BE_EP[Backend PSC<br/>Relay<br/>10.x.x.6]
             end
-            
+
             subgraph "Cloud DNS - Private"
                 DNS[Private DNS Zone<br/>*.gcp.databricks.com]
             end
         end
     end
-    
+
     subgraph "GCP - Service/Consumer"
         GKE[GKE Cluster]
         GCS[GCS Buckets]
     end
-    
+
     subgraph "Databricks Control Plane - Private"
         FE_SA[Frontend Service<br/>Attachment]
         BE_SA[Backend Service<br/>Attachment]
     end
-    
+
     subgraph "Users - Via VPN"
         VPN_USER[Corporate Users<br/>VPN/Private Network]
     end
-    
+
     NODE_SUB --> FE_EP
     NODE_SUB --> BE_EP
     FE_EP -.PSC.-> FE_SA
@@ -363,12 +363,12 @@ graph TB
     FE_SA --> GKE
     BE_SA --> GKE
     GKE --> NODE_SUB
-    
+
     DNS -->|Resolves to| FE_EP
     DNS -->|Private IPs| BE_EP
     VPN_USER -.DNS Lookup.-> DNS
     VPN_USER -.Private.-> FE_EP
-    
+
     style FE_SA fill:#FF3621
     style BE_SA fill:#FF3621
     style DNS fill:#FBBC04
@@ -376,10 +376,10 @@ graph TB
     style BE_EP fill:#34A853
 ```
 
-**Security Level**: ⭐⭐⭐ High  
-**Access**: Private only (requires VPN/Cloud Interconnect)  
-**Encryption**: Google-managed keys  
-**Best For**: Production workloads, regulated industries  
+**Security Level**: ⭐⭐⭐ High
+**Access**: Private only (requires VPN/Cloud Interconnect)
+**Encryption**: Google-managed keys
+**Best For**: Production workloads, regulated industries
 **Deployment Time**: ~20 minutes
 
 ---
@@ -394,20 +394,20 @@ graph TB
         subgraph "Customer VPC"
             NODE_SUB[Node Subnet]
             PSC_SUB[PSC Subnet]
-            
+
             subgraph "PSC Endpoints"
                 FE_EP[Frontend PSC<br/>Private IP]
                 BE_EP[Backend PSC<br/>Private IP]
             end
-            
+
             DNS[Private DNS<br/>Zone]
         end
-        
+
         subgraph "Cloud KMS"
             KEY[Crypto Key<br/>🔑 Customer Managed]
         end
     end
-    
+
     subgraph "GCP - Service/Consumer"
         subgraph "Encrypted & Private Workspace"
             GKE[GKE Cluster<br/>🔒 CMEK Encrypted]
@@ -415,28 +415,28 @@ graph TB
             DISK[Disks<br/>🔒 CMEK Encrypted]
         end
     end
-    
+
     subgraph "Databricks - Private"
         CONTROL[Control Plane<br/>Private Only]
     end
-    
+
     subgraph "Access - Private Only"
         VPN[Corporate VPN<br/>Required]
     end
-    
+
     KEY -.Encrypts.-> GCS
     KEY -.Encrypts.-> DISK
     KEY -.Encrypts.-> GKE
-    
+
     FE_EP -.PSC.-> CONTROL
     BE_EP -.PSC.-> CONTROL
     CONTROL --> GKE
     GKE --> NODE_SUB
-    
+
     DNS --> FE_EP
     VPN -.Private DNS.-> DNS
     VPN -.Private Access.-> FE_EP
-    
+
     style KEY fill:#FBBC04
     style CONTROL fill:#EA4335
     style FE_EP fill:#34A853
@@ -444,10 +444,10 @@ graph TB
     style GCS fill:#34A853
 ```
 
-**Security Level**: ⭐⭐⭐⭐⭐ Maximum  
-**Access**: Private only (VPN required)  
-**Encryption**: Customer-managed keys  
-**Best For**: Highly regulated environments (financial, healthcare, government)  
+**Security Level**: ⭐⭐⭐⭐⭐ Maximum
+**Access**: Private only (VPN required)
+**Encryption**: Customer-managed keys
+**Best For**: Highly regulated environments (financial, healthcare, government)
 **Deployment Time**: ~25 minutes
 
 ---
@@ -460,39 +460,39 @@ Full production platform with workspace, Unity Catalog, and governance.
 graph TB
     subgraph "GCP Infrastructure"
         VPC[Customer VPC]
-        
+
         subgraph "Storage"
             META_BUCKET[Metastore<br/>GCS Bucket]
             EXT_BUCKET[External Data<br/>GCS Bucket]
         end
     end
-    
+
     subgraph "Databricks Workspace"
         WS[Workspace<br/>Notebooks & Compute]
-        
+
         subgraph "Unity Catalog"
             META[Metastore<br/>Central Governance]
-            
+
             subgraph "Catalogs"
                 MAIN[Main Catalog]
                 DEV[Dev Catalog]
             end
-            
+
             subgraph "Schemas"
                 SCHEMA[Schemas<br/>Databases]
             end
-            
+
             subgraph "External Locations"
                 EXT_LOC[External<br/>Locations]
                 CREDS[Storage<br/>Credentials]
             end
         end
-        
+
         subgraph "Cluster Policies"
             POLICY[Fair Use Policy<br/>💰 Cost Controls<br/>🏷️ Custom Tags]
         end
     end
-    
+
     subgraph "Databricks Account"
         subgraph "Groups & Users"
             UC_ADMIN[UC Admins]
@@ -500,21 +500,21 @@ graph TB
             DATA_SCI[Data Science]
         end
     end
-    
+
     META --> META_BUCKET
     META --> MAIN
     META --> DEV
     DEV --> SCHEMA
     EXT_LOC --> EXT_BUCKET
     CREDS --> EXT_BUCKET
-    
+
     WS --> META
     WS --> POLICY
-    
+
     UC_ADMIN -.Manages.-> META
     DATA_ENG -.User Access.-> WS
     DATA_SCI -.Admin Access.-> WS
-    
+
     style META fill:#FF3621
     style UC_ADMIN fill:#FBBC04
     style POLICY fill:#34A853
@@ -530,7 +530,7 @@ graph TB
 - ✅ Custom tags for cost attribution
 - ✅ Fine-grained access control
 
-**Best For**: Production data platform, complete governance  
+**Best For**: Production data platform, complete governance
 **Deployment Time**: ~30 minutes
 
 ---
@@ -544,50 +544,50 @@ graph TB
     subgraph "Existing"
         WS[Existing Databricks<br/>Workspace<br/>Already Running]
     end
-    
+
     subgraph "Unity Catalog - Added"
         subgraph "Metastore"
             META[Unity Catalog<br/>Metastore<br/>🆕 New]
             META_BUCKET[GCS Bucket<br/>🆕 New]
         end
-        
+
         subgraph "Groups - New"
             UC_ADMIN[UC Admins<br/>🆕]
             GROUP1[Data Engineering<br/>🆕]
             GROUP2[Data Science<br/>🆕]
         end
-        
+
         subgraph "Users - Added"
             USER1[Admin Users<br/>🆕]
             USER2[Service Account<br/>🆕]
         end
-        
+
         subgraph "Workspace Assignment"
             ASSIGN[Metastore → Workspace<br/>🔗 Link]
             WS_PERM[Group Permissions<br/>🔗 Assign]
         end
     end
-    
+
     META --> META_BUCKET
     META --> ASSIGN
     ASSIGN --> WS
-    
+
     UC_ADMIN --> USER1
     UC_ADMIN --> USER2
     GROUP1 --> WS_PERM
     GROUP2 --> WS_PERM
     WS_PERM --> WS
-    
+
     UC_ADMIN -.Owns.-> META
-    
+
     style WS fill:#4285F4
     style META fill:#FF3621
     style UC_ADMIN fill:#FBBC04
     style ASSIGN fill:#34A853
 ```
 
-**Use Case**: Add Unity Catalog to workspace created without it  
-**Prerequisites**: Existing workspace (any `byovpc-*` configuration)  
+**Use Case**: Add Unity Catalog to workspace created without it
+**Prerequisites**: Existing workspace (any `byovpc-*` configuration)
 **What It Adds**:
 - ✅ Unity Catalog metastore
 - ✅ Default storage credentials
@@ -595,7 +595,7 @@ graph TB
 - ✅ Metastore assignment to workspace
 - ✅ Workspace permission assignments
 
-**Best For**: Legacy workspace migration, phased deployments  
+**Best For**: Legacy workspace migration, phased deployments
 **Deployment Time**: ~8 minutes
 
 ---
@@ -619,23 +619,23 @@ graph TB
 | **Complexity** | Low | Medium | Medium | High | High | Low |
 | **Deployment Time** | ~12 min | ~15 min | ~20 min | ~25 min | ~30 min | ~8 min |
 
-\* Can be combined with PSC/CMEK configurations  
+\* Can be combined with PSC/CMEK configurations
 \*\* Can be added (see end2end example)
 
 ### Security Level Comparison
 
 ```mermaid
 graph LR
-    A[byovpc-ws<br/>⭐ Basic<br/>Public + Standard Encryption] 
+    A[byovpc-ws<br/>⭐ Basic<br/>Public + Standard Encryption]
     B[byovpc-cmek-ws<br/>⭐⭐ Enhanced<br/>Public + CMEK]
     C[byovpc-psc-ws<br/>⭐⭐⭐ High<br/>Private + Standard Encryption]
     D[byovpc-psc-cmek-ws<br/>⭐⭐⭐⭐⭐ Maximum<br/>Private + CMEK]
-    
+
     A -->|Add Encryption| B
     A -->|Add Private Access| C
     B -->|Add Private Access| D
     C -->|Add Encryption| D
-    
+
     style A fill:#4285F4
     style B fill:#FBBC04
     style C fill:#34A853
@@ -649,35 +649,35 @@ graph TB
     subgraph "Layer 1: Foundation"
         L1[BYOVPC<br/>Customer VPC + Subnets]
     end
-    
+
     subgraph "Layer 2: Add Encryption"
         L2A[CMEK<br/>Customer-Managed Keys]
         L2B[KMS Key Ring<br/>Annual Rotation]
     end
-    
+
     subgraph "Layer 3: Add Private Access"
         L3A[PSC Endpoints<br/>Frontend + Backend]
         L3B[Private DNS<br/>Internal Resolution]
         L3C[VPN Required<br/>No Public Access]
     end
-    
+
     subgraph "Layer 4: Add Governance"
         L4A[Unity Catalog<br/>Metastore]
         L4B[External Locations<br/>Data Access]
         L4C[Cluster Policies<br/>Cost Control]
     end
-    
+
     L1 --> L2A
     L2A --> L2B
     L1 --> L3A
     L3A --> L3B
     L3B --> L3C
-    
+
     L2B --> L4A
     L3C --> L4A
     L4A --> L4B
     L4B --> L4C
-    
+
     style L1 fill:#4285F4
     style L2A fill:#FBBC04
     style L3A fill:#34A853
@@ -828,30 +828,30 @@ terraform-scripts/
 ```mermaid
 graph TB
     START[Start Here]
-    
+
     subgraph "Phase 1: Foundation"
         P1[Deploy Infrastructure<br/>infra4db/<br/>VPC + Subnets + Firewall]
     end
-    
+
     subgraph "Phase 2: Basic Workspace"
         P2A[Option A: Simple<br/>byovpc-ws/<br/>Quick Start]
         P2B[Option B: Secure<br/>byovpc-psc-cmek-ws/<br/>Production Ready]
     end
-    
+
     subgraph "Phase 3: Data Governance"
         P3[Add Unity Catalog<br/>uc/ or end2end/<br/>Metadata Management]
     end
-    
+
     subgraph "Phase 4: Enhancement"
         P4A[Add Cluster Policies<br/>Cost Control]
         P4B[Add External Locations<br/>Data Integration]
         P4C[Configure Groups<br/>Access Management]
     end
-    
+
     subgraph "Phase 5: Production"
         P5[Production Ready!<br/>✅ Secure<br/>✅ Governed<br/>✅ Cost Controlled]
     end
-    
+
     START --> P1
     P1 --> P2A
     P1 --> P2B
@@ -863,7 +863,7 @@ graph TB
     P4A --> P5
     P4B --> P5
     P4C --> P5
-    
+
     style START fill:#4285F4
     style P1 fill:#FBBC04
     style P2B fill:#EA4335
@@ -1091,37 +1091,37 @@ sequenceDiagram
     participant KMS as Cloud KMS (Optional)
     participant PSC as PSC Endpoints (Optional)
     participant UC as Unity Catalog (Optional)
-    
+
     Note over User,GCP: Phase 1: Infrastructure (infra4db/)
     User->>GCP: Create VPC
     User->>GCP: Create Subnets (Node + PSC)
     User->>GCP: Create Firewall Rules
     User->>GCP: Create Cloud NAT
-    
+
     Note over User,KMS: Phase 2: CMEK (if enabled)
     User->>KMS: Create Key Ring
     User->>KMS: Create Crypto Key
     User->>DB_ACC: Register CMEK
-    
+
     Note over User,PSC: Phase 3: PSC (if enabled)
     User->>GCP: Create PSC Private IPs
     User->>GCP: Create PSC Endpoints
     User->>DB_ACC: Register VPC Endpoints
     User->>GCP: Create Private DNS Zone
-    
+
     Note over User,DB_ACC: Phase 4: Workspace
     User->>DB_ACC: Create Network Config
     User->>DB_ACC: Create Private Access Settings (if PSC)
     User->>DB_ACC: Create Workspace
     DB_ACC->>GCP: Deploy GKE + Storage
-    
+
     Note over User,UC: Phase 5: Unity Catalog (if enabled)
     User->>GCP: Create Metastore GCS Bucket
     User->>UC: Create Metastore
     User->>UC: Assign to Workspace
     User->>UC: Create Catalogs & Schemas
     User->>UC: Configure External Storage
-    
+
     Note over User: Complete!
 ```
 
@@ -1240,35 +1240,35 @@ graph TB
     subgraph "Infrastructure Foundation"
         INFRA[infra4db<br/>📦 VPC, Subnets, NAT<br/>⏱️ ~5 min]
     end
-    
+
     subgraph "Workspace Configurations"
         BASIC[byovpc-ws<br/>🟦 Basic Workspace<br/>⭐ Public Access<br/>⏱️ ~12 min]
-        
+
         CMEK[byovpc-cmek-ws<br/>🟨 + CMEK<br/>⭐⭐ Encrypted<br/>🔑 Customer Keys<br/>⏱️ ~15 min]
-        
+
         PSC[byovpc-psc-ws<br/>🟩 + PSC<br/>⭐⭐⭐ Private<br/>🔒 VPN Required<br/>⏱️ ~20 min]
-        
+
         SECURE[byovpc-psc-cmek-ws<br/>🟥 + PSC + CMEK<br/>⭐⭐⭐⭐⭐ Maximum Security<br/>🔒 Private + Encrypted<br/>⏱️ ~25 min]
     end
-    
+
     subgraph "Governance Layer"
         E2E[end2end<br/>🎯 Complete Platform<br/>✅ Workspace<br/>✅ Unity Catalog<br/>✅ Policies<br/>⏱️ ~30 min]
-        
+
         UC_ONLY[uc<br/>📊 UC Only<br/>Add to Existing WS<br/>⏱️ ~8 min]
     end
-    
+
     INFRA -.Optional.-> BASIC
     INFRA -.Optional.-> CMEK
     INFRA -.Optional.-> PSC
     INFRA -.Optional.-> SECURE
-    
+
     BASIC -.Add UC.-> UC_ONLY
     CMEK -.Add UC.-> UC_ONLY
     PSC -.Add UC.-> UC_ONLY
     SECURE -.Add UC.-> UC_ONLY
-    
+
     INFRA -.All-in-One.-> E2E
-    
+
     style INFRA fill:#FBBC04
     style BASIC fill:#4285F4
     style CMEK fill:#FBBC04
@@ -1284,7 +1284,7 @@ graph TB
 graph TD
     subgraph "Components Included"
         direction TB
-        
+
         C1[Workspace<br/>✅ ✅ ✅ ✅ ✅ ❌]
         C2[BYOVPC<br/>✅ ✅ ✅ ✅ ✅ N/A]
         C3[CMEK<br/>❌ ✅ ❌ ✅ ❌ N/A]
@@ -1293,7 +1293,7 @@ graph TD
         C6[Policies<br/>❌ ❌ ❌ ❌ ✅ ❌]
         C7[External Storage<br/>❌ ❌ ❌ ❌ ✅ ❌]
     end
-    
+
     subgraph "Legend"
         L1[byovpc-ws]
         L2[byovpc-cmek-ws]
@@ -1302,7 +1302,7 @@ graph TD
         L5[end2end]
         L6[uc]
     end
-    
+
     style L1 fill:#4285F4
     style L2 fill:#FBBC04
     style L3 fill:#34A853

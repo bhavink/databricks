@@ -1,4 +1,4 @@
-***REMOVED*** Terraform
+# Terraform
 *.tfstate
 *.tfstate.*
 *.tfstate.backup
@@ -16,13 +16,13 @@ override.tf.json
 terraform.rc
 tfplan
 
-***REMOVED*** Environment files
+# Environment files
 .env
 .env.*
 .env.local
 *.local
 
-***REMOVED*** Cloud credentials
+# Cloud credentials
 *-key.json
 *-credentials.json
 *-policy.json
@@ -32,7 +32,7 @@ tfplan
 *.p12
 *.pfx
 
-***REMOVED*** Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -51,7 +51,7 @@ htmlcov/
 dist/
 build/
 
-***REMOVED*** IDE
+# IDE
 .vscode/
 .idea/
 *.swp
@@ -59,18 +59,18 @@ build/
 *~
 .DS_Store
 
-***REMOVED*** Databricks
+# Databricks
 .dbx/
 *.dbc
 
-***REMOVED*** Checkpoint documents (development tracking, not for version control)
+# Checkpoint documents (development tracking, not for version control)
 **/checkpoint/
 
-***REMOVED*** Logs
+# Logs
 *.log
 logs/
 
-***REMOVED*** Temporary files
+# Temporary files
 tmp/
 temp/
 *.tmp

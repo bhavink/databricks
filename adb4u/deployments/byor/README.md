@@ -10,9 +10,9 @@ The BYOR pattern creates pre-configured networking and security infrastructure t
 
 ### Use Cases
 
-✅ **Separation of Concerns**: Network team manages infrastructure, platform team deploys workspaces  
-✅ **Infrastructure Reuse**: Deploy multiple workspaces using the same network  
-✅ **Pre-validated Setup**: All Databricks requirements configured correctly  
+✅ **Separation of Concerns**: Network team manages infrastructure, platform team deploys workspaces
+✅ **Infrastructure Reuse**: Deploy multiple workspaces using the same network
+✅ **Pre-validated Setup**: All Databricks requirements configured correctly
 ✅ **CMK Centralization**: Shared Key Vault across workspaces (optional)
 
 ---
@@ -339,9 +339,9 @@ terraform apply
 
 ### What Happens
 
-✅ **BYOR creates**: VNet, Subnets, NSG, NAT Gateway, Key Vault  
-✅ **Non-PL workspace creates**: Workspace, Unity Catalog, NCC, SEP  
-✅ **Full-Private workspace creates**: Workspace, Unity Catalog, Private Endpoints, NCC  
+✅ **BYOR creates**: VNet, Subnets, NSG, NAT Gateway, Key Vault
+✅ **Non-PL workspace creates**: Workspace, Unity Catalog, NCC, SEP
+✅ **Full-Private workspace creates**: Workspace, Unity Catalog, Private Endpoints, NCC
 
 Both workspaces share the same network and Key Vault! 🎉
 

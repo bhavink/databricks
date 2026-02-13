@@ -50,7 +50,7 @@ flowchart TB
             DBSQL["📊 DBSQL"]
             ExtMCP["🔗 External MCP"]
         end
-        
+
         subgraph Other["Other Services"]
             Gateway["🌉 AI Gateway"]
             LB["🗃️ Lakebase"]
@@ -132,22 +132,22 @@ Your agent runs **on** Databricks (Model Serving) and needs to access resources.
 ```mermaid
 flowchart LR
     Agent["🤖 Agent<br/>(Model Serving)"]
-    
+
     Agent --> Q1{Resource<br/>Type?}
-    
+
     Q1 -->|"Databricks<br/>Resource"| Q2{Need User<br/>Context?}
     Q1 -->|"External<br/>Service"| Manual["🔑 Manual Auth<br/>(Secrets)"]
-    
+
     Q2 -->|"No"| Auto["⚡ Automatic<br/>Passthrough"]
     Q2 -->|"Yes"| OBO["👤 OBO<br/>(User Identity)"]
-    
+
     Auto --> SP["Uses: Service Principal"]
     OBO --> User["Uses: End User Identity"]
     Manual --> Creds["Uses: Stored Credentials"]
-    
+
     SP --> UC["Unity Catalog<br/>Governance"]
     User --> UC
-    
+
     style Auto fill:#4ade80,color:#1a1a2e
     style OBO fill:#22d3ee,color:#1a1a2e
     style Manual fill:#f97316,color:#fff

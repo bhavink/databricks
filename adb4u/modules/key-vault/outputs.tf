@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Key Vault Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# Key Vault Outputs
+# ==============================================
 
 output "key_vault_id" {
   description = "Key Vault resource ID"
@@ -17,9 +17,9 @@ output "key_vault_uri" {
   value       = var.create_key_vault ? azurerm_key_vault.this[0].vault_uri : ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** CMK Key Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# CMK Key Outputs
+# ==============================================
 
 output "key_id" {
   description = "CMK key ID (full versioned ID)"
@@ -36,9 +36,9 @@ output "key_name" {
   value       = var.key_name
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Configuration Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# Configuration Outputs
+# ==============================================
 
 output "key_vault_configuration" {
   description = "Key Vault configuration summary"
@@ -55,9 +55,9 @@ output "key_vault_configuration" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Advanced Outputs (Full Objects)
-***REMOVED*** ==============================================
+# ==============================================
+# Advanced Outputs (Full Objects)
+# ==============================================
 
 output "key_vault" {
   description = "Complete Key Vault object (for advanced use)"

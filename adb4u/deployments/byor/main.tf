@@ -1,23 +1,23 @@
-***REMOVED*** ==============================================
-***REMOVED*** BYOR (Bring Your Own Resources) Deployment
-***REMOVED*** ==============================================
-***REMOVED***
-***REMOVED*** This deployment creates Databricks-ready infrastructure that can be
-***REMOVED*** reused across multiple workspace deployments (Non-PL, Full-Private).
-***REMOVED***
-***REMOVED*** Resources Created:
-***REMOVED*** - VNet with Databricks subnets (with delegation)
-***REMOVED*** - NSG with Databricks-required rules
-***REMOVED*** - Service Endpoints (Storage, KeyVault, EventHub)
-***REMOVED*** - (Optional) NAT Gateway for Non-PL pattern
-***REMOVED*** - (Optional) Private Link subnet for Full-Private pattern
-***REMOVED*** - (Optional) Key Vault + CMK for encryption
-***REMOVED***
-***REMOVED*** Output: Copy-paste ready configuration for workspace deployment
-***REMOVED***
-***REMOVED*** ==============================================
+# ==============================================
+# BYOR (Bring Your Own Resources) Deployment
+# ==============================================
+#
+# This deployment creates Databricks-ready infrastructure that can be
+# reused across multiple workspace deployments (Non-PL, Full-Private).
+#
+# Resources Created:
+# - VNet with Databricks subnets (with delegation)
+# - NSG with Databricks-required rules
+# - Service Endpoints (Storage, KeyVault, EventHub)
+# - (Optional) NAT Gateway for Non-PL pattern
+# - (Optional) Private Link subnet for Full-Private pattern
+# - (Optional) Key Vault + CMK for encryption
+#
+# Output: Copy-paste ready configuration for workspace deployment
+#
+# ==============================================
 
-***REMOVED*** Random suffix for unique resource naming
+# Random suffix for unique resource naming
 resource "random_string" "deployment_suffix" {
   length  = 4
   special = false
@@ -27,7 +27,7 @@ resource "random_string" "deployment_suffix" {
 }
 
 locals {
-  ***REMOVED*** Merge user-provided tags with required owner and keepuntil tags
+  # Merge user-provided tags with required owner and keepuntil tags
   all_tags = merge(
     var.tags,
     {
@@ -37,9 +37,9 @@ locals {
   )
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Resource Group
-***REMOVED*** ==============================================
+# ==============================================
+# Resource Group
+# ==============================================
 
 data "azurerm_resource_group" "existing" {
   count = var.use_existing_resource_group ? 1 : 0
@@ -58,9 +58,9 @@ locals {
   resource_group_id   = var.use_existing_resource_group ? data.azurerm_resource_group.existing[0].id : azurerm_resource_group.this[0].id
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Virtual Network
-***REMOVED*** ==============================================
+# ==============================================
+# Virtual Network
+# ==============================================
 
 resource "azurerm_virtual_network" "this" {
   name                = "${var.workspace_prefix}-vnet-${random_string.deployment_suffix.result}"
@@ -74,9 +74,9 @@ resource "azurerm_virtual_network" "this" {
   ]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Security Group (NSG)
-***REMOVED*** ==============================================
+# ==============================================
+# Network Security Group (NSG)
+# ==============================================
 
 resource "azurerm_network_security_group" "this" {
   name                = "${var.workspace_prefix}-nsg-${random_string.deployment_suffix.result}"
@@ -84,8 +84,8 @@ resource "azurerm_network_security_group" "this" {
   resource_group_name = local.resource_group_name
   tags                = local.all_tags
 
-  ***REMOVED*** Databricks-required rules for NPIP (Secure Cluster Connectivity)
-  ***REMOVED*** Reference: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/customer-managed-vpc
+  # Databricks-required rules for NPIP (Secure Cluster Connectivity)
+  # Reference: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/customer-managed-vpc
   
   security_rule {
     name                       = "AllowAzureDatabricksControlPlane"
@@ -142,9 +142,9 @@ resource "azurerm_network_security_group" "this" {
   depends_on = [azurerm_virtual_network.this]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Public/Host Subnet
-***REMOVED*** ==============================================
+# ==============================================
+# Public/Host Subnet
+# ==============================================
 
 resource "azurerm_subnet" "public" {
   name                 = "${var.workspace_prefix}-public-subnet-${random_string.deployment_suffix.result}"
@@ -152,7 +152,7 @@ resource "azurerm_subnet" "public" {
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [var.public_subnet_address_prefix]
 
-  ***REMOVED*** Subnet delegation for Databricks
+  # Subnet delegation for Databricks
   delegation {
     name = "databricks-delegation"
 
@@ -166,7 +166,7 @@ resource "azurerm_subnet" "public" {
     }
   }
 
-  ***REMOVED*** Service Endpoints
+  # Service Endpoints
   service_endpoints = [
     "Microsoft.Storage",
     "Microsoft.KeyVault",
@@ -186,9 +186,9 @@ resource "azurerm_subnet_network_security_group_association" "public" {
   ]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Private/Container Subnet
-***REMOVED*** ==============================================
+# ==============================================
+# Private/Container Subnet
+# ==============================================
 
 resource "azurerm_subnet" "private" {
   name                 = "${var.workspace_prefix}-private-subnet-${random_string.deployment_suffix.result}"
@@ -196,7 +196,7 @@ resource "azurerm_subnet" "private" {
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [var.private_subnet_address_prefix]
 
-  ***REMOVED*** Subnet delegation for Databricks
+  # Subnet delegation for Databricks
   delegation {
     name = "databricks-delegation"
 
@@ -210,7 +210,7 @@ resource "azurerm_subnet" "private" {
     }
   }
 
-  ***REMOVED*** Service Endpoints
+  # Service Endpoints
   service_endpoints = [
     "Microsoft.Storage",
     "Microsoft.KeyVault",
@@ -230,9 +230,9 @@ resource "azurerm_subnet_network_security_group_association" "private" {
   ]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Private Link Subnet (Optional - for Full-Private)
-***REMOVED*** ==============================================
+# ==============================================
+# Private Link Subnet (Optional - for Full-Private)
+# ==============================================
 
 resource "azurerm_subnet" "privatelink" {
   count                = var.create_privatelink_subnet ? 1 : 0
@@ -241,11 +241,11 @@ resource "azurerm_subnet" "privatelink" {
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [var.privatelink_subnet_address_prefix]
 
-  ***REMOVED*** NO delegation - Private Link subnets cannot have delegation
-  ***REMOVED*** Private Endpoints are not compatible with subnet delegation
-  ***REMOVED*** Reference: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview***REMOVED***private-endpoint-properties
+  # NO delegation - Private Link subnets cannot have delegation
+  # Private Endpoints are not compatible with subnet delegation
+  # Reference: https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview#private-endpoint-properties
 
-  ***REMOVED*** Service Endpoints (for hybrid scenarios)
+  # Service Endpoints (for hybrid scenarios)
   service_endpoints = [
     "Microsoft.Storage",
     "Microsoft.KeyVault"
@@ -254,9 +254,9 @@ resource "azurerm_subnet" "privatelink" {
   depends_on = [azurerm_virtual_network.this]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** NAT Gateway (Optional - for Non-PL)
-***REMOVED*** ==============================================
+# ==============================================
+# NAT Gateway (Optional - for Non-PL)
+# ==============================================
 
 resource "azurerm_public_ip" "nat" {
   count               = var.enable_nat_gateway ? 1 : 0
@@ -320,9 +320,9 @@ resource "azurerm_subnet_nat_gateway_association" "private" {
   ]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Key Vault Module (Optional - for CMK)
-***REMOVED*** ==============================================
+# ==============================================
+# Key Vault Module (Optional - for CMK)
+# ==============================================
 
 module "key_vault" {
   count  = var.create_key_vault ? 1 : 0
@@ -336,7 +336,7 @@ module "key_vault" {
   location               = var.location
   workspace_prefix       = var.workspace_prefix
   tags                   = local.all_tags
-  databricks_principal_id = "" ***REMOVED*** Will be set by workspace team during deployment
+  databricks_principal_id = "" # Will be set by workspace team during deployment
 
   depends_on = [
     azurerm_resource_group.this

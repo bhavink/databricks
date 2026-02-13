@@ -1,7 +1,7 @@
 # Healthcare Data Connectors - Design Document
 
-> **Version**: 10.0  
-> **Updated**: 2026-02-04  
+> **Version**: 10.0
+> **Updated**: 2026-02-04
 
 ---
 
@@ -26,33 +26,33 @@ graph TB
         ROOT[databricks.yml<br/>Combined Bundle]
         README[README.md<br/>Quick Start]
         DESIGN[DESIGN.md<br/>This File]
-        
+
         subgraph "data_generation/"
             HL7GEN[hl7v2_faker.py]
             FHIRGEN[fhir_faker.py]
         end
-        
+
         subgraph "pipelines/healthcare_ingestion/"
             subgraph "hl7v2/"
                 HL7YML[databricks.yml<br/>Standalone]
                 HL7TRANS[transformations/<br/>bronze_hl7v2.py]
                 HL7TEST[tests/]
             end
-            
+
             subgraph "fhir/"
                 FHIRYML[databricks.yml<br/>Standalone]
                 FHIRBRONZE[bronze_fhir.py]
                 FHIRSILVER[silver_fhir.py]
                 FHIRSTREAM[streaming_fhir_example.py]
                 FHIRTEST[tests/]
-                
+
                 subgraph "ingestion/"
                     INGYML[databricks.yml]
                     INGCLIENT[fhir_client.py]
                     INGSERVERS[fhir_servers.py<br/>Server Presets]
                 end
             end
-            
+
             subgraph "notebooks/"
                 SANKEY1[hl7v2_sankey.py]
                 SANKEY2[fhir_sankey.py]
@@ -60,7 +60,7 @@ graph TB
             end
         end
     end
-    
+
     ROOT --> HL7TRANS
     ROOT --> FHIRBRONZE
     ROOT --> FHIRSILVER
@@ -77,11 +77,11 @@ flowchart LR
         A1[databricks.yml] --> A2[HL7v2 Pipeline]
         A1 --> A3[FHIR Pipeline]
     end
-    
+
     subgraph "Option B: Standalone HL7v2"
         B1[hl7v2/databricks.yml] --> B2[HL7v2 Pipeline Only]
     end
-    
+
     subgraph "Option C: Standalone FHIR"
         C1[fhir/databricks.yml] --> C2[FHIR Pipeline Only]
     end
@@ -99,22 +99,22 @@ flowchart TB
         VOL1["/Volumes/.../hl7v2/*.hl7"]
         AL1[Auto Loader<br/>cloudFiles]
     end
-    
+
     subgraph "Bronze Layer"
         RAW1[bronze_hl7v2_raw<br/>All Messages]
         QUAR1[bronze_hl7v2_quarantine<br/>Failed Records]
-        
+
         ADT[bronze_hl7v2_adt<br/>~40%]
         ORM[bronze_hl7v2_orm<br/>~15%]
         ORU[bronze_hl7v2_oru<br/>~30%]
         SIU[bronze_hl7v2_siu<br/>~8%]
         VXU[bronze_hl7v2_vxu<br/>~2%]
-        
+
         ORU_OBS[bronze_hl7v2_oru_observations]
         SIU_RES[bronze_hl7v2_siu_resources]
         VXU_VAX[bronze_hl7v2_vxu_vaccinations]
     end
-    
+
     VOL1 --> AL1
     AL1 --> |parse_message_udf| RAW1
     AL1 --> |invalid| QUAR1
@@ -136,12 +136,12 @@ flowchart TB
         VOL2["/Volumes/.../fhir/*.ndjson"]
         AL2[Auto Loader<br/>cloudFiles]
     end
-    
+
     subgraph "Bronze Layer"
         RAW2[bronze_fhir_raw<br/>All Resources]
         QUAR2[bronze_fhir_quarantine<br/>Invalid JSON/Schema]
     end
-    
+
     subgraph "Silver Layer"
         PAT[silver_fhir_patient]
         OBS[silver_fhir_observation]
@@ -150,7 +150,7 @@ flowchart TB
         MED[silver_fhir_medication_request]
         IMM[silver_fhir_immunization]
     end
-    
+
     VOL2 --> AL2
     AL2 --> |parse_fhir_udf| RAW2
     AL2 --> |invalid| QUAR2
@@ -176,18 +176,18 @@ flowchart TB
         SRC1[File Drop<br/>SFTP/Blob] --> VOL1[UC Volume]
         VOL1 --> AL1[Auto Loader]
     end
-    
+
     subgraph "Option B: Notebook + Workflow"
         API1[FHIR Server<br/>REST API] --> NB1[Ingestion<br/>Notebook]
         NB1 --> VOL2[UC Volume]
         VOL2 --> AL2[Auto Loader]
     end
-    
+
     subgraph "Option C: Streaming with SDP"
         API2[Kafka/Event Hubs<br/>FHIR Events] --> STREAM[SDP Streaming<br/>Table]
         STREAM --> PROC[Same Processing]
     end
-    
+
     AL1 --> PIPELINE[SDP Pipeline<br/>Unchanged]
     AL2 --> PIPELINE
     PROC --> PIPELINE
@@ -280,7 +280,7 @@ def bronze_fhir_streaming():
     """Stream FHIR from Kafka - same @dp decorators as batch"""
     kafka_servers = spark.conf.get("fhir.streaming.kafka.servers")
     kafka_topic = spark.conf.get("fhir.streaming.kafka.topic")
-    
+
     return (
         spark.readStream
         .format("kafka")
@@ -358,14 +358,14 @@ def parse_fhir_resource(raw_json: str) -> dict:
     Executors cannot import from workspace files.
     """
     import json  # Import INSIDE function
-    
+
     # Define helpers INSIDE function
     def extract_coding(codeable_concept):
         if not codeable_concept:
             return None
         codings = codeable_concept.get("coding", [])
         return codings[0] if codings else None
-    
+
     try:
         resource = json.loads(raw_json)
         return {
@@ -391,16 +391,16 @@ flowchart TD
     START[Need Custom Function?] --> Q1{Numeric/Date<br/>Operations?}
     Q1 --> |Yes| Q2{Large Dataset<br/>>1M rows?}
     Q1 --> |No| Q3{String Parsing<br/>JSON/Text?}
-    
+
     Q2 --> |Yes| VUDF[Use Vectorized UDF<br/>pandas_udf]
     Q2 --> |No| SCALAR[Scalar UDF OK]
-    
+
     Q3 --> |Complex JSON| SCALAR
     Q3 --> |Simple String| Q4{Performance<br/>Critical?}
-    
+
     Q4 --> |Yes| VUDF
     Q4 --> |No| SCALAR
-    
+
     VUDF --> BENEFIT[10-100x faster<br/>Arrow serialization]
     SCALAR --> NOTE[Easier to debug<br/>Row-by-row]
 ```
@@ -513,11 +513,11 @@ flowchart TD
     Q1{Data Structure?} --> |Known, Stable| TYPED[Use Typed Columns]
     Q1 --> |Evolving, Extensions| VARIANT[Use VARIANT]
     Q1 --> |Mix| HYBRID[Hybrid Approach]
-    
+
     TYPED --> EX1[patient_id STRING<br/>birth_date DATE<br/>status STRING]
-    
+
     VARIANT --> EX2[extensions VARIANT<br/>raw_resource VARIANT<br/>meta VARIANT]
-    
+
     HYBRID --> EX3[Core fields: typed<br/>Complex nested: VARIANT]
 ```
 
@@ -533,7 +533,7 @@ CREATE TABLE silver_fhir_patient (
     deceased_boolean BOOLEAN,
     name_family STRING,
     name_given STRING,
-    
+
     -- VARIANT for evolving/complex data
     raw_resource VARIANT,      -- Full FHIR resource for reprocessing
     identifiers VARIANT,       -- Array of identifiers
@@ -541,7 +541,7 @@ CREATE TABLE silver_fhir_patient (
     addresses VARIANT,         -- Array of addresses
     telecoms VARIANT,          -- Array of contact info
     extensions VARIANT,        -- FHIR extensions (always evolving)
-    
+
     -- Metadata
     _ingestion_timestamp TIMESTAMP,
     _source_file STRING
@@ -553,7 +553,7 @@ CLUSTER BY (id, gender);
 
 ```sql
 -- Access nested VARIANT data
-SELECT 
+SELECT
     id,
     raw_resource:meta:lastUpdated::timestamp AS last_updated,
     extensions[0]:url AS first_extension_url,
@@ -570,15 +570,15 @@ WHERE raw_resource:active::boolean = true;
 ```mermaid
 flowchart LR
     INPUT[Incoming<br/>Records] --> EXPECT{Expectation<br/>Check}
-    
+
     EXPECT --> |Pass| VALID[Valid Records<br/>→ Target Table]
     EXPECT --> |Fail| DECISION{Handling<br/>Strategy}
-    
+
     DECISION --> |expect| LOG[Log Metric<br/>Continue]
     DECISION --> |expect_or_drop| DROP[Drop Silently]
     DECISION --> |expect_or_quarantine| QUAR[Quarantine Table]
     DECISION --> |expect_or_fail| FAIL[Fail Pipeline]
-    
+
     LOG --> VALID
 ```
 
@@ -605,7 +605,7 @@ Production pipelines must handle failures gracefully without crashing. These pat
 def parse_fhir_resource(raw_json: str) -> dict:
     """
     RESILIENCE PATTERN: Outer try/except catches ALL exceptions.
-    
+
     This ensures:
     1. A single bad record never crashes the pipeline
     2. Errors are captured for debugging
@@ -618,24 +618,24 @@ def parse_fhir_resource(raw_json: str) -> dict:
         "resource_id": None,
         "validation_errors": []
     }
-    
+
     # OUTER try/except catches ALL unexpected exceptions
     try:
         # Handle null/empty input first
         if raw_json is None or not raw_json.strip():
             result["validation_errors"].append("Input is null or empty")
             return result
-        
+
         # Inner try for specific JSON errors
         try:
             resource = json.loads(raw_json)
         except (json.JSONDecodeError, TypeError) as e:
             result["validation_errors"].append(f"JSON parse error: {str(e)}")
             return result
-        
+
         # ... parsing logic ...
         return result
-        
+
     except Exception as e:
         # Catch-all: captures ANY unexpected error
         result["validation_errors"].append(f"Unexpected error: {type(e).__name__}: {str(e)}")
@@ -659,15 +659,15 @@ def bronze_fhir_raw():
         .format("cloudFiles")
         .load(STORAGE_PATH)
     )
-    
+
     with_timestamp = (
         raw_files
         .withColumn("_ingestion_timestamp", current_timestamp())
     )
-    
+
     # Apply watermark - critical for production streaming
     watermarked = with_timestamp.withWatermark("_ingestion_timestamp", "2 hours")
-    
+
     return watermarked
 ```
 
@@ -689,7 +689,7 @@ Built-in views for monitoring data quality and pipeline health.
 def bronze_fhir_quality_metrics():
     """
     OBSERVABILITY: Tracks validation success rates by resource type.
-    
+
     Provides:
     - Total/valid/invalid counts
     - Validation success rate percentage
@@ -731,7 +731,7 @@ def bronze_fhir_quality_metrics():
 def bronze_fhir_freshness():
     """
     OBSERVABILITY: Monitors data freshness for SLA tracking.
-    
+
     Helps detect:
     - Ingestion delays
     - Pipeline stalls
@@ -811,19 +811,19 @@ flowchart LR
         F2[File 2<br/>Mixed Data]
         F3[File 3<br/>Mixed Data]
     end
-    
+
     subgraph "With Clustering"
         C1[File 1<br/>Patient A-M]
         C2[File 2<br/>Patient N-Z]
         C3[File 3<br/>Dates 2024]
     end
-    
+
     Q[Query: patient_id = 'P123'] --> F1
     Q --> F2
     Q --> F3
-    
+
     Q2[Same Query] --> C1
-    
+
     style F1 fill:#ffcccc
     style F2 fill:#ffcccc
     style F3 fill:#ffcccc
@@ -843,18 +843,18 @@ flowchart TB
     subgraph "Integration Tests (Few)"
         E2E[End-to-End DLT<br/>Requires Spark Cluster]
     end
-    
+
     subgraph "Component Tests (Some)"
         SCHEMA[Schema Validation]
         QUARANTINE[Quarantine Logic]
     end
-    
+
     subgraph "Unit Tests (Many)"
         PARSER[Parser Functions]
         VALIDATOR[Field Validators]
         COMPOSITE[Composite Parsers]
     end
-    
+
     E2E --> SCHEMA
     E2E --> QUARANTINE
     SCHEMA --> PARSER

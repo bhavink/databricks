@@ -35,7 +35,7 @@ sequenceDiagram
     participant SG as Security Group
     participant VPCE as VPC Endpoint<br/>10.0.3.5
     participant DB as Databricks<br/>Control Plane
-    
+
     C->>DNS: Resolve dbc-*.cloud.databricks.com
     DNS-->>C: Returns 10.0.3.5 (private IP)
     C->>RT: Lookup route for 10.0.3.5
@@ -67,7 +67,7 @@ flowchart LR
     S3 -->|4. If encrypted| KMS["KMS Key<br/>Decrypt"]
     KMS -->|5. Decrypted data| S3
     S3 -->|6. Response| C
-    
+
     style GW fill:#569A31
     style KMS fill:#FF9900
 ```
@@ -180,7 +180,7 @@ flowchart TD
         S3["S3 Buckets<br/>• DBFS Root<br/>• UC Metastore<br/>• UC External"]
         KMS1 -->|Encrypts| S3
     end
-    
+
     subgraph "Layer 2: Workspace CMK"
         KMS2["KMS Key<br/>Workspace Storage"]
         DBFS["DBFS Root<br/>at-rest"]
@@ -190,7 +190,7 @@ flowchart TD
         KMS2 -->|Encrypts| EBS
         KMS2 -->|Encrypts| MS
     end
-    
+
     style KMS1 fill:#569A31
     style KMS2 fill:#FF9900
 ```
@@ -247,16 +247,16 @@ Manual Rotation to Different Key:
 flowchart TD
     START["enable_private_link"] -->|true| PL["Private Link Path"]
     START -->|false| PUB["Public Internet Path"]
-    
+
     PL --> PLDNS["DNS returns<br/>private IP 10.0.3.x"]
     PLDNS --> PLVPCE["Traffic via<br/>VPC Endpoint"]
     PLVPCE --> PLDB["Databricks<br/>Private Link"]
-    
+
     PUB --> PUBDNS["DNS returns<br/>public IP"]
     PUBDNS --> NAT["Traffic via<br/>NAT Gateway"]
     NAT --> IGW["Internet<br/>Gateway"]
     IGW --> PUBDB["Databricks<br/>Public Internet"]
-    
+
     style PL fill:#569A31
     style PUB fill:#FF9900
 ```
@@ -265,7 +265,7 @@ flowchart TD
 
 | Aspect | Private Link (true) | Public Internet (false) |
 |--------|---------------------|-------------------------|
-| DNS Resolution | Private IP 10.0.3.x | Public IP | 
+| DNS Resolution | Private IP 10.0.3.x | Public IP |
 | Traffic Path | VPC Endpoint → Private Link | NAT → Internet |
 | Data Egress Charges | Lower | Higher |
 | Security | No internet exposure | Internet-routable |
@@ -319,13 +319,13 @@ sequenceDiagram
     participant C as Cluster
     participant DNS as VPC DNS
     participant VPCE as VPC Endpoint
-    
+
     Note over VPCE: private_dns_enabled = true
     C->>DNS: Query dbc-abc123.cloud.databricks.com
     DNS->>VPCE: Check VPCE private hosted zone
     VPCE-->>DNS: Return 10.0.3.5 (private IP)
     DNS-->>C: 10.0.3.5
-    
+
     Note over C: Traffic stays in VPC!
 ```
 
@@ -430,7 +430,7 @@ sequenceDiagram
     participant DNS as VPC DNS
     participant VPCE as VPC Endpoint<br/>(Regional)
     participant S3 as S3 Service<br/>(Regional)
-    
+
     Note over Cluster,S3: Without Spark Config (Default)
     Cluster->>DNS: Resolve s3.amazonaws.com (global)
     DNS-->>Cluster: Private IP (VPC endpoint)
@@ -438,7 +438,7 @@ sequenceDiagram
     VPCE->>S3: Regional service
     S3-->>VPCE: Response
     VPCE-->>Cluster: Response
-    
+
     Note over Cluster,S3: With Spark Regional Config
     Cluster->>DNS: Resolve s3.<region>.amazonaws.com
     DNS-->>Cluster: Private IP (VPC endpoint)
@@ -455,15 +455,15 @@ sequenceDiagram
 ### 7.5 Troubleshooting Regional Endpoints
 
 #### Issue: "Access Denied" after applying Spark config
-**Cause**: S3 bucket is in a different region than the workspace  
+**Cause**: S3 bucket is in a different region than the workspace
 **Solution**: Either move bucket to workspace region, or remove Spark regional config
 
 #### Issue: Cross-region replication stopped working
-**Cause**: Regional endpoint config blocks cross-region S3 access  
+**Cause**: Regional endpoint config blocks cross-region S3 access
 **Solution**: Remove `fs.s3a.endpoint` and `fs.s3a.stsAssumeRole.stsEndpoint` from Spark config
 
 #### Issue: Can't access buckets with global S3 URLs
-**Cause**: Regional config enforces regional URLs only  
+**Cause**: Regional config enforces regional URLs only
 **Solution**: Update S3 paths to use regional format: `s3://bucket/path` (Spark handles conversion)
 
 **Docs**: [Troubleshoot Regional Endpoints](https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc#troubleshoot-regional-endpoints)

@@ -75,7 +75,7 @@ graph TB
 ### Ready to use
 
 #### **Preventing Data Exfiltration** - Secure Deployments
-- [Deployment walk thru video]()
+- Deployment walk thru video (link unavailable)
 
 ```mermaid
 sequenceDiagram
@@ -98,8 +98,8 @@ sequenceDiagram
 ```
 
 #### **Authenticating API calls using AAD tokens** - Securely accessing Azure Databricks REST API using AAD tokens
-- [Video walk thru]()
-- [Using Service Principal AAD Tokens]()
+- Video walk thru (link unavailable)
+- Using Service Principal AAD Tokens (link unavailable)
 
 ```mermaid
 sequenceDiagram
@@ -123,7 +123,7 @@ sequenceDiagram
 ```
 
 #### **Accessing ADLS Gen2** - options available to read/write data from ADLS Gen2
-- [Demo video]()
+- Demo video (link unavailable)
 
 ```mermaid
 sequenceDiagram
@@ -157,7 +157,7 @@ sequenceDiagram
 ```
 
 #### **Users and Groups Management** - Automate users/groups onboarding and management
-- [Demo video]()
+- Demo video (link unavailable)
 
 ```mermaid
 sequenceDiagram
@@ -288,5 +288,5 @@ sequenceDiagram
 
 ---
 
-**Archived**: 2026-01-10  
+**Archived**: 2026-01-10
 **Replacement**: See [main README](../README.md) and [docs/](../docs/) for current documentation

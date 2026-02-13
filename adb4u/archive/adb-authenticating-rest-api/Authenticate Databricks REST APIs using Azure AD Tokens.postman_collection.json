@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "9b77982f-648e-4e8b-83ad-f9445233a832",
 		"name": "Authenticate Databricks REST APIs using Azure AD Tokens",
-		"description": "\nTo authenticate to Databricks REST APIs, you can use Azure Databricks personal access tokens or Azure Active Directory tokens.\n***REMOVED******REMOVED******REMOVED*** Authenticate using Azure Active Directory tokens\n\n- This section describes how to get, use, and refresh Azure AD tokens. For Azure Databricks personal access tokens, see Authentication using Azure Databricks personal access tokens.\n\n- This section describes two ways to get and use Azure AD access tokens:\n\n    - Use the Azure Active Directory Authentication Library (ADAL) to programmatically get an Azure AD access token for a user.\n    - Define a service principal in Azure Active Directory and get an Azure AD access token for the service principal rather than a user. You configure the service principal as one on which authentication and authorization policies can be enforced in Azure Databricks. Service principals in an Azure Databricks workspace can have different fine-grained access control than regular users (user principals).\n\n- In this section:\n\n    - [Get an Azure Active Directory token using Azure Active Directory Authentication Library](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/app-aad-token)\n    - [Get an Azure Active Directory token using a service principal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token)\n    - [Troubleshoot Azure Active Directory access tokens](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/troubleshoot-aad-token)",
+		"description": "\nTo authenticate to Databricks REST APIs, you can use Azure Databricks personal access tokens or Azure Active Directory tokens.\n### Authenticate using Azure Active Directory tokens\n\n- This section describes how to get, use, and refresh Azure AD tokens. For Azure Databricks personal access tokens, see Authentication using Azure Databricks personal access tokens.\n\n- This section describes two ways to get and use Azure AD access tokens:\n\n    - Use the Azure Active Directory Authentication Library (ADAL) to programmatically get an Azure AD access token for a user.\n    - Define a service principal in Azure Active Directory and get an Azure AD access token for the service principal rather than a user. You configure the service principal as one on which authentication and authorization policies can be enforced in Azure Databricks. Service principals in an Azure Databricks workspace can have different fine-grained access control than regular users (user principals).\n\n- In this section:\n\n    - [Get an Azure Active Directory token using Azure Active Directory Authentication Library](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/app-aad-token)\n    - [Get an Azure Active Directory token using a service principal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token)\n    - [Troubleshoot Azure Active Directory access tokens](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/troubleshoot-aad-token)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -86,7 +86,7 @@
 										"token"
 									]
 								},
-								"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***--get-an-azure-active-directory-access-token)\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***register)\n\t- **Databricks Resource Id**: `2ff814a6-3304-4ab8-85cb-cd0e6f879c1d` **fixed value**\n\t- **Application secret**: The secret generated for the application."
+								"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-an-azure-active-directory-access-token)\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#register)\n\t- **Databricks Resource Id**: `2ff814a6-3304-4ab8-85cb-cd0e6f879c1d` **fixed value**\n\t- **Application secret**: The secret generated for the application."
 							},
 							"response": []
 						},
@@ -169,7 +169,7 @@
 										"ServicePrincipals"
 									]
 								},
-								"description": "[Add a service principal in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***add-service-principal)"
+								"description": "[Add a service principal in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#add-service-principal)"
 							},
 							"response": []
 						},
@@ -214,7 +214,7 @@
 										"ServicePrincipals"
 									]
 								},
-								"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***get-service-principals)"
+								"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principals)"
 							},
 							"response": []
 						},
@@ -258,7 +258,7 @@
 										"Groups"
 									]
 								},
-								"description": "databricks [PAT](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication?toc=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fazure-databricks%2Ftoc.json&bc=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fbread%2Ftoc.json***REMOVED***--generate-a-personal-access-token) will be used to invoke databricks rest api's"
+								"description": "databricks [PAT](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication?toc=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fazure-databricks%2Ftoc.json&bc=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fbread%2Ftoc.json#--generate-a-personal-access-token) will be used to invoke databricks rest api's"
 							},
 							"response": []
 						},
@@ -303,7 +303,7 @@
 										"ServicePrincipals"
 									]
 								},
-								"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***get-service-principals)"
+								"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principals)"
 							},
 							"response": []
 						}
@@ -385,7 +385,7 @@
 								"token"
 							]
 						},
-						"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***--get-an-azure-active-directory-access-token)\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***register)\n\t- **Databricks Resource Id**: `2ff814a6-3304-4ab8-85cb-cd0e6f879c1d` **fixed value**\n\t- **Application secret**: The secret generated for the application."
+						"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-an-azure-active-directory-access-token)\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#register)\n\t- **Databricks Resource Id**: `2ff814a6-3304-4ab8-85cb-cd0e6f879c1d` **fixed value**\n\t- **Application secret**: The secret generated for the application."
 					},
 					"response": []
 				},
@@ -459,7 +459,7 @@
 								"token"
 							]
 						},
-						"description": "[Documentation](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***--get-the-azure-management-resource-endpoint-token)\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***register)\n\t- **Management Resource Endpoint**: `https://management.core.windows.net/` **fixed value**\n\t- **Application secret**: The secret generated for the application."
+						"description": "[Documentation](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-the-azure-management-resource-endpoint-token)\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#register)\n\t- **Management Resource Endpoint**: `https://management.core.windows.net/` **fixed value**\n\t- **Application secret**: The secret generated for the application."
 					},
 					"response": []
 				},
@@ -521,7 +521,7 @@
 								"list"
 							]
 						},
-						"description": "[Use the management endpoint access token to access the Databricks REST API](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***use-the-management-endpoint-access-token-to-access-the-databricks-rest-api)\n\n\n- Replace the following parameters in the request:\n\n\t- **Databricks instance**: URL of your Databricks instance.\n\t- **Access token**: Access token obtained in [Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***get-token).\n\t- **Management access token**: Management endpoint access token obtained in [Get the Azure Management Resource endpoint token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***get-management-token).\n\t- **Subscription ID**: Subscription ID of the Azure Databricks resource.\n\t- **Resource group name**: Name of the Azure Databricks resource group.\n\t- **Workspace name**: Name of the Azure Databricks workspace."
+						"description": "[Use the management endpoint access token to access the Databricks REST API](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#use-the-management-endpoint-access-token-to-access-the-databricks-rest-api)\n\n\n- Replace the following parameters in the request:\n\n\t- **Databricks instance**: URL of your Databricks instance.\n\t- **Access token**: Access token obtained in [Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#get-token).\n\t- **Management access token**: Management endpoint access token obtained in [Get the Azure Management Resource endpoint token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#get-management-token).\n\t- **Subscription ID**: Subscription ID of the Azure Databricks resource.\n\t- **Resource group name**: Name of the Azure Databricks resource group.\n\t- **Workspace name**: Name of the Azure Databricks workspace."
 					},
 					"response": []
 				}
@@ -628,7 +628,7 @@
 								"token"
 							]
 						},
-						"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***--get-an-azure-active-directory-access-token)\n\n- To access the Databricks REST API with the service principal, you get an Azure AD access token for the service principal. You can use the client credentials flow to get an access token (with the AzureDatabricks login application as the resource).\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***register)\n\t- **Azure Databricks resource ID**: `2ff814a6-3304-4ab8-85cb-cd0e6f879c1d` fixed value\n\t- **Application secret**: The secret generated for the application."
+						"description": "[Get an Azure Active Directory access token](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#--get-an-azure-active-directory-access-token)\n\n- To access the Databricks REST API with the service principal, you get an Azure AD access token for the service principal. You can use the client credentials flow to get an access token (with the AzureDatabricks login application as the resource).\n\n- Replace the following parameters in the request:\n\n\t- **Tenant ID**: Tenant ID in Azure AD. Go to Azure Active Directory > Properties > Directory ID.\n\t- **Client ID**: The application (service principal) ID of the application you registered in [Provision a service principal in Azure portal](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#register)\n\t- **Azure Databricks resource ID**: `2ff814a6-3304-4ab8-85cb-cd0e6f879c1d` fixed value\n\t- **Application secret**: The secret generated for the application."
 					},
 					"response": []
 				},
@@ -678,7 +678,7 @@
 								"list"
 							]
 						},
-						"description": "[Retrieve a list of all clusters in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***use-an-access-token-to-access-the-databricks-rest-api)"
+						"description": "[Retrieve a list of all clusters in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#use-an-access-token-to-access-the-databricks-rest-api)"
 					},
 					"response": []
 				},
@@ -723,12 +723,12 @@
 								"ServicePrincipals"
 							]
 						},
-						"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***get-service-principals)"
+						"description": "[Retrieve a list of all service principals in the Azure Databricks workspace.](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#get-service-principals)"
 					},
 					"response": []
 				}
 			],
-			"description": "- Prior to this login, the service principal must be added to the workspace either as part of the [admin user login](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token***REMOVED***admin-user-login) or using the [Add service principal endpoint](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp***REMOVED***add-service-principal).",
+			"description": "- Prior to this login, the service principal must be added to the workspace either as part of the [admin user login](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/service-prin-aad-token#admin-user-login) or using the [Add service principal endpoint](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/scim/scim-sp#add-service-principal).",
 			"event": [
 				{
 					"listen": "prerequest",

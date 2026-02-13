@@ -55,7 +55,7 @@ gcloud config set project PROJECT_NAME
 ```
 gcloud config set project VPC_PROJECT_NAME
 ```
-### Create private ip addresses used for Databricks 
+### Create private ip addresses used for Databricks
 ```
 gcloud compute addresses create workspace-pe-ip --region=us-central1 --subnet=psc-endpoint-subnet
 ```

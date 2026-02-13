@@ -194,11 +194,11 @@ Direction:      Outbound only (initiated from VNet)
 Source:         Cluster VMs (no public IPs)
 Routing:        NSG Service Tag: AzureDatabricks (NOT NAT Gateway)
 Destination:    tunnel.{region}.azuredatabricks.net
-Purpose:        
+Purpose:
 - Control plane registration
 - Command execution channel
 - Monitoring and logging
-Connection:     
+Connection:
 - Persistent WebSocket over HTTPS
 - Heartbeat every 30 seconds
 - Automatic reconnection on failure
@@ -517,7 +517,7 @@ Performance:
 | Worker-to-worker | 1000+ GB | **Within VNet** | **$0 (intra-VNet)** |
 | **TOTAL INTERNET EGRESS** | **~10 GB** | | **$0** (< 100 GB free) |
 
-**Key Takeaway**: 
+**Key Takeaway**:
 - **NSG Service Tags** (AzureDatabricks, Storage, EventHub) = $0 egress for ALL Azure services!
 - **DBR images** come from Databricks-managed storage via **Storage service tag** = $0 egress!
 - **NAT Gateway** only for user libraries (PyPI/Maven) = ~10 GB/month (< 100 GB free tier)
@@ -612,5 +612,5 @@ dbutils.fs.ls("abfss://...")
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 1.0
 **Pattern Coverage**: Non-PL (complete), Private Link (complete), Hub-Spoke (coming soon)

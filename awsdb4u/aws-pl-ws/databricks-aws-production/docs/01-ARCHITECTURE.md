@@ -36,37 +36,37 @@ graph TB
                 NAT["NAT Gateways<br/>2 AZs<br/>High Availability"]
                 IGW["Internet<br/>Gateway"]
             end
-            
+
             subgraph "Private Subnets /24 - Databricks Clusters"
                 CLUSTER["Cluster Nodes<br/>Spark Workers<br/>502 IPs total"]
             end
-            
+
             subgraph "PrivateLink Subnets /26 - VPC Endpoints"
                 VPCE["VPC Endpoints<br/>• Workspace 8443-8451<br/>• Relay SCC 6666<br/>• AWS Services"]
             end
-            
+
             subgraph "Storage Layer"
                 S3["S3 Buckets<br/>• DBFS Root<br/>• UC Metastore<br/>• UC External<br/>KMS Encrypted"]
             end
         end
-        
+
         subgraph "IAM Layer"
             ROLES["IAM Roles<br/>• Cross-Account<br/>• UC Metastore<br/>• UC External<br/>• Instance Profile"]
         end
-        
+
         subgraph "Encryption Layer"
             KMS["KMS Keys<br/>• S3 Buckets<br/>• Workspace CMK<br/> DBFS/EBS/MS"]
         end
     end
-    
+
     subgraph "Databricks Control Plane"
         CONTROL["Databricks SaaS<br/>accounts.cloud.databricks.com"]
     end
-    
+
     subgraph "Unity Catalog"
         UC["Metastore<br/>Catalogs<br/>External Locations"]
     end
-    
+
     CLUSTER -->|Private Link| VPCE
     VPCE -.->|Backend Private| CONTROL
     CLUSTER -->|NAT| NAT
@@ -77,7 +77,7 @@ graph TB
     KMS -->|Encrypts| S3
     CONTROL -->|Provisions| UC
     UC -->|Stores Metadata| S3
-    
+
     style CONTROL fill:#FF3621
     style S3 fill:#569A31
     style VPCE fill:#FF9900
@@ -108,7 +108,7 @@ flowchart TD
     WORKSPACE --> UC["6. Unity Catalog Module<br/>Metastore Assignment<br/>External Location<br/>Workspace Catalog<br/>+ External Role KMS Policy"]
     UC --> USER["7. User Assignment<br/>Workspace Admin<br/>Permissions"]
     USER --> END["Deployment Complete"]
-    
+
     style START fill:#569A31
     style END fill:#1B72E8
     style KMS fill:#FF9900
@@ -139,19 +139,19 @@ graph TB
             PRIV1["Private Subnet<br/>10.0.1.0/24<br/>251 IPs<br/>Clusters"]
             PL1["PrivateLink Subnet<br/>10.0.3.0/26<br/>62 IPs<br/>VPC Endpoints"]
         end
-        
+
         subgraph "AZ-2 us-west-1c"
             PUB2["Public Subnet<br/>10.0.0.64/26<br/>62 IPs<br/>NAT GW"]
             PRIV2["Private Subnet<br/>10.0.2.0/24<br/>251 IPs<br/>Clusters"]
             PL2["PrivateLink Subnet<br/>10.0.3.64/26<br/>62 IPs<br/>VPC Endpoints"]
         end
     end
-    
+
     PUB1 -.->|Internet| IGW[Internet Gateway]
     PUB2 -.->|Internet| IGW
     PRIV1 -->|via| PUB1
     PRIV2 -->|via| PUB2
-    
+
     style PRIV1 fill:#569A31
     style PRIV2 fill:#569A31
     style PL1 fill:#FF9900
@@ -202,7 +202,7 @@ sequenceDiagram
     participant CLUSTER as Spark Cluster
     participant S3 as S3 DBFS/UC
     participant UC as Unity Catalog
-    
+
     User->>WS: Create Cluster
     WS->>CP: API Call dbc-*.cloud.databricks.com:8443
     Note over WS,CP: DNS returns private IP 10.0.3.x
@@ -231,18 +231,18 @@ sequenceDiagram
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart TD
     START["Cluster Node<br/>Initiates Traffic"] --> DNS{DNS Query<br/>What is destination?}
-    
+
     DNS -->|S3 bucket| S3PATH["S3 Gateway Endpoint<br/>FREE, VPC-internal"]
     DNS -->|dbc-*.cloud.databricks.com| DBDNS{Private Link<br/>Enabled?}
     DNS -->|Public internet| NATPATH["NAT Gateway<br/>→ Internet Gateway"]
-    
+
     DBDNS -->|Yes| PRIV["Private IP 10.0.3.x<br/>→ VPC Endpoint<br/>→ Private Link"]
     DBDNS -->|No| NATPATH
-    
+
     S3PATH --> S3["S3 Buckets<br/>DBFS, Unity Catalog"]
     PRIV --> CONTROL["Databricks<br/>Control Plane"]
     NATPATH --> INTERNET["Public Internet<br/>Maven, PyPI, etc"]
-    
+
     style S3PATH fill:#569A31
     style PRIV fill:#FF9900
     style NATPATH fill:#FF3621
@@ -319,7 +319,7 @@ Unity Catalog Metastore Role (3):
 
 Instance Profile (3):
 ├── IAM role
-├── IAM policy  
+├── IAM policy
 ├── IAM instance profile
 
 UC External Location Role (3):
@@ -434,22 +434,22 @@ Optional based on existing_private_access_settings_id (1):
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
 flowchart LR
     START["Configuration<br/>Choice"] --> PL{enable_private_link}
-    
+
     PL -->|true| FULL["Full Private Link<br/>All Databricks traffic<br/>via VPC Endpoints"]
     PL -->|false| PUBLIC["Public Internet<br/>via NAT Gateway<br/>Lowest Cost"]
-    
+
     FULL --> ENC{enable_encryption}
     PUBLIC --> ENC
-    
+
     ENC -->|true| CMK["+ S3 KMS Encryption<br/>Customer-Managed Keys"]
     ENC -->|false| NOCMK["AWS-Managed<br/>Encryption"]
-    
+
     CMK --> WCMK{enable_workspace_cmk}
     NOCMK --> WCMK
-    
+
     WCMK -->|true| FULLCMK["+ Workspace CMK<br/>DBFS/EBS/MS Encryption"]
     WCMK -->|false| NOWCMK["Standard Encryption"]
-    
+
     style FULL fill:#569A31
     style PUBLIC fill:#FF9900
     style FULLCMK fill:#1B72E8

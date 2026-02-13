@@ -1,0 +1,1682 @@
+{
+  "datasets": [
+    {
+      "name": "ds_workspaces",
+      "displayName": "Workspaces",
+      "queryLines": [
+        "SELECT DISTINCT ",
+        "  workspace_id, ",
+        "  CONCAT(workspace_id, ' - ', COALESCE(workspace_name, 'Workspace ' || workspace_id)) AS workspace_display ",
+        "FROM main.genie_analytics.message_details ",
+        "WHERE workspace_id IS NOT NULL ",
+        "ORDER BY workspace_id "
+      ]
+    },
+    {
+      "name": "ds_days_filter",
+      "displayName": "Time Range Options",
+      "queryLines": [
+        "SELECT * FROM (VALUES ",
+        "  (7, '7 Days'), ",
+        "  (30, '30 Days'), ",
+        "  (90, '90 Days'), ",
+        "  (999999, 'All Time') ",
+        ") AS t(days_value, days_label) "
+      ]
+    },
+    {
+      "name": "ds_summary_kpis",
+      "displayName": "Summary KPIs",
+      "queryLines": [
+        "SELECT ",
+        "  workspace_id, ",
+        "  CONCAT(workspace_id, ' - ', COALESCE(MAX(workspace_name), 'Workspace ' || workspace_id)) AS workspace_display, ",
+        "  COUNT(DISTINCT space_id) AS total_spaces, ",
+        "  COUNT(DISTINCT conversation_id) AS total_conversations, ",
+        "  COUNT(DISTINCT message_id) AS total_messages, ",
+        "  COUNT(DISTINCT CASE WHEN status = 'COMPLETED' THEN message_id END) AS completed_messages, ",
+        "  COUNT(DISTINCT CASE WHEN status = 'FAILED' THEN message_id END) AS failed_messages, ",
+        "  ROUND(COUNT(DISTINCT CASE WHEN status = 'COMPLETED' THEN message_id END) * 100.0 / ",
+        "        NULLIF(COUNT(DISTINCT message_id), 0), 2) AS success_rate_pct ",
+        "FROM main.genie_analytics.message_details ",
+        "WHERE created_date >= date_sub(CURRENT_DATE(), 90) ",
+        "GROUP BY workspace_id "
+      ]
+    },
+    {
+      "name": "ds_daily_trends",
+      "displayName": "Daily Trends",
+      "queryLines": [
+        "WITH base AS ( ",
+        "  SELECT ",
+        "    workspace_id, ",
+        "    CONCAT(workspace_id, ' - ', COALESCE(MAX(workspace_name), 'Workspace ' || workspace_id)) AS workspace_display, ",
+        "    created_date, ",
+        "    COUNT(DISTINCT message_id) AS daily_messages, ",
+        "    COUNT(DISTINCT CASE WHEN status = 'COMPLETED' THEN message_id END) AS completed, ",
+        "    COUNT(DISTINCT CASE WHEN status = 'FAILED' THEN message_id END) AS failed ",
+        "  FROM main.genie_analytics.message_details ",
+        "  WHERE created_date >= date_sub(CURRENT_DATE(), 30) ",
+        "  GROUP BY workspace_id, created_date ",
+        ") ",
+        "SELECT * FROM base ORDER BY created_date "
+      ]
+    },
+    {
+      "name": "ds_space_metrics",
+      "displayName": "Space Metrics",
+      "queryLines": [
+        "SELECT ",
+        "  md.workspace_id, ",
+        "  CONCAT(md.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || md.workspace_id)) AS workspace_display, ",
+        "  md.space_id, ",
+        "  COALESCE(MAX(gsd.title), MAX(md.space_name), 'Space ' || md.space_id) AS space_title, ",
+        "  COUNT(DISTINCT md.conversation_id) AS conversations, ",
+        "  COUNT(DISTINCT md.message_id) AS messages, ",
+        "  COUNT(DISTINCT CASE WHEN md.status = 'COMPLETED' THEN md.message_id END) AS completed, ",
+        "  COUNT(DISTINCT CASE WHEN md.status = 'FAILED' THEN md.message_id END) AS failed, ",
+        "  ROUND(COUNT(DISTINCT CASE WHEN md.status = 'COMPLETED' THEN md.message_id END) * 100.0 / ",
+        "        NULLIF(COUNT(DISTINCT md.message_id), 0), 2) AS success_rate ",
+        "FROM main.genie_analytics.message_details md ",
+        "LEFT JOIN main.genie_analytics.genie_space_details gsd ",
+        "  ON md.workspace_id = gsd.workspace_id AND md.space_id = gsd.space_id ",
+        "WHERE md.created_date >= date_sub(CURRENT_DATE(), 90) ",
+        "GROUP BY md.workspace_id, md.space_id ",
+        "ORDER BY messages DESC "
+      ]
+    },
+    {
+      "name": "ds_status_distribution",
+      "displayName": "Status Distribution",
+      "queryLines": [
+        "SELECT ",
+        "  workspace_id, ",
+        "  CONCAT(workspace_id, ' - ', COALESCE(MAX(workspace_name), 'Workspace ' || workspace_id)) AS workspace_display, ",
+        "  status, ",
+        "  COUNT(DISTINCT message_id) AS message_count ",
+        "FROM main.genie_analytics.message_details ",
+        "WHERE created_date >= date_sub(CURRENT_DATE(), 30) ",
+        "GROUP BY workspace_id, status ",
+        "ORDER BY message_count DESC "
+      ]
+    },
+    {
+      "name": "ds_prompts_enhanced",
+      "displayName": "Prompts with Full Context",
+      "queryLines": [
+        "SELECT ",
+        "  md.workspace_id, ",
+        "  CONCAT(md.workspace_id, ' - ', COALESCE(md.workspace_name, 'Workspace ' || md.workspace_id)) AS workspace_display, ",
+        "  COALESCE(gsd.title, md.space_name, 'Space ' || md.space_id) AS space_title, ",
+        "  md.conversation_id, ",
+        "  md.message_id, ",
+        "  md.content AS user_prompt, ",
+        "  md.query_description AS genie_intelligence, ",
+        "  md.attachments_json AS context_data, ",
+        "  md.query_sql AS generated_sql, ",
+        "  md.status, ",
+        "  FROM_UNIXTIME(md.created_timestamp / 1000) AS created_at ",
+        "FROM main.genie_analytics.message_details md ",
+        "LEFT JOIN main.genie_analytics.genie_space_details gsd ",
+        "  ON md.space_id = gsd.space_id ",
+        "WHERE md.content IS NOT NULL ",
+        "  AND md.query_sql IS NOT NULL ",
+        "ORDER BY md.created_timestamp DESC "
+      ]
+    },
+    {
+      "name": "ds_error_analysis",
+      "displayName": "Error Analysis",
+      "queryLines": [
+        "SELECT ",
+        "  e.workspace_id, ",
+        "  CONCAT(e.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || e.workspace_id)) AS workspace_display, ",
+        "  e.error_message, ",
+        "  COUNT(*) AS error_count ",
+        "FROM main.genie_analytics.message_fetch_errors e ",
+        "LEFT JOIN main.genie_analytics.message_details md ",
+        "  ON e.workspace_id = md.workspace_id ",
+        "WHERE DATE(e.error_timestamp) >= date_sub(CURRENT_DATE(), 30) ",
+        "GROUP BY e.workspace_id, e.error_message ",
+        "ORDER BY error_count DESC ",
+        "LIMIT 20 "
+      ]
+    },
+    {
+      "name": "ds_message_status_details",
+      "displayName": "Message Status Details",
+      "queryLines": [
+        "SELECT ",
+        "  workspace_id, ",
+        "  CONCAT(workspace_id, ' - ', COALESCE(workspace_name, 'Workspace ' || workspace_id)) AS workspace_display, ",
+        "  message_id, ",
+        "  space_id, ",
+        "  conversation_id, ",
+        "  status, ",
+        "  SUBSTRING(content, 1, 100) AS prompt_preview, ",
+        "  created_date ",
+        "FROM main.genie_analytics.message_details ",
+        "WHERE created_date >= date_sub(CURRENT_DATE(), 7) ",
+        "ORDER BY created_timestamp DESC ",
+        "LIMIT 50 "
+      ]
+    },
+    {
+      "name": "ds_user_adoption_by_space",
+      "displayName": "User Adoption by Space",
+      "queryLines": [
+        "SELECT ",
+        "  md.workspace_id, ",
+        "  CONCAT(md.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || md.workspace_id)) AS workspace_display, ",
+        "  md.space_id, ",
+        "  COALESCE(MAX(gsd.title), MAX(md.space_name), 'Space ' || md.space_id) AS space_title, ",
+        "  COUNT(DISTINCT qh.executed_by) AS unique_users, ",
+        "  COUNT(DISTINCT md.message_id) AS total_prompts, ",
+        "  ROUND(COUNT(DISTINCT md.message_id) * 1.0 / NULLIF(COUNT(DISTINCT qh.executed_by), 0), 2) AS prompts_per_user ",
+        "FROM main.genie_analytics.message_details md ",
+        "LEFT JOIN main.genie_analytics.genie_space_details gsd ",
+        "  ON md.workspace_id = gsd.workspace_id AND md.space_id = gsd.space_id ",
+        "LEFT JOIN system.query.history qh ",
+        "  ON md.statement_id = qh.statement_id ",
+        "WHERE md.created_date >= date_sub(CURRENT_DATE(), 30) ",
+        "GROUP BY md.workspace_id, md.space_id ",
+        "ORDER BY unique_users DESC, total_prompts DESC "
+      ]
+    },
+    {
+      "name": "ds_top_users",
+      "displayName": "Top Users by Activity",
+      "queryLines": [
+        "SELECT ",
+        "  md.workspace_id, ",
+        "  CONCAT(md.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || md.workspace_id)) AS workspace_display, ",
+        "  qh.executed_by AS user_email, ",
+        "  COUNT(DISTINCT md.space_id) AS spaces_used, ",
+        "  COUNT(DISTINCT md.conversation_id) AS conversations, ",
+        "  COUNT(DISTINCT md.message_id) AS prompts_submitted, ",
+        "  ROUND(COUNT(DISTINCT CASE WHEN md.status = 'COMPLETED' THEN md.message_id END) * 100.0 / ",
+        "        NULLIF(COUNT(DISTINCT md.message_id), 0), 2) AS success_rate ",
+        "FROM main.genie_analytics.message_details md ",
+        "LEFT JOIN system.query.history qh ",
+        "  ON md.statement_id = qh.statement_id ",
+        "WHERE md.created_date >= date_sub(CURRENT_DATE(), 30) ",
+        "  AND qh.executed_by IS NOT NULL ",
+        "GROUP BY md.workspace_id, qh.executed_by ",
+        "ORDER BY prompts_submitted DESC ",
+        "LIMIT 20 "
+      ]
+    },
+    {
+      "name": "ds_daily_active_users",
+      "displayName": "Daily Active Users",
+      "queryLines": [
+        "SELECT ",
+        "  md.workspace_id, ",
+        "  CONCAT(md.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || md.workspace_id)) AS workspace_display, ",
+        "  md.created_date, ",
+        "  COUNT(DISTINCT qh.executed_by) AS daily_active_users, ",
+        "  COUNT(DISTINCT md.message_id) AS prompts_submitted ",
+        "FROM main.genie_analytics.message_details md ",
+        "LEFT JOIN system.query.history qh ",
+        "  ON md.statement_id = qh.statement_id ",
+        "WHERE md.created_date >= date_sub(CURRENT_DATE(), 30) ",
+        "  AND qh.executed_by IS NOT NULL ",
+        "GROUP BY md.workspace_id, md.created_date ",
+        "ORDER BY md.created_date "
+      ]
+    },
+    {
+      "name": "ds_sample_questions",
+      "displayName": "Sample Questions",
+      "queryLines": [
+        "SELECT ",
+        "  gsd.workspace_id, ",
+        "  CONCAT(gsd.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || gsd.workspace_id)) AS workspace_display, ",
+        "  gsd.space_id, ",
+        "  gsd.title as space_title, ",
+        "  exploded.id as question_id, ",
+        "  concat_ws(' ', exploded.question) as question_text ",
+        "FROM main.genie_analytics.genie_space_details gsd ",
+        "LEFT JOIN main.genie_analytics.message_details md ",
+        "  ON gsd.workspace_id = md.workspace_id ",
+        "LATERAL VIEW explode(from_json(serialized_space, 'struct<config:struct<sample_questions:array<struct<id:string,question:array<string>>>>>').config.sample_questions) as exploded ",
+        "GROUP BY gsd.workspace_id, gsd.space_id, gsd.title, exploded.id, concat_ws(' ', exploded.question) ",
+        "ORDER BY space_title, question_text "
+      ]
+    },
+    {
+      "name": "ds_space_tables",
+      "displayName": "Space Data Sources",
+      "queryLines": [
+        "SELECT ",
+        "  gsd.workspace_id, ",
+        "  CONCAT(gsd.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || gsd.workspace_id)) AS workspace_display, ",
+        "  gsd.space_id, ",
+        "  gsd.title as space_title, ",
+        "  table_info.identifier as table_name, ",
+        "  size(table_info.column_configs) as column_count ",
+        "FROM main.genie_analytics.genie_space_details gsd ",
+        "LEFT JOIN main.genie_analytics.message_details md ",
+        "  ON gsd.workspace_id = md.workspace_id ",
+        "LATERAL VIEW explode(from_json(serialized_space, 'struct<data_sources:struct<tables:array<struct<identifier:string,column_configs:array<struct<column_name:string>>>>>>').data_sources.tables) as table_info ",
+        "GROUP BY gsd.workspace_id, gsd.space_id, gsd.title, table_info.identifier, size(table_info.column_configs) ",
+        "ORDER BY space_title, table_name "
+      ]
+    },
+    {
+      "name": "ds_text_instructions",
+      "displayName": "Text Instructions",
+      "queryLines": [
+        "SELECT ",
+        "  gsd.workspace_id, ",
+        "  CONCAT(gsd.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || gsd.workspace_id)) AS workspace_display, ",
+        "  gsd.space_id, ",
+        "  gsd.title as space_title, ",
+        "  instruction.id as instruction_id, ",
+        "  concat_ws('\\n', instruction.content) as instruction_text ",
+        "FROM main.genie_analytics.genie_space_details gsd ",
+        "LEFT JOIN main.genie_analytics.message_details md ",
+        "  ON gsd.workspace_id = md.workspace_id ",
+        "LATERAL VIEW explode(from_json(serialized_space, 'struct<instructions:struct<text_instructions:array<struct<id:string,content:array<string>>>>>').instructions.text_instructions) as instruction ",
+        "GROUP BY gsd.workspace_id, gsd.space_id, gsd.title, instruction.id, concat_ws('\\n', instruction.content) ",
+        "ORDER BY space_title "
+      ]
+    },
+    {
+      "name": "ds_join_specs",
+      "displayName": "Join Specifications",
+      "queryLines": [
+        "SELECT ",
+        "  gsd.workspace_id, ",
+        "  CONCAT(gsd.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || gsd.workspace_id)) AS workspace_display, ",
+        "  gsd.space_id, ",
+        "  gsd.title as space_title, ",
+        "  join_spec.left.identifier as left_table, ",
+        "  join_spec.right.identifier as right_table, ",
+        "  concat_ws('\\n', join_spec.sql) as join_condition ",
+        "FROM main.genie_analytics.genie_space_details gsd ",
+        "LEFT JOIN main.genie_analytics.message_details md ",
+        "  ON gsd.workspace_id = md.workspace_id ",
+        "LATERAL VIEW explode(from_json(serialized_space, 'struct<instructions:struct<join_specs:array<struct<id:string,left:struct<identifier:string,alias:string>,right:struct<identifier:string,alias:string>,sql:array<string>>>>>').instructions.join_specs) as join_spec ",
+        "GROUP BY gsd.workspace_id, gsd.space_id, gsd.title, join_spec.left.identifier, join_spec.right.identifier, concat_ws('\\n', join_spec.sql) ",
+        "ORDER BY space_title, left_table, right_table "
+      ]
+    },
+    {
+      "name": "ds_benchmarks",
+      "displayName": "Benchmarks",
+      "queryLines": [
+        "SELECT ",
+        "  gsd.workspace_id, ",
+        "  CONCAT(gsd.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || gsd.workspace_id)) AS workspace_display, ",
+        "  gsd.space_id, ",
+        "  gsd.title as space_title, ",
+        "  benchmark.id as benchmark_id, ",
+        "  concat_ws(' ', benchmark.question) as benchmark_question, ",
+        "  benchmark.answer[0].format as answer_format, ",
+        "  concat_ws('\\n', benchmark.answer[0].content) as answer_sql ",
+        "FROM main.genie_analytics.genie_space_details gsd ",
+        "LEFT JOIN main.genie_analytics.message_details md ",
+        "  ON gsd.workspace_id = md.workspace_id ",
+        "LATERAL VIEW explode(from_json(serialized_space, 'struct<benchmarks:struct<questions:array<struct<id:string,question:array<string>,answer:array<struct<format:string,content:array<string>>>>>>>').benchmarks.questions) as benchmark ",
+        "GROUP BY gsd.workspace_id, gsd.space_id, gsd.title, benchmark.id, concat_ws(' ', benchmark.question), benchmark.answer[0].format, concat_ws('\\n', benchmark.answer[0].content) ",
+        "ORDER BY space_title "
+      ]
+    },
+    {
+      "name": "ds_observability_metrics",
+      "displayName": "Observability Metrics",
+      "queryLines": [
+        "SELECT ",
+        "  md.workspace_id, ",
+        "  CONCAT(md.workspace_id, ' - ', COALESCE(MAX(md.workspace_name), 'Workspace ' || md.workspace_id)) AS workspace_display, ",
+        "  999999 as days_value, ",
+        "  'All Time' as days_label, ",
+        "  md.status, ",
+        "  DATE(FROM_UNIXTIME(md.created_timestamp / 1000)) AS message_date, ",
+        "  COUNT(DISTINCT md.message_id) AS message_count ",
+        "FROM main.genie_analytics.message_details md ",
+        "WHERE md.content IS NOT NULL ",
+        "GROUP BY md.workspace_id, md.status, DATE(FROM_UNIXTIME(md.created_timestamp / 1000)) ",
+        "ORDER BY message_date DESC "
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "filters",
+      "displayName": "Filters",
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layout": [
+        {
+          "widget": {
+            "name": "filter-workspace",
+            "queries": [
+              {
+                "name": "q_workspaces",
+                "query": {
+                  "datasetName": "ds_workspaces",
+                  "fields": [
+                    {
+                      "name": "workspace_display",
+                      "expression": "`workspace_display`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "workspace_display",
+                    "displayName": "Workspace",
+                    "queryName": "q_workspaces"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Workspace"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "executive_summary",
+      "displayName": "1. Executive Summary",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Genie Observability Dashboard"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "subtitle",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Real-time analytics for Genie Space usage, performance, and adoption"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-spaces",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_summary_kpis",
+                  "fields": [
+                    {
+                      "name": "sum(spaces)",
+                      "expression": "SUM(`total_spaces`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(spaces)",
+                  "displayName": "Total Spaces"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Genie Spaces"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-conversations",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_summary_kpis",
+                  "fields": [
+                    {
+                      "name": "sum(convos)",
+                      "expression": "SUM(`total_conversations`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(convos)",
+                  "displayName": "Conversations"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Conversations"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-messages",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_summary_kpis",
+                  "fields": [
+                    {
+                      "name": "sum(msgs)",
+                      "expression": "SUM(`total_messages`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(msgs)",
+                  "displayName": "Messages"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Messages"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-daily-trends",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_daily_trends",
+                  "fields": [
+                    {
+                      "name": "daily(date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `created_date`)"
+                    },
+                    {
+                      "name": "messages",
+                      "expression": "`daily_messages`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(date)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "Date"
+                },
+                "y": {
+                  "fieldName": "messages",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Messages"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Daily Message Volume"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-status-dist",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_status_distribution",
+                  "fields": [
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`message_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count",
+                  "displayName": "Messages"
+                },
+                "color": {
+                  "fieldName": "status",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Status"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Message Status Distribution"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 5
+          }
+        }
+      ]
+    },
+    {
+      "name": "usage_analytics",
+      "displayName": "2. Usage Analytics",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "usage-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Usage Analytics"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-space-metrics",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_space_metrics",
+                  "fields": [
+                    {
+                      "name": "space_title",
+                      "expression": "`space_title`"
+                    },
+                    {
+                      "name": "conversations",
+                      "expression": "`conversations`"
+                    },
+                    {
+                      "name": "messages",
+                      "expression": "`messages`"
+                    },
+                    {
+                      "name": "success_rate",
+                      "expression": "`success_rate`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "space_title",
+                    "displayName": "Space"
+                  },
+                  {
+                    "fieldName": "conversations",
+                    "displayName": "Conversations"
+                  },
+                  {
+                    "fieldName": "messages",
+                    "displayName": "Messages"
+                  },
+                  {
+                    "fieldName": "success_rate",
+                    "displayName": "Success %"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Space Activity Metrics"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "performance",
+      "displayName": "3. Performance & Quality",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "perf-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Performance & Quality"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-errors",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_error_analysis",
+                  "fields": [
+                    {
+                      "name": "error",
+                      "expression": "`error_message`"
+                    },
+                    {
+                      "name": "count",
+                      "expression": "`error_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "error",
+                    "displayName": "Error Message"
+                  },
+                  {
+                    "fieldName": "count",
+                    "displayName": "Count"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top Errors (Last 30 Days)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "prompts_sql",
+      "displayName": "4. Prompts & SQL",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "prompts-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Prompts & Generated SQL"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-prompts",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_prompts_enhanced",
+                  "fields": [
+                    {
+                      "name": "space_title",
+                      "expression": "`space_title`"
+                    },
+                    {
+                      "name": "user_prompt",
+                      "expression": "`user_prompt`"
+                    },
+                    {
+                      "name": "genie_intelligence",
+                      "expression": "`genie_intelligence`"
+                    },
+                    {
+                      "name": "context_data",
+                      "expression": "`context_data`"
+                    },
+                    {
+                      "name": "generated_sql",
+                      "expression": "`generated_sql`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "created_at",
+                      "expression": "`created_at`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "space_title",
+                    "displayName": "Space"
+                  },
+                  {
+                    "fieldName": "user_prompt",
+                    "displayName": "User Prompt"
+                  },
+                  {
+                    "fieldName": "genie_intelligence",
+                    "displayName": "Genie Intelligence"
+                  },
+                  {
+                    "fieldName": "context_data",
+                    "displayName": "Context Data"
+                  },
+                  {
+                    "fieldName": "generated_sql",
+                    "displayName": "Generated SQL"
+                  },
+                  {
+                    "fieldName": "status",
+                    "displayName": "Status"
+                  },
+                  {
+                    "fieldName": "created_at",
+                    "displayName": "Created At"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Recent Prompts with Execution Context"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "observability",
+      "displayName": "5. Observability",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "obs-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Message Status Tracking"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-message-status",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_message_status_details",
+                  "fields": [
+                    {
+                      "name": "message_id",
+                      "expression": "`message_id`"
+                    },
+                    {
+                      "name": "space",
+                      "expression": "`space_id`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "prompt",
+                      "expression": "`prompt_preview`"
+                    },
+                    {
+                      "name": "date",
+                      "expression": "`created_date`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "message_id",
+                    "displayName": "Message ID"
+                  },
+                  {
+                    "fieldName": "space",
+                    "displayName": "Space"
+                  },
+                  {
+                    "fieldName": "status",
+                    "displayName": "Status"
+                  },
+                  {
+                    "fieldName": "prompt",
+                    "displayName": "Prompt"
+                  },
+                  {
+                    "fieldName": "date",
+                    "displayName": "Date"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Recent Message Status (Last 7 Days)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_days_range",
+            "queries": [
+              {
+                "name": "ds_days_filter_query",
+                "query": {
+                  "datasetName": "ds_days_filter",
+                  "fields": [
+                    {
+                      "name": "days_value",
+                      "expression": "`days_value`"
+                    },
+                    {
+                      "name": "days_label",
+                      "expression": "`days_label`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "days_value",
+                    "displayName": "Time Range",
+                    "queryName": "ds_days_filter_query"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Time Range"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "user_adoption",
+      "displayName": "6. User Adoption",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "adoption-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## User Adoption Analytics"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "chart-daily-users",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_daily_active_users",
+                  "fields": [
+                    {
+                      "name": "daily(date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `created_date`)"
+                    },
+                    {
+                      "name": "users",
+                      "expression": "`daily_active_users`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(date)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "Date"
+                },
+                "y": {
+                  "fieldName": "users",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Active Users"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Daily Active Users Trend"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "table-adoption-by-space",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_user_adoption_by_space",
+                  "fields": [
+                    {
+                      "name": "space",
+                      "expression": "`space_title`"
+                    },
+                    {
+                      "name": "users",
+                      "expression": "`unique_users`"
+                    },
+                    {
+                      "name": "prompts",
+                      "expression": "`total_prompts`"
+                    },
+                    {
+                      "name": "avg",
+                      "expression": "`prompts_per_user`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "space",
+                    "displayName": "Space"
+                  },
+                  {
+                    "fieldName": "users",
+                    "displayName": "Unique Users"
+                  },
+                  {
+                    "fieldName": "prompts",
+                    "displayName": "Total Prompts"
+                  },
+                  {
+                    "fieldName": "avg",
+                    "displayName": "Prompts per User"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "User Adoption by Space"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "table-top-users",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_top_users",
+                  "fields": [
+                    {
+                      "name": "user",
+                      "expression": "`user_email`"
+                    },
+                    {
+                      "name": "spaces",
+                      "expression": "`spaces_used`"
+                    },
+                    {
+                      "name": "convos",
+                      "expression": "`conversations`"
+                    },
+                    {
+                      "name": "prompts",
+                      "expression": "`prompts_submitted`"
+                    },
+                    {
+                      "name": "success",
+                      "expression": "`success_rate`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "user",
+                    "displayName": "User"
+                  },
+                  {
+                    "fieldName": "spaces",
+                    "displayName": "Spaces Used"
+                  },
+                  {
+                    "fieldName": "convos",
+                    "displayName": "Conversations"
+                  },
+                  {
+                    "fieldName": "prompts",
+                    "displayName": "Prompts"
+                  },
+                  {
+                    "fieldName": "success",
+                    "displayName": "Success %"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top Users by Activity"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "space_configuration",
+      "displayName": "7. Space Configuration",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "space-config-title",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Space Configuration Details"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "section-sample-questions",
+            "multilineTextboxSpec": {
+              "lines": [
+                "### Sample Questions"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-sample-questions",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_sample_questions",
+                  "fields": [
+                    {
+                      "name": "space",
+                      "expression": "`space_title`"
+                    },
+                    {
+                      "name": "question",
+                      "expression": "`question_text`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "space",
+                    "displayName": "Space"
+                  },
+                  {
+                    "fieldName": "question",
+                    "displayName": "Sample Question"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Configured Sample Questions"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "section-data-sources",
+            "multilineTextboxSpec": {
+              "lines": [
+                "### Data Sources (Tables)"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-data-sources",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_space_tables",
+                  "fields": [
+                    {
+                      "name": "space",
+                      "expression": "`space_title`"
+                    },
+                    {
+                      "name": "table",
+                      "expression": "`table_name`"
+                    },
+                    {
+                      "name": "columns",
+                      "expression": "`column_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "space",
+                    "displayName": "Space"
+                  },
+                  {
+                    "fieldName": "table",
+                    "displayName": "Table Name"
+                  },
+                  {
+                    "fieldName": "columns",
+                    "displayName": "Column Count"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Configured Data Sources"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "section-instructions",
+            "multilineTextboxSpec": {
+              "lines": [
+                "### Text Instructions"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 15,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-instructions",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_text_instructions",
+                  "fields": [
+                    {
+                      "name": "space",
+                      "expression": "`space_title`"
+                    },
+                    {
+                      "name": "instructions",
+                      "expression": "`instruction_text`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "space",
+                    "displayName": "Space"
+                  },
+                  {
+                    "fieldName": "instructions",
+                    "displayName": "Instructions"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Configured Instructions"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 16,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "section-joins",
+            "multilineTextboxSpec": {
+              "lines": [
+                "### Join Specifications"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 21,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-joins",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_join_specs",
+                  "fields": [
+                    {
+                      "name": "space",
+                      "expression": "`space_title`"
+                    },
+                    {
+                      "name": "left",
+                      "expression": "`left_table`"
+                    },
+                    {
+                      "name": "right",
+                      "expression": "`right_table`"
+                    },
+                    {
+                      "name": "condition",
+                      "expression": "`join_condition`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "space",
+                    "displayName": "Space"
+                  },
+                  {
+                    "fieldName": "left",
+                    "displayName": "Left Table"
+                  },
+                  {
+                    "fieldName": "right",
+                    "displayName": "Right Table"
+                  },
+                  {
+                    "fieldName": "condition",
+                    "displayName": "Join Condition"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Configured Table Joins"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 22,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "section-benchmarks",
+            "multilineTextboxSpec": {
+              "lines": [
+                "### Benchmarks (Questions & Answers)"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 29,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "table-benchmarks",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_benchmarks",
+                  "fields": [
+                    {
+                      "name": "space",
+                      "expression": "`space_title`"
+                    },
+                    {
+                      "name": "question",
+                      "expression": "`benchmark_question`"
+                    },
+                    {
+                      "name": "sql",
+                      "expression": "`answer_sql`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "space",
+                    "displayName": "Space"
+                  },
+                  {
+                    "fieldName": "question",
+                    "displayName": "Benchmark Question"
+                  },
+                  {
+                    "fieldName": "sql",
+                    "displayName": "Expected SQL Answer"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Configured Benchmarks"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 30,
+            "width": 6,
+            "height": 7
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# Unity Catalog Outputs
+# ==============================================
 
 output "metastore_id" {
   description = "Unity Catalog metastore ID"
@@ -17,9 +17,9 @@ output "workspace_metastore_assignment_id" {
   value       = databricks_metastore_assignment.this.id
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Storage Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# Storage Outputs
+# ==============================================
 
 output "metastore_storage_account_id" {
   description = "Metastore root storage account ID"
@@ -41,9 +41,9 @@ output "external_storage_account_name" {
   value       = var.create_external_location_storage ? azurerm_storage_account.external[0].name : null
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Storage Account FQDNs
-***REMOVED*** ==============================================
+# ==============================================
+# Storage Account FQDNs
+# ==============================================
 
 output "storage_account_fqdns" {
   description = "List of Unity Catalog storage account FQDNs"
@@ -63,9 +63,9 @@ output "external_location_url" {
   value       = var.create_external_location_storage ? databricks_external_location.this[0].url : null
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Access Connector Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# Access Connector Outputs
+# ==============================================
 
 output "access_connector_id" {
   description = "Access Connector resource ID"
@@ -77,18 +77,18 @@ output "access_connector_principal_id" {
   value       = local.access_connector_principal_id
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Storage Credential Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# Storage Credential Outputs
+# ==============================================
 
 output "storage_credential_name" {
   description = "Storage credential name for external locations"
   value       = var.create_external_location_storage ? databricks_storage_credential.external[0].name : null
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Configuration Summary
-***REMOVED*** ==============================================
+# ==============================================
+# Configuration Summary
+# ==============================================
 
 output "unity_catalog_configuration" {
   description = "Summary of Unity Catalog configuration"

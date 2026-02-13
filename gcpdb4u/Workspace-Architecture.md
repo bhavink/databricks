@@ -25,7 +25,7 @@ graph TB
         CLUSTER_MGR[Cluster Manager]
         META[Metastore Service]
     end
-    
+
     subgraph "Customer GCP Account"
         subgraph "Classic Compute Plane"
             VPC[Customer VPC]
@@ -33,40 +33,40 @@ graph TB
             GCE[GCE Instances<br/>Databricks Runtime]
             NAT[Cloud NAT]
         end
-        
+
         subgraph "Serverless Compute Plane<br/>(Managed by Databricks)"
             SCP[Serverless Resources]
             SCP_VPC[Databricks Serverless VPC]
         end
-        
+
         subgraph "Storage"
             GCS[GCS Buckets<br/>Data Lake]
             BQ[BigQuery<br/>Data Warehouse]
             WSTORAGE[Workspace Storage]
         end
     end
-    
+
     WEB --> CLUSTER_MGR
     CLUSTER_MGR --> GCE
     JOBS_SVC --> GCE
     JOBS_SVC --> SCP
     NOTEBOOK --> GCE
-    
+
     GCE --> VPC
     VPC --> SUBNET
     SUBNET --> GCE
     NAT --> VPC
-    
+
     GCE --> GCS
     GCE --> BQ
     SCP --> GCS
     SCP --> BQ
-    
+
     CP -.Secure Cluster<br/>Connectivity.-> GCE
     GCE -.Outbound HTTPS<br/>via NAT.-> CP
-    
+
     SCP_VPC -.Private Google<br/>Access.-> GCS
-    
+
     style CP fill:#1E88E5
     style WEB fill:#1E88E5
     style GCE fill:#43A047
@@ -99,29 +99,29 @@ sequenceDiagram
     participant SCC as Secure Cluster<br/>Connectivity Relay
     participant GCE as GCE Cluster Nodes<br/>(No Public IPs)
     participant GCS as GCS/GAR<br/>(Private Google Access)
-    
+
     User->>CP: Create Cluster Request
     CP->>GCE: Initialize Cluster
-    
+
     Note over GCE: Cluster nodes start<br/>with private IPs only
-    
+
     GCE->>SCC: Establish Outbound<br/>Connection (TLS 1.3)
     activate SCC
     SCC-->>GCE: Connection Established
-    
+
     Note over SCC,GCE: Persistent WebSocket<br/>Connection
-    
+
     CP->>SCC: Send Commands
     SCC->>GCE: Forward Commands
     GCE->>SCC: Return Results
     SCC->>CP: Forward Results
     CP->>User: Display Results
-    
+
     GCE->>GCS: Access Runtime Images<br/>(via Private Google Access)
     GCS-->>GCE: Images/Data
-    
+
     deactivate SCC
-    
+
     Note over User,GCS: All communication encrypted<br/>No inbound connections to cluster
 ```
 
@@ -141,57 +141,57 @@ graph TB
         DCP[Control Plane Services]
         HMS[Managed Hive Metastore]
     end
-    
+
     subgraph "Customer GCP Project"
         subgraph "Customer VPC [1]"
             SUBNET[Node Subnet<br/>/20 to /26]
-            
+
             subgraph "Databricks Cluster"
                 DRIVER[Driver Node<br/>Private IP Only]
                 WORKER1[Worker Node<br/>Private IP Only]
                 WORKER2[Worker Node<br/>Private IP Only]
             end
-            
+
             NAT[Cloud NAT<br/>Egress Appliance]
         end
-        
+
         subgraph "Google Services"
             GAR[Google Artifact Registry<br/>Runtime Images]
             GCS_WS[GCS Workspace Logs]
         end
-        
+
         subgraph "Data Sources"
             GCS_DATA[GCS Data Lake]
             BQ[BigQuery]
             EXT[External Sources]
         end
     end
-    
+
     subgraph "Serverless Compute Plane"
         SCP[Serverless Resources<br/>Databricks Managed VPC]
     end
-    
+
     DRIVER --> SUBNET
     WORKER1 --> SUBNET
     WORKER2 --> SUBNET
-    
+
     SUBNET --> NAT
-    
+
     NAT -->|3: TLS 1.3<br/>Egress to Control Plane| DCP
     NAT -->|4: Hive Metastore<br/>Access| HMS
-    
+
     SUBNET -->|5: Private Google Access<br/>No NAT Required| GAR
     SUBNET -->|6: Private Google Access| GCS_WS
-    
+
     SUBNET -->|7: Private Google Access<br/>Serverless Compute| SCP
-    
+
     SUBNET -->|8: Public Repos<br/>PyPI, CRAN, Maven| NAT
-    
+
     DRIVER -->|9: Data Access| GCS_DATA
     WORKER1 -->|9: Data Access| GCS_DATA
     DRIVER -->|9: Query| BQ
     DRIVER -->|9: External Access| EXT
-    
+
     style DCP fill:#1E88E5
     style SUBNET fill:#4285F4
     style DRIVER fill:#43A047
@@ -214,4 +214,4 @@ graph TB
    * optionally you could also bring your [own hive metastore](https://docs.gcp.databricks.com/data/metastores/external-hive-metastore.html)
 6. **Flow 8:** Outbound communication to public repositories to download python, r and java libraries
    * optionally you could have a local mirror of these public repos and avoid downloading it from public sites.
-7. **Flow 9:** Accessing your data sources (GCS/BQ/PubSub/Any External source) 
+7. **Flow 9:** Accessing your data sources (GCS/BQ/PubSub/Any External source)

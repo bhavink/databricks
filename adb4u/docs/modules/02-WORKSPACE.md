@@ -1,6 +1,6 @@
 # Workspace Module
 
-**Module**: `modules/workspace`  
+**Module**: `modules/workspace`
 **Purpose**: Creates and configures Azure Databricks workspace with security features
 
 ---
@@ -314,22 +314,22 @@ Catalog
 ```hcl
 module "workspace" {
   source = "../../modules/workspace"
-  
+
   workspace_name      = "prod-workspace"
   workspace_prefix    = "proddb"
   resource_group_name = azurerm_resource_group.this.name
   location            = "eastus2"
-  
+
   # Network configuration
   vnet_id                           = module.networking.vnet_id
   public_subnet_name                = module.networking.public_subnet_name
   private_subnet_name               = module.networking.private_subnet_name
   public_subnet_nsg_association_id  = module.networking.public_subnet_nsg_association_id
   private_subnet_nsg_association_id = module.networking.private_subnet_nsg_association_id
-  
+
   # Non-PL configuration (defaults)
   enable_private_link = false
-  
+
   tags = {
     Environment = "Production"
   }
@@ -341,22 +341,22 @@ module "workspace" {
 ```hcl
 module "workspace" {
   source = "../../modules/workspace"
-  
+
   workspace_name      = "private-workspace"
   workspace_prefix    = "privdb"
   resource_group_name = azurerm_resource_group.this.name
   location            = "eastus2"
-  
+
   # Network configuration
   vnet_id                           = module.networking.vnet_id
   public_subnet_name                = module.networking.public_subnet_name
   private_subnet_name               = module.networking.private_subnet_name
   public_subnet_nsg_association_id  = module.networking.public_subnet_nsg_association_id
   private_subnet_nsg_association_id = module.networking.private_subnet_nsg_association_id
-  
+
   # Private Link enabled
   enable_private_link = true
-  
+
   tags = {
     Environment = "Production"
     Connectivity = "PrivateLink"
@@ -369,19 +369,19 @@ module "workspace" {
 ```hcl
 module "workspace" {
   source = "../../modules/workspace"
-  
+
   workspace_name      = "cmk-workspace"
   workspace_prefix    = "cmkdb"
   resource_group_name = azurerm_resource_group.this.name
   location            = "eastus2"
-  
+
   # Network configuration
   vnet_id                           = module.networking.vnet_id
   public_subnet_name                = module.networking.public_subnet_name
   private_subnet_name               = module.networking.private_subnet_name
   public_subnet_nsg_association_id  = module.networking.public_subnet_nsg_association_id
   private_subnet_nsg_association_id = module.networking.private_subnet_nsg_association_id
-  
+
   # CMK enabled for all three scopes
   enable_cmk_managed_services = true
   enable_cmk_managed_disks    = true
@@ -389,7 +389,7 @@ module "workspace" {
   cmk_key_vault_key_id        = module.key_vault.key_id
   cmk_key_vault_id            = module.key_vault.key_vault_id
   databricks_account_id       = var.databricks_account_id
-  
+
   tags = {
     Environment = "Production"
     Encryption  = "CMK"
@@ -402,26 +402,26 @@ module "workspace" {
 ```hcl
 module "workspace" {
   source = "../../modules/workspace"
-  
+
   workspace_name      = "ip-restricted-workspace"
   workspace_prefix    = "securedb"
   resource_group_name = azurerm_resource_group.this.name
   location            = "eastus2"
-  
+
   # Network configuration
   vnet_id                           = module.networking.vnet_id
   public_subnet_name                = module.networking.public_subnet_name
   private_subnet_name               = module.networking.private_subnet_name
   public_subnet_nsg_association_id  = module.networking.public_subnet_nsg_association_id
   private_subnet_nsg_association_id = module.networking.private_subnet_nsg_association_id
-  
+
   # IP Access Lists
   enable_ip_access_lists = true
   allowed_ip_ranges = [
     "203.0.113.0/24",    # Corporate office
     "198.51.100.0/24",   # Remote office
   ]
-  
+
   tags = {
     Environment = "Production"
     Security    = "IPRestricted"
@@ -524,5 +524,5 @@ Error: Key Vault Key not found
 
 ---
 
-**Module Version**: 1.0  
+**Module Version**: 1.0
 **Terraform Version**: >= 1.5

@@ -8,7 +8,7 @@
 
 ## 📋 Scenario Overview
 
-**Problem Statement:**  
+**Problem Statement:**
 Financial advisory firm needs an intelligent assistant where a supervisor agent routes client queries to specialized Genie Spaces (Portfolios, Market Data, Compliance) based on intent. Advisors see all client data, clients see only their own portfolios, and all interactions are logged for regulatory audit requirements.
 
 **Business Requirements:**
@@ -47,59 +47,59 @@ flowchart TD
         ADVISOR[Advisors<br/>50 users]
         COMPLIANCE[Compliance Officers<br/>5 users]
     end
-    
+
     subgraph "Supervisor Agent"
         SUP[Multi-Agent Supervisor<br/>Intent Classification<br/>Hybrid Auth: App SP + OBO]
     end
-    
+
     subgraph "Specialized Genie Spaces"
         PORT[Portfolio Genie<br/>OBO Mode<br/>Client/Advisor access]
         MARKET[Market Data Genie<br/>OBO Mode<br/>Public + Premium data]
         COMP[Compliance Genie<br/>OBO Mode<br/>Audit/Compliance access]
     end
-    
+
     subgraph "Unity Catalog"
         UC[UC Governance Engine]
-        
+
         subgraph "Portfolio Catalog"
             PDATA[(Portfolios<br/>Client-level row filters)]
             TRANS[(Transactions<br/>Client-level row filters)]
         end
-        
+
         subgraph "Market Catalog"
             MDATA[(Market Data<br/>Public + Premium tiers)]
         end
-        
+
         subgraph "Compliance Catalog"
             AUDIT[(Audit Log<br/>Compliance officer only)]
             ALERTS[(Alerts<br/>Flagged transactions)]
         end
     end
-    
+
     subgraph "External Services"
         EXT_MARKET[External Market Data API<br/>Manual Credentials]
     end
-    
+
     CLIENT -->|Query| SUP
     ADVISOR -->|Query| SUP
     COMPLIANCE -->|Query| SUP
-    
+
     SUP -->|Route + User Token| PORT
     SUP -->|Route + User Token| MARKET
     SUP -->|Route + User Token| COMP
-    
+
     PORT --> UC
     MARKET --> UC
     COMP --> UC
-    
+
     UC --> PDATA
     UC --> TRANS
     UC --> MDATA
     UC --> AUDIT
     UC --> ALERTS
-    
+
     MARKET --> EXT_MARKET
-    
+
     style CLIENT fill:#d5f5e3,stroke:#27ae60
     style ADVISOR fill:#d5f5e3,stroke:#27ae60
     style COMPLIANCE fill:#fdebd0,stroke:#e67e22
@@ -206,29 +206,29 @@ CREATE FUNCTION portfolio_catalog.holdings.can_access_portfolio(
 )
 RETURNS BOOLEAN
 COMMENT 'ABAC: Clients see own data, advisors see their clients, compliance sees all'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- Compliance officers see everything
         WHEN is_member('compliance-officers') THEN true
-        
+
         -- Advisors see their assigned clients' data
         WHEN is_member('advisors') AND record_advisor_email = current_user() THEN true
-        
+
         -- Clients see only their own data
         WHEN is_member('clients') AND record_client_email = current_user() THEN true
-        
+
         -- Default deny
         ELSE false
     END;
 
 -- Apply to positions table
 ALTER TABLE portfolio_catalog.holdings.positions
-  SET ROW FILTER portfolio_catalog.holdings.can_access_portfolio 
+  SET ROW FILTER portfolio_catalog.holdings.can_access_portfolio
   ON (client_email, advisor_email);
 
 -- Apply to transactions table
 ALTER TABLE portfolio_catalog.holdings.transactions
-  SET ROW FILTER portfolio_catalog.holdings.can_access_portfolio 
+  SET ROW FILTER portfolio_catalog.holdings.can_access_portfolio
   ON (client_email, advisor_email);
 ```
 
@@ -241,22 +241,22 @@ CREATE FUNCTION market_catalog.realtime.can_access_market_data(
 )
 RETURNS BOOLEAN
 COMMENT 'Tiered market data access'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- Premium data: advisors and compliance
-        WHEN data_tier = 'premium' AND 
+        WHEN data_tier = 'premium' AND
              (is_member('advisors') OR is_member('compliance-officers')) THEN true
-        
+
         -- Public data: everyone
         WHEN data_tier = 'public' THEN true
-        
+
         -- Default deny
         ELSE false
     END;
 
 -- Apply to quotes table
 ALTER TABLE market_catalog.realtime.quotes
-  SET ROW FILTER market_catalog.realtime.can_access_market_data 
+  SET ROW FILTER market_catalog.realtime.can_access_market_data
   ON (data_tier);
 ```
 
@@ -295,15 +295,15 @@ import re
 class FinancialAdvisorSupervisor(MultiAgentSupervisor):
     """
     Supervisor agent that routes queries to specialized Genie Spaces.
-    
+
     Auth Strategy:
     - Intent classification: Uses app service principal (no user data needed)
     - Genie routing: Forwards user token (OBO) for UC enforcement
     """
-    
+
     def __init__(self, config):
         super().__init__(config)
-        
+
         # Genie Space configurations
         self.genies = {
             "portfolio": {
@@ -322,7 +322,7 @@ class FinancialAdvisorSupervisor(MultiAgentSupervisor):
                 "keywords": ["audit", "compliance", "trades", "alerts", "flagged"]
             }
         }
-    
+
     def predict(self, inputs, context):
         """
         Main prediction method:
@@ -332,17 +332,17 @@ class FinancialAdvisorSupervisor(MultiAgentSupervisor):
         query = inputs.get("query")
         user_token = context.user_token
         user_email = context.user_email
-        
+
         # Step 1: Classify intent (app SP - no UC queries)
         intent = self._classify_intent(query)
-        
+
         # Step 2: Route to Genie with user token
         genie_response = self._route_to_genie(
             intent=intent,
             query=query,
             user_token=user_token
         )
-        
+
         # Step 3: Log for compliance (write to audit table)
         self._log_interaction(
             user_email=user_email,
@@ -350,52 +350,52 @@ class FinancialAdvisorSupervisor(MultiAgentSupervisor):
             intent=intent,
             genie_used=intent
         )
-        
+
         return {
             "answer": genie_response["answer"],
             "sources": genie_response.get("sources", []),
             "genie_used": intent,
             "note": f"Query routed to {intent.title()} Genie (user: {user_email})"
         }
-    
+
     def _classify_intent(self, query):
         """
         Classify query intent using keyword matching + LLM.
         Uses app SP (no user data needed).
         """
         query_lower = query.lower()
-        
+
         # Simple keyword matching (can enhance with LLM classifier)
         for intent, config in self.genies.items():
             for keyword in config["keywords"]:
                 if keyword in query_lower:
                     return intent
-        
+
         # Default to portfolio for ambiguous queries
         return "portfolio"
-    
+
     def _route_to_genie(self, intent, query, user_token):
         """
         Route query to appropriate Genie Space.
         Forwards user token for OBO authentication.
         """
         genie_config = self.genies[intent]
-        
+
         # Initialize user-authenticated client
         w = WorkspaceClient(token=user_token)
-        
+
         # Call Genie Space API with user token
         # Genie will enforce UC row filters based on user
         response = w.genie.query(
             space_id=genie_config["space_id"],
             query=query
         )
-        
+
         return {
             "answer": response.get("text"),
             "sources": response.get("sources", [])
         }
-    
+
     def _log_interaction(self, user_email, query, intent, genie_used):
         """
         Log interaction to compliance audit table.
@@ -404,9 +404,9 @@ class FinancialAdvisorSupervisor(MultiAgentSupervisor):
         from pyspark.sql import SparkSession
         from pyspark.sql.functions import current_timestamp
         import uuid
-        
+
         spark = SparkSession.builder.getOrCreate()
-        
+
         log_df = spark.createDataFrame([{
             "interaction_id": str(uuid.uuid4()),
             "user_email": user_email,
@@ -415,7 +415,7 @@ class FinancialAdvisorSupervisor(MultiAgentSupervisor):
             "genie_used": genie_used,
             "timestamp": current_timestamp()
         }])
-        
+
         # Write to compliance audit log
         log_df.write.format("delta").mode("append").saveAsTable(
             "compliance_catalog.audit.access_log"
@@ -559,7 +559,7 @@ with mlflow.start_run():
             "databricks-sdk"
         ]
     )
-    
+
     model_uri = mlflow.get_artifact_uri("supervisor")
 
 # Register model
@@ -637,8 +637,8 @@ print(f"Routing: {market_response['genie_used']}")  # Should be: "market"
 
 ```sql
 -- Query 1: Usage by user role
-SELECT 
-    CASE 
+SELECT
+    CASE
         WHEN is_member('compliance-officers') THEN 'Compliance'
         WHEN is_member('advisors') THEN 'Advisor'
         WHEN is_member('clients') THEN 'Client'
@@ -652,7 +652,7 @@ GROUP BY user_role, genie_used, DATE(timestamp)
 ORDER BY date DESC, query_count DESC;
 
 -- Query 2: Unusual access patterns (compliance alert)
-SELECT 
+SELECT
     user_email,
     COUNT(*) as query_count,
     COUNT(DISTINCT genie_used) as unique_genies_accessed

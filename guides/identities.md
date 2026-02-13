@@ -47,15 +47,15 @@ flowchart TB
     subgraph "Your Decision"
         Q{Which cloud are you using?}
     end
-    
+
     Q -->|AWS| AWS[AWS: Cross-Account Role<br/>Databricks assumes temporary credentials]
     Q -->|Azure| AZ[Azure: First-Party App<br/>Databricks has built-in access]
     Q -->|GCP| GCP[GCP: Service Account<br/>Databricks creates identity in your account]
-    
+
     AWS --> AWSDetails[You create IAM role<br/>Databricks assumes it<br/>You control via trust policy]
     AZ --> AZDetails[Azure trusts Databricks automatically<br/>You control via RBAC<br/>No setup needed]
     GCP --> GCPDetails[Databricks creates GSA<br/>You grant permissions<br/>You control via IAM]
-    
+
     style AWS fill:#FF9900,color:#000
     style AZ fill:#0078D4,color:#fff
     style GCP fill:#4285F4,color:#fff
@@ -78,22 +78,22 @@ sequenceDiagram
     participant DB as Databricks<br/>(Account 414351767826)
     participant IAM as AWS IAM
     participant Resources as AWS Resources<br/>(EC2, VPC, S3)
-    
+
     Note over You,DB: Setup Phase
     You->>IAM: 1. Create Cross-Account Role
     You->>IAM: 2. Set trust policy:<br/>"Only Databricks can use this"
     You->>IAM: 3. Attach permissions:<br/>"Can launch EC2, access S3"
-    
+
     Note over You,DB: Workspace Creation
     DB->>IAM: 4. AssumeRole (with external ID)
     IAM->>IAM: Verify: Is this really Databricks?
     IAM->>DB: ✅ Here are temporary credentials<br/>(valid for 1 hour)
-    
+
     DB->>Resources: 5. Create workspace using temp creds
     DB->>Resources: Launch EC2 instances
     DB->>Resources: Configure VPC/subnets
     DB->>Resources: Access S3 buckets
-    
+
     Note over DB,Resources: Credentials expire automatically
 ```
 
@@ -106,34 +106,34 @@ flowchart TD
     subgraph "Databricks Control Plane<br/>Account: 414351767826"
         DB[Databricks SaaS]
     end
-    
+
     subgraph "Your AWS Account"
         subgraph "Workspace Management"
             CROSS[Cross-Account Role<br/>Manages workspace infrastructure]
             STORAGE[Storage Config Role<br/>Accesses DBFS root bucket]
         end
-        
+
         subgraph "Unity Catalog Management"
             UCMETA[UC Metastore Role<br/>Shared across workspaces]
             UCEXT[UC External Role<br/>Per-workspace storage]
         end
-        
+
         subgraph "Cluster Access"
             INSTANCE[Instance Profile<br/>Data access for clusters]
         end
     end
-    
+
     DB -.->|AssumeRole| CROSS
     DB -.->|AssumeRole| STORAGE
     DB -.->|AssumeRole| UCMETA
     DB -.->|AssumeRole| UCEXT
-    
+
     CROSS -->|Launch/Configure| EC2[EC2 Instances]
     STORAGE -->|Read/Write| S3DBFS[DBFS Root S3 Bucket]
     UCMETA -->|Read/Write| S3META[Metastore S3 Bucket]
     UCEXT -->|Read/Write| S3EXT[External S3 Buckets]
     INSTANCE -->|Attached to| EC2
-    
+
     style DB fill:#FF3621,color:#fff
     style CROSS fill:#FF9900,color:#000
     style STORAGE fill:#FF9900,color:#000
@@ -195,17 +195,17 @@ sequenceDiagram
     participant TF as Terraform
     participant DB as Databricks
     participant S3 as S3 Bucket
-    
+
     Note over You,S3: Setup Flow
     You->>TF: 1. Create storage credential<br/>(with placeholder role)
     TF->>DB: 2. Register credential
     DB->>DB: 3. Generate unique external_id
     DB->>TF: 4. Return external_id
-    
+
     TF->>You: 5. Create IAM role with trust policy<br/>(including external_id)
     TF->>You: 6. Attach S3 permissions
     TF->>DB: 7. Update credential with real role ARN
-    
+
     Note over You,S3: Access Flow
     DB->>You: 8. AssumeRole (with external_id)
     You->>You: Verify external_id matches
@@ -239,14 +239,14 @@ sequenceDiagram
     participant ARM as Azure Resource Manager
     participant DB as Azure Databricks<br/>(First-party service)
     participant Resources as Azure Resources<br/>(VNet, Storage)
-    
+
     Note over You,DB: You create workspace (not Databricks)
     You->>SP: 1. Give SP permissions<br/>(Contributor role)
     SP->>ARM: 2. Create Databricks workspace
     ARM->>ARM: 3. Provision managed resource group
     ARM->>DB: 4. Deploy Databricks control plane
     DB->>Resources: 5. Create managed resources<br/>(automatically trusted)
-    
+
     Note over DB,Resources: Databricks accesses resources<br/>using Azure's built-in trust
     DB->>Resources: Configure VNet injection
     DB->>Resources: Access storage accounts
@@ -274,29 +274,29 @@ flowchart TD
             VNET[VNet/Subnets]
             STORAGE[Storage Accounts]
         end
-        
+
         subgraph "Managed Resource Group<br/>(Azure creates, Databricks uses)"
             NSG[Network Security Groups]
             LB[Load Balancers]
             VMS[Worker VMs]
             DISKS[Managed Disks]
         end
-        
+
         subgraph "Service Principal<br/>(Your automation identity)"
             SP[Service Principal<br/>Used by Terraform]
         end
     end
-    
+
     SP -->|Contributor role| RG
     RG -->|Contains| WS
     RG -->|Contains| VNET
     RG -->|Contains| STORAGE
-    
+
     WS -->|Auto-creates| NSG
     WS -->|Auto-creates| LB
     WS -->|Launches| VMS
     WS -->|Creates| DISKS
-    
+
     style SP fill:#0078D4,color:#fff
     style WS fill:#FF3621,color:#fff
 ```
@@ -311,13 +311,13 @@ sequenceDiagram
     participant WS as Databricks Workspace
     participant MI as Managed Identity<br/>(Auto-created)
     participant Storage as Storage Account
-    
+
     Note over You,Storage: Setup
     You->>WS: 1. Create Unity Catalog<br/>storage credential
     WS->>MI: 2. Create managed identity<br/>(access connector)
     WS->>You: 3. Return MI principal ID
     You->>Storage: 4. Grant MI permissions<br/>(Storage Blob Data Contributor)
-    
+
     Note over You,Storage: Access
     WS->>MI: 5. Request token
     MI->>Storage: 6. Access blob storage<br/>(using token)
@@ -366,14 +366,14 @@ sequenceDiagram
     participant DB as Databricks<br/>(accounts.gcp.databricks.com)
     participant GSA as Service Account<br/>(Created by Databricks)
     participant Resources as GCP Resources<br/>(GCS, Compute)
-    
+
     Note over You,DB: Workspace Creation
     You->>DB: 1. Request workspace creation
     DB->>You: 2. Create service account<br/>databricks-compute@project.iam
     DB->>You: 3. This GSA represents Databricks
-    
+
     You->>GSA: 4. Grant permissions<br/>(Compute Admin, Storage Admin)
-    
+
     Note over DB,Resources: Databricks Uses GSA
     DB->>GSA: 5. Impersonate GSA
     GSA->>Resources: 6. Create Compute Engine VMs
@@ -392,23 +392,23 @@ flowchart TD
         DELEGATE[Delegate SA<br/>Launches GCE clusters]
         UC_SA[Unity Catalog Storage SA<br/>UC data access]
     end
-    
+
     subgraph YourProj[Your GCP Project]
         subgraph CustomerGSA[Customer-Created GSAs]
             YOUR_SA[Terraform GSA<br/>You create this for Terraform]
         end
-        
+
         subgraph DBXCreatedGSA[Databricks-Created GSAs]
             COMPUTE[Compute SA<br/>Attached to cluster VMs]
         end
-        
+
         subgraph Resources
             VPC[VPC Networks]
             VM[GCE Instances]
             GCS[GCS Buckets]
         end
     end
-    
+
     YOUR_SA -->|Impersonated by Databricks provider| WS_SA
     WS_SA -->|Validates/Creates| COMPUTE
     WS_SA -->|Configures| VPC
@@ -416,7 +416,7 @@ flowchart TD
     VM -->|Has attached| COMPUTE
     COMPUTE -->|Accesses| GCS
     UC_SA -->|Accesses UC-managed storage| GCS
-    
+
     style WS_SA fill:#FF3621,color:#fff
     style DELEGATE fill:#FF9900,color:#000
     style UC_SA fill:#1B72E8,color:#fff
@@ -487,7 +487,7 @@ sequenceDiagram
     participant WS_SA as Workspace SA<br/>(Databricks project)
     participant Your_Proj as Your GCP Project
     participant Compute_SA as Compute SA<br/>(Your project)
-    
+
     Note over You,Your_Proj: Workspace Creation
     You->>DB: 1. Create workspace<br/>(impersonate your GSA)
     DB->>WS_SA: 2. Create Workspace SA<br/>(in Databricks project)
@@ -496,7 +496,7 @@ sequenceDiagram
     WS_SA->>Your_Proj: 5. Grant Compute SA roles<br/>(log writer, metric writer)
     WS_SA->>Your_Proj: 6. Validate VPC configuration
     DB->>You: 7. Workspace ready!
-    
+
     Note over You,Your_Proj: Cluster Launch
     You->>DB: 8. Launch cluster
     WS_SA->>Your_Proj: 9. Create GCE instances
@@ -523,17 +523,17 @@ sequenceDiagram
     participant WS as Databricks Workspace
     participant DBGSA as Databricks GSA<br/>(Databricks-owned account)
     participant GCS as GCS Bucket
-    
+
     Note over You,GCS: Setup
     You->>WS: 1. Create storage credential
     WS->>WS: 2. Generate Databricks-managed GSA email
     WS->>You: 3. Return GSA email
     You->>GCS: 4. Grant GSA permissions<br/>(Storage Object Admin)
-    
+
     Note over You,GCS: Access
     WS->>DBGSA: 5. Use Databricks GSA
     DBGSA->>GCS: 6. Access bucket
-    
+
     Note over DBGSA,GCS: The GSA lives in Databricks' GCP<br/>project, not yours
 ```
 
@@ -551,23 +551,23 @@ flowchart TD
         SHARED_VPC[Shared VPC]
         SUBNETS[Subnets]
     end
-    
+
     subgraph "Service Project<br/>(Your Databricks workspace)"
         GSA[databricks-compute GSA]
         VM[Compute VMs]
     end
-    
+
     subgraph "Permissions Required"
         HOST_PERMS[Host project IAM:<br/>Compute Network User]
         SERVICE_PERMS[Service project IAM:<br/>Compute Admin]
     end
-    
+
     GSA -->|Needs| HOST_PERMS
     GSA -->|Needs| SERVICE_PERMS
     GSA -->|Attached to| VM
     VM -->|Uses| SHARED_VPC
     VM -->|Deploys into| SUBNETS
-    
+
     style SHARED_VPC fill:#4285F4,color:#fff
     style GSA fill:#34A853,color:#fff
 ```
@@ -587,30 +587,30 @@ flowchart LR
         AZURE_MI[Azure: Managed Identity]
         GCP_GSA[GCP: Service Account]
     end
-    
+
     subgraph "2. Storage Credential"
         SC[Storage Credential<br/>Links identity to Databricks]
     end
-    
+
     subgraph "3. External Location"
         EL[External Location<br/>Maps to actual storage path]
     end
-    
+
     subgraph "4. Catalog/Schema/Table"
         CAT[Catalog]
         SCHEMA[Schema]
         TABLE[Table]
     end
-    
+
     AWS_ROLE -->|Registered in| SC
     AZURE_MI -->|Registered in| SC
     GCP_GSA -->|Registered in| SC
-    
+
     SC -->|Used by| EL
     EL -->|Storage for| CAT
     CAT -->|Contains| SCHEMA
     SCHEMA -->|Contains| TABLE
-    
+
     style SC fill:#FF6B35,color:#fff
     style EL fill:#004E89,color:#fff
     style CAT fill:#1B9AAA,color:#fff
@@ -625,15 +625,15 @@ sequenceDiagram
     participant UC as Unity Catalog
     participant Role as IAM Role<br/>(In your account)
     participant S3 as S3 Bucket
-    
+
     UC->>Role: 1. AssumeRole<br/>(with external_id)
     Role->>Role: 2. Verify external_id
     Role->>UC: 3. Temporary credentials
     UC->>S3: 4. Access data
 ```
 
-**Created by:** You (via Terraform)  
-**Trust:** AssumeRole with external_id  
+**Created by:** You (via Terraform)
+**Trust:** AssumeRole with external_id
 **Permissions:** S3 GetObject, PutObject, ListBucket
 
 #### Azure: Managed Identity (Access Connector)
@@ -643,15 +643,15 @@ sequenceDiagram
     participant UC as Unity Catalog
     participant MI as Managed Identity<br/>(Access Connector)
     participant ADLS as ADLS Gen2
-    
+
     UC->>MI: 1. Request token
     MI->>MI: 2. Azure AD authenticates
     MI->>UC: 3. Access token
     UC->>ADLS: 4. Access data<br/>(with token)
 ```
 
-**Created by:** You (via Terraform/Portal)  
-**Trust:** Azure AD (automatic)  
+**Created by:** You (via Terraform/Portal)
+**Trust:** Azure AD (automatic)
 **Permissions:** Storage Blob Data Contributor
 
 #### GCP: Databricks-Managed GSA
@@ -661,15 +661,15 @@ sequenceDiagram
     participant UC as Unity Catalog
     participant DBGSA as Databricks GSA<br/>(Databricks project)
     participant GCS as GCS Bucket<br/>(Your project)
-    
+
     UC->>DBGSA: 1. Use Databricks GSA
     DBGSA->>GCS: 2. Access bucket<br/>(cross-project)
-    
+
     Note over DBGSA,GCS: You grant permissions to<br/>Databricks' GSA in your project
 ```
 
-**Created by:** Databricks (in their project)  
-**Trust:** GCP IAM (cross-project)  
+**Created by:** Databricks (in their project)
+**Trust:** GCP IAM (cross-project)
 **Permissions:** Storage Object Admin
 
 ---
@@ -685,34 +685,34 @@ flowchart TD
     subgraph "AWS Example"
         CROSS[Cross-Account Role]
         CROSS_PERMS[Can: Launch EC2, Configure VPC<br/>Cannot: Access S3, Delete resources]
-        
+
         STORAGE[Storage Config Role]
         STORAGE_PERMS[Can: Read/Write DBFS bucket<br/>Cannot: Launch EC2, Access other buckets]
     end
-    
+
     subgraph "Azure Example"
         SP[Service Principal]
         SP_PERMS[Can: Create workspace, Deploy resources<br/>Cannot: Access data, Modify other resources]
-        
+
         MI[Managed Identity]
         MI_PERMS[Can: Read/Write assigned storage<br/>Cannot: Create resources, Access other storage]
     end
-    
+
     subgraph "GCP Example"
         COMPUTE_GSA[databricks-compute GSA]
         COMPUTE_PERMS[Can: Access assigned buckets<br/>Cannot: Create VMs, Modify IAM]
-        
+
         UC_GSA[UC Storage GSA]
         UC_PERMS[Can: Read/Write catalog storage<br/>Cannot: Access compute, Modify network]
     end
-    
+
     CROSS --> CROSS_PERMS
     STORAGE --> STORAGE_PERMS
     SP --> SP_PERMS
     MI --> MI_PERMS
     COMPUTE_GSA --> COMPUTE_PERMS
     UC_GSA --> UC_PERMS
-    
+
     style CROSS_PERMS fill:#90EE90,color:#000
     style STORAGE_PERMS fill:#90EE90,color:#000
     style SP_PERMS fill:#90EE90,color:#000
@@ -744,12 +744,12 @@ sequenceDiagram
     participant Attacker
     participant DB as Databricks
     participant Your_Role as Your IAM Role
-    
+
     Attacker->>DB: Use role arn:aws:iam::YOUR-ACCT:role/your-role
     DB->>Your_Role: AssumeRole<br/>(with Attacker's external_id)
     Your_Role->>Your_Role: Check: external_id = YOUR-ACCOUNT-ID?
     Your_Role->>DB: ❌ Access Denied<br/>(external_id mismatch)
-    
+
     Note over Attacker,Your_Role: Attacker cannot access your data
 ```
 
@@ -844,7 +844,7 @@ flowchart LR
     B --> C[3. Databricks calls<br/>AWS STS AssumeRole]
     C --> D[4. AWS returns<br/>temporary credentials]
     D --> E[5. Databricks accesses<br/>your AWS resources]
-    
+
     style A fill:#FF9900,color:#000
     style B fill:#FF9900,color:#000
     style C fill:#FF9900,color:#000
@@ -862,7 +862,7 @@ flowchart LR
     B --> C[3. Azure creates<br/>managed identity]
     C --> D[4. You grant RBAC<br/>permissions]
     D --> E[5. Databricks accesses<br/>your Azure resources]
-    
+
     style A fill:#0078D4,color:#fff
     style B fill:#0078D4,color:#fff
     style C fill:#0078D4,color:#fff
@@ -880,7 +880,7 @@ flowchart LR
     B --> C[3. Workspace GSA creates<br/>Compute GSA in your project]
     C --> D[4. You grant GSA<br/>IAM roles]
     D --> E[5. Databricks accesses<br/>your GCP resources]
-    
+
     style A fill:#4285F4,color:#fff
     style B fill:#4285F4,color:#fff
     style C fill:#4285F4,color:#fff

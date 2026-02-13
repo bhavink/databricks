@@ -236,22 +236,22 @@ terraform output deployment_summary
    ```sql
    -- Show catalogs
    SHOW CATALOGS;
-   
+
    -- Use workspace catalog
    USE CATALOG your_catalog_name;
-   
+
    -- Create schema
    CREATE SCHEMA IF NOT EXISTS test_schema;
-   
+
    -- Create table
    CREATE TABLE test_schema.test_table (
      id INT,
      name STRING
    );
-   
+
    -- Insert data
    INSERT INTO test_schema.test_table VALUES (1, 'test');
-   
+
    -- Query
    SELECT * FROM test_schema.test_table;
    ```

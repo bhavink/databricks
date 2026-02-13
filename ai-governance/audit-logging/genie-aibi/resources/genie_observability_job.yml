@@ -1,0 +1,43 @@
+# Job: Run SDP pipeline then Python message ingestion (recommended for production).
+#
+# SERVERLESS ONLY. Pipeline task uses serverless pipeline compute; Python task uses
+# serverless job compute (environments + environment_key). Do not add new_cluster.
+# Pipeline is SQL-only (only pipeline.sql). Two tasks: 1) pipeline, 2) genie_message_ingestion.py.
+# Replace pipeline_id and python_file paths with your workspace values.
+
+name: genie_observability_full_run
+
+# Required for serverless Python task (no new_cluster).
+environments:
+  - environment_key: serverless_default
+    spec: { client: "4" }
+
+tasks:
+  - task_key: run_sdp_pipeline
+    description: Refresh genie_messages_to_fetch and other MVs from audit (SQL-only pipeline)
+    pipeline_task:
+      pipeline_id: "<your-genie_observability-pipeline-id>"
+      full_refresh: false
+
+  - task_key: run_message_ingestion
+    description: Fetch message details from Genie API and append to message_details
+    depends_on:
+      - task_key: run_sdp_pipeline
+    environment_key: serverless_default
+    spark_python_task:
+      python_file: "/Workspace/Users/<your-user>/genie-analytics/genie observability/python/genie_message_ingestion.py"
+      source: WORKSPACE
+    # Or use a notebook that calls run_ingestion():
+    # notebook_task:
+    #   notebook_path: "/Workspace/Users/<your-user>/genie-analytics/genie observability/python/run_ingestion_notebook"
+    #   source: WORKSPACE
+
+# Recommended: schedule every 15–30 min for incremental capture (set genie.lookback_minutes in pipeline config).
+schedule:
+  quartz_cron_expression: "0 0/30 * * * ?"
+  timezone_id: "UTC"
+
+# Optional: email on failure
+# email_notifications:
+#   on_failure:
+#     - "your-team@example.com"

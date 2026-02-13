@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Primary Outputs (Most Commonly Used)
-***REMOVED*** ==============================================
+# ==============================================
+# Primary Outputs (Most Commonly Used)
+# ==============================================
 
 output "workspace_url" {
   description = "Databricks workspace URL"
@@ -22,9 +22,9 @@ output "nat_gateway_ip" {
   value       = module.networking.nat_gateway_public_ip
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Detailed Resource Outputs (Hidden by Default)
-***REMOVED*** ==============================================
+# ==============================================
+# Detailed Resource Outputs (Hidden by Default)
+# ==============================================
 
 output "resources" {
   description = "Detailed resource information (workspace, network, Unity Catalog, NCC, SEP)"
@@ -72,9 +72,9 @@ output "resources" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Deployment Summary
-***REMOVED*** ==============================================
+# ==============================================
+# Deployment Summary
+# ==============================================
 
 output "deployment_summary" {
   description = "Quick status overview of deployed resources"

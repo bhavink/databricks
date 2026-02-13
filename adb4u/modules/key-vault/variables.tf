@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Key Vault Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Key Vault Configuration
+# ==============================================
 
 variable "create_key_vault" {
   description = "Create new Key Vault (true) or use existing (false)"
@@ -32,9 +32,9 @@ variable "key_name" {
   default     = "databricks-cmk"
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Key Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Key Configuration
+# ==============================================
 
 variable "key_type" {
   description = "Type of key (RSA, RSA-HSM, EC, EC-HSM)"
@@ -87,9 +87,9 @@ variable "expiry_days" {
   default     = null
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Access Policy Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Access Policy Configuration
+# ==============================================
 
 variable "enable_purge_protection" {
   description = "Enable purge protection (recommended for production)"
@@ -120,9 +120,9 @@ variable "databricks_principal_id" {
   default     = ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Core Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Core Configuration
+# ==============================================
 
 variable "resource_group_name" {
   description = "Resource group name"

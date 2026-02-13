@@ -306,3 +306,7 @@ confidential/
 CLAUDE.md
 CLAUDE.local.md
 
+***REMOVED*** Do not commit: archive files with hardcoded keys / tokens
+archive/databricks-jump-start/cryptography/main.py
+archive/databricks-rest-api-collection/token-management/Token Managment.postman_collection.json
+

@@ -1,234 +1,234 @@
-***REMOVED*** ==============================================
-***REMOVED*** Non-PL Deployment Configuration Example
-***REMOVED*** ==============================================
-***REMOVED*** This file provides example values for deploying an Azure Databricks workspace
-***REMOVED*** using the Non-PL pattern (Control Plane + NPIP Data Plane).
-***REMOVED***
-***REMOVED*** Copy this file to terraform.tfvars and customize for your environment.
-***REMOVED*** ==============================================
+# ==============================================
+# Non-PL Deployment Configuration Example
+# ==============================================
+# This file provides example values for deploying an Azure Databricks workspace
+# using the Non-PL pattern (Control Plane + NPIP Data Plane).
+#
+# Copy this file to terraform.tfvars and customize for your environment.
+# ==============================================
 
-***REMOVED*** ==============================================
-***REMOVED*** Authentication Configuration
-***REMOVED*** ==============================================
-***REMOVED*** Terraform providers support multiple authentication methods.
-***REMOVED*** Choose the method that best fits your environment.
+# ==============================================
+# Authentication Configuration
+# ==============================================
+# Terraform providers support multiple authentication methods.
+# Choose the method that best fits your environment.
 
-***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
-***REMOVED*** │ OPTION 1: Environment Variables (RECOMMENDED)                            │
-***REMOVED*** │ Best for: Development, CI/CD pipelines, credential security              │
-***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
-***REMOVED***
-***REMOVED*** Add to ~/.zshrc or ~/.bashrc:
-***REMOVED***
-***REMOVED*** ***REMOVED*** Azure Authentication
-***REMOVED*** export ARM_CLIENT_ID="<service-principal-app-id>"
-***REMOVED*** export ARM_CLIENT_SECRET="<service-principal-secret>"
-***REMOVED*** export ARM_TENANT_ID="<azure-ad-tenant-id>"
-***REMOVED*** export ARM_SUBSCRIPTION_ID="<azure-subscription-id>"
-***REMOVED***
-***REMOVED*** ***REMOVED*** Databricks Account Authentication
-***REMOVED*** export TF_VAR_databricks_account_id="<databricks-account-id>"
-***REMOVED***
-***REMOVED*** Then run: source ~/.zshrc
+# ┌──────────────────────────────────────────────────────────────────────────┐
+# │ OPTION 1: Environment Variables (RECOMMENDED)                            │
+# │ Best for: Development, CI/CD pipelines, credential security              │
+# └──────────────────────────────────────────────────────────────────────────┘
+#
+# Add to ~/.zshrc or ~/.bashrc:
+#
+# # Azure Authentication
+# export ARM_CLIENT_ID="<service-principal-app-id>"
+# export ARM_CLIENT_SECRET="<service-principal-secret>"
+# export ARM_TENANT_ID="<azure-ad-tenant-id>"
+# export ARM_SUBSCRIPTION_ID="<azure-subscription-id>"
+#
+# # Databricks Account Authentication
+# export TF_VAR_databricks_account_id="<databricks-account-id>"
+#
+# Then run: source ~/.zshrc
 
-***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
-***REMOVED*** │ OPTION 2: Azure CLI (DEVELOPMENT ONLY)                                   │
-***REMOVED*** │ Best for: Local development, testing                                     │
-***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
-***REMOVED***
-***REMOVED*** Prerequisites:
-***REMOVED*** 1. Install Azure CLI: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
-***REMOVED*** 2. Login: az login
-***REMOVED*** 3. Set subscription: az account set --subscription <subscription-id>
-***REMOVED*** 4. Verify: az account show
-***REMOVED***
-***REMOVED*** Terraform will automatically use your az cli credentials.
-***REMOVED*** You only need to set databricks_account_id below.
+# ┌──────────────────────────────────────────────────────────────────────────┐
+# │ OPTION 2: Azure CLI (DEVELOPMENT ONLY)                                   │
+# │ Best for: Local development, testing                                     │
+# └──────────────────────────────────────────────────────────────────────────┘
+#
+# Prerequisites:
+# 1. Install Azure CLI: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
+# 2. Login: az login
+# 3. Set subscription: az account set --subscription <subscription-id>
+# 4. Verify: az account show
+#
+# Terraform will automatically use your az cli credentials.
+# You only need to set databricks_account_id below.
 
-***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
-***REMOVED*** │ OPTION 3: Service Principal (PRODUCTION)                                 │
-***REMOVED*** │ Best for: Production, CI/CD, automated deployments                       │
-***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
-***REMOVED***
-***REMOVED*** Create Service Principal:
-***REMOVED*** az ad sp create-for-rbac \
-***REMOVED***   --name "terraform-databricks-sp" \
-***REMOVED***   --role "Contributor" \
-***REMOVED***   --scopes /subscriptions/<subscription-id>
-***REMOVED***
-***REMOVED*** Add User Access Administrator role (needed for RBAC):
-***REMOVED*** az role assignment create \
-***REMOVED***   --assignee "<app-id>" \
-***REMOVED***   --role "User Access Administrator" \
-***REMOVED***   --scope /subscriptions/<subscription-id>
-***REMOVED***
-***REMOVED*** Then set environment variables (see OPTION 1)
+# ┌──────────────────────────────────────────────────────────────────────────┐
+# │ OPTION 3: Service Principal (PRODUCTION)                                 │
+# │ Best for: Production, CI/CD, automated deployments                       │
+# └──────────────────────────────────────────────────────────────────────────┘
+#
+# Create Service Principal:
+# az ad sp create-for-rbac \
+#   --name "terraform-databricks-sp" \
+#   --role "Contributor" \
+#   --scopes /subscriptions/<subscription-id>
+#
+# Add User Access Administrator role (needed for RBAC):
+# az role assignment create \
+#   --assignee "<app-id>" \
+#   --role "User Access Administrator" \
+#   --scope /subscriptions/<subscription-id>
+#
+# Then set environment variables (see OPTION 1)
 
-***REMOVED*** ==============================================
-***REMOVED*** Core Configuration (REQUIRED)
-***REMOVED*** ==============================================
+# ==============================================
+# Core Configuration (REQUIRED)
+# ==============================================
 
-***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
-***REMOVED*** │ DEPLOYMENT MODE (Master Control) - NEW!                                  │
-***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+# ┌──────────────────────────────────────────────────────────────────────────┐
+# │ DEPLOYMENT MODE (Master Control) - NEW!                                  │
+# └──────────────────────────────────────────────────────────────────────────┘
 
-use_byor_infrastructure = false  ***REMOVED*** Set to true if using deployments/byor
+use_byor_infrastructure = false  # Set to true if using deployments/byor
 
-***REMOVED*** When TRUE:  Uses infrastructure from deployments/byor
-***REMOVED***             - Network: VNet, subnets, NSG (from BYOR)
-***REMOVED***             - NAT Gateway: Already created (automatic)
-***REMOVED***             - CMK: Key Vault from BYOR (if CMK enabled)
-***REMOVED***             - Copy-paste BYOR output: terraform output copy_paste_config
-***REMOVED***
-***REMOVED*** When FALSE: Creates all resources from scratch (default)
-***REMOVED***             - Must configure: vnet_address_space, subnet_address_prefix
-***REMOVED***             - Must set: enable_nat_gateway = true
-***REMOVED***             - If CMK: Workspace creates new Key Vault
+# When TRUE:  Uses infrastructure from deployments/byor
+#             - Network: VNet, subnets, NSG (from BYOR)
+#             - NAT Gateway: Already created (automatic)
+#             - CMK: Key Vault from BYOR (if CMK enabled)
+#             - Copy-paste BYOR output: terraform output copy_paste_config
+#
+# When FALSE: Creates all resources from scratch (default)
+#             - Must configure: vnet_address_space, subnet_address_prefix
+#             - Must set: enable_nat_gateway = true
+#             - If CMK: Workspace creates new Key Vault
 
-workspace_prefix = "proddb"  ***REMOVED*** Lowercase alphanumeric, max 12 chars
+workspace_prefix = "proddb"  # Lowercase alphanumeric, max 12 chars
 location         = "eastus2"
 resource_group_name = "rg-databricks-prod-eastus2"
 
-***REMOVED*** Databricks Account ID (REQUIRED for Unity Catalog)
-***REMOVED*** Get from: https://accounts.azuredatabricks.net (top-right corner)
-***REMOVED*** Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+# Databricks Account ID (REQUIRED for Unity Catalog)
+# Get from: https://accounts.azuredatabricks.net (top-right corner)
+# Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 databricks_account_id = ""
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Network Configuration
+# ==============================================
 
-***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
-***REMOVED*** │ SCENARIO 1: Create New Network (use_byor_infrastructure = false)         │
-***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+# ┌──────────────────────────────────────────────────────────────────────────┐
+# │ SCENARIO 1: Create New Network (use_byor_infrastructure = false)         │
+# └──────────────────────────────────────────────────────────────────────────┘
 
 vnet_address_space           = ["10.100.0.0/16"]
 public_subnet_address_prefix = ["10.100.1.0/26"]
 private_subnet_address_prefix = ["10.100.2.0/26"]
-enable_nat_gateway = true  ***REMOVED*** Required for downloading packages (PyPI, Maven, etc.)
+enable_nat_gateway = true  # Required for downloading packages (PyPI, Maven, etc.)
 
-***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
-***REMOVED*** │ SCENARIO 2: Use BYOR Infrastructure (use_byor_infrastructure = true)     │
-***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+# ┌──────────────────────────────────────────────────────────────────────────┐
+# │ SCENARIO 2: Use BYOR Infrastructure (use_byor_infrastructure = true)     │
+# └──────────────────────────────────────────────────────────────────────────┘
 
-***REMOVED*** Run this from BYOR deployment to get copy-paste config:
-***REMOVED***   cd deployments/byor
-***REMOVED***   terraform output copy_paste_config
-***REMOVED***
-***REMOVED*** Then paste the output here. Example:
-***REMOVED***
-***REMOVED*** existing_vnet_name            = "proddb-vnet-9a8b"
-***REMOVED*** existing_resource_group_name  = "rg-databricks-byor-eastus2"
-***REMOVED*** existing_public_subnet_name   = "proddb-public-subnet-9a8b"
-***REMOVED*** existing_private_subnet_name  = "proddb-private-subnet-9a8b"
-***REMOVED*** existing_nsg_name             = "proddb-nsg-9a8b"
-***REMOVED***
-***REMOVED*** Note: NAT Gateway flag is automatically managed when using BYOR
+# Run this from BYOR deployment to get copy-paste config:
+#   cd deployments/byor
+#   terraform output copy_paste_config
+#
+# Then paste the output here. Example:
+#
+# existing_vnet_name            = "proddb-vnet-9a8b"
+# existing_resource_group_name  = "rg-databricks-byor-eastus2"
+# existing_public_subnet_name   = "proddb-public-subnet-9a8b"
+# existing_private_subnet_name  = "proddb-private-subnet-9a8b"
+# existing_nsg_name             = "proddb-nsg-9a8b"
+#
+# Note: NAT Gateway flag is automatically managed when using BYOR
 
-***REMOVED*** ==============================================
-***REMOVED*** Service Endpoint Policy (Security)
-***REMOVED*** ==============================================
+# ==============================================
+# Service Endpoint Policy (Security)
+# ==============================================
 
-enable_service_endpoint_policy = true  ***REMOVED*** Restricts storage access to approved accounts (Recommended)
+enable_service_endpoint_policy = true  # Restricts storage access to approved accounts (Recommended)
 
-***REMOVED*** ==============================================
-***REMOVED*** Customer-Managed Keys (Optional)
-***REMOVED*** ==============================================
+# ==============================================
+# Customer-Managed Keys (Optional)
+# ==============================================
 
-enable_cmk_managed_services = false  ***REMOVED*** Control plane data (notebooks, secrets, queries)
-enable_cmk_managed_disks    = false  ***REMOVED*** Cluster VM managed disks
-enable_cmk_dbfs_root        = false  ***REMOVED*** Workspace DBFS root storage
+enable_cmk_managed_services = false  # Control plane data (notebooks, secrets, queries)
+enable_cmk_managed_disks    = false  # Cluster VM managed disks
+enable_cmk_dbfs_root        = false  # Workspace DBFS root storage
 
-***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
-***REMOVED*** │ SCENARIO 1: Create New Key Vault (use_byor_infrastructure = false)       │
-***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+# ┌──────────────────────────────────────────────────────────────────────────┐
+# │ SCENARIO 1: Create New Key Vault (use_byor_infrastructure = false)       │
+# └──────────────────────────────────────────────────────────────────────────┘
 
-***REMOVED*** Workspace will automatically create Key Vault (no additional config needed)
-***REMOVED*** Note: Set enable_cmk_* flags to true above
+# Workspace will automatically create Key Vault (no additional config needed)
+# Note: Set enable_cmk_* flags to true above
 
-***REMOVED*** ┌──────────────────────────────────────────────────────────────────────────┐
-***REMOVED*** │ SCENARIO 2: Use BYOR Key Vault (use_byor_infrastructure = true)          │
-***REMOVED*** └──────────────────────────────────────────────────────────────────────────┘
+# ┌──────────────────────────────────────────────────────────────────────────┐
+# │ SCENARIO 2: Use BYOR Key Vault (use_byor_infrastructure = true)          │
+# └──────────────────────────────────────────────────────────────────────────┘
 
-***REMOVED*** Copy-paste from BYOR output (if BYOR created Key Vault):
-***REMOVED***   terraform output copy_paste_config
-***REMOVED***
-***REMOVED*** Example:
-***REMOVED*** existing_key_vault_id = "/subscriptions/.../vaults/proddb-kv-9a8b"
-***REMOVED*** existing_key_id       = "https://proddb-kv-9a8b.vault.azure.net/keys/databricks-cmk/..."
-***REMOVED***
-***REMOVED*** Note: Key Vault creation is automatically managed when using BYOR
+# Copy-paste from BYOR output (if BYOR created Key Vault):
+#   terraform output copy_paste_config
+#
+# Example:
+# existing_key_vault_id = "/subscriptions/.../vaults/proddb-kv-9a8b"
+# existing_key_id       = "https://proddb-kv-9a8b.vault.azure.net/keys/databricks-cmk/..."
+#
+# Note: Key Vault creation is automatically managed when using BYOR
 
-***REMOVED*** Requirements:
-***REMOVED*** - Key Vault must be in same region as workspace
-***REMOVED*** - Key Vault must have purge protection enabled (auto-configured if creating new)
-***REMOVED*** - Soft delete retention: 90 days (auto-configured if creating new)
-***REMOVED*** - Key auto-rotation: 90 days (auto-configured if creating new)
+# Requirements:
+# - Key Vault must be in same region as workspace
+# - Key Vault must have purge protection enabled (auto-configured if creating new)
+# - Soft delete retention: 90 days (auto-configured if creating new)
+# - Key auto-rotation: 90 days (auto-configured if creating new)
 
-***REMOVED*** ==============================================
-***REMOVED*** IP Access Lists (Optional)
-***REMOVED*** ==============================================
+# ==============================================
+# IP Access Lists (Optional)
+# ==============================================
 
 enable_ip_access_lists = false
-***REMOVED*** allowed_ip_ranges = [
-***REMOVED***   "203.0.113.0/24",    ***REMOVED*** Corporate network
-***REMOVED***   "198.51.100.0/24"    ***REMOVED*** VPN range
-***REMOVED*** ]
+# allowed_ip_ranges = [
+#   "203.0.113.0/24",    # Corporate network
+#   "198.51.100.0/24"    # VPN range
+# ]
 
-***REMOVED*** ==============================================
-***REMOVED*** Service Endpoint Policy (Optional)
-***REMOVED*** ==============================================
+# ==============================================
+# Service Endpoint Policy (Optional)
+# ==============================================
 
-***REMOVED*** Enable SEP to restrict VNet egress to only allow-listed storage accounts
-***REMOVED*** Applies to: Classic compute only (not serverless)
-***REMOVED*** Security: Prevents data exfiltration via unauthorized storage access
+# Enable SEP to restrict VNet egress to only allow-listed storage accounts
+# Applies to: Classic compute only (not serverless)
+# Security: Prevents data exfiltration via unauthorized storage access
 enable_service_endpoint_policy = false
 
-***REMOVED*** IMPORTANT: Workspace Requirement for SEP
-***REMOVED*** -----------------------------------------
-***REMOVED*** Workspaces created on or after July 14, 2025 support SEP by default.
-***REMOVED*** 
-***REMOVED*** For workspaces created BEFORE July 14, 2025:
-***REMOVED***   1. Contact your Databricks account team to enable SEP support
-***REMOVED***   2. Once enabled, set enable_service_endpoint_policy = true
-***REMOVED***   3. Run terraform apply
-***REMOVED***
-***REMOVED*** If SEP is not enabled and you set this to true, you'll see this error:
-***REMOVED***   "ServiceResourceNameMustHaveEvenElements: invalid resource name /services/Azure/Databricks"
-***REMOVED***
-***REMOVED*** Reference: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/service-endpoints
+# IMPORTANT: Workspace Requirement for SEP
+# -----------------------------------------
+# Workspaces created on or after July 14, 2025 support SEP by default.
+# 
+# For workspaces created BEFORE July 14, 2025:
+#   1. Contact your Databricks account team to enable SEP support
+#   2. Once enabled, set enable_service_endpoint_policy = true
+#   3. Run terraform apply
+#
+# If SEP is not enabled and you set this to true, you'll see this error:
+#   "ServiceResourceNameMustHaveEvenElements: invalid resource name /services/Azure/Databricks"
+#
+# Reference: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/service-endpoints
 
-***REMOVED*** Optional: Additional customer storage accounts to allow
-***REMOVED*** Example: Existing data lakes, backup storage, shared storage accounts
-***REMOVED*** additional_allowed_storage_ids = [
-***REMOVED***   "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/data-rg/providers/Microsoft.Storage/storageAccounts/mydatalake",
-***REMOVED***   "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/backup-rg/providers/Microsoft.Storage/storageAccounts/mybackups"
-***REMOVED*** ]
+# Optional: Additional customer storage accounts to allow
+# Example: Existing data lakes, backup storage, shared storage accounts
+# additional_allowed_storage_ids = [
+#   "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/data-rg/providers/Microsoft.Storage/storageAccounts/mydatalake",
+#   "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/backup-rg/providers/Microsoft.Storage/storageAccounts/mybackups"
+# ]
 
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Unity Catalog Configuration
+# ==============================================
 
-***REMOVED*** First-time deployment: Create new metastore
+# First-time deployment: Create new metastore
 create_metastore = true
 metastore_name   = "prod-eastus2-metastore"
 
-***REMOVED*** Subsequent workspaces in same region: Reuse existing metastore
-***REMOVED*** create_metastore      = false
-***REMOVED*** existing_metastore_id = "abc123-def456-ghi789"
+# Subsequent workspaces in same region: Reuse existing metastore
+# create_metastore      = false
+# existing_metastore_id = "abc123-def456-ghi789"
 
-***REMOVED*** Access Connector (Managed Identity)
-***REMOVED*** Option 1: Create per-workspace (Default - Recommended)
+# Access Connector (Managed Identity)
+# Option 1: Create per-workspace (Default - Recommended)
 create_access_connector = true
 
-***REMOVED*** Option 2: Share existing Access Connector across workspaces
-***REMOVED*** create_access_connector               = false
-***REMOVED*** existing_access_connector_id          = "/subscriptions/.../resourceGroups/.../providers/Microsoft.Databricks/accessConnectors/shared-connector"
-***REMOVED*** existing_access_connector_principal_id = "abcd1234-ef56-7890-ghij-klmnopqrstuv"
+# Option 2: Share existing Access Connector across workspaces
+# create_access_connector               = false
+# existing_access_connector_id          = "/subscriptions/.../resourceGroups/.../providers/Microsoft.Databricks/accessConnectors/shared-connector"
+# existing_access_connector_principal_id = "abcd1234-ef56-7890-ghij-klmnopqrstuv"
 
-***REMOVED*** ==============================================
-***REMOVED*** Tags
-***REMOVED*** ==============================================
+# ==============================================
+# Tags
+# ==============================================
 
 tag_owner     = "your.email@company.com"
 tag_keepuntil = "12/31/2025"

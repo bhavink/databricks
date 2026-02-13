@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Essential Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# Essential Outputs
+# ==============================================
 
 output "workspace_id" {
   description = "Databricks workspace ID (Azure resource ID)"
@@ -51,9 +51,9 @@ output "disk_encryption_set_identity" {
   } : null
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Configuration Outputs
-***REMOVED*** ==============================================
+# ==============================================
+# Configuration Outputs
+# ==============================================
 
 output "workspace_configuration" {
   description = "Summary of workspace configuration"
@@ -62,7 +62,7 @@ output "workspace_configuration" {
     sku                           = azurerm_databricks_workspace.this.sku
     location                      = azurerm_databricks_workspace.this.location
     public_network_access_enabled = azurerm_databricks_workspace.this.public_network_access_enabled
-    npip_enabled                  = true  ***REMOVED*** Always enabled in our pattern
+    npip_enabled                  = true  # Always enabled in our pattern
     cmk_managed_services_enabled  = var.enable_cmk_managed_services
     cmk_managed_disks_enabled     = var.enable_cmk_managed_disks
     cmk_dbfs_root_enabled         = var.enable_cmk_dbfs_root
@@ -71,9 +71,9 @@ output "workspace_configuration" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Advanced Outputs (Full Objects)
-***REMOVED*** ==============================================
+# ==============================================
+# Advanced Outputs (Full Objects)
+# ==============================================
 
 output "workspace" {
   description = "Complete workspace object (for advanced use)"

@@ -2,7 +2,7 @@
 
 _Understanding Databricks Network Architecture Across Clouds_
 
-**Perfect for**: Platform engineers, cloud architects, security teams   
+**Perfect for**: Platform engineers, cloud architects, security teams
 
 
 ---
@@ -115,22 +115,22 @@ graph TD
     A[Start: Deploying Databricks] --> B{Production Workload?}
     B -->|No - POC/Dev| C[Databricks-Managed OK]
     B -->|Yes| D{Compliance Requirements?}
-    
+
     D -->|Yes| E[Customer-Managed Required]
     D -->|No| F{Need Integration?}
-    
+
     F -->|On-prem/VPN| E
     F -->|Private Endpoints| E
     F -->|Custom Security| E
     F -->|Simple Setup| G{IP Space Concerns?}
-    
+
     G -->|Limited IPs| E
     G -->|Plenty of IPs| H[Either Option Works]
-    
+
     E --> I{Zero-Trust Required?}
     I -->|Yes| J[Add PrivateLink]
     I -->|No| K[Customer-Managed VPC]
-    
+
     style E fill:#43A047
     style J fill:#1E88E5
     style K fill:#43A047
@@ -172,37 +172,37 @@ graph TB
         META[Hive Metastore Service]
         CLUSTER_MGR[Cluster Manager]
     end
-    
+
     subgraph "Customer Cloud Account"
         subgraph "Classic Compute Plane (Your VPC)"
             DRIVER[Driver Node]
             WORKER1[Worker Node 1]
             WORKER2[Worker Node N]
         end
-        
+
         subgraph "Storage"
             S3[Object Storage<br/>S3/ADLS/GCS]
             DB[Database Services]
         end
     end
-    
+
     subgraph "Serverless Compute Plane (Databricks-Managed)"
         SERVERLESS[Serverless Resources<br/>SQL Warehouses<br/>Jobs Compute<br/>Not Covered Here]
     end
-    
+
     WEB --> CLUSTER_MGR
     CLUSTER_MGR -.Secure Cluster<br/>Connectivity.-> DRIVER
     JOBS --> DRIVER
     JOBS -.-> SERVERLESS
     NOTEBOOK -.Sync via HTTPS.-> DRIVER
-    
+
     DRIVER --> WORKER1
     DRIVER --> WORKER2
     WORKER1 --> S3
     WORKER2 --> S3
     DRIVER -.Legacy HMS<br/>(Optional).-> META
     SERVERLESS -.Private Connection.-> S3
-    
+
     style CP fill:#1E88E5
     style DRIVER fill:#43A047
     style WORKER1 fill:#43A047
@@ -249,12 +249,12 @@ sequenceDiagram
     participant Driver as Driver Node<br/>(Your VPC)
     participant Worker as Worker Nodes<br/>(Your VPC)
     participant S3 as Data Sources<br/>(S3/RDS/etc)
-    
+
     Note over User,S3: Cluster Launch
     User->>CP: Create Cluster Request (HTTPS)
     CP->>Driver: Launch EC2 Instances
     Driver->>CP: Establish SCC Connection<br/>(Outbound TLS 1.3)
-    
+
     Note over User,S3: Job Execution
     User->>CP: Submit Job
     CP->>Driver: Send Commands via SCC
@@ -263,7 +263,7 @@ sequenceDiagram
     Worker->>Driver: Return Results
     Driver->>CP: Report Status (via 8443-8451)
     CP->>User: Display Results
-    
+
     Note over User,S3: All traffic encrypted in transit<br/>Unity Catalog uses ports 8443-8451
 ```
 
@@ -324,54 +324,54 @@ graph TB
         DCP[Control Plane Services<br/>Databricks AWS Account]
         SCC_RELAY[Secure Cluster Connectivity Relay]
     end
-    
+
     subgraph "Your AWS Account"
         subgraph "Customer VPC"
             IGW[Internet Gateway]
-            
+
             subgraph "Public Subnet (NAT)"
                 NAT[NAT Gateway]
             end
-            
+
             subgraph "Private Subnet 1 (AZ-A)"
                 SG1[Security Group]
                 DRIVER1[Driver Nodes<br/>Private IPs Only]
                 WORKER1[Worker Nodes<br/>Private IPs Only]
             end
-            
+
             subgraph "Private Subnet 2 (AZ-B)"
                 SG2[Security Group]
                 DRIVER2[Driver Nodes<br/>Private IPs Only]
                 WORKER2[Worker Nodes<br/>Private IPs Only]
             end
-            
+
             VPCE_S3[VPC Endpoint: S3<br/>Gateway Type<br/>Optional]
         end
-        
+
         S3_ROOT[S3: Root Bucket<br/>Workspace Storage]
         S3_DATA[S3: Data Lake<br/>Your Data]
     end
-    
+
     IGW --> NAT
     NAT --> DRIVER1
     NAT --> WORKER1
     NAT --> DRIVER2
     NAT --> WORKER2
-    
+
     DRIVER1 -.->|TLS 1.3<br/>Outbound Only| SCC_RELAY
     DRIVER2 -.->|TLS 1.3<br/>Outbound Only| SCC_RELAY
     SCC_RELAY -.->|Commands| DRIVER1
     SCC_RELAY -.->|Commands| DRIVER2
-    
+
     SG1 -.All TCP/UDP.-> SG1
     SG2 -.All TCP/UDP.-> SG2
     SG1 -.All TCP/UDP.-> SG2
-    
+
     DRIVER1 --> VPCE_S3
     WORKER1 --> VPCE_S3
     VPCE_S3 --> S3_ROOT
     VPCE_S3 --> S3_DATA
-    
+
     style DCP fill:#1E88E5
     style DRIVER1 fill:#43A047
     style WORKER1 fill:#43A047
@@ -433,11 +433,11 @@ Example /24: (2^8 - 5) / 2 = 251 / 2 = 125 nodes
 # Terraform example
 resource "aws_vpc" "databricks" {
   cidr_block = "<cidr>"
-  
+
   # Both required for Databricks
   enable_dns_hostnames = true  # Must be enabled
   enable_dns_resolution = true  # Must be enabled
-  
+
   tags = {
     Name = "databricks-vpc"
   }
@@ -468,18 +468,18 @@ graph TB
             WS1_A["Subnet A (AZ-1)<br/>10.0.1.0/24"]
             WS1_B["Subnet B (AZ-2)<br/>10.0.2.0/24"]
         end
-        
+
         subgraph "Workspace 2"
             WS2_A["Subnet A (AZ-1)<br/>10.0.1.0/24<br/>(Shared!)"]
             WS2_C["Subnet C (AZ-3)<br/>10.0.3.0/24"]
         end
-        
+
         subgraph "Workspace 3"
             WS3_D["Subnet D (AZ-1)<br/>10.0.4.0/24"]
             WS3_E["Subnet E (AZ-2)<br/>10.0.5.0/24"]
         end
     end
-    
+
     style WS1_A fill:#43A047
     style WS1_B fill:#43A047
     style WS2_A fill:#FDD835
@@ -516,13 +516,13 @@ Maximum: /26 (64 IPs → 29 usable nodes)
 # Route table for Databricks subnets
 resource "aws_route_table" "databricks_private" {
   vpc_id = aws_vpc.databricks.id
-  
+
   # Critical: Quad-zero route to NAT Gateway
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.databricks.id
   }
-  
+
   tags = {
     Name = "databricks-private-rt"
   }
@@ -537,12 +537,12 @@ resource "aws_route_table" "databricks_private" {
 # Public subnet route table (for NAT Gateway)
 resource "aws_route_table" "nat_gateway" {
   vpc_id = aws_vpc.databricks.id
-  
+
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.databricks.id
   }
-  
+
   tags = {
     Name = "databricks-nat-rt"
   }
@@ -646,7 +646,7 @@ If you customize NACLs, you must follow these requirements:
 |--------|------|----------|------------|--------|--------|
 | 100 | All traffic | All | All | `0.0.0.0/0` | ALLOW |
 
-⚠️ **Critical**: This rule must be **prioritized first**. 
+⚠️ **Critical**: This rule must be **prioritized first**.
 
 **Why this is required:**
 - NACLs are **stateless** - they don't track connections or return traffic
@@ -916,19 +916,19 @@ graph TB
             VPCE_SCC[VPC Endpoint<br/>Secure Cluster Connectivity]
         end
     end
-    
+
     subgraph "Databricks AWS Account"
         subgraph "Control Plane Services"
             CONTROL_LB[Control Plane<br/>Endpoint Service]
             SCC_LB[SCC Relay<br/>Endpoint Service]
         end
     end
-    
+
     CLUSTER -.Private Connection.-> VPCE_CONTROL
     CLUSTER -.Private Connection.-> VPCE_SCC
     VPCE_CONTROL -.AWS PrivateLink.-> CONTROL_LB
     VPCE_SCC -.AWS PrivateLink.-> SCC_LB
-    
+
     style CLUSTER fill:#43A047
     style VPCE_CONTROL fill:#1E88E5
     style VPCE_SCC fill:#1E88E5
@@ -1084,40 +1084,40 @@ graph TB
         DCP[Control Plane Services<br/>Databricks Azure Account]
         SCC_RELAY[Secure Cluster Connectivity]
     end
-    
+
     subgraph "Customer Azure Subscription"
         subgraph "Customer VNet"
             subgraph "Public Subnet (for infrastructure)"
                 NSG_PUB[NSG - Public]
                 INFRA[Databricks Infrastructure<br/>Load Balancers, etc.]
             end
-            
+
             subgraph "Private Subnet (for clusters)"
                 NSG_PRIV[NSG - Private]
                 DRIVER[Driver Nodes<br/>Private IPs Only]
                 WORKER[Worker Nodes<br/>Private IPs Only]
             end
-            
+
             NAT[NAT Gateway<br/>or Azure Firewall]
         end
-        
+
         STORAGE[Storage Account<br/>DBFS Root]
         DATA[Data Lake<br/>ADLS Gen2]
     end
-    
+
     NAT --> DRIVER
     NAT --> WORKER
-    
+
     DRIVER -.TLS<br/>Outbound Only.-> SCC_RELAY
     WORKER -.TLS<br/>Outbound Only.-> SCC_RELAY
     SCC_RELAY -.Commands.-> DRIVER
-    
+
     NSG_PRIV -.All TCP/UDP.-> NSG_PRIV
-    
+
     DRIVER --> STORAGE
     WORKER --> DATA
     INFRA --> NSG_PUB
-    
+
     style DCP fill:#1E88E5
     style DRIVER fill:#43A047
     style WORKER fill:#43A047
@@ -1187,18 +1187,18 @@ graph TB
             WS1_PUB["Public Subnet<br/>10.0.1.0/26"]
             WS1_PRIV["Private Subnet<br/>10.0.2.0/24"]
         end
-        
+
         subgraph "Workspace 2"
             WS2_PUB["Public Subnet<br/>10.0.3.0/26"]
             WS2_PRIV["Private Subnet<br/>10.0.4.0/24"]
         end
-        
+
         subgraph "Workspace 3"
             WS3_PUB["Public Subnet<br/>10.0.5.0/26"]
             WS3_PRIV["Private Subnet<br/>10.0.6.0/24"]
         end
     end
-    
+
     style WS1_PUB fill:#FDD835
     style WS1_PRIV fill:#43A047
     style WS2_PUB fill:#FDD835
@@ -1344,17 +1344,17 @@ graph TB
         PE_UI[Private Endpoint<br/>Workspace UI]
         PE_BACKEND[Private Endpoint<br/>Backend Services]
     end
-    
+
     subgraph "Databricks Azure Subscription"
         PLS_UI[Private Link Service<br/>Workspace Frontend]
         PLS_BACKEND[Private Link Service<br/>Backend Services]
     end
-    
+
     CLUSTER -.Private Connection.-> PE_UI
     CLUSTER -.Private Connection.-> PE_BACKEND
     PE_UI -.Azure Backbone.-> PLS_UI
     PE_BACKEND -.Azure Backbone.-> PLS_BACKEND
-    
+
     style CLUSTER fill:#43A047
     style PE_UI fill:#1E88E5
     style PE_BACKEND fill:#1E88E5
@@ -1495,35 +1495,35 @@ graph TB
         DCP[Control Plane Services<br/>Databricks GCP Project]
         SCC_RELAY[Secure Cluster Connectivity]
     end
-    
+
     subgraph "Customer GCP Project"
         subgraph "Customer VPC"
             subgraph "Databricks Subnet"
                 DRIVER[Driver Nodes<br/>Private IPs Only]
                 WORKER[Worker Nodes<br/>Private IPs Only]
             end
-            
+
             CLOUD_NAT[Cloud NAT<br/>Egress Appliance]
             CLOUD_ROUTER[Cloud Router]
         end
-        
+
         GCS_WS[GCS Bucket<br/>Workspace Storage]
         GCS_DATA[GCS Buckets<br/>Data Lake]
         GAR[Artifact Registry<br/>Runtime Images]
     end
-    
+
     CLOUD_ROUTER --> CLOUD_NAT
     CLOUD_NAT --> DRIVER
     CLOUD_NAT --> WORKER
-    
+
     DRIVER -.TLS<br/>Outbound Only.-> SCC_RELAY
     WORKER -.TLS<br/>Outbound Only.-> SCC_RELAY
     SCC_RELAY -.Commands.-> DRIVER
-    
+
     DRIVER -.Private Google Access.-> GAR
     WORKER -.Private Google Access.-> GCS_DATA
     DRIVER --> GCS_WS
-    
+
     style DCP fill:#1E88E5
     style DRIVER fill:#43A047
     style WORKER fill:#43A047
@@ -1579,16 +1579,16 @@ graph TB
         subgraph "Workspace 1"
             WS1["Subnet A<br/>10.0.1.0/26"]
         end
-        
+
         subgraph "Workspace 2"
             WS2["Subnet B<br/>10.0.2.0/26"]
         end
-        
+
         subgraph "Workspace 3 (Shared)"
             WS3["Subnet A<br/>10.0.1.0/26<br/>(Shared with WS1)"]
         end
     end
-    
+
     style WS1 fill:#43A047
     style WS2 fill:#7CB342
     style WS3 fill:#FDD835
@@ -1770,14 +1770,14 @@ graph TB
         CLUSTER[Databricks Clusters<br/>Private IPs]
         PSC_ENDPOINT[PSC Endpoint<br/>Private IP]
     end
-    
+
     subgraph "Databricks GCP Project"
         PSC_SERVICE[PSC Service Attachment<br/>Control Plane]
     end
-    
+
     CLUSTER -.Private Connection.-> PSC_ENDPOINT
     PSC_ENDPOINT -.Google Backbone.-> PSC_SERVICE
-    
+
     style CLUSTER fill:#43A047
     style PSC_ENDPOINT fill:#1E88E5
     style PSC_SERVICE fill:#FF6F00
@@ -1956,76 +1956,76 @@ The Q&A guide is organized by topic and cloud provider for easy navigation.
 
 ### Essential Concepts
 
-✅ **Two compute types**: Classic (your VPC) and Serverless (Databricks-managed)  
-✅ **This guide covers classic compute plane** networking only  
-✅ **Control plane** (Databricks-managed) and **classic compute plane** are separate  
-✅ Classic compute plane initiates outbound connections to control plane - no inbound required  
-✅ Customer-managed networking is **recommended** for production classic compute  
-✅ Databricks offers flexible deployment options to match your requirements  
-✅ Networking choice is permanent - set during workspace creation  
+✅ **Two compute types**: Classic (your VPC) and Serverless (Databricks-managed)
+✅ **This guide covers classic compute plane** networking only
+✅ **Control plane** (Databricks-managed) and **classic compute plane** are separate
+✅ Classic compute plane initiates outbound connections to control plane - no inbound required
+✅ Customer-managed networking is **recommended** for production classic compute
+✅ Databricks offers flexible deployment options to match your requirements
+✅ Networking choice is permanent - set during workspace creation
 
 ### AWS Networking Essentials
 
-✅ **Minimum**: 2 subnets in different Availability Zones  
-✅ **IP allocation**: 2 IPs per Databricks node (management + Spark)  
-✅ **Subnet sizing**: Between `/17` (large) and `/26` (small)  
-✅ **Security groups**: Allow all TCP/UDP within same SG  
-✅ **Outbound access**: `0.0.0.0/0` required in security groups (filter at firewall)  
-✅ **NAT Gateway**: Required for internet access (or PrivateLink for Databricks-only)  
-✅ **DNS**: Both DNS hostnames and DNS resolution must be enabled  
-✅ **VPC Endpoints**: S3 Gateway Endpoint recommended (free, better performance)  
+✅ **Minimum**: 2 subnets in different Availability Zones
+✅ **IP allocation**: 2 IPs per Databricks node (management + Spark)
+✅ **Subnet sizing**: Between `/17` (large) and `/26` (small)
+✅ **Security groups**: Allow all TCP/UDP within same SG
+✅ **Outbound access**: `0.0.0.0/0` required in security groups (filter at firewall)
+✅ **NAT Gateway**: Required for internet access (or PrivateLink for Databricks-only)
+✅ **DNS**: Both DNS hostnames and DNS resolution must be enabled
+✅ **VPC Endpoints**: S3 Gateway Endpoint recommended (free, better performance)
 
 ### Azure Networking Essentials
 
-✅ **Minimum**: 2 subnets (host + container) delegated to Databricks  
-✅ **IP allocation**: Host subnet (`/26` min), Container subnet (`/23` to `/26`)  
-✅ **Subnet delegation**: Both subnets must be delegated to `Microsoft.Databricks/workspaces`  
-✅ **NSG rules**: Inbound/outbound to AzureDatabricks Service Tag + internal communication  
-✅ **Outbound access**: Internet or Azure NAT Gateway required (or Private Link)  
-✅ **Service Tags**: Use `AzureDatabricks` Service Tag to simplify NSG rules  
-✅ **Private Link**: Front-end (UI/REST API) and back-end (compute) connections  
-✅ **Storage access**: Service Endpoints or Private Endpoints for Azure storage  
+✅ **Minimum**: 2 subnets (host + container) delegated to Databricks
+✅ **IP allocation**: Host subnet (`/26` min), Container subnet (`/23` to `/26`)
+✅ **Subnet delegation**: Both subnets must be delegated to `Microsoft.Databricks/workspaces`
+✅ **NSG rules**: Inbound/outbound to AzureDatabricks Service Tag + internal communication
+✅ **Outbound access**: Internet or Azure NAT Gateway required (or Private Link)
+✅ **Service Tags**: Use `AzureDatabricks` Service Tag to simplify NSG rules
+✅ **Private Link**: Front-end (UI/REST API) and back-end (compute) connections
+✅ **Storage access**: Service Endpoints or Private Endpoints for Azure storage
 
 ### GCP Networking Essentials
 
-✅ **Minimum**: 1 subnet with 2 secondary IP ranges (pods + services)  
-✅ **IP allocation**: Primary range for nodes, secondary for pods/services  
-✅ **Subnet sizing**: `/23` for primary, `/17` pods, `/21` services (minimum)  
-✅ **Firewall rules**: Allow internal communication (all TCP/UDP within subnet)  
-✅ **Outbound access**: Cloud NAT required for internet access  
-✅ **Private Google Access**: Enable for GCS and Google APIs access  
-✅ **Private Service Connect**: Optional for private connectivity to control plane  
-✅ **VPC-SC**: Optional perimeter for data exfiltration protection  
+✅ **Minimum**: 1 subnet with 2 secondary IP ranges (pods + services)
+✅ **IP allocation**: Primary range for nodes, secondary for pods/services
+✅ **Subnet sizing**: `/23` for primary, `/17` pods, `/21` services (minimum)
+✅ **Firewall rules**: Allow internal communication (all TCP/UDP within subnet)
+✅ **Outbound access**: Cloud NAT required for internet access
+✅ **Private Google Access**: Enable for GCS and Google APIs access
+✅ **Private Service Connect**: Optional for private connectivity to control plane
+✅ **VPC-SC**: Optional perimeter for data exfiltration protection
 
 ### Planning Essentials
 
-✅ **Capacity formula**: (Usable IPs / 2) = Max Databricks nodes  
-✅ **Growth buffer**: Add 30-50% extra IP capacity  
-✅ **Multi-workspace**: Can share VPC, but plan capacity accordingly  
-✅ **One SG per workspace**: Recommended for isolation  
-✅ **Document CIDRs**: Avoid conflicts with existing networks  
+✅ **Capacity formula**: (Usable IPs / 2) = Max Databricks nodes
+✅ **Growth buffer**: Add 30-50% extra IP capacity
+✅ **Multi-workspace**: Can share VPC, but plan capacity accordingly
+✅ **One SG per workspace**: Recommended for isolation
+✅ **Document CIDRs**: Avoid conflicts with existing networks
 
 ### Security Essentials
 
-✅ **Encryption**: All traffic encrypted with TLS 1.3  
-✅ **Private connectivity**: Use AWS PrivateLink for highest security  
-✅ **S3 bucket policies**: Restrict access to specific VPCs/IPs  
-✅ **Egress filtering**: Use firewall/proxy for fine-grained control  
-✅ **VPC Flow Logs**: Enable for traffic monitoring  
-✅ **Required ports**: 443, 3306, 53, 6666, 2443, 8443-8451  
+✅ **Encryption**: All traffic encrypted with TLS 1.3
+✅ **Private connectivity**: Use AWS PrivateLink for highest security
+✅ **S3 bucket policies**: Restrict access to specific VPCs/IPs
+✅ **Egress filtering**: Use firewall/proxy for fine-grained control
+✅ **VPC Flow Logs**: Enable for traffic monitoring
+✅ **Required ports**: 443, 3306, 53, 6666, 2443, 8443-8451
 
 ### Common Mistakes to Avoid
 
-❌ **Don't**: Forget to enable DNS hostnames and DNS resolution  
-❌ **Don't**: Use subnets outside `/17` to `/26` range  
-❌ **Don't**: Block `0.0.0.0/0` in security groups (filter at firewall instead)  
-❌ **Don't**: Block `0.0.0.0/0` in NACLs inbound rules (required by Databricks)  
-❌ **Don't**: Use NACLs for egress filtering (use firewall/proxy instead)  
-❌ **Don't**: Reuse same subnet across multiple Availability Zones  
-❌ **Don't**: Skip high availability for NAT Gateway in production  
-❌ **Don't**: Assume you can migrate from Databricks-managed to customer-managed later  
-❌ **Don't**: Under-provision IP capacity (always add growth buffer)  
-❌ **Don't**: Mix subnets from primary and secondary CIDR blocks  
+❌ **Don't**: Forget to enable DNS hostnames and DNS resolution
+❌ **Don't**: Use subnets outside `/17` to `/26` range
+❌ **Don't**: Block `0.0.0.0/0` in security groups (filter at firewall instead)
+❌ **Don't**: Block `0.0.0.0/0` in NACLs inbound rules (required by Databricks)
+❌ **Don't**: Use NACLs for egress filtering (use firewall/proxy instead)
+❌ **Don't**: Reuse same subnet across multiple Availability Zones
+❌ **Don't**: Skip high availability for NAT Gateway in production
+❌ **Don't**: Assume you can migrate from Databricks-managed to customer-managed later
+❌ **Don't**: Under-provision IP capacity (always add growth buffer)
+❌ **Don't**: Mix subnets from primary and secondary CIDR blocks
 
 ### When to Use What
 
@@ -2080,65 +2080,65 @@ This section provides cloud-specific troubleshooting guidance:
    ```
    Error: "Subnet does not have available IP addresses"
    ```
-   
+
    **Check**:
    ```bash
    aws ec2 describe-subnets --subnet-ids <subnet-id> \
      --query 'Subnets[0].AvailableIpAddressCount'
    ```
-   
+
    **Fix**: Use larger subnet or add more subnets
 
 2. **Security group misconfiguration**
    ```
    Error: "Security group rules do not allow required traffic"
    ```
-   
+
    **Check**: Verify egress rules include 443, 3306, 6666, 8443-8451 to `0.0.0.0/0`
-   
+
    **Fix**: Update security group rules per [requirements](#required-rules)
 
 3. **NAT Gateway issues**
    ```
    Error: "Cannot reach Databricks control plane"
    ```
-   
+
    **Check**:
    ```bash
    aws ec2 describe-nat-gateways --nat-gateway-ids <nat-gw-id>
    # Verify state = "available"
-   
+
    aws ec2 describe-route-tables --filters "Name=association.subnet-id,Values=<subnet-id>"
    # Verify 0.0.0.0/0 route points to NAT Gateway
    ```
-   
+
    **Fix**: Ensure NAT Gateway is running and route table correct
 
 4. **DNS not enabled**
    ```
    Error: "DNS resolution failed"
    ```
-   
+
    **Check**:
    ```bash
    aws ec2 describe-vpc-attribute --vpc-id <vpc-id> --attribute enableDnsHostnames
    aws ec2 describe-vpc-attribute --vpc-id <vpc-id> --attribute enableDnsSupport
    ```
-   
+
    **Fix**: Enable both DNS settings on VPC
 
 5. **Network ACL blocking traffic**
    ```
    Error: "Connection timeout" or "Network unreachable"
    ```
-   
+
    **Check**:
    ```bash
    aws ec2 describe-network-acls --filters "Name=association.subnet-id,Values=<subnet-id>"
    # Look for inbound rule allowing 0.0.0.0/0
    ```
-   
-   **Fix**: 
+
+   **Fix**:
    - Ensure inbound rule 100 allows ALL from `0.0.0.0/0` (required for return traffic)
    - Ensure outbound rules allow required ports (443, 8443-8451)
    - Ensure ephemeral ports 1024-65535 allowed outbound (for requests)
@@ -2152,37 +2152,37 @@ This section provides cloud-specific troubleshooting guidance:
 **Common causes:**
 
 1. **S3 access denied**
-   
+
    **Check**: IAM instance profile permissions
    ```bash
    aws iam get-role --role-name <instance-profile-role>
    aws iam list-attached-role-policies --role-name <instance-profile-role>
    ```
-   
+
    **Fix**: Attach policy with S3 read/write permissions
 
 2. **Bucket policy blocking access**
-   
+
    **Check**: S3 bucket policy allows VPC endpoint or NAT IP
    ```bash
    aws s3api get-bucket-policy --bucket <bucket-name>
    ```
-   
+
    **Fix**: Update bucket policy to allow `aws:sourceVpce` or `aws:SourceIp`
 
 3. **VPC Endpoint misconfiguration**
-   
+
    **Check**: Endpoint attached to route tables
    ```bash
    aws ec2 describe-vpc-endpoints --vpc-endpoint-ids <endpoint-id>
    ```
-   
+
    **Fix**: Attach endpoint to correct route tables
 
 4. **Regional endpoint issues**
-   
+
    **Symptom**: Cross-region S3 access fails
-   
+
    **Fix**: Remove regional endpoint Spark configuration or ensure all S3 buckets in same region
 
 ### Network ACL Issues
@@ -2224,7 +2224,7 @@ aws ec2 describe-network-acls --filters "Name=association.subnet-id,Values=<subn
    - Must allow ports 443, 8443-8451, 53, 6666, 2443
    - Error symptoms: Cannot reach control plane or AWS services
 
-**Fix**: 
+**Fix**:
 
 Option 1 (Strongly Recommended): Use default NACL
 ```bash
@@ -2308,7 +2308,7 @@ aws ec2 create-flow-logs \
    ```
    Error: "No available IP addresses in subnet"
    ```
-   
+
    **Check**:
    ```bash
    az network vnet subnet show \
@@ -2317,8 +2317,8 @@ aws ec2 create-flow-logs \
      --name <subnet-name> \
      --query "addressPrefix"
    ```
-   
-   **Fix**: 
+
+   **Fix**:
    - Ensure host subnet is at least `/26`
    - Ensure container subnet is between `/23` and `/26`
    - Consider using larger subnets for production
@@ -2327,7 +2327,7 @@ aws ec2 create-flow-logs \
    ```
    Error: "Network security group denies required traffic"
    ```
-   
+
    **Check**: Verify NSG rules include AzureDatabricks Service Tag
    ```bash
    az network nsg rule list \
@@ -2335,7 +2335,7 @@ aws ec2 create-flow-logs \
      --nsg-name <nsg-name> \
      --output table
    ```
-   
+
    **Fix**: Add required NSG rules:
    - Inbound: Allow from `AzureDatabricks` Service Tag
    - Outbound: Allow to `AzureDatabricks` Service Tag
@@ -2345,7 +2345,7 @@ aws ec2 create-flow-logs \
    ```
    Error: "Subnet must be delegated to Microsoft.Databricks/workspaces"
    ```
-   
+
    **Check**:
    ```bash
    az network vnet subnet show \
@@ -2354,7 +2354,7 @@ aws ec2 create-flow-logs \
      --name <subnet-name> \
      --query "delegations"
    ```
-   
+
    **Fix**: Delegate both host and container subnets
    ```bash
    az network vnet subnet update \
@@ -2368,15 +2368,15 @@ aws ec2 create-flow-logs \
    ```
    Error: "Cannot reach Azure Databricks control plane"
    ```
-   
+
    **Check**:
    ```bash
    az network nat gateway show \
      --resource-group <rg-name> \
      --name <nat-gateway-name>
    ```
-   
-   **Fix**: 
+
+   **Fix**:
    - Ensure NAT Gateway is provisioned
    - Verify route table points 0.0.0.0/0 to NAT or Internet
    - Check that outbound Public IP is not blocked
@@ -2388,7 +2388,7 @@ aws ec2 create-flow-logs \
 **Common causes:**
 
 1. **Storage account access denied**
-   
+
    **Check**: Verify storage firewall and network rules
    ```bash
    az storage account show \
@@ -2396,31 +2396,31 @@ aws ec2 create-flow-logs \
      --name <storage-account-name> \
      --query "networkRuleSet"
    ```
-   
-   **Fix**: 
+
+   **Fix**:
    - Add VNet/subnet to storage account firewall
    - Or use Service Endpoint on subnet
    - Or use Private Endpoint for private connectivity
 
 2. **Private Endpoint DNS resolution failing**
-   
+
    **Symptom**: Storage FQDN resolves to public IP instead of private IP
-   
+
    **Check**:
    ```bash
    nslookup <storage-account-name>.blob.core.windows.net
    # Should resolve to 10.x.x.x (private IP)
    ```
-   
-   **Fix**: 
+
+   **Fix**:
    - Ensure Private DNS Zone is linked to VNet
    - Verify A record exists in `privatelink.blob.core.windows.net`
    - Check that VNet DNS settings point to Azure DNS (168.63.129.16)
 
 3. **Service Tag not updated**
-   
+
    **Symptom**: Connection fails after Databricks infrastructure update
-   
+
    **Fix**: Service Tags are automatically updated by Azure, but NSG rules may need refresh
    ```bash
    # Download current Service Tag IP ranges
@@ -2512,15 +2512,15 @@ az network nic show-effective-route-table \
    ```
    Error: "Insufficient IP addresses in subnet secondary range"
    ```
-   
+
    **Check**:
    ```bash
    gcloud compute networks subnets describe <subnet-name> \
      --region=<region> \
      --format="value(secondaryIpRanges)"
    ```
-   
-   **Fix**: 
+
+   **Fix**:
    - Ensure primary range is at least `/23`
    - Ensure pods range is at least `/17`
    - Ensure services range is at least `/21`
@@ -2530,14 +2530,14 @@ az network nic show-effective-route-table \
    ```
    Error: "Firewall rules deny required traffic"
    ```
-   
+
    **Check**: List firewall rules
    ```bash
    gcloud compute firewall-rules list \
      --filter="network:<vpc-name>" \
      --format="table(name,direction,allowed,sourceRanges)"
    ```
-   
+
    **Fix**: Add required firewall rules
    ```bash
    # Allow internal communication
@@ -2554,14 +2554,14 @@ az network nic show-effective-route-table \
    ```
    Error: "Cannot reach external services"
    ```
-   
+
    **Check**:
    ```bash
    gcloud compute routers nats list \
      --router=<router-name> \
      --region=<region>
    ```
-   
+
    **Fix**: Create Cloud NAT
    ```bash
    gcloud compute routers nats create databricks-nat \
@@ -2575,14 +2575,14 @@ az network nic show-effective-route-table \
    ```
    Error: "Cannot reach GCS or Google APIs"
    ```
-   
+
    **Check**:
    ```bash
    gcloud compute networks subnets describe <subnet-name> \
      --region=<region> \
      --format="value(privateIpGoogleAccess)"
    ```
-   
+
    **Fix**: Enable Private Google Access
    ```bash
    gcloud compute networks subnets update <subnet-name> \
@@ -2597,12 +2597,12 @@ az network nic show-effective-route-table \
 **Common causes:**
 
 1. **GCS bucket IAM permissions missing**
-   
+
    **Check**: Verify service account has GCS access
    ```bash
    gcloud storage buckets get-iam-policy gs://<bucket-name>
    ```
-   
+
    **Fix**: Grant service account Storage Object Admin role
    ```bash
    gcloud storage buckets add-iam-policy-binding gs://<bucket-name> \
@@ -2611,30 +2611,30 @@ az network nic show-effective-route-table \
    ```
 
 2. **VPC-SC perimeter blocking access**
-   
+
    **Symptom**: Requests to GCS or other Google services are denied
-   
+
    **Check**:
    ```bash
    gcloud access-context-manager perimeters list \
      --policy=<policy-id>
    ```
-   
-   **Fix**: 
+
+   **Fix**:
    - Add Databricks project to VPC-SC perimeter
    - Or create access level for Databricks service account
    - Or use Private Service Connect to bypass VPC-SC
 
 3. **Private Service Connect endpoint misconfigured**
-   
+
    **Symptom**: Cannot reach Databricks control plane via PSC
-   
+
    **Check**:
    ```bash
    gcloud compute forwarding-rules list \
      --filter="target:serviceAttachments"
    ```
-   
+
    **Fix**: Verify PSC endpoint configuration and DNS
 
 #### Firewall Troubleshooting

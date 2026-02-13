@@ -1,7 +1,7 @@
 # Network Connectivity Configuration (NCC) Module
 
-**Module Path**: `modules/ncc`  
-**Status**: ✅ **Production Ready**  
+**Module Path**: `modules/ncc`
+**Status**: ✅ **Production Ready**
 **Mandatory**: Yes (like Unity Catalog)
 
 ---
@@ -212,15 +212,15 @@ None. The module has minimal configuration by design.
 # NCC created automatically (mandatory)
 module "ncc" {
   source = "../../modules/ncc"
-  
+
   providers = {
     databricks.account = databricks.account
   }
-  
+
   workspace_id_numeric = module.workspace.workspace_id_numeric
   workspace_prefix     = var.workspace_prefix
   location             = var.location
-  
+
   depends_on = [module.unity_catalog]
 }
 ```
@@ -235,15 +235,15 @@ module "ncc" {
 # NCC created automatically (mandatory)
 module "ncc" {
   source = "../../modules/ncc"
-  
+
   providers = {
     databricks.account = databricks.account
   }
-  
+
   workspace_id_numeric = module.workspace.workspace_id_numeric
   workspace_prefix     = var.workspace_prefix
   location             = var.location
-  
+
   depends_on = [module.unity_catalog]
 }
 ```
@@ -322,7 +322,7 @@ module "ncc" {
 
 **Error**:
 ```
-Error: Network Connectivity Config is unable to be deleted because 
+Error: Network Connectivity Config is unable to be deleted because
 it is attached to one or more workspaces
 ```
 
@@ -419,15 +419,15 @@ module "unity_catalog" {
 
 module "ncc" {
   source = "../../modules/ncc"
-  
+
   providers = {
     databricks.account = databricks.account
   }
-  
+
   workspace_id_numeric = module.workspace.workspace_id_numeric
   workspace_prefix     = var.workspace_prefix
   location             = var.location
-  
+
   depends_on = [module.unity_catalog]
 }
 
@@ -462,15 +462,15 @@ module "unity_catalog" {
 
 module "ncc" {
   source = "../../modules/ncc"
-  
+
   providers = {
     databricks.account = databricks.account
   }
-  
+
   workspace_id_numeric = module.workspace.workspace_id_numeric
   workspace_prefix     = var.workspace_prefix
   location             = var.location
-  
+
   depends_on = [module.unity_catalog]
 }
 
@@ -499,5 +499,5 @@ output "serverless_setup_required" {
 
 ---
 
-**Module**: NCC (Network Connectivity Configuration)  
+**Module**: NCC (Network Connectivity Configuration)
 **Status**: ✅ Production Ready

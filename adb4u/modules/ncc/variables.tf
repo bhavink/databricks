@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Required Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Required Configuration
+# ==============================================
 
 variable "location" {
   description = "Azure region for Network Connectivity Configuration"
@@ -17,9 +17,9 @@ variable "workspace_prefix" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Workspace Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Workspace Configuration
+# ==============================================
 
 variable "workspace_id_numeric" {
   description = "Numeric Databricks workspace ID (not Azure resource ID)"

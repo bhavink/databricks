@@ -1,6 +1,6 @@
 # Networking Module
 
-**Module**: `modules/networking`  
+**Module**: `modules/networking`
 **Purpose**: Creates or references Azure network infrastructure for Databricks workspace deployment
 
 ---
@@ -279,22 +279,22 @@ delegation {
 ```hcl
 module "networking" {
   source = "../../modules/networking"
-  
+
   # Basic Configuration
   location            = "eastus2"
   resource_group_name = azurerm_resource_group.this.name
   workspace_prefix    = "proddb"
-  
+
   # Create new network
   use_existing_network = false
   vnet_address_space   = ["10.0.0.0/16"]
   public_subnet_address_prefix  = ["10.0.1.0/24"]
   private_subnet_address_prefix = ["10.0.2.0/24"]
-  
+
   # Non-PL Configuration
   enable_private_link = false
   enable_nat_gateway  = true
-  
+
   tags = {
     Environment = "Production"
     Owner       = "platform-team"
@@ -307,12 +307,12 @@ module "networking" {
 ```hcl
 module "networking" {
   source = "../../modules/networking"
-  
+
   # Basic Configuration
   location            = "eastus2"
   resource_group_name = azurerm_resource_group.this.name
   workspace_prefix    = "proddb"
-  
+
   # Use existing network
   use_existing_network        = true
   existing_vnet_name          = "existing-vnet"
@@ -320,11 +320,11 @@ module "networking" {
   existing_public_subnet_name  = "databricks-public"
   existing_private_subnet_name = "databricks-private"
   existing_nsg_name           = "databricks-nsg"
-  
+
   # Private Link Configuration
   enable_private_link = true
   enable_nat_gateway  = false  # No internet access
-  
+
   tags = {
     Environment = "Production"
     Owner       = "platform-team"
@@ -337,15 +337,15 @@ module "networking" {
 ```hcl
 module "networking" {
   source = "../../modules/networking"
-  
+
   location            = "eastus2"
   resource_group_name = azurerm_resource_group.this.name
   workspace_prefix    = "devdb"
-  
+
   use_existing_network = false
   enable_private_link  = false
   enable_nat_gateway   = false  # No egress, use workspace defaults
-  
+
   tags = {
     Environment = "Development"
   }
@@ -421,5 +421,5 @@ Subnet is already delegated to Microsoft.Databricks/workspaces
 
 ---
 
-**Module Version**: 1.0  
+**Module Version**: 1.0
 **Terraform Version**: >= 1.5

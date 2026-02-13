@@ -12,46 +12,46 @@ graph TB
         QUERIES[SQL Queries]
         NOTEBOOKS[Notebooks]
     end
-    
+
     subgraph "Monitoring Tools"
         UI[Jobs UI<br/>Run History]
         SPARK_UI[Spark UI<br/>Execution Details]
         GANGLIA[Ganglia Metrics<br/>Resource Usage]
         LOGS[Cluster Logs<br/>Driver & Executors]
     end
-    
+
     subgraph "Alerting & Analysis"
         ALERTS[Databricks Alerts<br/>Failure Notifications]
         EMAIL[Email/Webhook<br/>Notifications]
         DASH[Usage Dashboard<br/>Cost Tracking]
         API[REST API<br/>Programmatic Access]
     end
-    
+
     subgraph "Performance Optimization"
         BOTTLENECK[Bottleneck Detection]
         CACHE[Caching Strategy]
         PARTITION[Data Partitioning]
         TUNING[Cluster Tuning]
     end
-    
+
     JOBS --> UI
     CLUSTER --> SPARK_UI
     CLUSTER --> GANGLIA
     CLUSTER --> LOGS
     QUERIES --> SPARK_UI
     NOTEBOOKS --> UI
-    
+
     UI --> ALERTS
     ALERTS --> EMAIL
     UI --> DASH
     API --> DASH
-    
+
     SPARK_UI --> BOTTLENECK
     GANGLIA --> BOTTLENECK
     BOTTLENECK --> CACHE
     BOTTLENECK --> PARTITION
     BOTTLENECK --> TUNING
-    
+
     style UI fill:#1E88E5
     style SPARK_UI fill:#1E88E5
     style ALERTS fill:#FF6F00
@@ -95,18 +95,18 @@ sequenceDiagram
     participant SPARK as Spark UI
     participant ALERT as Alert System
     participant MONITOR as Monitoring Dashboard
-    
+
     Admin->>JOB: Schedule/Trigger Job
     JOB->>CLUSTER: Start Cluster
-    
+
     activate CLUSTER
     CLUSTER->>SPARK: Initialize Spark Context
-    
+
     loop Task Execution
         JOB->>CLUSTER: Execute Task
         CLUSTER->>SPARK: Log Metrics
         SPARK->>MONITOR: Update Dashboard
-        
+
         alt Task Success
             CLUSTER-->>JOB: Task Complete ✓
         else Task Failure
@@ -115,16 +115,16 @@ sequenceDiagram
             ALERT->>Admin: Email/Webhook Notification
         end
     end
-    
+
     JOB->>CLUSTER: All Tasks Complete
     deactivate CLUSTER
-    
+
     Admin->>SPARK: Review Execution Graph
     SPARK-->>Admin: Timeline, Stages, DAG
-    
+
     Admin->>MONITOR: Check Resource Usage
     MONITOR-->>Admin: CPU, Memory, Cost Metrics
-    
+
     Note over Admin,MONITOR: Identify optimization opportunities
 ```
 
@@ -145,33 +145,33 @@ sequenceDiagram
 ```mermaid
 graph TB
     START[Job Performance Issue]
-    
+
     START --> CHECK1{Job<br/>Completing?}
     CHECK1 -->|No - Fails| FAIL_CHECK{Error Type?}
     CHECK1 -->|Yes - Slow| PERF_CHECK{Performance<br/>Bottleneck?}
-    
+
     FAIL_CHECK -->|OOM Error| MEM_ISSUE[Memory Issue<br/>- Increase driver/executor memory<br/>- Reduce partition size<br/>- Enable spill to disk]
     FAIL_CHECK -->|Timeout| TIME_ISSUE[Timeout Issue<br/>- Increase cluster size<br/>- Optimize query<br/>- Check data skew]
     FAIL_CHECK -->|Network| NET_ISSUE[Network Issue<br/>- Check VPC connectivity<br/>- Verify NAT/firewall<br/>- Check data source access]
-    
+
     PERF_CHECK -->|Shuffle Heavy| SHUFFLE[Shuffle Optimization<br/>- Increase shuffle partitions<br/>- Use broadcast joins<br/>- Repartition data]
     PERF_CHECK -->|I/O Bound| IO[I/O Optimization<br/>- Enable Delta cache<br/>- Use columnar formats<br/>- Partition pruning]
     PERF_CHECK -->|CPU Bound| CPU[CPU Optimization<br/>- Add more workers<br/>- Use better instance types<br/>- Parallelize operations]
-    
+
     MEM_ISSUE --> SPARK_UI[Review Spark UI<br/>- Stage details<br/>- Executor metrics<br/>- Storage tab]
     TIME_ISSUE --> SPARK_UI
     NET_ISSUE --> LOGS[Review Logs<br/>- Driver logs<br/>- Executor logs<br/>- Network traces]
-    
+
     SHUFFLE --> GANGLIA[Monitor Ganglia<br/>- Network I/O<br/>- Disk usage<br/>- CPU utilization]
     IO --> GANGLIA
     CPU --> GANGLIA
-    
+
     SPARK_UI --> FIX[Apply Fix]
     LOGS --> FIX
     GANGLIA --> FIX
     FIX --> TEST[Test & Validate]
     TEST --> END[Performance Improved ✓]
-    
+
     style START fill:#FF6F00
     style MEM_ISSUE fill:#E53935
     style TIME_ISSUE fill:#E53935
@@ -184,7 +184,7 @@ graph TB
 ### Use REST API for Monitoring
 - Retrieve job run details programmatically using the Databricks Jobs API.
 - Automate monitoring by integrating with external dashboards or alerting systems.
-- API Example: 
+- API Example:
   ```bash
   curl -X GET https://<databricks-instance>/api/2.1/jobs/runs/list \
        -H "Authorization: Bearer <your-token>"
@@ -201,45 +201,45 @@ graph TB
         CLUSTER_API[Clusters API<br/>/api/2.1/clusters/list]
         METRICS_API[Metrics API<br/>system.billing.*]
     end
-    
+
     subgraph "External Monitoring Tools"
         PROM[Prometheus<br/>Metrics Collection]
         GRAFANA[Grafana<br/>Visualization]
         DATADOG[Datadog<br/>APM]
         SPLUNK[Splunk<br/>Log Analysis]
     end
-    
+
     subgraph "Custom Integration"
         SCRIPT[Python/Shell Scripts<br/>Scheduled Polling]
         LAMBDA[Cloud Functions<br/>Event-driven]
         AIRFLOW[Apache Airflow<br/>Workflow Integration]
     end
-    
+
     subgraph "Alerting Platforms"
         PAGER[PagerDuty<br/>Incident Management]
         SLACK[Slack<br/>Team Notifications]
         EMAIL[Email<br/>Alert Delivery]
     end
-    
+
     DB_API --> JOBS_API
     DB_API --> CLUSTER_API
     DB_API --> METRICS_API
-    
+
     JOBS_API --> SCRIPT
     CLUSTER_API --> SCRIPT
     METRICS_API --> PROM
-    
+
     SCRIPT --> LAMBDA
     SCRIPT --> AIRFLOW
-    
+
     PROM --> GRAFANA
     JOBS_API --> DATADOG
     CLUSTER_API --> SPLUNK
-    
+
     GRAFANA --> PAGER
     DATADOG --> SLACK
     SPLUNK --> EMAIL
-    
+
     style DB_API fill:#1E88E5
     style JOBS_API fill:#1E88E5
     style GRAFANA fill:#43A047
@@ -257,37 +257,37 @@ graph LR
         RT2[Spark UI<br/>Live execution view]
         RT3[Ganglia<br/>Resource metrics]
     end
-    
+
     subgraph "Level 2: Historical Analysis"
         H1[System Tables<br/>SQL queries]
         H2[Usage Dashboard<br/>Trends & patterns]
         H3[Audit Logs<br/>Security events]
     end
-    
+
     subgraph "Level 3: Proactive Alerts"
         A1[Job Failure Alerts<br/>Immediate notification]
         A2[Budget Alerts<br/>Cost thresholds]
         A3[Performance Alerts<br/>SLA violations]
     end
-    
+
     subgraph "Level 4: Optimization"
         O1[Performance Tuning<br/>Based on insights]
         O2[Cost Optimization<br/>Resource right-sizing]
         O3[Automation<br/>Self-healing]
     end
-    
+
     RT1 --> H1
     RT2 --> H1
     RT3 --> H1
-    
+
     H1 --> A1
     H2 --> A2
     H3 --> A3
-    
+
     A1 --> O1
     A2 --> O2
     A3 --> O3
-    
+
     style RT1 fill:#1E88E5
     style RT2 fill:#1E88E5
     style RT3 fill:#1E88E5

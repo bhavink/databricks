@@ -1,54 +1,54 @@
-***REMOVED*** ==============================================
-***REMOVED*** BYOR Outputs - Copy-Paste Ready for Workspace Deployment
-***REMOVED*** ==============================================
+# ==============================================
+# BYOR Outputs - Copy-Paste Ready for Workspace Deployment
+# ==============================================
 
-***REMOVED*** ==============================================
-***REMOVED*** Copy-Paste Configuration Block
-***REMOVED*** ==============================================
+# ==============================================
+# Copy-Paste Configuration Block
+# ==============================================
 
 output "copy_paste_config" {
   description = "Copy-paste this entire block into your workspace deployment terraform.tfvars"
   value = <<-EOT
-***REMOVED*** ==============================================
-***REMOVED*** BYOR Configuration (from BYOR deployment)
-***REMOVED*** Copy-paste this section into deployments/non-pl/terraform.tfvars
-***REMOVED*** or deployments/full-private/terraform.tfvars
-***REMOVED*** ==============================================
+# ==============================================
+# BYOR Configuration (from BYOR deployment)
+# Copy-paste this section into deployments/non-pl/terraform.tfvars
+# or deployments/full-private/terraform.tfvars
+# ==============================================
 
-***REMOVED*** Master Control - Use BYOR infrastructure
+# Master Control - Use BYOR infrastructure
 use_byor_infrastructure = true
 
-***REMOVED*** Core Configuration - MUST match BYOR deployment
+# Core Configuration - MUST match BYOR deployment
 location            = "${var.location}"
 resource_group_name = "${local.resource_group_name}"
 
-***REMOVED*** Network Configuration (from BYOR)
+# Network Configuration (from BYOR)
 existing_vnet_name            = "${azurerm_virtual_network.this.name}"
 existing_resource_group_name  = "${local.resource_group_name}"
 existing_public_subnet_name   = "${azurerm_subnet.public.name}"
 existing_private_subnet_name  = "${azurerm_subnet.private.name}"
 existing_nsg_name             = "${azurerm_network_security_group.this.name}"
-${var.create_privatelink_subnet ? "existing_privatelink_subnet_name = \"${azurerm_subnet.privatelink[0].name}\"" : "***REMOVED*** existing_privatelink_subnet_name = \"\"  ***REMOVED*** Not created (Full-Private only)"}
+${var.create_privatelink_subnet ? "existing_privatelink_subnet_name = \"${azurerm_subnet.privatelink[0].name}\"" : "# existing_privatelink_subnet_name = \"\"  # Not created (Full-Private only)"}
 
-***REMOVED*** NSG Association IDs (required for workspace deployment)
+# NSG Association IDs (required for workspace deployment)
 existing_public_subnet_nsg_association_id  = "${azurerm_subnet_network_security_group_association.public.id}"
 existing_private_subnet_nsg_association_id = "${azurerm_subnet_network_security_group_association.private.id}"
 
-${var.create_key_vault ? "***REMOVED*** ==============================================\n***REMOVED*** CMK Configuration (from BYOR deployment)\n***REMOVED*** ==============================================\n\nenable_cmk_managed_services = true\nenable_cmk_managed_disks    = true\nenable_cmk_dbfs_root        = true\n\n***REMOVED*** Key Vault from BYOR\nexisting_key_vault_id = \"${module.key_vault[0].key_vault_id}\"\nexisting_key_id       = \"${module.key_vault[0].key_id}\"" : "***REMOVED*** ==============================================\n***REMOVED*** CMK Configuration\n***REMOVED*** Key Vault not created (set create_key_vault=true in BYOR to enable)\n***REMOVED*** =============================================="}
+${var.create_key_vault ? "# ==============================================\n# CMK Configuration (from BYOR deployment)\n# ==============================================\n\nenable_cmk_managed_services = true\nenable_cmk_managed_disks    = true\nenable_cmk_dbfs_root        = true\n\n# Key Vault from BYOR\nexisting_key_vault_id = \"${module.key_vault[0].key_vault_id}\"\nexisting_key_id       = \"${module.key_vault[0].key_id}\"" : "# ==============================================\n# CMK Configuration\n# Key Vault not created (set create_key_vault=true in BYOR to enable)\n# =============================================="}
 
-***REMOVED*** ==============================================
-***REMOVED*** Info: What BYOR Created
-***REMOVED*** ==============================================
-${var.enable_nat_gateway ? "***REMOVED*** ✅ NAT Gateway: Created (Public IP = ${azurerm_public_ip.nat[0].ip_address})" : "***REMOVED*** ⚠️  NAT Gateway: Not created (enable_nat_gateway=false)"}
-***REMOVED*** ✅ Service Endpoints: Enabled (Storage, KeyVault, EventHub)
-***REMOVED*** ✅ Subnet Delegation: Applied (Microsoft.Databricks/workspaces)
+# ==============================================
+# Info: What BYOR Created
+# ==============================================
+${var.enable_nat_gateway ? "# ✅ NAT Gateway: Created (Public IP = ${azurerm_public_ip.nat[0].ip_address})" : "# ⚠️  NAT Gateway: Not created (enable_nat_gateway=false)"}
+# ✅ Service Endpoints: Enabled (Storage, KeyVault, EventHub)
+# ✅ Subnet Delegation: Applied (Microsoft.Databricks/workspaces)
 
 EOT
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Individual Outputs (for programmatic access)
-***REMOVED*** ==============================================
+# ==============================================
+# Individual Outputs (for programmatic access)
+# ==============================================
 
 output "resource_group_name" {
   description = "Name of the resource group"
@@ -180,9 +180,9 @@ output "cmk_key_id" {
   value       = var.create_key_vault ? module.key_vault[0].key_id : null
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Deployment Summary
-***REMOVED*** ==============================================
+# ==============================================
+# Deployment Summary
+# ==============================================
 
 output "deployment_summary" {
   description = "Summary of BYOR deployment"

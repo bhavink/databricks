@@ -2,7 +2,7 @@ Azure Databricks Security Best Practices
 ==============
 **Production-ready, modular Terraform templates** for secure Azure Databricks deployments.
 
-📚 **[Complete Documentation →](./docs/)**  
+📚 **[Complete Documentation →](./docs/)**
 🔑 **[Authentication Setup Guide →](../guides/authentication.md)** - New to Terraform? Start here!
 
 ---
@@ -64,8 +64,8 @@ adb4u/
 - **Storage**: Service Endpoints
 - **Serverless**: NCC attached (Service Endpoints or Private Link)
 
-👉 **[Quick Start Guide →](./docs/01-QUICKSTART.md)**  
-🚀 **[Serverless Setup →](./docs/guides/01-SERVERLESS-SETUP.md)**  
+👉 **[Quick Start Guide →](./docs/01-QUICKSTART.md)**
+🚀 **[Serverless Setup →](./docs/guides/01-SERVERLESS-SETUP.md)**
 ⚠️ **[Troubleshooting Guide →](./docs/04-TROUBLESHOOTING.md)** - Review before deploying!
 
 #### 2. **Full Private (Air-gapped)** ✅ Production Ready
@@ -75,8 +75,8 @@ adb4u/
 - **Storage**: Private Link
 - **Serverless**: NCC attached (Private Link required)
 
-👉 **[Pattern Documentation →](./docs/patterns/02-FULL-PRIVATE.md)**  
-🚀 **[Serverless Setup →](./docs/guides/01-SERVERLESS-SETUP.md)**  
+👉 **[Pattern Documentation →](./docs/patterns/02-FULL-PRIVATE.md)**
+🚀 **[Serverless Setup →](./docs/guides/01-SERVERLESS-SETUP.md)**
 ⚠️ **[Troubleshooting Guide →](./docs/04-TROUBLESHOOTING.md)** - Common issues & solutions!
 
 #### 3. **BYOR (Bring Your Own Resources)** ✅ Production Ready

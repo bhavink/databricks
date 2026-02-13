@@ -1,6 +1,6 @@
 # Full Private (Air-Gapped) Deployment Pattern
 
-**Pattern**: `deployments/full-private`  
+**Pattern**: `deployments/full-private`
 **Status**: ✅ **Production Ready**
 
 ---
@@ -18,10 +18,10 @@ The Full Private (Air-Gapped) pattern provides a **fully isolated** Azure Databr
 
 ### Use Cases
 
-✅ **Highly regulated industries** (Financial services, Healthcare)  
-✅ **Zero-trust network architectures**  
-✅ **Air-gapped requirements** (No internet access)  
-✅ **Strict data residency** (All traffic on Azure backbone)  
+✅ **Highly regulated industries** (Financial services, Healthcare)
+✅ **Zero-trust network architectures**
+✅ **Air-gapped requirements** (No internet access)
+✅ **Strict data residency** (All traffic on Azure backbone)
 ✅ **Compliance mandates** (HIPAA, PCI-DSS, FedRAMP)
 
 ---
@@ -189,7 +189,7 @@ sequenceDiagram
     participant CP as Control Plane
     participant ARM as Azure ARM
     participant VNet as Customer VNet
-    
+
     CP->>ARM: Create VMs (no public IPs)
     ARM->>VNet: Provision Driver (Public Subnet)
     ARM->>VNet: Provision Workers (Private Subnet)
@@ -229,18 +229,18 @@ Routing: Private Link (NOT via public internet)
 graph LR
     Cluster[Cluster VMs]
     PE[Private Endpoint]
-    
+
     subgraph Storage["Azure Storage (Customer)"]
         DBFS[DBFS Root]
         UC[UC Metastore]
         ExtLoc[External Location]
     end
-    
+
     Cluster --> PE
     PE --> DBFS
     PE --> UC
     PE --> ExtLoc
-    
+
     style PE fill:#e8f5e9
     style Storage fill:#fff9c4
 ```
@@ -390,20 +390,20 @@ Full-Private deployments rely on **Azure Private DNS zones** to resolve Private 
 graph TB
     User[User/Application]
     VNet[Customer VNet]
-    
+
     subgraph "Private DNS Zones"
         DBDNSZone["privatelink.azuredatabricks.net"]
         DFSDNSZone["privatelink.dfs.core.windows.net"]
         BlobDNSZone["privatelink.blob.core.windows.net"]
     end
-    
+
     subgraph "Private Endpoints"
         UIPE[UI/API PE<br/>databricks_ui_api]
         AuthPE[Browser Auth PE<br/>browser_authentication]
         DBFSPE[DBFS Storage PE<br/>dfs]
         UCPE[UC Storage PE<br/>dfs]
     end
-    
+
     User -->|1. Query| VNet
     VNet -->|2. DNS Lookup| DBDNSZone
     VNet -->|2. DNS Lookup| DFSDNSZone
@@ -411,7 +411,7 @@ graph TB
     DFSDNSZone -->|3. Returns Private IP| VNet
     VNet -->|4. Connect via Private IP| UIPE
     VNet -->|4. Connect via Private IP| DBFSPE
-    
+
     style DBDNSZone fill:#e1f5fe
     style DFSDNSZone fill:#e1f5fe
     style BlobDNSZone fill:#e1f5fe
@@ -520,32 +520,32 @@ nslookup adb-1234567890123456.azuredatabricks.net
 sequenceDiagram
     accTitle: DNS Resolution Flow for Databricks Private Link Access
     accDescr: This diagram shows the 9-step process of how DNS resolution works when accessing a Databricks workspace via Private Link
-    
+
     actor User
     participant Browser
     participant VPN as VPN/ExpressRoute
     participant DNS as Private DNS Zone
     participant PE as Private Endpoint
     participant WS as Databricks Workspace
-    
+
     rect rgb(230, 240, 255)
         Note over User,WS: Phase 1: Initial Access
         User->>Browser: 1. Navigate to workspace URL
         Browser->>VPN: 2. DNS query (adb-<workspace-id>.<random>.azuredatabricks.net)
     end
-    
+
     rect rgb(255, 245, 230)
         Note over VPN,DNS: Phase 2: DNS Resolution
         VPN->>DNS: 3. Lookup in privatelink.azuredatabricks.net
         DNS->>VPN: 4. Return Private IP (10.178.2.10)
     end
-    
+
     rect rgb(230, 255, 240)
         Note over VPN,WS: Phase 3: Connection Establishment
         VPN->>PE: 5. Connect to Private IP
         PE->>WS: 6. Forward to Databricks Control Plane
     end
-    
+
     rect rgb(255, 240, 245)
         Note over User,WS: Phase 4: Authentication (Azure AD)
         WS->>Browser: 7. Redirect to Azure AD (via browser_authentication PE)
@@ -837,7 +837,7 @@ az storage account show \
   --name <storage-account> \
   --resource-group <rg-name> \
   --query networkRuleSet.defaultAction
-  
+
 # If "Deny", ensure Private Endpoint is approved
 ```
 
@@ -1074,6 +1074,6 @@ This is **expected in air-gapped deployments**. Libraries cannot be downloaded f
 
 ---
 
-**Pattern Version**: 1.0  
-**Status**: ✅ Production Ready  
+**Pattern Version**: 1.0
+**Status**: ✅ Production Ready
 **Terraform Version**: >= 1.5

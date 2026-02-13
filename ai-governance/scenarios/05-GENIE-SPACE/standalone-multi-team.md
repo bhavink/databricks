@@ -8,7 +8,7 @@
 
 ## 📋 Scenario Overview
 
-**Problem Statement:**  
+**Problem Statement:**
 Sales, Marketing, and Finance teams need to query revenue data using natural language, but each team should only see data relevant to their function and responsibilities.
 
 **Business Requirements:**
@@ -40,37 +40,37 @@ flowchart TD
         FC[Finance Controller<br/>finance-team group]
         EX[Executive<br/>executives group]
     end
-    
+
     subgraph "Genie Space"
         GS[Revenue Analytics Genie<br/>OBO Mode]
     end
-    
+
     subgraph "Unity Catalog"
         UC[UC Governance Engine]
         RF[Row Filters]
         CM[Column Masks]
     end
-    
+
     subgraph "Data Layer"
         OPP[(Opportunities Table<br/>team-based filters)]
         CAMP[(Campaigns Table<br/>team-based filters)]
         REV[(Revenue Table<br/>sensitivity masks)]
     end
-    
+
     SR -->|Query| GS
     MA -->|Query| GS
     FC -->|Query| GS
     EX -->|Query| GS
-    
+
     GS -->|current_user&#40;&#41;| UC
-    
+
     UC -->|Apply team filters| RF
     UC -->|Apply sensitivity masks| CM
-    
+
     RF --> OPP
     RF --> CAMP
     CM --> REV
-    
+
     style SR fill:#d5f5e3,stroke:#27ae60
     style MA fill:#d5f5e3,stroke:#27ae60
     style FC fill:#d5f5e3,stroke:#27ae60
@@ -235,29 +235,29 @@ CREATE FUNCTION revenue_analytics.sales.filter_opportunities(
 )
 RETURNS BOOLEAN
 COMMENT 'Row filter: Users see opportunities based on team membership and ownership'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- Sales team members see:
         --   - Own opportunities
         --   - Team opportunities if in same team
         WHEN is_member('sales-team') AND (owner = current_user() OR team = 'sales') THEN true
-        
+
         -- Marketing team sees opportunities tied to their campaigns
         WHEN is_member('marketing-team') AND team = 'marketing' THEN true
-        
+
         -- Finance team sees closed opportunities only
         WHEN is_member('finance-team') AND team = 'finance' THEN true
-        
+
         -- Executives see all
         WHEN is_member('executives') THEN true
-        
+
         -- Default deny
         ELSE false
     END;
 
 -- Apply row filter to opportunities table
 ALTER TABLE revenue_analytics.sales.opportunities
-  SET ROW FILTER revenue_analytics.sales.filter_opportunities 
+  SET ROW FILTER revenue_analytics.sales.filter_opportunities
   ON (owner_email, team);
 ```
 
@@ -268,21 +268,21 @@ ALTER TABLE revenue_analytics.sales.opportunities
 CREATE FUNCTION revenue_analytics.marketing.filter_campaigns(creator STRING)
 RETURNS BOOLEAN
 COMMENT 'Row filter: Marketing users see their campaigns, executives see all'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- Marketing team sees own campaigns
         WHEN is_member('marketing-team') AND creator = current_user() THEN true
-        
+
         -- Executives see all campaigns
         WHEN is_member('executives') THEN true
-        
+
         -- Default deny
         ELSE false
     END;
 
 -- Apply row filter
 ALTER TABLE revenue_analytics.marketing.campaigns
-  SET ROW FILTER revenue_analytics.marketing.filter_campaigns 
+  SET ROW FILTER revenue_analytics.marketing.filter_campaigns
   ON (created_by);
 ```
 
@@ -295,14 +295,14 @@ ALTER TABLE revenue_analytics.marketing.campaigns
 CREATE FUNCTION revenue_analytics.finance.mask_revenue_amount()
 RETURNS DECIMAL(15,2)
 COMMENT 'Column mask: Show full amounts to finance/execs, aggregated to others'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- Finance team and executives see actual amounts
         WHEN is_member('finance-team') OR is_member('executives') THEN VALUE
-        
+
         -- Others see rounded amounts (less precision)
         WHEN is_member('sales-team') OR is_member('marketing-team') THEN ROUND(VALUE, -3)
-        
+
         -- Default: NULL
         ELSE NULL
     END;
@@ -339,7 +339,7 @@ ALTER TABLE revenue_analytics.finance.revenue
 ```text
 Genie Instructions (to improve query understanding):
 
-You are a revenue analytics assistant for a B2B company. 
+You are a revenue analytics assistant for a B2B company.
 You help sales, marketing, and finance teams analyze pipeline and revenue data.
 
 Common terms:
@@ -380,7 +380,7 @@ ORDER BY amount DESC;
 -- Marketing Analyst Query:
 "What's the ROI for my Q4 email campaigns?"
 -- Translates to:
-SELECT 
+SELECT
     campaign_name,
     budget,
     spend,
@@ -396,7 +396,7 @@ ORDER BY roi_percent DESC;
 -- Finance Controller Query:
 "Show recognized revenue by quarter for FY2025"
 -- Translates to:
-SELECT 
+SELECT
     fiscal_quarter,
     SUM(recognized_amount) as total_recognized
 FROM revenue_analytics.finance.revenue
@@ -407,7 +407,7 @@ ORDER BY fiscal_quarter;
 -- Executive Query:
 "Total pipeline value across all teams"
 -- Translates to:
-SELECT 
+SELECT
     team,
     COUNT(*) as opportunity_count,
     SUM(amount) as total_pipeline
@@ -458,7 +458,7 @@ SHOW CURRENT ROLES;
 
 ```sql
 -- Monitor Genie Space usage by team
-SELECT 
+SELECT
     user_identity.email,
     request_params.full_name_arg AS table_accessed,
     COUNT(*) as query_count,
@@ -471,7 +471,7 @@ GROUP BY user_identity.email, request_params.full_name_arg, DATE(event_time)
 ORDER BY query_count DESC;
 
 -- Track failed access attempts (permission denied)
-SELECT 
+SELECT
     user_identity.email,
     request_params.full_name_arg AS table_name,
     response.status_code,
@@ -533,9 +533,9 @@ ORDER BY event_time DESC;
 **Usage Metrics:**
 ```sql
 -- Daily active users by team
-SELECT 
+SELECT
     DATE(event_time) as date,
-    CASE 
+    CASE
         WHEN user_identity.email LIKE '%@sales%' THEN 'Sales'
         WHEN user_identity.email LIKE '%@marketing%' THEN 'Marketing'
         WHEN user_identity.email LIKE '%@finance%' THEN 'Finance'
@@ -554,7 +554,7 @@ ORDER BY date DESC, team;
 **Performance Metrics:**
 ```sql
 -- Query performance by table
-SELECT 
+SELECT
     request_params.full_name_arg AS table_name,
     AVG(response.result.duration_ms) as avg_duration_ms,
     MAX(response.result.duration_ms) as max_duration_ms,

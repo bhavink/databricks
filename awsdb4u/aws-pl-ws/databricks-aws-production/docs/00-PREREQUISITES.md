@@ -6,7 +6,7 @@
 
 ```
 ✅ Databricks Account (E2 Enterprise)
-✅ Service Principal + Credentials  
+✅ Service Principal + Credentials
 ✅ AWS Account + Credentials
 ✅ Terraform >= 1.0
 ✅ Environment Variables Configured
@@ -25,7 +25,7 @@ flowchart LR
     B --> C["Service Principal<br/>(OAuth Credentials)"]
     C --> D["Client ID"]
     C --> E["Client Secret"]
-    
+
     style A fill:#FF3621
     style B fill:#FF9900
     style C fill:#569A31
@@ -70,12 +70,12 @@ flowchart TD
     B -->|Option 2| D["AWS SSO"]
     B -->|Option 3| E["Access Keys"]
     B -->|Option 4| F["Environment Variables"]
-    
+
     C --> G["~/.aws/credentials"]
     D --> H["aws sso login"]
     E --> I["AWS_ACCESS_KEY_ID<br/>AWS_SECRET_ACCESS_KEY"]
     F --> I
-    
+
     style A fill:#FF9900
 ```
 
@@ -228,7 +228,7 @@ Run these commands to verify everything is ready:
 # ✅ Terraform installed
 terraform --version
 
-# ✅ AWS CLI installed  
+# ✅ AWS CLI installed
 aws --version
 
 # ✅ AWS authentication works

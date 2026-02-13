@@ -78,8 +78,8 @@ This file contains the values for the variables defined in `variables.tf`. You c
 
    Confirm the action when prompted.
 
-5. **Verify Resources**: After the apply completes, you can verify the created resources in the GCP Console or by running 
-   
+5. **Verify Resources**: After the apply completes, you can verify the created resources in the GCP Console or by running
+
    ```bash
    terraform output
    ```

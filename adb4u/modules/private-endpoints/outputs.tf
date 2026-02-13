@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Private DNS Zones
-***REMOVED*** ==============================================
+# ==============================================
+# Private DNS Zones
+# ==============================================
 
 output "private_dns_zones" {
   description = "Private DNS zone IDs"
@@ -11,9 +11,9 @@ output "private_dns_zones" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Databricks Private Endpoints
-***REMOVED*** ==============================================
+# ==============================================
+# Databricks Private Endpoints
+# ==============================================
 
 output "databricks_ui_api_private_endpoint_id" {
   description = "Private Endpoint ID for Databricks UI/API (DP-CP)"
@@ -25,9 +25,9 @@ output "browser_authentication_private_endpoint_id" {
   value       = azurerm_private_endpoint.browser_authentication.id
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** DBFS Storage Private Endpoints
-***REMOVED*** ==============================================
+# ==============================================
+# DBFS Storage Private Endpoints
+# ==============================================
 
 output "dbfs_dfs_private_endpoint_id" {
   description = "Private Endpoint ID for DBFS DFS"
@@ -39,9 +39,9 @@ output "dbfs_blob_private_endpoint_id" {
   value       = azurerm_private_endpoint.dbfs_blob.id
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Storage Private Endpoints
-***REMOVED*** ==============================================
+# ==============================================
+# Unity Catalog Storage Private Endpoints
+# ==============================================
 
 output "uc_metastore_dfs_private_endpoint_id" {
   description = "Private Endpoint ID for UC Metastore DFS (null if not created)"
@@ -63,9 +63,9 @@ output "uc_external_blob_private_endpoint_id" {
   value       = var.enable_uc_storage_private_endpoints ? azurerm_private_endpoint.uc_external_blob[0].id : null
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Configuration Summary
-***REMOVED*** ==============================================
+# ==============================================
+# Configuration Summary
+# ==============================================
 
 output "private_endpoints_summary" {
   description = "Summary of Private Endpoints configuration"

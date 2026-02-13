@@ -11,46 +11,46 @@ graph TB
         ACCT[Account Console]
         NC[Network Configuration]
     end
-    
+
     subgraph "Customer GCP Project"
         VPC[Customer Managed VPC]
-        
+
         subgraph "VPC Configuration"
             SUBNET[Primary Subnet<br/>/29 to /9]
             FW[Firewall Rules]
             PGA[Private Google Access<br/>Enabled]
             NAT[Cloud NAT<br/>Egress]
         end
-        
+
         subgraph "Databricks Workspace"
             WS[Workspace]
             SA[Compute Service Account<br/>databricks-compute@project]
             CLUSTER[Clusters<br/>GCE Instances]
         end
-        
+
         subgraph "IAM & Policies"
             ORGPOL[Organization Policies]
             IMGPOL[Trusted Image Policy<br/>databricks-external-images]
             AUTHPOL[Storage Auth Policy<br/>SERVICE_ACCOUNT_HMAC]
         end
     end
-    
+
     ACCT --> NC
     NC --> VPC
     VPC --> SUBNET
     VPC --> FW
     VPC --> PGA
     VPC --> NAT
-    
+
     NC --> WS
     WS --> SA
     WS --> CLUSTER
     CLUSTER --> SUBNET
-    
+
     ORGPOL -.validates.-> WS
     IMGPOL -.validates.-> CLUSTER
     AUTHPOL -.validates.-> SA
-    
+
     style ACCT fill:#1E88E5
     style VPC fill:#4285F4
     style WS fill:#1E88E5
@@ -70,12 +70,12 @@ Add `databricks-external-images` to the trusted image policy for the GCP Databri
 
 #### Restrict Authentication Types Cloud Storage Policy
 Make sure to allow `SERVICE_ACCOUNT_HMAC_SIGNED_REQUESTS` authentication, more details [here](https://cloud.google.com/storage/docs/org-policy-constraints#restrict-auth-types)
- 
+
 
 #### Databricks Related Google Service Accounts(GSA's)
 
-`Workspace SA`: This is created in the Regional Control Plane that is specific to this Workspace is assigned privileges to create and manage resources 
-inside the Databricks Compute Plane.  Its email address looks like db-{workspaceid}@prod-gcp-{region}.iam.gserviceaccount.com 
+`Workspace SA`: This is created in the Regional Control Plane that is specific to this Workspace is assigned privileges to create and manage resources
+inside the Databricks Compute Plane.  Its email address looks like db-{workspaceid}@prod-gcp-{region}.iam.gserviceaccount.com
 
 `Compute SA`: Databricks will use a service account in the Compute Plane named `databricks-compute@{workspace-project}.iam.gserviceaccount.com` as the SA attached to every VM launched by Databricks in the GCP project. This GSA could be precreated in the project used by Databricks workspace and in that workspace would automatically use it.
 
@@ -92,19 +92,19 @@ sequenceDiagram
     participant GCS as GCS Buckets
     participant UC as Unity Catalog
     participant SSA as Storage SA<br/>(UC Credential)
-    
+
     Note over DCP,WSA: Workspace Creation
     DCP->>WSA: Create Workspace SA<br/>in Control Plane
     WSA->>CSA: Validate/Create<br/>Compute SA in Project
-    
+
     Note over DCP,GCE: Cluster Launch
     DCP->>WSA: Launch Cluster Request
     WSA->>GCE: Create GCE Instances
     GCE->>CSA: Attach Compute SA<br/>to VMs
-    
+
     Note over CSA,GCS: Data Access (Non-UC)
     CSA->>GCS: Access Data<br/>(Using Compute SA permissions)
-    
+
     Note over UC,SSA: Unity Catalog Data Access
     DCP->>UC: Request Data Access
     UC->>SSA: Generate Short-lived Token<br/>(Scoped Permissions)
@@ -118,7 +118,7 @@ sequenceDiagram
   * Yes you can, more details [here](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace).
 * How many subnets I need?
   * In total we need 1 subnet
-    * Node Subnet 
+    * Node Subnet
 * Can I share subnets among different databricks workspace's?
   * No, each workspace requires its own dedicated subnet.
 * Can I change Subnet address space after the workspace is created?
@@ -155,14 +155,14 @@ graph LR
         S20["/20 CIDR<br/>2000 Nodes<br/>Enterprise Scale"]
         S19["/19 CIDR<br/>4000 Nodes<br/>Very Large Scale"]
     end
-    
+
     S26 -->|Scale Up| S24
     S24 -->|Scale Up| S22
     S22 -->|Scale Up| S20
     S20 -->|Scale Up| S19
-    
+
     S26 -.cannot resize.-> S26
-    
+
     style S26 fill:#90CAF9
     style S24 fill:#64B5F6
     style S22 fill:#42A5F5
@@ -200,7 +200,7 @@ Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-
 Please follow public [documentation](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace). Here's a few sample [TF script](./templates/terraform-scripts/readme.md) to deploy a bring your VPC based workspace using Terraform
 
 * create a [PSC + CMEK enabled workspace and attach a custom SA](./templates/terraform-scripts/byovpc-psc-cmek-ws). Please note that PSC and CMEK is in preview, follow [instructions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#step-1-enable-your-account-for-private-service-connect) to sign up for this feature
-  
+
 ### Validate setup
 - Create a Databricks cluster to validate n/w setup
 - Databricks Cluster comes up fine
@@ -215,27 +215,27 @@ sequenceDiagram
     participant VPC as Customer VPC
     participant GCE as GCE Instances
     participant NB as Notebook
-    
+
     Admin->>WS: Create Test Cluster
     WS->>CP: Request Cluster Creation
-    
+
     CP->>VPC: Validate Network Config
     VPC-->>CP: Network OK
-    
+
     CP->>GCE: Launch Instances
     activate GCE
     GCE->>VPC: Attach to Subnet
     GCE->>CP: Connect via SCC Relay
     CP-->>WS: Cluster Ready
     WS-->>Admin: Cluster Running ✓
-    
+
     Admin->>NB: Create Notebook
     Admin->>NB: Run Test Command<br/>%sql show tables
     NB->>GCE: Execute Command
     GCE->>NB: Return Results
     NB-->>Admin: Command Success ✓
     deactivate GCE
-    
+
     Note over Admin,NB: Workspace Validated!
 ```
 
@@ -282,23 +282,23 @@ sequenceDiagram
 ```mermaid
 graph TB
     START[Cluster Launch Initiated]
-    
+
     START --> CHECK1{Network<br/>Configuration<br/>Valid?}
     CHECK1 -->|No| FAIL1[Network Config Error<br/>Fix: Verify subnet,<br/>firewall rules]
     CHECK1 -->|Yes| CHECK2{VPC Firewall<br/>Allows Egress?}
-    
+
     CHECK2 -->|No| FAIL2[DBR_CLUSTER_LAUNCH_TIMEOUT<br/>Fix: Allow egress to<br/>Control Plane]
     CHECK2 -->|Yes| CHECK3{Cloud NAT<br/>Attached?}
-    
+
     CHECK3 -->|No| FAIL3[No Internet Access<br/>Fix: Attach Cloud NAT<br/>to VPC subnets]
     CHECK3 -->|Yes| CHECK4{GCP Resource<br/>Quota Available?}
-    
+
     CHECK4 -->|No| FAIL4[Quota Exceeded Error<br/>Fix: Request quota<br/>increase]
     CHECK4 -->|Yes| CHECK5{Organization<br/>Policies OK?}
-    
+
     CHECK5 -->|No| FAIL5[Policy Violation<br/>Fix: Update org policies<br/>or project settings]
     CHECK5 -->|Yes| SUCCESS[Cluster Running ✓]
-    
+
     style START fill:#1E88E5
     style SUCCESS fill:#43A047
     style FAIL1 fill:#E53935

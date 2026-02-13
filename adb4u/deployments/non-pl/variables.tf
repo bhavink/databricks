@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Core Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Core Configuration
+# ==============================================
 
 variable "use_byor_infrastructure" {
   description = <<-EOT
@@ -40,9 +40,9 @@ variable "resource_group_name" {
   type        = string
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Databricks Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Databricks Configuration
+# ==============================================
 
 variable "databricks_account_id" {
   description = "Databricks account ID (UUID format, required for Unity Catalog)"
@@ -54,9 +54,9 @@ variable "databricks_account_id" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Configuration (BYOV)
-***REMOVED*** ==============================================
+# ==============================================
+# Network Configuration (BYOV)
+# ==============================================
 
 variable "use_existing_network" {
   description = "Use existing VNet/Subnets/NSG (true) or create new (false). When true, ALL network resources must exist."
@@ -130,9 +130,9 @@ variable "enable_nat_gateway" {
   default     = true
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Customer-Managed Keys (Optional)
-***REMOVED*** ==============================================
+# ==============================================
+# Customer-Managed Keys (Optional)
+# ==============================================
 
 variable "enable_cmk_managed_services" {
   description = "Enable CMK for control plane data (notebooks, secrets, queries)"
@@ -152,7 +152,7 @@ variable "enable_cmk_dbfs_root" {
   default     = false
 }
 
-***REMOVED*** Key Vault Configuration (Create or Bring)
+# Key Vault Configuration (Create or Bring)
 variable "create_key_vault" {
   description = "Create new Key Vault (true) or use existing (false)"
   type        = bool
@@ -177,9 +177,9 @@ variable "cmk_key_vault_key_id" {
   default     = ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** IP Access Lists (Optional)
-***REMOVED*** ==============================================
+# ==============================================
+# IP Access Lists (Optional)
+# ==============================================
 
 variable "enable_ip_access_lists" {
   description = "Enable workspace IP access list restrictions"
@@ -193,9 +193,9 @@ variable "allowed_ip_ranges" {
   default     = []
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Unity Catalog Configuration
+# ==============================================
 
 variable "create_metastore" {
   description = "Create new Unity Catalog metastore (true) or use existing (false)"
@@ -233,9 +233,9 @@ variable "existing_access_connector_principal_id" {
   default     = ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Service Endpoint Policy (Optional)
-***REMOVED*** ==============================================
+# ==============================================
+# Service Endpoint Policy (Optional)
+# ==============================================
 
 variable "enable_service_endpoint_policy" {
   description = "Enable Service Endpoint Policy for storage egress control (classic compute only). Restricts VNet storage access to allow-listed accounts only."
@@ -249,9 +249,9 @@ variable "additional_allowed_storage_ids" {
   default     = []
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Tags
-***REMOVED*** ==============================================
+# ==============================================
+# Tags
+# ==============================================
 
 variable "tag_owner" {
   description = "Owner email address for resource tagging"

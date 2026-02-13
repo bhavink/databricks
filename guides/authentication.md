@@ -14,33 +14,33 @@
 flowchart TD
     Start[Need to run Terraform?]
     Start --> Env{Where are you running it?}
-    
+
     Env -->|My Laptop| Local[Local Development]
     Env -->|CI/CD Pipeline| CICD[Automation]
-    
+
     Local --> Cloud{Which cloud?}
     CICD --> Cloud
-    
+
     Cloud -->|Azure| AzChoice{Environment?}
     Cloud -->|AWS| AwsChoice{Environment?}
     Cloud -->|GCP| GcpChoice{Environment?}
-    
+
     AzChoice -->|Laptop| AzCLI[az login]
     AzChoice -->|CI/CD| AzSP[Service Principal env vars]
-    
+
     AwsChoice -->|Laptop| AwsProfile[AWS CLI profile]
     AwsChoice -->|CI/CD| AwsKeys[Access keys env vars]
-    
+
     GcpChoice -->|Laptop| GcpADC[gcloud auth application-default login]
     GcpChoice -->|CI/CD| GcpSA[Service account impersonation]
-    
+
     AzCLI --> SetDB[Set DATABRICKS_* variables]
     AzSP --> SetDB
     AwsProfile --> SetDB
     AwsKeys --> SetDB
     GcpADC --> SetDB
     GcpSA --> SetDB
-    
+
     SetDB --> Run[terraform init<br/>terraform plan]
 ```
 
@@ -276,7 +276,7 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
-  
+
   # Authentication happens automatically via ARM_* environment variables
   # No need to specify credentials here
 }
@@ -286,7 +286,7 @@ provider "databricks" {
   alias      = "account"
   host       = "https://accounts.azuredatabricks.net"
   account_id = var.databricks_account_id
-  
+
   # Authentication happens automatically via DATABRICKS_* environment variables
 }
 
@@ -294,7 +294,7 @@ provider "databricks" {
 provider "databricks" {
   alias = "workspace"
   host  = try(module.workspace.workspace_url, "https://placeholder.azuredatabricks.net")
-  
+
   # Authentication happens automatically via DATABRICKS_* environment variables
 }
 ```
@@ -423,7 +423,7 @@ In your `providers.tf`:
 # AWS Provider - manages AWS resources (VPCs, S3, IAM, etc.)
 provider "aws" {
   region = var.region
-  
+
   # Authentication happens automatically via AWS_* environment variables
 }
 
@@ -569,7 +569,7 @@ In your `providers.tf`:
 provider "google" {
   project = var.google_project_name
   region  = var.google_region
-  
+
   # Authentication via Application Default Credentials
   # or GOOGLE_OAUTH_ACCESS_TOKEN environment variable
 }

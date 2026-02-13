@@ -1,28 +1,28 @@
-***REMOVED*** ==============================================
-***REMOVED*** Full Private Azure Databricks Deployment
-***REMOVED*** ==============================================
-***REMOVED***
-***REMOVED*** This deployment pattern creates a fully private (air-gapped) Azure Databricks
-***REMOVED*** workspace with the following characteristics:
-***REMOVED***
-***REMOVED*** - Private Link for control plane (UI/API) access
-***REMOVED*** - Private Link for data plane (cluster-to-control-plane)
-***REMOVED*** - Secure Cluster Connectivity (NPIP - no public IPs)
-***REMOVED*** - NO NAT Gateway (air-gapped - no internet egress)
-***REMOVED*** - Private Endpoints for all storage (DBFS, UC Metastore, UC External)
-***REMOVED*** - Network Connectivity Configuration (NCC) for Databricks-managed private connectivity
-***REMOVED*** - Customer-Managed Keys (CMK) enabled by default
-***REMOVED*** - Unity Catalog with private storage access
-***REMOVED***
-***REMOVED*** Prerequisites:
-***REMOVED*** - Azure subscription with appropriate permissions
-***REMOVED*** - Terraform >= 1.5
-***REMOVED*** - Environment variables set (see terraform.tfvars.example)
-***REMOVED*** - Customer must bring their own package repositories (PyPI, Maven, etc.)
-***REMOVED***
-***REMOVED*** ==============================================
+# ==============================================
+# Full Private Azure Databricks Deployment
+# ==============================================
+#
+# This deployment pattern creates a fully private (air-gapped) Azure Databricks
+# workspace with the following characteristics:
+#
+# - Private Link for control plane (UI/API) access
+# - Private Link for data plane (cluster-to-control-plane)
+# - Secure Cluster Connectivity (NPIP - no public IPs)
+# - NO NAT Gateway (air-gapped - no internet egress)
+# - Private Endpoints for all storage (DBFS, UC Metastore, UC External)
+# - Network Connectivity Configuration (NCC) for Databricks-managed private connectivity
+# - Customer-Managed Keys (CMK) enabled by default
+# - Unity Catalog with private storage access
+#
+# Prerequisites:
+# - Azure subscription with appropriate permissions
+# - Terraform >= 1.5
+# - Environment variables set (see terraform.tfvars.example)
+# - Customer must bring their own package repositories (PyPI, Maven, etc.)
+#
+# ==============================================
 
-***REMOVED*** Random suffix for unique resource naming
+# Random suffix for unique resource naming
 resource "random_string" "deployment_suffix" {
   length  = 4
   special = false
@@ -32,7 +32,7 @@ resource "random_string" "deployment_suffix" {
 }
 
 locals {
-  ***REMOVED*** Merge user-provided tags with required owner and keepuntil tags
+  # Merge user-provided tags with required owner and keepuntil tags
   all_tags = merge(
     var.tags,
     {
@@ -41,29 +41,29 @@ locals {
     }
   )
   
-  ***REMOVED*** Add suffix to metastore name for uniqueness
+  # Add suffix to metastore name for uniqueness
   metastore_name_with_suffix = var.metastore_name != "" ? "${var.metastore_name}-${random_string.deployment_suffix.result}" : ""
   
-  ***REMOVED*** DBFS storage account name (no special chars, lowercase)
+  # DBFS storage account name (no special chars, lowercase)
   dbfs_storage_name = "${var.workspace_prefix}${random_string.deployment_suffix.result}dbfs"
   
-  ***REMOVED*** Determine if any CMK feature is enabled
+  # Determine if any CMK feature is enabled
   cmk_enabled = var.enable_cmk_managed_services || var.enable_cmk_managed_disks || var.enable_cmk_dbfs_root
 
-  ***REMOVED*** Derived flags based on use_byor_infrastructure
+  # Derived flags based on use_byor_infrastructure
   use_existing_network = var.use_byor_infrastructure ? true : var.use_existing_network
   enable_nat_gateway   = var.use_byor_infrastructure ? false : var.enable_nat_gateway
   create_key_vault     = (var.use_byor_infrastructure && local.cmk_enabled) ? false : var.create_key_vault
 
-  ***REMOVED*** Dynamically determine resource group name based on deployment mode
+  # Dynamically determine resource group name based on deployment mode
   resource_group_name = var.use_byor_infrastructure ? var.resource_group_name : azurerm_resource_group.this[0].name
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Resource Group
-***REMOVED*** ==============================================
+# ==============================================
+# Resource Group
+# ==============================================
 
-***REMOVED*** Create Resource Group if not using BYOR infrastructure
+# Create Resource Group if not using BYOR infrastructure
 resource "azurerm_resource_group" "this" {
   count    = var.use_byor_infrastructure ? 0 : 1
   name     = var.resource_group_name
@@ -71,31 +71,31 @@ resource "azurerm_resource_group" "this" {
   tags     = local.all_tags
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Key Vault Module (Optional - for CMK)
-***REMOVED*** ==============================================
+# ==============================================
+# Key Vault Module (Optional - for CMK)
+# ==============================================
 
-***REMOVED*** Only invoke key_vault module if creating a new Key Vault
+# Only invoke key_vault module if creating a new Key Vault
 module "key_vault" {
   count  = local.cmk_enabled && local.create_key_vault ? 1 : 0
   source = "../../modules/key-vault"
 
-  ***REMOVED*** Create or use existing Key Vault
+  # Create or use existing Key Vault
   create_key_vault      = local.create_key_vault
   existing_key_vault_id = var.existing_key_vault_id
   existing_key_id       = var.existing_key_id
 
-  ***REMOVED*** Resource configuration
+  # Resource configuration
   workspace_prefix    = var.workspace_prefix
   resource_group_name = local.resource_group_name
   location            = var.location
 
-  ***REMOVED*** Key configuration (auto-rotation enabled)
+  # Key configuration (auto-rotation enabled)
   key_name              = "databricks-cmk"
   enable_auto_rotation  = true
   rotation_policy_days  = 90
 
-  ***REMOVED*** Security configuration
+  # Security configuration
   enable_purge_protection = true
   soft_delete_retention_days = 90
 
@@ -104,17 +104,17 @@ module "key_vault" {
   depends_on = [azurerm_resource_group.this]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Networking Module (VNet, Subnets, NSG, Private Link Subnet)
-***REMOVED*** ==============================================
+# ==============================================
+# Networking Module (VNet, Subnets, NSG, Private Link Subnet)
+# ==============================================
 
 module "networking" {
   source = "../../modules/networking"
 
-  ***REMOVED*** BYOV or create new
+  # BYOV or create new
   use_existing_network = local.use_existing_network
 
-  ***REMOVED*** Existing network (BYOV)
+  # Existing network (BYOV)
   existing_vnet_name               = var.existing_vnet_name
   existing_resource_group_name     = var.existing_resource_group_name
   existing_public_subnet_name      = var.existing_public_subnet_name
@@ -124,18 +124,18 @@ module "networking" {
   existing_public_subnet_nsg_association_id  = var.existing_public_subnet_nsg_association_id
   existing_private_subnet_nsg_association_id = var.existing_private_subnet_nsg_association_id
 
-  ***REMOVED*** New network configuration
+  # New network configuration
   vnet_address_space                = var.vnet_address_space
   public_subnet_address_prefix      = var.public_subnet_address_prefix
   private_subnet_address_prefix     = var.private_subnet_address_prefix
   privatelink_subnet_address_prefix = var.privatelink_subnet_address_prefix
 
-  ***REMOVED*** Full Private pattern: Private Link enabled, NAT Gateway disabled (air-gapped)
+  # Full Private pattern: Private Link enabled, NAT Gateway disabled (air-gapped)
   enable_private_link          = true
-  enable_public_network_access = var.enable_public_network_access  ***REMOVED*** Pass through to control NSG rule creation
+  enable_public_network_access = var.enable_public_network_access  # Pass through to control NSG rule creation
   enable_nat_gateway           = local.enable_nat_gateway
 
-  ***REMOVED*** Core configuration
+  # Core configuration
   location            = var.location
   resource_group_name = local.resource_group_name
   workspace_prefix    = var.workspace_prefix
@@ -144,27 +144,27 @@ module "networking" {
   depends_on = [azurerm_resource_group.this]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Workspace Module (Databricks Workspace with CMK)
-***REMOVED*** ==============================================
+# ==============================================
+# Workspace Module (Databricks Workspace with CMK)
+# ==============================================
 
 module "workspace" {
   source = "../../modules/workspace"
 
-  ***REMOVED*** Workspace configuration
+  # Workspace configuration
   workspace_name   = "${var.workspace_prefix}-workspace-${random_string.deployment_suffix.result}"
   workspace_prefix = var.workspace_prefix
 
-  ***REMOVED*** Networking
+  # Networking
   vnet_id                              = module.networking.vnet_id
   public_subnet_name                   = module.networking.subnet_names["public"]
   private_subnet_name                  = module.networking.subnet_names["private"]
   public_subnet_nsg_association_id     = module.networking.public_subnet_nsg_association_id
   private_subnet_nsg_association_id    = module.networking.private_subnet_nsg_association_id
-  enable_private_link                  = true  ***REMOVED*** Full Private pattern
-  dbfs_storage_name                    = local.dbfs_storage_name  ***REMOVED*** Custom DBFS name
+  enable_private_link                  = true  # Full Private pattern
+  dbfs_storage_name                    = local.dbfs_storage_name  # Custom DBFS name
 
-  ***REMOVED*** Customer-Managed Keys (enabled by default for Full Private)
+  # Customer-Managed Keys (enabled by default for Full Private)
   enable_cmk_managed_services = var.enable_cmk_managed_services
   enable_cmk_managed_disks    = var.enable_cmk_managed_disks
   enable_cmk_dbfs_root        = var.enable_cmk_dbfs_root
@@ -172,14 +172,14 @@ module "workspace" {
   cmk_key_vault_id            = local.cmk_enabled ? (local.create_key_vault ? module.key_vault[0].key_vault_id : var.existing_key_vault_id) : ""
   databricks_account_id       = var.databricks_account_id
 
-  ***REMOVED*** Network Access Control (public access enabled by default for deployment)
+  # Network Access Control (public access enabled by default for deployment)
   enable_public_network_access = var.enable_public_network_access
 
-  ***REMOVED*** IP Access Lists (optional)
+  # IP Access Lists (optional)
   enable_ip_access_lists = var.enable_ip_access_lists
   allowed_ip_ranges      = var.allowed_ip_ranges
 
-  ***REMOVED*** Core configuration
+  # Core configuration
   location            = var.location
   resource_group_name = local.resource_group_name
   tags                = local.all_tags
@@ -187,9 +187,9 @@ module "workspace" {
   depends_on = [module.networking]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** BYOR Validation (Ensure required inputs provided)
-***REMOVED*** ==============================================
+# ==============================================
+# BYOR Validation (Ensure required inputs provided)
+# ==============================================
 
 resource "null_resource" "byor_network_validation" {
   count = var.use_byor_infrastructure ? 1 : 0
@@ -232,30 +232,30 @@ resource "null_resource" "byor_network_validation" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Private Endpoints Module (DNS + Private Endpoints)
-***REMOVED*** ==============================================
+# ==============================================
+# Private Endpoints Module (DNS + Private Endpoints)
+# ==============================================
 
 module "private_endpoints" {
   source = "../../modules/private-endpoints"
 
-  ***REMOVED*** Workspace configuration
+  # Workspace configuration
   workspace_id                      = module.workspace.workspace_id
   workspace_managed_resource_group_id = module.workspace.managed_resource_group_id
   workspace_prefix                  = var.workspace_prefix
   dbfs_storage_name                 = local.dbfs_storage_name
 
-  ***REMOVED*** Network configuration
+  # Network configuration
   vnet_id               = module.networking.vnet_id
   privatelink_subnet_id = module.networking.subnet_ids["privatelink"]
 
-  ***REMOVED*** Unity Catalog storage (will be populated after UC module creates storage)
+  # Unity Catalog storage (will be populated after UC module creates storage)
   create_uc_metastore_storage      = var.create_metastore
   uc_metastore_storage_account_id  = var.create_metastore ? module.unity_catalog.metastore_storage_account_id : ""
   uc_external_storage_account_id   = module.unity_catalog.external_storage_account_id
   enable_uc_storage_private_endpoints = true
 
-  ***REMOVED*** Core configuration
+  # Core configuration
   location            = var.location
   resource_group_name = local.resource_group_name
   tags                = local.all_tags
@@ -263,9 +263,9 @@ module "private_endpoints" {
   depends_on = [module.workspace, module.unity_catalog]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Module (Metastore, Storage, Access Connector)
-***REMOVED*** ==============================================
+# ==============================================
+# Unity Catalog Module (Metastore, Storage, Access Connector)
+# ==============================================
 
 module "unity_catalog" {
   source = "../../modules/unity-catalog"
@@ -275,30 +275,30 @@ module "unity_catalog" {
     databricks.workspace = databricks.workspace
   }
 
-  ***REMOVED*** Metastore configuration
+  # Metastore configuration
   create_metastore      = var.create_metastore
   existing_metastore_id = var.existing_metastore_id
   metastore_name        = local.metastore_name_with_suffix
   databricks_account_id = var.databricks_account_id
 
-  ***REMOVED*** Workspace
-  workspace_id     = module.workspace.workspace_id_numeric  ***REMOVED*** Numeric ID for Unity Catalog
+  # Workspace
+  workspace_id     = module.workspace.workspace_id_numeric  # Numeric ID for Unity Catalog
   workspace_prefix = var.workspace_prefix
 
-  ***REMOVED*** Storage configuration (Full Private: Private Link for all storage)
+  # Storage configuration (Full Private: Private Link for all storage)
   create_metastore_storage         = var.create_metastore
   create_external_location_storage = true
-  enable_private_link_storage      = false  ***REMOVED*** Private Endpoints created by private-endpoints module
-  service_endpoints_enabled        = false  ***REMOVED*** No Service Endpoints in air-gapped
+  enable_private_link_storage      = false  # Private Endpoints created by private-endpoints module
+  service_endpoints_enabled        = false  # No Service Endpoints in air-gapped
   metastore_storage_name_prefix    = var.metastore_storage_name_prefix
   external_storage_name_prefix     = var.external_storage_name_prefix
 
-  ***REMOVED*** Access Connector
+  # Access Connector
   create_access_connector                = var.create_access_connector
   existing_access_connector_id           = var.existing_access_connector_id
   existing_access_connector_principal_id = var.existing_access_connector_principal_id
 
-  ***REMOVED*** Core configuration
+  # Core configuration
   location            = var.location
   resource_group_name = local.resource_group_name
   tags                = local.all_tags
@@ -306,20 +306,20 @@ module "unity_catalog" {
   depends_on = [module.workspace]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Connectivity Configuration (NCC) - OPTIONAL
-***REMOVED*** ==============================================
-***REMOVED*** NCC enables Databricks Serverless compute to access resources via Private Link.
-***REMOVED*** ⚠️  This module creates NCC config + binding ONLY.
-***REMOVED*** ⚠️  Storage Private Endpoint rules must be created manually (requires approval).
-***REMOVED***
-***REMOVED*** Why Manual PE Rules?
-***REMOVED*** - PE connections from Databricks Control Plane require manual approval in Azure Portal
-***REMOVED*** - Terraform would timeout waiting for approval
-***REMOVED*** - Decouples deployment from manual workflows
-***REMOVED***
-***REMOVED*** For classic clusters only, you can skip NCC (set enable_ncc = false)
-***REMOVED*** See: docs/04-SERVERLESS-SETUP.md for detailed serverless setup guide
+# ==============================================
+# Network Connectivity Configuration (NCC) - OPTIONAL
+# ==============================================
+# NCC enables Databricks Serverless compute to access resources via Private Link.
+# ⚠️  This module creates NCC config + binding ONLY.
+# ⚠️  Storage Private Endpoint rules must be created manually (requires approval).
+#
+# Why Manual PE Rules?
+# - PE connections from Databricks Control Plane require manual approval in Azure Portal
+# - Terraform would timeout waiting for approval
+# - Decouples deployment from manual workflows
+#
+# For classic clusters only, you can skip NCC (set enable_ncc = false)
+# See: docs/04-SERVERLESS-SETUP.md for detailed serverless setup guide
 
 module "ncc" {
   count  = var.enable_ncc ? 1 : 0
@@ -329,7 +329,7 @@ module "ncc" {
     databricks.account = databricks.account
   }
 
-  ***REMOVED*** Workspace configuration
+  # Workspace configuration
   workspace_id_numeric = module.workspace.workspace_id_numeric
   workspace_prefix     = var.workspace_prefix
   location             = var.location
@@ -337,9 +337,9 @@ module "ncc" {
   depends_on = [module.workspace]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Service Endpoint Policy (SEP) Module
-***REMOVED*** ==============================================
+# ==============================================
+# Service Endpoint Policy (SEP) Module
+# ==============================================
 
 module "service_endpoint_policy" {
   count  = var.enable_service_endpoint_policy ? 1 : 0
@@ -360,11 +360,11 @@ module "service_endpoint_policy" {
   depends_on = [module.workspace, module.unity_catalog]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Time Sleep (for SEP Propagation)
-***REMOVED*** ==============================================
-***REMOVED*** Azure requires time for SEP resources to fully propagate before subnet association
-***REMOVED*** This prevents "AnotherOperationInProgress" and "ResourceNotFound" errors
+# ==============================================
+# Time Sleep (for SEP Propagation)
+# ==============================================
+# Azure requires time for SEP resources to fully propagate before subnet association
+# This prevents "AnotherOperationInProgress" and "ResourceNotFound" errors
 
 resource "time_sleep" "wait_for_sep" {
   count           = var.enable_service_endpoint_policy && !local.use_existing_network ? 1 : 0
@@ -373,12 +373,12 @@ resource "time_sleep" "wait_for_sep" {
   depends_on = [module.service_endpoint_policy]
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Apply SEP to Subnets (Post-Deployment via Azure CLI)
-***REMOVED*** ==============================================
-***REMOVED*** Note: Cannot pass SEP ID to networking module during creation due to circular dependency:
-***REMOVED*** Networking → Workspace → Unity Catalog → SEP → (back to Networking)
-***REMOVED*** Solution: Apply SEP after all resources are created
+# ==============================================
+# Apply SEP to Subnets (Post-Deployment via Azure CLI)
+# ==============================================
+# Note: Cannot pass SEP ID to networking module during creation due to circular dependency:
+# Networking → Workspace → Unity Catalog → SEP → (back to Networking)
+# Solution: Apply SEP after all resources are created
 
 resource "null_resource" "apply_sep_to_public_subnet" {
   count = var.enable_service_endpoint_policy && !local.use_existing_network ? 1 : 0
@@ -404,7 +404,7 @@ resource "null_resource" "apply_sep_to_public_subnet" {
     EOT
   }
 
-  ***REMOVED*** Destroy-time provisioner: Remove SEP from subnet before policy deletion
+  # Destroy-time provisioner: Remove SEP from subnet before policy deletion
   provisioner "local-exec" {
     when    = destroy
     command = <<-EOT
@@ -449,7 +449,7 @@ resource "null_resource" "apply_sep_to_private_subnet" {
     EOT
   }
 
-  ***REMOVED*** Destroy-time provisioner: Remove SEP from subnet before policy deletion
+  # Destroy-time provisioner: Remove SEP from subnet before policy deletion
   provisioner "local-exec" {
     when    = destroy
     command = <<-EOT

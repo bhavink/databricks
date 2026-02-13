@@ -317,7 +317,7 @@
 						"templates"
 					]
 				},
-				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***retrieve-the-template-for-the-provisioning-connector"
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api#retrieve-the-template-for-the-provisioning-connector"
 			},
 			"response": []
 		},
@@ -376,7 +376,7 @@
 						"jobs"
 					]
 				},
-				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***step-2-create-the-provisioning-job-based-on-the-template"
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api#step-2-create-the-provisioning-job-based-on-the-template"
 			},
 			"response": []
 		},
@@ -439,7 +439,7 @@
 						""
 					]
 				},
-				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***monitor-the-provisioning-job-status"
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api#monitor-the-provisioning-job-status"
 			},
 			"response": []
 		},
@@ -499,7 +499,7 @@
 						"validateCredentials"
 					]
 				},
-				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***step-3-authorize-access"
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api#step-3-authorize-access"
 			},
 			"response": []
 		},
@@ -557,7 +557,7 @@
 						"secrets"
 					]
 				},
-				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***save-your-credentials"
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api#save-your-credentials"
 			},
 			"response": []
 		},
@@ -617,7 +617,7 @@
 						"start"
 					]
 				},
-				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***step-4-start-the-provisioning-job"
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api#step-4-start-the-provisioning-job"
 			},
 			"response": []
 		},
@@ -680,7 +680,7 @@
 						""
 					]
 				},
-				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api***REMOVED***monitor-the-provisioning-job-status"
+				"description": "https://docs.microsoft.com/en-us/azure/active-directory/app-provisioning/application-provisioning-configure-api#monitor-the-provisioning-job-status"
 			},
 			"response": []
 		},

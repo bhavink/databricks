@@ -17,26 +17,26 @@ flowchart TB
         end
         UC[Unity Catalog]
     end
-    
+
     subgraph Azure["Azure Network"]
         APIM[Azure APIM<br/>Exclusive Gateway]
         PL[Private Link /<br/>Private Endpoint]
     end
-    
+
     subgraph External["External Services"]
         FMAPI[Foundation Model APIs<br/>Anthropic / OpenAI]
         MCP[External MCP Servers]
         TOOLS[Authorized Tools<br/>& Websites]
     end
-    
+
     AGENT -->|Egress via FQDN Rules| PL
     PL -->|Private Connectivity| APIM
     UC -->|HTTP Connections<br/>Auth Proxy| APIM
-    
+
     APIM -->|Secured Traffic| FMAPI
     APIM -->|Secured Traffic| MCP
     APIM -->|Secured Traffic| TOOLS
-    
+
     style APIM fill:#bbdefb,stroke:#1565c0,color:#000
     style AGENT fill:#ffccbc,stroke:#d84315,color:#000
     style UC fill:#c8e6c9,stroke:#2e7d32,color:#000
@@ -54,34 +54,34 @@ flowchart LR
         USER["👤 End User"]
         APP["External App<br/>(Web/Mobile/API)"]
     end
-    
+
     subgraph Azure["Azure Infrastructure"]
         APIM["Azure APIM<br/>━━━━━━━━━━━━━━━━<br/>• Authentication<br/>• Rate Limiting<br/>• Request Validation<br/>• Logging & Analytics"]
         PE["Private Endpoint"]
     end
-    
+
     subgraph Databricks["Databricks Workspace"]
         FMAPI["Foundation Model API<br/>(Model Serving Endpoint)"]
         AGENT["AI Agent<br/>(if agentic flow)"]
         UC["Unity Catalog<br/>Governance"]
     end
-    
+
     subgraph External["External LLMs (Optional)"]
         ANT["Anthropic"]
         OAI["OpenAI"]
     end
-    
+
     USER -->|"Request"| APP
     APP -->|"API Call"| APIM
     APIM -->|"Private Link"| PE
     PE -->|"Invoke"| FMAPI
     FMAPI -->|"Agent Execution"| AGENT
     AGENT -->|"Tool Calls"| UC
-    
+
     AGENT -.->|"External LLM<br/>(via APIM egress)"| APIM
     APIM -.-> ANT
     APIM -.-> OAI
-    
+
     style USER fill:#e1bee7,stroke:#7b1fa2,color:#000
     style APP fill:#ffe0b2,stroke:#e65100,color:#000
     style APIM fill:#bbdefb,stroke:#1565c0,color:#000
@@ -103,15 +103,15 @@ sequenceDiagram
     participant Agent as AI Agent
     participant UC as Unity Catalog
     participant LLM as External LLM<br/>(Anthropic)
-    
+
     User->>App: User request
     App->>APIM: API call with auth token
-    
+
     Note over APIM: Validate:<br/>• OAuth/API Key<br/>• Rate limits<br/>• Request schema
-    
+
     APIM->>PE: Forward via Private Link
     PE->>FM: Invoke FM API endpoint
-    
+
     alt Simple Completion
         FM-->>PE: Model response
         PE-->>APIM: Response
@@ -121,20 +121,20 @@ sequenceDiagram
         FM->>Agent: Execute agent
         Agent->>UC: Check permissions & get tools
         UC-->>Agent: Authorized tools
-        
+
         loop Tool Execution
             Agent->>Agent: Reason & plan
             Agent->>UC: Execute UC Function / Query
             UC-->>Agent: Tool result
         end
-        
+
         opt External LLM Call
             Agent->>APIM: Call external model (egress)
             APIM->>LLM: Authenticated request
             LLM-->>APIM: Response
             APIM-->>Agent: Response
         end
-        
+
         Agent-->>FM: Final response
         FM-->>PE: Response
         PE-->>APIM: Response
@@ -153,35 +153,35 @@ flowchart TB
         LLM["External LLMs<br/>Anthropic / OpenAI"]
         MCP["External MCP<br/>Servers"]
     end
-    
+
     subgraph APIM_Layer["Azure APIM (Central Gateway)"]
         APIM_IN["APIM Inbound<br/>━━━━━━━━━━━━━━━━<br/>External → Databricks"]
         APIM_OUT["APIM Outbound<br/>━━━━━━━━━━━━━━━━<br/>Databricks → External"]
     end
-    
+
     subgraph Azure_Net["Azure Private Network"]
         PE_IN["Private Endpoint<br/>(Inbound)"]
         PE_OUT["Private Endpoint<br/>(Outbound)"]
     end
-    
+
     subgraph Databricks["Databricks Workspace"]
         FM["FM API Endpoint"]
         AGENT["AI Agent"]
         UC["Unity Catalog"]
     end
-    
+
     USER --> EXT_APP
     EXT_APP -->|"1. Request"| APIM_IN
     APIM_IN -->|"2. Private Link"| PE_IN
     PE_IN -->|"3. Invoke"| FM
     FM --> AGENT
     AGENT --> UC
-    
+
     AGENT -->|"4. Egress (FQDN)"| PE_OUT
     PE_OUT -->|"5. Private Link"| APIM_OUT
     APIM_OUT -->|"6a. LLM Call"| LLM
     APIM_OUT -->|"6b. MCP Call"| MCP
-    
+
     LLM -.->|"7. Response"| APIM_OUT
     APIM_OUT -.-> PE_OUT
     PE_OUT -.-> AGENT
@@ -189,7 +189,7 @@ flowchart TB
     FM -.-> PE_IN
     PE_IN -.-> APIM_IN
     APIM_IN -.->|"8. Final Response"| EXT_APP
-    
+
     style APIM_IN fill:#bbdefb,stroke:#1565c0,color:#000
     style APIM_OUT fill:#bbdefb,stroke:#1565c0,color:#000
     style AGENT fill:#ffccbc,stroke:#d84315,color:#000
@@ -208,33 +208,33 @@ flowchart LR
             AGT["🤖 AI Agent"]
             NP["Network Policy<br/>(FQDN Egress Rules)"]
         end
-        
+
         subgraph GOV["Unity Catalog Governance"]
             CONN["UC HTTP Connections<br/>(Auth Proxy)"]
             CAT["Catalog/Schema<br/>Permissions"]
         end
     end
-    
+
     subgraph AZ["Azure Infrastructure"]
         PE["Private Endpoint"]
         APIM["Azure APIM<br/>━━━━━━━━━━━━━━━━<br/>• Rate Limiting<br/>• Auth Policies<br/>• Request Logging<br/>• FQDN Routing"]
     end
-    
+
     subgraph EXT["External Endpoints"]
         ANT["Anthropic Claude<br/>(Indemnity Clause)"]
         OAI["OpenAI"]
         MCPS["MCP Servers"]
     end
-    
+
     AGT --> NP
     NP -->|"FQDN: apim.contoso.com"| PE
     CONN -->|"Credential Proxy"| PE
     PE -->|"Private Link"| APIM
-    
+
     APIM --> ANT
     APIM --> OAI
     APIM --> MCPS
-    
+
     style APIM fill:#bbdefb,stroke:#1565c0,color:#000
     style AGT fill:#ffccbc,stroke:#d84315,color:#000
     style PE fill:#e1f5fe,stroke:#0288d1,color:#000
@@ -251,11 +251,11 @@ sequenceDiagram
     participant PE as Private Endpoint
     participant APIM as Azure APIM
     participant FM as Foundation Model<br/>(Anthropic)
-    
+
     Agent->>NP: Request to external service
-    
+
     Note over NP: Validate against<br/>allowed FQDNs only:<br/>• apim.contoso.com
-    
+
     alt FQDN Allowed
         NP->>PE: Route via Private Link
         PE->>APIM: Private connectivity
@@ -275,25 +275,25 @@ flowchart TB
     subgraph Agent["Agent Runtime"]
         MCP_CLIENT["DatabricksMCPClient"]
     end
-    
+
     subgraph UC["Unity Catalog"]
         HTTP_CONN["UC HTTP Connection<br/>━━━━━━━━━━━━━━━━<br/>• Stores APIM URL<br/>• Manages credentials<br/>• Proxy authentication"]
     end
-    
+
     subgraph APIM["Azure APIM"]
         ROUTE["Routing Rules<br/>━━━━━━━━━━━━━━━━<br/>• /mcp/server-a → MCP-A<br/>• /mcp/server-b → MCP-B<br/>• /fmapi/* → Anthropic"]
     end
-    
+
     subgraph External["External MCP Servers"]
         MCP_A["MCP Server A"]
         MCP_B["MCP Server B"]
     end
-    
+
     MCP_CLIENT -->|"uc://connections/apim-gateway"| HTTP_CONN
     HTTP_CONN -->|"Private Link"| APIM
     APIM --> MCP_A
     APIM --> MCP_B
-    
+
     style HTTP_CONN fill:#c8e6c9,stroke:#2e7d32,color:#000
     style APIM fill:#bbdefb,stroke:#1565c0,color:#000
     style MCP_CLIENT fill:#ffccbc,stroke:#d84315,color:#000
@@ -309,21 +309,21 @@ flowchart TB
             SCH1["Schema: approved_tools"]
             AGT1["Production Agents"]
         end
-        
+
         subgraph WS2["Workspace: Development"]
             CAT2["Catalog: dev_agents"]
             SCH2["Schema: test_tools"]
             AGT2["Dev Agents"]
         end
     end
-    
+
     subgraph Permissions["Unity Catalog Permissions"]
         PERM["• Catalog-level access control<br/>• Schema-level tool restrictions<br/>• Connection permissions<br/>• Row-level security"]
     end
-    
+
     CAT1 --> PERM
     CAT2 --> PERM
-    
+
     style WS1 fill:#c8e6c9,stroke:#2e7d32,color:#000
     style WS2 fill:#fff9c4,stroke:#f9a825,color:#000
     style PERM fill:#bbdefb,stroke:#1565c0,color:#000

@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Core Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Core Configuration
+# ==============================================
 
 variable "workspace_prefix" {
   description = "Prefix for all resources (lowercase, alphanumeric only, max 12 chars)"
@@ -28,9 +28,9 @@ variable "use_existing_resource_group" {
   default     = false
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Network Configuration
+# ==============================================
 
 variable "vnet_address_space" {
   description = "Address space for the VNet (e.g., ['10.100.0.0/16'])"
@@ -75,9 +75,9 @@ variable "enable_nat_gateway" {
   default     = false
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Customer-Managed Keys (Optional)
-***REMOVED*** ==============================================
+# ==============================================
+# Customer-Managed Keys (Optional)
+# ==============================================
 
 variable "create_key_vault" {
   description = "Create Key Vault and CMK key for Databricks encryption (optional)"
@@ -107,9 +107,9 @@ variable "cmk_key_size" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Resource Tagging
-***REMOVED*** ==============================================
+# ==============================================
+# Resource Tagging
+# ==============================================
 
 variable "tag_owner" {
   description = "Mandatory tag: Owner of the resource (e.g., team email)"

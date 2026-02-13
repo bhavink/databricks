@@ -130,7 +130,7 @@ Add 30-50% buffer for growth.
 
 **Q: What happens if I run out of IP addresses?**
 
-**A:** 
+**A:**
 - New clusters will fail to start with "Insufficient IP addresses" error
 - Existing clusters continue running
 - **Mitigation options**:
@@ -200,7 +200,7 @@ These IPs are needed for:
 
 **Q: Do I need NAT Gateway in every Availability Zone?**
 
-**A:** 
+**A:**
 - **Minimum**: 1 NAT Gateway (single AZ)
 - **Recommended for production**: 1 NAT Gateway per AZ for high availability
 - If single NAT Gateway fails, clusters in other AZs cannot reach internet
@@ -274,7 +274,7 @@ These IPs are needed for:
 
 **Q: What's the difference between NAT Gateway and Azure Firewall?**
 
-**A:** 
+**A:**
 
 | Feature | NAT Gateway | Azure Firewall |
 |---------|-------------|----------------|
@@ -545,12 +545,12 @@ Combine these for defense-in-depth.
    ```bash
    # Test control plane
    curl -I https://accounts.cloud.databricks.com
-   
+
    # Test storage
    # AWS: curl -I https://s3.<region>.amazonaws.com
    # Azure: curl -I https://<storage>.blob.core.windows.net
    # GCP: curl -I https://storage.googleapis.com
-   
+
    # Test DNS resolution
    nslookup accounts.cloud.databricks.com
    ```
@@ -586,7 +586,7 @@ _Coming soon - performance-related Q&A will be added here_
 
 ---
 
-**Last Updated**: January 15, 2026  
+**Last Updated**: January 15, 2026
 **Maintainer**: Databricks Platform Engineering
 
 ---

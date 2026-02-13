@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Required Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Required Configuration
+# ==============================================
 
 variable "location" {
   description = "Azure region for Private Endpoints and DNS zones"
@@ -28,9 +28,9 @@ variable "tags" {
   default     = {}
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Network Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Network Configuration
+# ==============================================
 
 variable "vnet_id" {
   description = "Virtual Network ID for DNS zone links"
@@ -42,9 +42,9 @@ variable "privatelink_subnet_id" {
   type        = string
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Workspace Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Workspace Configuration
+# ==============================================
 
 variable "workspace_id" {
   description = "Azure resource ID of the Databricks workspace"
@@ -61,9 +61,9 @@ variable "dbfs_storage_name" {
   type        = string
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Unity Catalog Storage Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Unity Catalog Storage Configuration
+# ==============================================
 
 variable "create_uc_metastore_storage" {
   description = "Whether Unity Catalog metastore storage is being created (determines if metastore Private Endpoints should be created)"

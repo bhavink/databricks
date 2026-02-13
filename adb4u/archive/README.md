@@ -92,6 +92,6 @@ If you need to reference the legacy templates:
 
 ---
 
-**Archived**: 2026-01-10  
-**Original Content Date**: 2020-2024  
+**Archived**: 2026-01-10
+**Original Content Date**: 2020-2024
 **Replacement Version**: 2.0 (Modular Structure)

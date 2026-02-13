@@ -8,7 +8,7 @@
 
 ## 📋 Scenario Overview
 
-**Problem Statement:**  
+**Problem Statement:**
 Multiple engineering teams (Platform, Data, ML, Security) maintain separate technical documentation in Confluence, GitHub wikis, and internal knowledge bases. Teams need a unified Knowledge Assistant that understands natural language queries but enforces team-based access control - platform engineers should only see platform docs, while security team sees all docs for cross-functional oversight.
 
 **Business Requirements:**
@@ -41,52 +41,52 @@ flowchart TD
         MLE[ML Engineers<br/>ml-team]
         SE[Security Engineers<br/>security-team]
     end
-    
+
     subgraph "Document Sources"
         CONF[Confluence Pages]
         GH[GitHub Wikis]
         DOCS[Internal Docs<br/>Markdown/PDF]
     end
-    
+
     subgraph "Ingestion Pipeline"
         ING[Document Ingestion Job<br/>Automatic Passthrough]
         PARSE[Parse & Chunk<br/>Text extraction]
         EMBED[Generate Embeddings<br/>Foundation model]
     end
-    
+
     subgraph "Unity Catalog"
         UC[UC Governance]
         VS[(Vector Search Index<br/>docs_catalog.indexes.engineering_docs)]
         META[(Document Metadata Table<br/>team, department, sensitivity)]
     end
-    
+
     subgraph "Agent Bricks"
         KA[Knowledge Assistant<br/>OBO Mode]
         RAG[RAG Engine]
     end
-    
+
     PE -->|Query| KA
     DE -->|Query| KA
     MLE -->|Query| KA
     SE -->|Query| KA
-    
+
     CONF --> ING
     GH --> ING
     DOCS --> ING
-    
+
     ING --> PARSE
     PARSE --> EMBED
     EMBED --> VS
     EMBED --> META
-    
+
     KA -->|User token| UC
     UC -->|Filter by team| VS
     UC -->|Check metadata access| META
-    
+
     VS --> RAG
     META --> RAG
     RAG --> KA
-    
+
     style PE fill:#d5f5e3,stroke:#27ae60
     style DE fill:#d5f5e3,stroke:#27ae60
     style MLE fill:#d5f5e3,stroke:#27ae60
@@ -203,29 +203,29 @@ CREATE FUNCTION docs_catalog.processed.filter_documents(
 )
 RETURNS BOOLEAN
 COMMENT 'Row filter: Users see documents for their team + shared docs + security sees all'
-RETURN 
-    CASE 
+RETURN
+    CASE
         -- Security team sees all documents
         WHEN is_member('security-team') THEN true
-        
+
         -- Shared documents visible to all
         WHEN doc_team = 'shared' THEN true
-        
+
         -- Team members see their team's docs
         WHEN doc_team = 'platform' AND is_member('platform-team') THEN true
         WHEN doc_team = 'data' AND is_member('data-team') THEN true
         WHEN doc_team = 'ml' AND is_member('ml-team') THEN true
-        
+
         -- Confidential docs restricted to document owners
         WHEN doc_sensitivity = 'confidential' AND NOT is_member('security-team') THEN false
-        
+
         -- Default deny
         ELSE false
     END;
 
 -- Apply to metadata table
 ALTER TABLE docs_catalog.processed.document_metadata
-  SET ROW FILTER docs_catalog.processed.filter_documents 
+  SET ROW FILTER docs_catalog.processed.filter_documents
   ON (team, sensitivity);
 ```
 
@@ -234,7 +234,7 @@ ALTER TABLE docs_catalog.processed.document_metadata
 ```sql
 -- Same filter applies to chunks table (for Vector Search)
 ALTER TABLE docs_catalog.processed.document_chunks
-  SET ROW FILTER docs_catalog.processed.filter_documents 
+  SET ROW FILTER docs_catalog.processed.filter_documents
   ON (team, sensitivity);
 ```
 
@@ -317,12 +317,12 @@ class EngineeringKnowledgeAssistant(KnowledgeAssistant):
     Knowledge Assistant with team-based document access.
     Uses OBO to enforce UC row filters on Vector Search index.
     """
-    
+
     def __init__(self, config):
         super().__init__(config)
         self.index_name = "docs_catalog.indexes.engineering_docs"
         self.endpoint_name = "engineering-docs-endpoint"
-    
+
     def predict(self, inputs, context):
         """
         Process user query with OBO authentication.
@@ -331,24 +331,24 @@ class EngineeringKnowledgeAssistant(KnowledgeAssistant):
         # Get user identity from context
         user_token = context.user_token
         user_email = context.user_email
-        
+
         query = inputs.get("question")
-        
+
         # Initialize user-authenticated client
         w = WorkspaceClient(token=user_token)
-        
+
         # Initialize Vector Search client with user token
         vsc = VectorSearchClient(
             workspace_url=w.config.host,
             personal_access_token=user_token
         )
-        
+
         # Get index (UC row filters automatically applied based on user)
         index = vsc.get_index(
             endpoint_name=self.endpoint_name,
             index_name=self.index_name
         )
-        
+
         # Semantic search
         # UC enforces: user only sees document chunks for their team
         results = index.similarity_search(
@@ -356,12 +356,12 @@ class EngineeringKnowledgeAssistant(KnowledgeAssistant):
             columns=["chunk_text", "document_id", "team", "chunk_sequence"],
             num_results=5
         )
-        
+
         # Get document metadata for source attribution
         doc_ids = [r["document_id"] for r in results["data_array"]]
-        
+
         metadata_query = f"""
-            SELECT 
+            SELECT
                 document_id,
                 document_title,
                 document_url,
@@ -370,23 +370,23 @@ class EngineeringKnowledgeAssistant(KnowledgeAssistant):
             FROM docs_catalog.processed.document_metadata
             WHERE document_id IN ({','.join(["'" + d + "'" for d in doc_ids])})
         """
-        
+
         # Execute query as user (UC row filters apply)
         metadata_results = w.sql.execute_query(
             warehouse_id=self.config.warehouse_id,
             statement=metadata_query
         )
-        
+
         # Combine chunks with metadata
         context_docs = self._combine_results(results, metadata_results)
-        
+
         # Generate answer using foundation model
         answer = self._generate_answer(
             query=query,
             context=context_docs,
             user_email=user_email
         )
-        
+
         # Return response with source attribution
         return {
             "answer": answer,
@@ -401,14 +401,14 @@ class EngineeringKnowledgeAssistant(KnowledgeAssistant):
             ],
             "note": f"Results filtered for your team access (user: {user_email})"
         }
-    
+
     def _combine_results(self, vector_results, metadata_results):
         """Combine vector search results with metadata."""
         metadata_map = {
-            row["document_id"]: row 
+            row["document_id"]: row
             for row in metadata_results.data
         }
-        
+
         combined = []
         for chunk in vector_results["data_array"]:
             doc_id = chunk["document_id"]
@@ -421,31 +421,31 @@ class EngineeringKnowledgeAssistant(KnowledgeAssistant):
                     "team": metadata_map[doc_id]["team"],
                     "last_updated": metadata_map[doc_id]["last_updated"]
                 })
-        
+
         return combined
-    
+
     def _generate_answer(self, query, context, user_email):
         """Generate answer using foundation model."""
         # Use Databricks foundation model (system.ai)
         prompt = f"""
         You are an engineering documentation assistant.
-        
+
         User: {user_email}
         Question: {query}
-        
+
         Context from authorized documents:
         {chr(10).join([f"- {doc['chunk_text']}" for doc in context])}
-        
+
         Instructions:
         - Answer based ONLY on the provided context
         - Cite sources using document titles
         - If information is not in context, say "I don't have access to that information"
         - Be concise and technical
         """
-        
+
         # Call foundation model (using user context)
         response = self._call_foundation_model(prompt)
-        
+
         return response
 ```
 
@@ -472,7 +472,7 @@ with mlflow.start_run():
             "databricks-sdk"
         ]
     )
-    
+
     model_uri = mlflow.get_artifact_uri("knowledge_assistant")
 
 # Register model
@@ -517,35 +517,35 @@ def ingest_confluence_docs():
     Runs with service principal credentials (Automatic Passthrough).
     """
     w = WorkspaceClient()
-    
+
     # Fetch from Confluence API (manual credentials)
     confluence_api_key = w.secrets.get_secret(
         scope="external-apis",
         key="confluence-api-key"
     )
-    
+
     confluence_url = "https://company.atlassian.net/wiki/rest/api/content"
     headers = {"Authorization": f"Bearer {confluence_api_key}"}
-    
+
     response = requests.get(
         confluence_url,
         headers=headers,
         params={"type": "page", "status": "current", "limit": 100}
     )
-    
+
     pages = response.json()["results"]
-    
+
     # Process each page
     for page in pages:
         # Determine team ownership from labels/space
         team = extract_team_from_labels(page["metadata"]["labels"])
-        
+
         # Extract and chunk content
         chunks = chunk_document(page["body"]["storage"]["value"])
-        
+
         # Generate embeddings
         embeddings = generate_embeddings(chunks)
-        
+
         # Write to Delta table (UC-governed)
         # Service principal has INSERT permission
         write_to_delta(
@@ -557,7 +557,7 @@ def ingest_confluence_docs():
             team=team,
             source_system="confluence"
         )
-    
+
     print(f"Ingested {len(pages)} Confluence pages")
 
 def extract_team_from_labels(labels):
@@ -582,7 +582,7 @@ def generate_embeddings(chunks):
     """Generate embeddings using foundation model."""
     # Use Databricks foundation model API
     w = WorkspaceClient()
-    
+
     embeddings = []
     for chunk in chunks:
         response = w.serving_endpoints.query(
@@ -590,18 +590,18 @@ def generate_embeddings(chunks):
             inputs={"input": [chunk]}
         )
         embeddings.append(response["data"][0]["embedding"])
-    
+
     return embeddings
 
-def write_to_delta(chunks, embeddings, document_id, document_title, 
+def write_to_delta(chunks, embeddings, document_id, document_title,
                    document_url, team, source_system):
     """Write chunks and metadata to Delta tables."""
     from pyspark.sql import SparkSession
     from pyspark.sql.functions import current_timestamp
     import uuid
-    
+
     spark = SparkSession.builder.getOrCreate()
-    
+
     # Write metadata
     metadata_df = spark.createDataFrame([{
         "document_id": document_id,
@@ -616,11 +616,11 @@ def write_to_delta(chunks, embeddings, document_id, document_title,
         "tags": [],
         "created_date": current_timestamp()
     }])
-    
+
     metadata_df.write.format("delta").mode("append").saveAsTable(
         "docs_catalog.processed.document_metadata"
     )
-    
+
     # Write chunks
     chunk_records = []
     for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
@@ -635,7 +635,7 @@ def write_to_delta(chunks, embeddings, document_id, document_title,
             "embedding": embedding,
             "created_timestamp": current_timestamp()
         })
-    
+
     chunks_df = spark.createDataFrame(chunk_records)
     chunks_df.write.format("delta").mode("append").saveAsTable(
         "docs_catalog.processed.document_chunks"
@@ -703,9 +703,9 @@ GROUP BY team;
 
 ```sql
 -- Track Knowledge Assistant usage by team
-SELECT 
+SELECT
     DATE(request_timestamp) as date,
-    CASE 
+    CASE
         WHEN user_email LIKE '%@platform%' THEN 'Platform'
         WHEN user_email LIKE '%@data%' THEN 'Data'
         WHEN user_email LIKE '%@ml%' THEN 'ML'
@@ -724,7 +724,7 @@ ORDER BY date DESC, query_count DESC;
 
 ```sql
 -- Audit which documents were accessed
-SELECT 
+SELECT
     user_identity.email,
     request_params.full_name_arg as document_table,
     COUNT(*) as access_count,

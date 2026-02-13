@@ -86,22 +86,22 @@ flowchart TB
         IdP[Identity Provider<br/>Okta, Azure AD, Ping, OneLogin<br/><br/>SCIM provisioning]
         ExtAPI[External Services<br/>OpenAI, AWS, Azure APIs]
     end
-    
+
     subgraph Account["Databricks Account Level"]
         Users[Users<br/>Federated from IdP]
         Groups[Groups<br/>Synced from IdP]
         SP[Service Principals<br/>Created in Databricks]
     end
-    
+
     subgraph Workspace["Databricks Workspace Level"]
         WS[Workspace Assignment<br/>Users, Groups, SPs]
-        
+
         subgraph Resources["Workspace Resources"]
             UC[Unity Catalog<br/>Catalogs, Schemas, Tables]
             Secrets[Databricks Secrets<br/>External credentials]
             Compute[Compute Resources<br/>Clusters, Warehouses]
         end
-        
+
         subgraph Products["AI Products"]
             Genie[Genie Space]
             Agents[Agent Bricks]
@@ -109,22 +109,22 @@ flowchart TB
             Models[Model Serving]
         end
     end
-    
+
     IdP -->|SCIM sync| Users
     IdP -->|SCIM sync| Groups
     SP -.->|Created in| Account
-    
+
     Users --> WS
     Groups --> WS
     SP --> WS
-    
+
     WS --> Products
     Products -->|Authenticated requests| UC
     Products -->|Fetch credentials| Secrets
     Products -->|Use compute| Compute
-    
+
     ExtAPI -.->|Credentials stored in| Secrets
-    
+
     style Users fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
     style SP fill:#fdebd0,stroke:#e67e22,stroke-width:2px
     style Secrets fill:#fce4ec,stroke:#c2185b,stroke-width:2px
@@ -193,7 +193,7 @@ Examples:
 - `sp-app-dev-client-portal`
 - `sp-genie-staging-analytics`
 
-**Documentation:** 
+**Documentation:**
 - [Service Principals (General)](https://docs.databricks.com/en/admin/users-groups/service-principals.html)
 - [Azure: Databricks and Entra ID Service Principals](https://learn.microsoft.com/en-us/azure/databricks/admin/users-groups/service-principals#databricks-and-microsoft-entra-id-service-principals)
 
@@ -235,32 +235,32 @@ Every authentication scenario in Databricks AI products uses one of three patter
 ```mermaid
 flowchart TD
     Start{Authentication<br/>Scenario}
-    
+
     Q1{Is there a user<br/>making the request?}
     Q2{Does each user need<br/>different data access?}
     Q3{Accessing external<br/>services?}
-    
+
     Start --> Q1
-    
+
     Q1 -->|No user<br/>Automated job| Pattern1
     Q1 -->|Yes, user present| Q2
-    
+
     Q2 -->|Yes<br/>User-specific data| Pattern2
     Q2 -->|No<br/>Same data for all| Q3
-    
+
     Q3 -->|Yes| Pattern3[Pattern 1 + Pattern 3]
     Q3 -->|No| Pattern1
-    
+
     Pattern1[Pattern 1:<br/>Automatic Passthrough<br/>Service Principal]
     Pattern2[Pattern 2:<br/>On-Behalf-Of-User<br/>User Token]
     Pattern3
-    
+
     Pattern1 --> Use1[Use Cases:<br/>• Batch jobs<br/>• Scheduled workflows<br/>• CI/CD pipelines<br/>• Background processing]
-    
+
     Pattern2 --> Use2[Use Cases:<br/>• Genie Space<br/>• User-facing apps<br/>• Personalized dashboards<br/>• Compliance auditing]
-    
+
     Pattern3 --> Use3[Use Cases:<br/>• External LLM APIs<br/>• Cloud storage access<br/>• Third-party integrations<br/>• MCP servers]
-    
+
     style Pattern1 fill:#fdebd0,stroke:#e67e22,stroke-width:3px
     style Pattern2 fill:#d5f5e3,stroke:#27ae60,stroke-width:3px
     style Pattern3 fill:#fce4ec,stroke:#c2185b,stroke-width:3px
@@ -288,16 +288,16 @@ sequenceDiagram
     participant SP as Service Principal<br/>sp-product-env-purpose
     participant UC as Unity Catalog
     participant Data as Data Resources
-    
+
     Job->>Product: Initiate execution
-    
+
     rect rgb(255, 250, 240)
         Note over Product,SP: OAuth M2M Flow
         Product->>OAuth: Request token for SP
         OAuth->>OAuth: Validate SP credentials<br/>Check declared resources
         OAuth->>Product: Short-lived access token<br/>Scoped to SP permissions<br/>TTL: 1 hour
     end
-    
+
     rect rgb(232, 248, 245)
         Note over Product,Data: Data Access
         Product->>UC: Query data with SP token
@@ -306,9 +306,9 @@ sequenceDiagram
         Data-->>UC: Return results
         UC-->>Product: Filtered data
     end
-    
+
     Product-->>Job: Return response
-    
+
     Note over OAuth,Product: Token auto-expires<br/>No manual rotation needed
     Note over UC: All actions logged as<br/>service principal for audit
 ```
@@ -389,16 +389,16 @@ sequenceDiagram
     participant UC as Unity Catalog
     participant Filter as Row Filters &<br/>Column Masks
     participant Data as Data Resources
-    
+
     User->>Product: Login & make request<br/>"Show my data"
-    
+
     rect rgb(213, 245, 227)
         Note over Product,OAuth: OAuth U2M Flow
         Product->>OAuth: Validate user session<br/>Request access token
         OAuth->>OAuth: Verify user identity<br/>Generate scoped token
         OAuth->>Product: User access token<br/>Identity: alice@company.com<br/>TTL: 1 hour
     end
-    
+
     rect rgb(232, 248, 245)
         Note over Product,Data: Data Access with User Context
         Product->>UC: Query data with user token
@@ -410,10 +410,10 @@ sequenceDiagram
         UC-->>Filter: Apply masks
         Filter-->>Product: User-specific results
     end
-    
+
     Product->>Product: Generate response
     Product-->>User: Personalized data<br/>(only Alice's records)
-    
+
     Note over UC,Filter: User Bob would see<br/>different results with<br/>same query
     Note over UC: All actions logged as<br/>alice@company.com
 ```
@@ -485,7 +485,7 @@ Now when Alice queries the table, she sees only rows where `owner_email = 'alice
 | **Databricks Apps** | ✅ Yes (opt-in) | Set `auth.mode: user_authorization` |
 | **Model Serving** | ⚠️ Limited | Pass user context in request payload |
 
-**Documentation:** 
+**Documentation:**
 - [OAuth U2M](https://docs.databricks.com/en/dev-tools/auth/oauth-u2m.html)
 - [Row Filters and Column Masks](https://docs.databricks.com/en/sql/language-manual/sql-ref-syntax-ddl-create-function-sql.html)
 
@@ -499,7 +499,7 @@ The AI product explicitly manages credentials for **external services** that are
 
 **Key Characteristic:** Accessing resources **outside Databricks** that have their own authentication mechanisms.
 
-**Important Distinction:** 
+**Important Distinction:**
 - **Cloud Storage (S3, ADLS, GCS):** Do NOT use manual credentials. Instead, use Unity Catalog [storage credentials](https://docs.databricks.com/en/connect/unity-catalog/cloud-storage/index.html) and [external locations](https://docs.databricks.com/en/connect/unity-catalog/cloud-services/use-service-credentials.html). UC manages cloud authentication automatically.
 - **External APIs (non-storage):** Use Databricks Secrets for API keys and tokens (OpenAI, Stripe, Salesforce, etc.)
 - **External Databases:** Use [Query Federation](https://docs.databricks.com/en/query-federation/http.html) where possible, with connection credentials managed in UC
@@ -513,23 +513,23 @@ sequenceDiagram
     participant Secrets as Databricks Secrets<br/>Scope: external-apis
     participant ExtAPI as External Service<br/>OpenAI, AWS, Azure
     participant UC as Unity Catalog<br/>(Optional: Internal data)
-    
+
     User->>Product: Make request
-    
+
     rect rgb(252, 228, 236)
         Note over Product,Secrets: Pattern 3: Fetch External Credentials
         Product->>Secrets: Get secret: api-key-name<br/>(authenticated as SP or user)
         Secrets->>Secrets: Verify caller has READ<br/>permission on scope
         Secrets-->>Product: Return secret value<br/>(redacted in logs)
     end
-    
+
     rect rgb(255, 250, 240)
         Note over Product,ExtAPI: External API Call
         Product->>ExtAPI: API request with credential<br/>Header: Authorization: Bearer {key}
         ExtAPI->>ExtAPI: Validate credential<br/>Check rate limits
         ExtAPI-->>Product: Return external data
     end
-    
+
     opt Combine with internal data
         rect rgb(232, 248, 245)
             Note over Product,UC: Pattern 1 or 2: Internal Data
@@ -537,10 +537,10 @@ sequenceDiagram
             UC-->>Product: Return UC data
         end
     end
-    
+
     Product->>Product: Combine external + internal data
     Product-->>User: Return enriched response
-    
+
     Note over Secrets: Secret value never exposed<br/>in logs, notebooks, or UI
 ```
 
@@ -640,12 +640,12 @@ flowchart LR
     UC[("Unity Catalog<br/>User-specific data<br/>(Pattern 2: User Auth)")]
     Secrets["Databricks Secrets<br/>external-api-key<br/>(Pattern 3: Manual)"]
     ExtAPI["External API<br/>OpenAI, AWS, etc."]
-    
+
     U -->|User Token| AppLogic
     AppLogic -->|Query as user| UC
     AppLogic -->|Fetch key| Secrets
     AppLogic -->|Call with key| ExtAPI
-    
+
     style UC fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
     style Secrets fill:#fce4ec,stroke:#c2185b,stroke-width:2px
     style ExtAPI fill:#fce4ec,stroke:#c2185b,stroke-width:2px
@@ -663,13 +663,13 @@ flowchart LR
     UC[("Unity Catalog<br/>Fixed permissions")]
     Secrets["Databricks Secrets<br/>external-api-key<br/>(Pattern 3: Manual)"]
     ExtAPI["External API"]
-    
+
     Scheduler -->|Trigger| AgentLogic
     AgentLogic -->|Auth as SP| SP
     SP -->|Query| UC
     AgentLogic -->|Fetch key| Secrets
     AgentLogic -->|Call with key| ExtAPI
-    
+
     style SP fill:#fdebd0,stroke:#e67e22,stroke-width:2px
     style UC fill:#fdebd0,stroke:#e67e22,stroke-width:2px
     style Secrets fill:#fce4ec,stroke:#c2185b,stroke-width:2px
@@ -690,16 +690,16 @@ flowchart TB
     UCShared[("Shared UC data")]
     Secrets["Databricks Secrets<br/>(Pattern 3: Manual)"]
     Ext["External APIs"]
-    
+
     U1 -->|User token| AppUI
     U2 -->|User token| AppUI
-    
+
     AppUI -->|Per-user queries| UCUser
     AppUI -->|Shared queries| AppSP
     AppSP --> UCShared
     AppUI -->|Fetch secrets| Secrets
     Secrets --> Ext
-    
+
     style UCUser fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
     style AppSP fill:#fdebd0,stroke:#e67e22,stroke-width:2px
     style UCShared fill:#fdebd0,stroke:#e67e22,stroke-width:2px
@@ -722,38 +722,38 @@ flowchart TB
     subgraph Databricks["Databricks"]
         SP[Service Principal<br/>sp-agent-prod-analytics<br/><br/>Universal identity<br/>across all clouds]
     end
-    
+
     subgraph AWS["Amazon Web Services"]
         IAM[IAM Role<br/>databricks-sp-agent-prod]
         S3[(S3 Buckets)]
         RDS[(RDS Databases)]
     end
-    
+
     subgraph Azure["Microsoft Azure"]
         AAD[Azure AD Service Principal<br/>sp-agent-prod]
         ADLS[(ADLS Gen2)]
         SQL[(Azure SQL)]
     end
-    
+
     subgraph GCP["Google Cloud Platform"]
         SA[Service Account<br/>sp-agent-prod@project.iam]
         GCS[(Cloud Storage)]
         BQ[(BigQuery)]
     end
-    
+
     SP -->|Assumes| IAM
     SP -->|Maps to| AAD
     SP -->|Uses| SA
-    
+
     IAM -->|IAM policies| S3
     IAM -->|IAM policies| RDS
-    
+
     AAD -->|Azure RBAC| ADLS
     AAD -->|Azure RBAC| SQL
-    
+
     SA -->|IAM policies| GCS
     SA -->|IAM policies| BQ
-    
+
     style SP fill:#fdebd0,stroke:#e67e22,stroke-width:3px
 ```
 
@@ -804,48 +804,48 @@ Use this flowchart to select the right pattern(s) for your scenario:
 ```mermaid
 flowchart TD
     Start{New AI Product<br/>or Feature}
-    
+
     Q1{Is there a user<br/>logged in?}
     Q2{Should each user<br/>see different data?}
     Q3{Accessing external<br/>services or APIs?}
     Q4{Need UC row filters<br/>or column masks?}
-    
+
     Start --> Q1
-    
+
     Q1 -->|No, automated job| Auto[Use Pattern 1:<br/>Automatic Passthrough]
     Q1 -->|Yes, user present| Q2
-    
+
     Q2 -->|Yes, user-specific data| Q4
     Q2 -->|No, same for all users| Q3
-    
+
     Q4 -->|Yes, enforce UC| OBO[Use Pattern 2:<br/>On-Behalf-Of-User]
     Q4 -->|No UC needed| Q3
-    
+
     Q3 -->|Yes, external APIs| CheckBase{Have base pattern?}
     Q3 -->|No external APIs| CheckOBO{User-specific?}
-    
+
     CheckBase -->|Pattern 1 base| Combo1[Pattern 1 + Pattern 3]
     CheckBase -->|Pattern 2 base| Combo2[Pattern 2 + Pattern 3]
-    
+
     CheckOBO -->|Yes| OBO
     CheckOBO -->|No| Auto
-    
+
     Auto --> ProductCheck1{Which AI product?}
     OBO --> ProductCheck2{Which AI product?}
     Combo1 --> ProductCheck3{Which AI product?}
     Combo2 --> ProductCheck4{Which AI product?}
-    
+
     ProductCheck1 -->|Agent Bricks| Agent1[Configure SP as owner]
     ProductCheck1 -->|Databricks App| App1[Set auth.mode: app_authorization]
     ProductCheck1 -->|Model Serving| Model1[Set SP as endpoint owner]
-    
+
     ProductCheck2 -->|Genie Space| Genie2[Default behavior]
     ProductCheck2 -->|Agent Bricks| Agent2[Init with user token in predict]
     ProductCheck2 -->|Databricks App| App2[Set auth.mode: user_authorization]
-    
+
     ProductCheck3 --> Agent3[Agent: SP owner + fetch secrets]
     ProductCheck4 --> Agent4[Agent: User token + fetch secrets]
-    
+
     style Auto fill:#fdebd0,stroke:#e67e22,stroke-width:3px
     style OBO fill:#d5f5e3,stroke:#27ae60,stroke-width:3px
     style Combo1 fill:#fce4ec,stroke:#c2185b,stroke-width:3px

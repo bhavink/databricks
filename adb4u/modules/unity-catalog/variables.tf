@@ -1,6 +1,6 @@
-***REMOVED*** ==============================================
-***REMOVED*** Metastore Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Metastore Configuration
+# ==============================================
 
 variable "create_metastore" {
   description = "Create new Unity Catalog metastore (true) or use existing (false)"
@@ -30,9 +30,9 @@ variable "databricks_account_id" {
   }
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Storage Account Naming (Optional)
-***REMOVED*** ==============================================
+# ==============================================
+# Storage Account Naming (Optional)
+# ==============================================
 
 variable "metastore_storage_name_prefix" {
   description = "Custom name prefix for metastore storage account (lowercase alphanumeric, max 18 chars). If empty, uses '{workspace_prefix}metastore'. Random suffix will be appended."
@@ -46,9 +46,9 @@ variable "external_storage_name_prefix" {
   default     = ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Workspace Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Workspace Configuration
+# ==============================================
 
 variable "workspace_id" {
   description = "Databricks workspace ID to attach to metastore"
@@ -60,9 +60,9 @@ variable "workspace_prefix" {
   type        = string
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Storage Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Storage Configuration
+# ==============================================
 
 variable "location" {
   description = "Azure region for Unity Catalog resources"
@@ -86,9 +86,9 @@ variable "create_external_location_storage" {
   default     = true
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Access Connector Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Access Connector Configuration
+# ==============================================
 
 variable "create_access_connector" {
   description = "Create new Access Connector (true) or use existing (false)"
@@ -108,9 +108,9 @@ variable "existing_access_connector_principal_id" {
   default     = ""
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Storage Connectivity (PL vs SEP)
-***REMOVED*** ==============================================
+# ==============================================
+# Storage Connectivity (PL vs SEP)
+# ==============================================
 
 variable "enable_private_link_storage" {
   description = "Enable Private Link for Unity Catalog storage accounts. Default is Service Endpoints."
@@ -130,9 +130,9 @@ variable "service_endpoints_enabled" {
   default     = true
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Service Endpoint Policies (SEP)
-***REMOVED*** ==============================================
+# ==============================================
+# Service Endpoint Policies (SEP)
+# ==============================================
 
 variable "enable_service_endpoint_policies" {
   description = "Create Service Endpoint Policies for storage security"
@@ -140,9 +140,9 @@ variable "enable_service_endpoint_policies" {
   default     = true
 }
 
-***REMOVED*** ==============================================
-***REMOVED*** Additional Configuration
-***REMOVED*** ==============================================
+# ==============================================
+# Additional Configuration
+# ==============================================
 
 variable "external_location_name" {
   description = "Name of the external location (defaults to workspace-prefix-external)"

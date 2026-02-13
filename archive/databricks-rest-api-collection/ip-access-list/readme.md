@@ -8,7 +8,7 @@ Customers have a security requirement to restrict access to the DB Control plane
 
 This means they want to be able to add/remove IP addresses that can connect to databricks control plane as and when they make network changes or add a new datacenter.
 
-This is what this feature enables. It will provide admins a way to set a whitelist and blacklist for CIDR / IPs that can access Databricks. 
+This is what this feature enables. It will provide admins a way to set a whitelist and blacklist for CIDR / IPs that can access Databricks.
 
 
 Update postman collection
