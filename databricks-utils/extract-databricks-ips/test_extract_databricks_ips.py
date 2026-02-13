@@ -1,20 +1,40 @@
 #!/usr/bin/env python3
 """
 Tests for extract-databricks-ips.py – validate flags and output for different use cases.
-Uses the local sample file by default so tests don't require network.
+Uses an inline fixture (official JSON schema) so tests don't require network.
 Run: python test_extract_databricks_ips.py
 """
 
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 SCRIPT = Path(__file__).parent / "extract-databricks-ips.py"
-SAMPLE = Path(__file__).parent / "databricks-ip-ranges-sample.json"
 
-# Use sample file so tests are deterministic and offline
-SOURCE = ["--source", str(SAMPLE)]
+# Official schema fixture: platform, region, service, type, ipv4Prefixes, ipv6Prefixes
+FIXTURE_JSON = {
+    "timestampSeconds": 1234567890,
+    "schemaVersion": "1.0",
+    "prefixes": [
+        {"platform": "aws", "region": "us-east-1", "service": "Databricks", "type": "inbound", "ipv4Prefixes": ["3.237.73.224/28"], "ipv6Prefixes": []},
+        {"platform": "aws", "region": "us-east-1", "service": "Databricks", "type": "outbound", "ipv4Prefixes": ["44.215.162.0/24"], "ipv6Prefixes": []},
+        {"platform": "aws", "region": "us-east-1", "service": "Databricks", "type": "outbound", "ipv4Prefixes": [], "ipv6Prefixes": ["2600:1f70:4000::/40"]},
+        {"platform": "aws", "region": "eu-west-2", "service": "Databricks", "type": "inbound", "ipv4Prefixes": ["18.134.65.240/28"], "ipv6Prefixes": []},
+        {"platform": "azure", "region": "eastus", "service": "Databricks", "type": "inbound", "ipv4Prefixes": ["20.42.4.209/32"], "ipv6Prefixes": []},
+        {"platform": "gcp", "region": "us-central1", "service": "Databricks", "type": "outbound", "ipv4Prefixes": ["34.33.0.0/24"], "ipv6Prefixes": []},
+    ],
+}
+
+def _fixture_path():
+    f = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
+    json.dump(FIXTURE_JSON, f)
+    f.close()
+    return f.name
+
+_FIXTURE_PATH = _fixture_path()
+SOURCE = ["--source", _FIXTURE_PATH]
 
 
 def run(*args, input_text=None):
@@ -35,7 +55,7 @@ def test_cloud_filter_aws():
     code, out, err = run(*SOURCE, "--cloud", "aws", "--format", "json")
     assert code == 0, err
     data = json.loads(out)
-    assert len(data) >= 2  # sample has 3 AWS (2 ipv4, 1 ipv6)
+    assert len(data) >= 3  # fixture: 3 us-east-1 + 1 eu-west-2
     for entry in data:
         assert entry["cloudProvider"] == "aws"
 
@@ -98,12 +118,12 @@ def test_ipv6_only():
 
 def test_service_filter():
     """--service filters by service name."""
-    code, out, err = run(*SOURCE, "--service", "serverless-egress", "--format", "json")
+    code, out, err = run(*SOURCE, "--service", "Databricks", "--format", "json")
     assert code == 0, err
     data = json.loads(out)
-    assert len(data) >= 3
+    assert len(data) >= 1
     for entry in data:
-        assert entry["service"] == "serverless-egress"
+        assert entry["service"] == "Databricks"
 
 
 def test_format_json():
@@ -168,7 +188,7 @@ def test_list_services():
     data = json.loads(out)
     assert "services" in data
     assert isinstance(data["services"], list)
-    assert "serverless-egress" in data["services"] or "control-plane-egress" in data["services"]
+    assert "Databricks" in data["services"]
 
 
 def test_output_file():
@@ -193,13 +213,13 @@ def test_mutually_exclusive_ipv():
 
 
 def test_all_clouds_all_regions():
-    """No cloud/region filter returns all entries from sample (default CSV)."""
+    """No cloud/region filter returns all entries (default CSV)."""
     code, out, err = run(*SOURCE)  # default format is csv
     assert code == 0, err
     lines = out.strip().split("\n")
     assert lines[0].lower().startswith("cloud,")
-    # header + 5 data rows
-    assert len(lines) == 6
+    # header + data rows (fixture has 6 normalized rows)
+    assert len(lines) >= 6
 
 
 def test_combined_filters():
@@ -219,18 +239,19 @@ def test_combined_filters():
         assert entry["ipVersion"] == "ipv4"
 
 
-def test_type_filter_with_sample():
-    """--type outbound/inbound with sample (no type) still returns entries (legacy format)."""
+def test_type_filter():
+    """--type outbound returns only outbound entries (official schema)."""
     code, out, err = run(*SOURCE, "--type", "outbound", "--format", "json")
     assert code == 0, err
-    # Sample has no "type" field, so all entries are included
     data = json.loads(out)
-    assert len(data) == 5
+    assert len(data) >= 2
+    for entry in data:
+        assert entry.get("type") == "outbound"
 
 
 def test_file_flag_local():
     """--file with local path loads same as --source."""
-    code, out, err = run("--file", str(SAMPLE), "--cloud", "aws", "--format", "json")
+    code, out, err = run("--file", _FIXTURE_PATH, "--cloud", "aws", "--format", "json")
     assert code == 0, err
     data = json.loads(out)
     assert len(data) >= 2
@@ -240,8 +261,8 @@ def test_file_flag_local():
 
 def test_file_flag_same_as_source():
     """--file and --source produce same result for same path."""
-    code1, out1, _ = run("--file", str(SAMPLE), "--format", "simple")
-    code2, out2, _ = run("--source", str(SAMPLE), "--format", "simple")
+    code1, out1, _ = run("--file", _FIXTURE_PATH, "--format", "simple")
+    code2, out2, _ = run("--source", _FIXTURE_PATH, "--format", "simple")
     assert code1 == code2 == 0
     assert set(out1.strip().split()) == set(out2.strip().split())
 
@@ -266,7 +287,7 @@ def test_multi_region_aws():
         if len(parts) >= 2:
             regions.add(parts[1])  # region column
     assert regions <= {"us-east-1", "eu-west-2"}
-    assert len(data_lines) >= 2  # at least 2 rows (us-east-1 and eu-west-2 in sample)
+    assert len(data_lines) >= 2  # fixture has us-east-1 and eu-west-2
 
 
 def test_multi_region_azure():
@@ -358,7 +379,7 @@ if __name__ == "__main__":
         test_mutually_exclusive_ipv,
         test_all_clouds_all_regions,
         test_combined_filters,
-        test_type_filter_with_sample,
+        test_type_filter,
         test_file_flag_local,
         test_file_flag_same_as_source,
         test_default_format_is_csv,

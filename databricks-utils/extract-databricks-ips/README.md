@@ -91,17 +91,22 @@ python --version
 
 ## Data Source
 
-By default the script uses the **official Databricks IP ranges** endpoint:
+By default the script fetches the **official Databricks IP ranges** endpoint (latest schema). No local copy of the JSON is required; use `--file` only when you have a downloaded or cached file (e.g. air-gapped).
 
 - **URL:** [https://www.databricks.com/networking/v1/ip-ranges.json](https://www.databricks.com/networking/v1/ip-ranges.json)
-- **Content:** AWS, Azure, and GCP prefixes with `inbound` / `outbound` type
 - **Docs:** [Databricks – IP ranges](https://docs.databricks.com/security/network/ip-ranges.html)
 
-If the URL is unreachable, the script falls back to a local sample file.
+**Official JSON schema** (live endpoint): root has `timestampSeconds`, `schemaVersion`, and `prefixes[]`. Each prefix entry has:
+- `platform` — `aws` \| `azure` \| `gcp`
+- `region` — e.g. `us-east-1`, `eastus`, `europe-west1`
+- `service` — e.g. `Databricks`
+- `type` — `inbound` \| `outbound`
+- `ipv4Prefixes` — array of CIDR strings
+- `ipv6Prefixes` — array of CIDR strings
 
-**Passing input:** use `--source` or `--file` with either:
-- **Online:** URL (e.g. `https://www.databricks.com/networking/v1/ip-ranges.json`)
-- **Local:** path to a downloaded or saved JSON file (e.g. `./ip-ranges.json`)
+The script normalizes this into a flat list (one row per CIDR) with `cloud`, `region`, `type`, `cidr`, `ipVersion`, `service`.
+
+**Passing input:** use `--source` or `--file` with a URL or path only when you need a specific source (e.g. cached file or alternate URL).
 
 ---
 
@@ -187,9 +192,9 @@ You can pass the input with `--source` or `--file` (either a URL or a path to a 
 python extract-databricks-ips.py --file https://www.databricks.com/networking/v1/ip-ranges.json --cloud aws
 python extract-databricks-ips.py --source https://www.databricks.com/networking/v1/ip-ranges.json --cloud aws
 
-# Local: path to a downloaded or saved JSON file (e.g. air-gapped or cached)
-python extract-databricks-ips.py --file ./databricks-ip-ranges-sample.json --cloud aws
-python extract-databricks-ips.py --file ./downloaded-ip-ranges.json --type outbound
+# Local: path to a downloaded or cached JSON file (e.g. air-gapped)
+python extract-databricks-ips.py --file ./downloaded-ip-ranges.json --cloud aws
+python extract-databricks-ips.py --file ./ip-ranges.json --type outbound
 ```
 
 ---
@@ -390,7 +395,7 @@ python ${SCRIPT_DIR}/extract-databricks-ips.py \
 
 ## Testing
 
-Run the test suite to validate flags and output formats (uses local sample file; one test hits the live URL if network is available):
+Run the test suite to validate flags and output formats (uses an inline fixture; optional tests hit the live URL if network is available):
 
 ```bash
 python test_extract_databricks_ips.py

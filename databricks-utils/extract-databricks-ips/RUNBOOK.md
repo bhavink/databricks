@@ -59,8 +59,8 @@ python extract-databricks-ips.py --cloud aws --type outbound --format simple --o
 
 ## 3. Input: URL or local file
 
-- **Online (default):** The script fetches from the official URL. No flags needed.
-- **Local file:** Point to a downloaded or cached JSON file:
+- **Default (no flags):** Fetches the latest data from the official URL ([ip-ranges.json](https://www.databricks.com/networking/v1/ip-ranges.json)). No local copy needed.
+- **Local file:** Use `--file` only when you have a downloaded or cached JSON file (e.g. air-gapped):
 
 ```bash
 python extract-databricks-ips.py --file ./ip-ranges.json --cloud aws

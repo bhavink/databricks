@@ -30,9 +30,6 @@ from pathlib import Path
 # https://docs.databricks.com/security/network/ip-ranges.html
 DEFAULT_URL = "https://www.databricks.com/networking/v1/ip-ranges.json"
 
-# For local development/testing, use sample file
-LOCAL_FILE = Path(__file__).parent / "databricks-ip-ranges-sample.json"
-
 
 def _normalize_prefixes(data):
     """
@@ -83,29 +80,34 @@ def load_ip_ranges(source=None):
 
     data = None
 
-    # Priority: explicit source (URL or path) > local file > default URL
-    if source and source.startswith(("http://", "https://")):
-        try:
-            with urllib.request.urlopen(source, timeout=30) as response:
-                data = json.loads(response.read().decode("utf-8"))
-        except urllib.error.URLError as e:
-            print(f"Error fetching URL: {e}", file=sys.stderr)
-            sys.exit(1)
+    # Explicit source: URL or local path
+    if source:
+        if source.startswith(("http://", "https://")):
+            try:
+                with urllib.request.urlopen(source, timeout=30) as response:
+                    data = json.loads(response.read().decode("utf-8"))
+            except urllib.error.URLError as e:
+                print(f"Error fetching URL: {e}", file=sys.stderr)
+                sys.exit(1)
+        else:
+            local_path = Path(source)
+            if local_path.exists():
+                with open(local_path, "r") as f:
+                    data = json.load(f)
+            else:
+                print(f"Error: File not found: {local_path}", file=sys.stderr)
+                sys.exit(1)
 
-    if data is None:
-        local_path = Path(source) if source else LOCAL_FILE
-        if local_path.exists():
-            with open(local_path, "r") as f:
-                data = json.load(f)
-
+    # No source: fetch from official URL only
     if data is None:
         try:
             with urllib.request.urlopen(DEFAULT_URL, timeout=30) as response:
                 data = json.loads(response.read().decode("utf-8"))
         except urllib.error.URLError as e:
-            print("Error: Cannot load IP ranges from URL or local file", file=sys.stderr)
-            print(f"URL error: {e}", file=sys.stderr)
-            print(f"Local file not found: {local_path}", file=sys.stderr)
+            print("Error: Cannot load IP ranges from URL.", file=sys.stderr)
+            print(f"URL: {DEFAULT_URL}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
+            print("Use --file /path/to/ip-ranges.json for a local or cached file.", file=sys.stderr)
             sys.exit(1)
 
     # Normalize prefixes to flat list (official API uses ipv4Prefixes/ipv6Prefixes per entry)
