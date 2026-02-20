@@ -45,8 +45,9 @@ override.tf.json
 .vscode/
 .history/
 
-***REMOVED*** GitHub Actions secrets
-.github/workflows/*.yml
+***REMOVED*** GitHub Actions secrets (store actual secrets in GitHub repo settings, not files)
+.github/workflows/secrets.yml
+.github/workflows/.env
 
 ***REMOVED*** AWS credentials
 .aws/
