@@ -31,7 +31,7 @@ This deployment creates a **secure, private Databricks workspace** with:
 - ✅ **IP Access Lists** for additional security
 - ✅ **Workspace Admin Assignment** for initial user
 
-> **Important**: Private Service Connect (PSC) is a **gated GA feature**. You must enable it for your Databricks account first. Follow [this guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#step-1-enable-your-account-for-private-service-connect).
+> **Note**: Private Service Connect (PSC) is **generally available (GA)** — no account-level enablement required. PSC endpoints will remain in **PENDING** state until registered with Databricks via the Account Console or the VPC Endpoint Configurations API. See [official PSC docs](https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect).
 
 ### Architecture Diagram
 
@@ -147,7 +147,7 @@ For these features, see:
   - Must be added to Databricks Account Console with **Account Admin** role
   - Service account email (e.g., `automation-sa@project.iam.gserviceaccount.com`)
 
-> **Critical**: You must request PSC enablement for your account. Follow [Step 1 in the PSC documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#step-1-enable-your-account-for-private-service-connect).
+> **Note**: PSC is GA — no account enablement required. After creating PSC endpoints in GCP, register them in the [Databricks Account Console](https://accounts.gcp.databricks.com) or via the VPC Endpoint Configurations API. Endpoints remain in **PENDING** state until registered. See [PSC docs](https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect).
 
 ### 2. GCP Requirements
 
@@ -193,7 +193,7 @@ Frontend: projects/prod-gcp-<region>/regions/<region>/serviceAttachments/plproxy
 Backend: projects/prod-gcp-<region>/regions/<region>/serviceAttachments/ngrok-psc-endpoint
 ```
 
-**Find Service Attachments**: [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
+**Find Service Attachments**: [Databricks Supported Regions - PSC](https://docs.databricks.com/gcp/en/resources/supported-regions)
 
 ### 3. Local Requirements
 
@@ -692,7 +692,7 @@ workspace_pe_ip_name = "frontend-pe-ip"
 relay_pe_ip_name = "backend-pe-ip"
 
 # PSC Service Attachments (region-specific)
-# Find yours at: https://docs.gcp.databricks.com/resources/supported-regions.html#psc
+# Find yours at: https://docs.databricks.com/gcp/en/resources/supported-regions
 workspace_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
 relay_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
 
@@ -705,7 +705,7 @@ dns_name = "gcp.databricks.com."  # Trailing dot required
 
 Before deployment:
 
-- [ ] PSC feature enabled for your Databricks account
+- [ ] PSC endpoints registered in Databricks Account Console or via VPC Endpoint Configurations API (endpoints stay PENDING until registered)
 - [ ] Service account has required IAM roles (including `dns.admin`)
 - [ ] VPC and subnets exist
 - [ ] PSC subnet has available IPs (minimum 2)
@@ -817,23 +817,24 @@ Backend psc status: PENDING
 ```
 
 **Causes:**
+- PSC endpoints not yet registered with Databricks (most common) — endpoints stay PENDING until registered
 - Incorrect service attachment URI
-- PSC not enabled for account
 - Wrong region in service attachment
 
 **Solution:**
 
-1. Verify service attachments:
+1. Register endpoints in the Databricks Account Console or via the VPC Endpoint Configurations API:
+   - See [PSC docs](https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect)
+
+2. Verify service attachments:
    ```bash
    gcloud compute forwarding-rules describe frontend-ep \
      --region=us-central1 \
      --project=my-host-project
    ```
 
-2. Check Databricks documentation for correct URIs:
-   - [Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
-
-3. Verify PSC is enabled for your account with Databricks support
+3. Check Databricks documentation for correct service attachment URIs:
+   - [PSC supported regions](https://docs.databricks.com/gcp/en/resources/supported-regions)
 
 ---
 
@@ -1038,8 +1039,8 @@ terraform destroy
 
 ## Additional Resources
 
-- [Databricks PSC Documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html)
-- [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
+- [Databricks PSC Documentation](https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect)
+- [Databricks Supported Regions - PSC](https://docs.databricks.com/gcp/en/resources/supported-regions)
 - [GCP Private Service Connect](https://cloud.google.com/vpc/docs/private-service-connect)
 - [Cloud DNS Private Zones](https://cloud.google.com/dns/docs/zones#create-private-zone)
 - [Databricks Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
