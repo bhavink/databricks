@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Storage Module - Provider Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# Storage Module - Provider Configuration
+# ============================================================================
 
 terraform {
   required_providers {
@@ -16,9 +16,9 @@ terraform {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** S3 Bucket - Databricks Root Storage (DBFS)
-***REMOVED*** ============================================================================
+# ============================================================================
+# S3 Bucket - Databricks Root Storage (DBFS)
+# ============================================================================
 
 resource "aws_s3_bucket" "root_storage" {
   bucket        = "${var.root_storage_bucket_name}-${var.suffix}"
@@ -46,7 +46,7 @@ resource "aws_s3_bucket_public_access_block" "root_storage" {
   restrict_public_buckets = true
 }
 
-***REMOVED*** Use Databricks-generated bucket policy data source
+# Use Databricks-generated bucket policy data source
 data "databricks_aws_bucket_policy" "root_storage" {
   provider                 = databricks.account
   databricks_e2_account_id = var.databricks_account_id
@@ -73,9 +73,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "root_storage" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** S3 Bucket - Unity Catalog Metastore
-***REMOVED*** ============================================================================
+# ============================================================================
+# S3 Bucket - Unity Catalog Metastore
+# ============================================================================
 
 resource "aws_s3_bucket" "unity_catalog" {
   bucket        = "${var.unity_catalog_bucket_name}-${var.suffix}"
@@ -114,9 +114,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "unity_catalog" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** S3 Bucket - Unity Catalog External Location
-***REMOVED*** ============================================================================
+# ============================================================================
+# S3 Bucket - Unity Catalog External Location
+# ============================================================================
 
 resource "aws_s3_bucket" "unity_catalog_external" {
   bucket        = "${var.unity_catalog_external_bucket_name}-${var.suffix}"
@@ -155,10 +155,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "unity_catalog_ext
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** S3 Bucket - Unity Catalog Root Storage (Conditional)
-***REMOVED*** Only created when NOT using an existing metastore
-***REMOVED*** ============================================================================
+# ============================================================================
+# S3 Bucket - Unity Catalog Root Storage (Conditional)
+# Only created when NOT using an existing metastore
+# ============================================================================
 
 resource "aws_s3_bucket" "unity_catalog_root_storage" {
   count         = var.create_uc_root_storage_bucket ? 1 : 0

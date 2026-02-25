@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** IAM Role - Unity Catalog Metastore
-***REMOVED*** ============================================================================
+# ============================================================================
+# IAM Role - Unity Catalog Metastore
+# ============================================================================
 
 resource "aws_iam_role" "unity_catalog_role" {
   name = "${var.prefix}-unity-catalog-role"
@@ -35,7 +35,7 @@ resource "aws_iam_policy" "unity_catalog_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = concat(
-      ***REMOVED*** S3 access statement - only add if bucket ARNs are provided
+      # S3 access statement - only add if bucket ARNs are provided
       var.unity_catalog_bucket_arn != "" ? [
         {
           Effect = "Allow"
@@ -52,7 +52,7 @@ resource "aws_iam_policy" "unity_catalog_policy" {
           ]
         }
       ] : [],
-      ***REMOVED*** AssumeRole statement - always included
+      # AssumeRole statement - always included
       [
         {
           Effect = "Allow"

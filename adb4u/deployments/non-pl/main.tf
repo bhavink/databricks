@@ -20,25 +20,25 @@ locals {
       KeepUntil = var.tag_keepuntil
     }
   )
-  
+
   # Add suffix to metastore name for uniqueness
   metastore_name_with_suffix = var.metastore_name != "" ? "${var.metastore_name}-${random_string.deployment_suffix.result}" : ""
-  
+
   # Determine if any CMK feature is enabled
   cmk_enabled = var.enable_cmk_managed_services || var.enable_cmk_managed_disks || var.enable_cmk_dbfs_root
-  
+
   # ==============================================
   # BYOR Derived Flags (Master Control Logic)
   # ==============================================
   # When use_byor_infrastructure=true, automatically derive correct flags
   # to prevent user configuration errors.
-  
+
   # Network: Use BYOR network if use_byor_infrastructure is true
   use_existing_network = var.use_byor_infrastructure ? true : var.use_existing_network
-  
+
   # NAT Gateway: BYOR already created it, so disable workspace creation
   enable_nat_gateway = var.use_byor_infrastructure ? false : var.enable_nat_gateway
-  
+
   # CMK Key Vault: BYOR already created it (if CMK enabled), so use existing
   create_key_vault = (var.use_byor_infrastructure && local.cmk_enabled) ? false : var.create_key_vault
 }
@@ -53,17 +53,17 @@ resource "azurerm_resource_group" "this" {
   name     = var.resource_group_name
   location = var.location
   tags     = local.all_tags
-  
+
   # Validation: When using BYOR, ensure network resources are provided
   lifecycle {
     precondition {
       condition = (
         var.use_byor_infrastructure == false ||
-        (var.existing_vnet_name != "" && 
-         var.existing_resource_group_name != "" &&
-         var.existing_public_subnet_name != "" &&
-         var.existing_private_subnet_name != "" &&
-         var.existing_nsg_name != "")
+        (var.existing_vnet_name != "" &&
+          var.existing_resource_group_name != "" &&
+          var.existing_public_subnet_name != "" &&
+          var.existing_private_subnet_name != "" &&
+        var.existing_nsg_name != "")
       )
       error_message = <<-EOT
         When use_byor_infrastructure=true, all existing network resources must be provided:
@@ -74,7 +74,7 @@ resource "azurerm_resource_group" "this" {
         - existing_nsg_name
       EOT
     }
-    
+
     precondition {
       condition = (
         var.use_byor_infrastructure == false ||
@@ -117,12 +117,12 @@ module "key_vault" {
   location            = var.location
 
   # Key configuration (auto-rotation enabled)
-  key_name              = "databricks-cmk"
-  enable_auto_rotation  = true
-  rotation_policy_days  = 90
+  key_name             = "databricks-cmk"
+  enable_auto_rotation = true
+  rotation_policy_days = 90
 
   # Security configuration
-  enable_purge_protection = true
+  enable_purge_protection    = true
   soft_delete_retention_days = 90
 
   tags = local.all_tags
@@ -141,12 +141,12 @@ module "networking" {
   use_existing_network = local.use_existing_network
 
   # Existing network (BYOV)
-  existing_vnet_name            = var.existing_vnet_name
-  existing_resource_group_name  = var.existing_resource_group_name
-  existing_public_subnet_name   = var.existing_public_subnet_name
-  existing_private_subnet_name  = var.existing_private_subnet_name
-  existing_nsg_name             = var.existing_nsg_name
-  
+  existing_vnet_name           = var.existing_vnet_name
+  existing_resource_group_name = var.existing_resource_group_name
+  existing_public_subnet_name  = var.existing_public_subnet_name
+  existing_private_subnet_name = var.existing_private_subnet_name
+  existing_nsg_name            = var.existing_nsg_name
+
   # NSG Association IDs (required for BYOV)
   existing_public_subnet_nsg_association_id  = var.existing_public_subnet_nsg_association_id
   existing_private_subnet_nsg_association_id = var.existing_private_subnet_nsg_association_id
@@ -181,12 +181,12 @@ module "workspace" {
   workspace_prefix = var.workspace_prefix
 
   # Networking
-  vnet_id                              = module.networking.vnet_id
-  public_subnet_name                   = module.networking.subnet_names["public"]
-  private_subnet_name                  = module.networking.subnet_names["private"]
-  public_subnet_nsg_association_id     = module.networking.public_subnet_nsg_association_id
-  private_subnet_nsg_association_id    = module.networking.private_subnet_nsg_association_id
-  enable_private_link                  = false  # Non-PL pattern
+  vnet_id                           = module.networking.vnet_id
+  public_subnet_name                = module.networking.subnet_names["public"]
+  private_subnet_name               = module.networking.subnet_names["private"]
+  public_subnet_nsg_association_id  = module.networking.public_subnet_nsg_association_id
+  private_subnet_nsg_association_id = module.networking.private_subnet_nsg_association_id
+  enable_private_link               = false # Non-PL pattern
 
   # Customer-Managed Keys (optional)
   enable_cmk_managed_services = var.enable_cmk_managed_services
@@ -227,19 +227,19 @@ module "unity_catalog" {
   databricks_account_id = var.databricks_account_id
 
   # Workspace
-  workspace_id     = module.workspace.workspace_id_numeric  # Numeric ID for Unity Catalog
+  workspace_id     = module.workspace.workspace_id_numeric # Numeric ID for Unity Catalog
   workspace_prefix = var.workspace_prefix
 
   # Storage configuration (Non-PL: Service Endpoints)
-  create_metastore_storage        = var.create_metastore
+  create_metastore_storage         = var.create_metastore
   create_external_location_storage = true
-  enable_private_link_storage      = false  # Use Service Endpoints
+  enable_private_link_storage      = false # Use Service Endpoints
   service_endpoints_enabled        = true
   enable_service_endpoint_policies = true
 
   # Access Connector
-  create_access_connector               = var.create_access_connector
-  existing_access_connector_id          = var.existing_access_connector_id
+  create_access_connector                = var.create_access_connector
+  existing_access_connector_id           = var.existing_access_connector_id
   existing_access_connector_principal_id = var.existing_access_connector_principal_id
 
   # Core configuration
@@ -260,16 +260,16 @@ module "service_endpoint_policy" {
   count  = var.enable_service_endpoint_policy ? 1 : 0
   source = "../../modules/service-endpoint-policy"
 
-  workspace_prefix   = var.workspace_prefix
-  random_suffix      = random_string.deployment_suffix.result
-  location           = var.location
+  workspace_prefix    = var.workspace_prefix
+  random_suffix       = random_string.deployment_suffix.result
+  location            = var.location
   resource_group_name = local.resource_group_name
 
   # Storage accounts to allow-list
-  dbfs_storage_resource_id          = module.workspace.dbfs_storage_account_id
-  uc_metastore_storage_resource_id  = var.create_metastore ? module.unity_catalog.metastore_storage_account_id : ""
-  uc_external_storage_resource_id   = module.unity_catalog.external_storage_account_id
-  additional_storage_ids            = var.additional_allowed_storage_ids
+  dbfs_storage_resource_id         = module.workspace.dbfs_storage_account_id
+  uc_metastore_storage_resource_id = var.create_metastore ? module.unity_catalog.metastore_storage_account_id : ""
+  uc_external_storage_resource_id  = module.unity_catalog.external_storage_account_id
+  additional_storage_ids           = var.additional_allowed_storage_ids
 
   tags = local.all_tags
 
@@ -287,9 +287,9 @@ resource "null_resource" "apply_sep_to_public_subnet" {
   count = var.enable_service_endpoint_policy && !local.use_existing_network ? 1 : 0
 
   triggers = {
-    sep_id          = module.service_endpoint_policy[0].service_endpoint_policy_id
-    subnet_id       = module.networking.subnet_ids["public"]
-    storage_count   = module.service_endpoint_policy[0].allowed_storage_count
+    sep_id        = module.service_endpoint_policy[0].service_endpoint_policy_id
+    subnet_id     = module.networking.subnet_ids["public"]
+    storage_count = module.service_endpoint_policy[0].allowed_storage_count
   }
 
   provisioner "local-exec" {
@@ -325,9 +325,9 @@ resource "null_resource" "apply_sep_to_private_subnet" {
   count = var.enable_service_endpoint_policy && !local.use_existing_network ? 1 : 0
 
   triggers = {
-    sep_id          = module.service_endpoint_policy[0].service_endpoint_policy_id
-    subnet_id       = module.networking.subnet_ids["private"]
-    storage_count   = module.service_endpoint_policy[0].allowed_storage_count
+    sep_id        = module.service_endpoint_policy[0].service_endpoint_policy_id
+    subnet_id     = module.networking.subnet_ids["private"]
+    storage_count = module.service_endpoint_policy[0].allowed_storage_count
   }
 
   provisioner "local-exec" {

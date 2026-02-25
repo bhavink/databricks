@@ -1,6 +1,6 @@
 // Databricks notebook source
 // MAGIC %md 
-// MAGIC ***REMOVED***Stream-Stream Joins using Structured Streaming (Scala)
+// MAGIC #Stream-Stream Joins using Structured Streaming (Scala)
 // MAGIC Apache Spark 2.3.0 introduced support for stream-stream joins in Structured Streaming and this notebook illustrates different ways of joining streams. To run this notebook, import it into your Databricks workspace and run it on a cluster with Databricks Runtime 4.0 (which includes Apache Spark 2.3.0) or above. 
 // MAGIC 
 // MAGIC We are going to use the the canonical example of ad monetization, where we want to find out which ad impressions led to user clicks. 
@@ -52,7 +52,7 @@ display(clicks)
 // COMMAND ----------
 
 // MAGIC %md
-// MAGIC ***REMOVED******REMOVED******REMOVED*** Inner Join
+// MAGIC ### Inner Join
 // MAGIC 
 // MAGIC Let's join these two data streams. This is exactly the same as joining two batch DataFrames/Datasets by their common key `adId`.
 
@@ -72,7 +72,7 @@ display(impressions.join(clicks, "adId"))
 
 // MAGIC %md 
 // MAGIC 
-// MAGIC ***REMOVED******REMOVED******REMOVED*** Inner Join with Watermarking
+// MAGIC ### Inner Join with Watermarking
 // MAGIC 
 // MAGIC To avoid unbounded state, you have to define additional join conditions such that indefinitely old inputs cannot match with future inputs and therefore can be cleared from the state. In other words, you will have to do the following additional steps in the join.
 // MAGIC 
@@ -123,7 +123,7 @@ display(
 // COMMAND ----------
 
 // MAGIC %md
-// MAGIC ***REMOVED******REMOVED******REMOVED*** Outer Joins with Watermarking 
+// MAGIC ### Outer Joins with Watermarking 
 // MAGIC 
 // MAGIC Let's extend this use case to illustrate outer joins. Not all ad impressions will lead to clicks and you may want to keep track of impressions that did not produce clicks. This can be done by applying a left outer join on the impressions and clicks. The joined output will not have the matched clicks, but also the unmatched ones (with clicks data being NULL).
 // MAGIC 
@@ -153,10 +153,10 @@ display(
 // COMMAND ----------
 
 // MAGIC %md 
-// MAGIC ***REMOVED******REMOVED******REMOVED*** Further Information
+// MAGIC ### Further Information
 // MAGIC 
 // MAGIC You can read more about stream-stream joins in the following places:
 // MAGIC 
 // MAGIC - Databricks blog post on stream-stream joins - https://databricks.com/blog/2018/03/13/introducing-stream-stream-joins-in-apache-spark-2-3.html
-// MAGIC - Apache Programming Guide on Structured Streaming - https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html***REMOVED***stream-stream-joins
+// MAGIC - Apache Programming Guide on Structured Streaming - https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html#stream-stream-joins
 // MAGIC - Talk at Spark Summit Europe 2017 - https://databricks.com/session/deep-dive-into-stateful-stream-processing-in-structured-streaming

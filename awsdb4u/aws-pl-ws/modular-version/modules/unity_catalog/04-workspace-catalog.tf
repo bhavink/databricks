@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Catalog Creation
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Catalog Creation
+# ============================================================================
 
 resource "databricks_catalog" "workspace_catalog" {
   count = var.create_workspace_catalog ? 1 : 0
@@ -21,9 +21,9 @@ resource "databricks_catalog" "workspace_catalog" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Set Workspace Catalog as Default
-***REMOVED*** ============================================================================
+# ============================================================================
+# Set Workspace Catalog as Default
+# ============================================================================
 
 resource "databricks_default_namespace_setting" "this" {
   count = var.create_workspace_catalog ? 1 : 0

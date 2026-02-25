@@ -1,434 +1,434 @@
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** DATABRICKS GCP VPC SERVICE CONTROLS - OPERATIONAL EGRESS POLICIES
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED***
-***REMOVED*** PURPOSE:
-***REMOVED*** These policies define egress rules for Databricks workspaces to access
-***REMOVED*** Databricks-owned resources and services. Egress rules control outbound traffic
-***REMOVED*** from your customer project to Databricks projects.
-***REMOVED***
-***REMOVED*** USAGE STAGE: Phase 2 - Post-Workspace Creation
-***REMOVED*** - Apply this policy AFTER workspace is successfully created
-***REMOVED*** - Use together with ingress.yaml for complete operational security
-***REMOVED***
-***REMOVED*** IMPORTANT NOTES:
-***REMOVED*** - Update all [WORKSPACEID], [GEO], [REGION] placeholders with actual values
-***REMOVED*** - Update all Databricks project numbers to match your region
-***REMOVED*** - These rules allow cluster nodes to access required Databricks services
-***REMOVED***
-***REMOVED*** DOCUMENTATION REFERENCES:
-***REMOVED*** - VPC Service Controls: https://docs.gcp.databricks.com/en/security/network/vpc-sc.html
-***REMOVED*** - Regional Resources: https://docs.databricks.com/gcp/en/resources/ip-domain-region
-***REMOVED*** - Ingress/Egress Rules: https://cloud.google.com/vpc-service-controls/docs/ingress-egress-rules
-***REMOVED***
-***REMOVED*** WORKSPACE URL FORMAT:
-***REMOVED*** If your workspace URL is: 311716749948597.7.gcp.databricks.com
-***REMOVED*** Then WORKSPACEID = 311716749948597
-***REMOVED***
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# DATABRICKS GCP VPC SERVICE CONTROLS - OPERATIONAL EGRESS POLICIES
+################################################################################
+#
+# PURPOSE:
+# These policies define egress rules for Databricks workspaces to access
+# Databricks-owned resources and services. Egress rules control outbound traffic
+# from your customer project to Databricks projects.
+#
+# USAGE STAGE: Phase 2 - Post-Workspace Creation
+# - Apply this policy AFTER workspace is successfully created
+# - Use together with ingress.yaml for complete operational security
+#
+# IMPORTANT NOTES:
+# - Update all [WORKSPACEID], [GEO], [REGION] placeholders with actual values
+# - Update all Databricks project numbers to match your region
+# - These rules allow cluster nodes to access required Databricks services
+#
+# DOCUMENTATION REFERENCES:
+# - VPC Service Controls: https://docs.gcp.databricks.com/en/security/network/vpc-sc.html
+# - Regional Resources: https://docs.databricks.com/gcp/en/resources/ip-domain-region
+# - Ingress/Egress Rules: https://cloud.google.com/vpc-service-controls/docs/ingress-egress-rules
+#
+# WORKSPACE URL FORMAT:
+# If your workspace URL is: 311716749948597.7.gcp.databricks.com
+# Then WORKSPACEID = 311716749948597
+#
+################################################################################
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** EGRESS RULE 1: Databricks Runtime Images
-***REMOVED***
-***REMOVED*** PURPOSE: Allows clusters to fetch Databricks runtime VM images during instance creation
-***REMOVED***
-***REMOVED*** TRAFFIC FLOW: Customer Project → Databricks VM Images Project
-***REMOVED***
-***REMOVED*** WHAT THIS ALLOWS:
-***REMOVED*** - Download Databricks runtime VM images from global storage
-***REMOVED*** - Create GCE instances using Databricks-provided images
-***REMOVED*** - Access to base images for cluster nodes
-***REMOVED***
-***REMOVED*** WHEN USED:
-***REMOVED*** - During cluster launch when BulkInsert creates new GCE instances
-***REMOVED*** - Each cluster node downloads its runtime image from this project
-***REMOVED***
-***REMOVED*** IDENTITIES:
-***REMOVED*** - Consumer SA: db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-***REMOVED***   The workspace-specific service account
-***REMOVED***
-***REMOVED*** TARGET PROJECTS:
-***REMOVED*** - Databricks Global VM Images Project (323146983994)
-***REMOVED***   This is a GLOBAL project - same for all regions
-***REMOVED***
-***REMOVED*** COMPUTE OPERATIONS:
-***REMOVED*** - InstancesService.BulkInsert: Create multiple GCE instances with Databricks images
-***REMOVED***
-***REMOVED*** REQUIRED UPDATES:
-***REMOVED*** - Replace db-[WORKSPACEID]@... with your actual Consumer SA
-***REMOVED*** - DO NOT CHANGE project number 323146983994 (global VM images project)
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# EGRESS RULE 1: Databricks Runtime Images
+#
+# PURPOSE: Allows clusters to fetch Databricks runtime VM images during instance creation
+#
+# TRAFFIC FLOW: Customer Project → Databricks VM Images Project
+#
+# WHAT THIS ALLOWS:
+# - Download Databricks runtime VM images from global storage
+# - Create GCE instances using Databricks-provided images
+# - Access to base images for cluster nodes
+#
+# WHEN USED:
+# - During cluster launch when BulkInsert creates new GCE instances
+# - Each cluster node downloads its runtime image from this project
+#
+# IDENTITIES:
+# - Consumer SA: db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+#   The workspace-specific service account
+#
+# TARGET PROJECTS:
+# - Databricks Global VM Images Project (323146983994)
+#   This is a GLOBAL project - same for all regions
+#
+# COMPUTE OPERATIONS:
+# - InstancesService.BulkInsert: Create multiple GCE instances with Databricks images
+#
+# REQUIRED UPDATES:
+# - Replace db-[WORKSPACEID]@... with your actual Consumer SA
+# - DO NOT CHANGE project number 323146983994 (global VM images project)
+################################################################################
 - egressTo:
     operations:
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-      ***REMOVED*** Compute Engine API Operations
-      ***REMOVED*** Required for: Creating cluster instances with Databricks runtime images
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+      ############################################################################
+      # Compute Engine API Operations
+      # Required for: Creating cluster instances with Databricks runtime images
+      ############################################################################
       - serviceName: compute.googleapis.com
         methodSelectors:
-          ***REMOVED*** BulkInsert - Create multiple GCE instances simultaneously
-          ***REMOVED*** This operation downloads the Databricks runtime image from the global
-          ***REMOVED*** VM images project and creates cluster nodes
+          # BulkInsert - Create multiple GCE instances simultaneously
+          # This operation downloads the Databricks runtime image from the global
+          # VM images project and creates cluster nodes
           - method: 'InstancesService.BulkInsert'
 
     resources:
-      ***REMOVED*** Databricks Global VM Images Project
-      ***REMOVED*** Hosts Databricks runtime images in a global storage account
-      ***REMOVED*** Project: databricks-external-images
-      ***REMOVED*** DO NOT CHANGE THIS PROJECT NUMBER - same for all regions
+      # Databricks Global VM Images Project
+      # Hosts Databricks runtime images in a global storage account
+      # Project: databricks-external-images
+      # DO NOT CHANGE THIS PROJECT NUMBER - same for all regions
       - projects/323146983994
 
   egressFrom:
     identities:
-    ***REMOVED*** Workspace Consumer Service Account
-    ***REMOVED*** Created during workspace creation
-    ***REMOVED*** Format: db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-    ***REMOVED*** Example: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
+    # Workspace Consumer Service Account
+    # Created during workspace creation
+    # Format: db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+    # Example: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
     - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** EGRESS RULE 2: Cluster Bootstrap Artifacts and Health Logs
-***REMOVED***
-***REMOVED*** PURPOSE: Allows cluster nodes to access bootstrap artifacts and write health logs
-***REMOVED***
-***REMOVED*** TRAFFIC FLOW: Cluster Nodes (via Delegate SA) → Databricks Control Plane Project
-***REMOVED***
-***REMOVED*** WHAT THIS ALLOWS:
-***REMOVED*** - Download cluster bootstrap scripts and binaries from control plane storage
-***REMOVED*** - Download Databricks runtime artifacts required for cluster operation
-***REMOVED*** - Write cluster health logs back to control plane for monitoring
-***REMOVED***
-***REMOVED*** WHEN USED:
-***REMOVED*** - During cluster initialization (downloading bootstrap artifacts)
-***REMOVED*** - Continuously during cluster operation (writing health logs)
-***REMOVED***
-***REMOVED*** IDENTITIES:
-***REMOVED*** - Delegate SA: delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-***REMOVED***   Regional Databricks service account that launches and manages GCE clusters
-***REMOVED***
-***REMOVED*** TARGET PROJECTS:
-***REMOVED*** - Databricks Regional Control Plane Project
-***REMOVED***   Contains bootstrap artifacts and health log storage for your region
-***REMOVED***
-***REMOVED*** STORAGE OPERATIONS:
-***REMOVED*** - google.storage.objects.get: Download bootstrap artifacts
-***REMOVED*** - google.storage.buckets.testIamPermissions: Verify access permissions
-***REMOVED*** - google.storage.objects.create: Write health logs
-***REMOVED***
-***REMOVED*** REQUIRED UPDATES:
-***REMOVED*** - Replace delegate-sa@prod-gcp-[GEO]-[REGION]... with your region's delegate SA
-***REMOVED***   Format: delegate-sa@prod-gcp-us-east1.iam.gserviceaccount.com
-***REMOVED*** - Replace projects/[databricks control plane project] with your region's project
-***REMOVED***   Example: us-east1 = 121886670913
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# EGRESS RULE 2: Cluster Bootstrap Artifacts and Health Logs
+#
+# PURPOSE: Allows cluster nodes to access bootstrap artifacts and write health logs
+#
+# TRAFFIC FLOW: Cluster Nodes (via Delegate SA) → Databricks Control Plane Project
+#
+# WHAT THIS ALLOWS:
+# - Download cluster bootstrap scripts and binaries from control plane storage
+# - Download Databricks runtime artifacts required for cluster operation
+# - Write cluster health logs back to control plane for monitoring
+#
+# WHEN USED:
+# - During cluster initialization (downloading bootstrap artifacts)
+# - Continuously during cluster operation (writing health logs)
+#
+# IDENTITIES:
+# - Delegate SA: delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+#   Regional Databricks service account that launches and manages GCE clusters
+#
+# TARGET PROJECTS:
+# - Databricks Regional Control Plane Project
+#   Contains bootstrap artifacts and health log storage for your region
+#
+# STORAGE OPERATIONS:
+# - google.storage.objects.get: Download bootstrap artifacts
+# - google.storage.buckets.testIamPermissions: Verify access permissions
+# - google.storage.objects.create: Write health logs
+#
+# REQUIRED UPDATES:
+# - Replace delegate-sa@prod-gcp-[GEO]-[REGION]... with your region's delegate SA
+#   Format: delegate-sa@prod-gcp-us-east1.iam.gserviceaccount.com
+# - Replace projects/[databricks control plane project] with your region's project
+#   Example: us-east1 = 121886670913
+################################################################################
 - egressTo:
     operations:
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-      ***REMOVED*** Cloud Storage API Operations
-      ***REMOVED*** Required for: Bootstrap artifacts and health monitoring
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+      ############################################################################
+      # Cloud Storage API Operations
+      # Required for: Bootstrap artifacts and health monitoring
+      ############################################################################
       - serviceName: storage.googleapis.com
         methodSelectors:
-          ***REMOVED*** Object read operations - Download bootstrap artifacts
-          ***REMOVED*** Bootstrap artifacts include:
-          ***REMOVED*** - Cluster initialization scripts
-          ***REMOVED*** - Databricks runtime binaries
-          ***REMOVED*** - Configuration files
+          # Object read operations - Download bootstrap artifacts
+          # Bootstrap artifacts include:
+          # - Cluster initialization scripts
+          # - Databricks runtime binaries
+          # - Configuration files
           - method: google.storage.objects.get
 
-          ***REMOVED*** Bucket permissions check - Verify storage access
+          # Bucket permissions check - Verify storage access
           - method: google.storage.buckets.testIamPermissions
 
-          ***REMOVED*** Object write operations - Upload cluster health logs
-          ***REMOVED*** Health logs include:
-          ***REMOVED*** - Cluster status and metrics
-          ***REMOVED*** - Error and diagnostic information
-          ***REMOVED*** - Performance monitoring data
+          # Object write operations - Upload cluster health logs
+          # Health logs include:
+          # - Cluster status and metrics
+          # - Error and diagnostic information
+          # - Performance monitoring data
           - method: google.storage.objects.create
 
     resources:
-      ***REMOVED*** Databricks Regional Control Plane Project
-      ***REMOVED*** Contains bootstrap artifacts and health log storage
-      ***REMOVED*** Find your region's project number here:
-      ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region
-      ***REMOVED***
-      ***REMOVED*** Example project numbers by region:
-      ***REMOVED*** - us-east1: 121886670913
-      ***REMOVED*** - us-east4: 121886670913
-      ***REMOVED*** - us-central1: 121886670913
-      ***REMOVED*** - europe-west2: 216164888453
-      - projects/[databricks control plane project]  ***REMOVED*** UPDATE: Your region's control plane
+      # Databricks Regional Control Plane Project
+      # Contains bootstrap artifacts and health log storage
+      # Find your region's project number here:
+      # https://docs.databricks.com/gcp/en/resources/ip-domain-region
+      #
+      # Example project numbers by region:
+      # - us-east1: 121886670913
+      # - us-east4: 121886670913
+      # - us-central1: 121886670913
+      # - europe-west2: 216164888453
+      - projects/[databricks control plane project]  # UPDATE: Your region's control plane
 
   egressFrom:
     identities:
-    ***REMOVED*** Databricks Regional Delegate Service Account
-    ***REMOVED*** This is a per-region Databricks-owned SA that launches GCE-based clusters
-    ***REMOVED*** Format: delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-    ***REMOVED***
-    ***REMOVED*** Example delegate SAs by region:
-    ***REMOVED*** - us-east1: delegate-sa@prod-gcp-us-east1.iam.gserviceaccount.com
-    ***REMOVED*** - us-central1: delegate-sa@prod-gcp-us-central1.iam.gserviceaccount.com
-    ***REMOVED*** - europe-west2: delegate-sa@prod-gcp-europe-west2.iam.gserviceaccount.com
+    # Databricks Regional Delegate Service Account
+    # This is a per-region Databricks-owned SA that launches GCE-based clusters
+    # Format: delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+    #
+    # Example delegate SAs by region:
+    # - us-east1: delegate-sa@prod-gcp-us-east1.iam.gserviceaccount.com
+    # - us-central1: delegate-sa@prod-gcp-us-central1.iam.gserviceaccount.com
+    # - europe-west2: delegate-sa@prod-gcp-europe-west2.iam.gserviceaccount.com
     - serviceAccount:delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** EGRESS RULE 3: System Tables Access (Unity Catalog)
-***REMOVED***
-***REMOVED*** PURPOSE: Allows Unity Catalog to access system tables for metadata and monitoring
-***REMOVED***
-***REMOVED*** TRAFFIC FLOW: Unity Catalog SA → Databricks System Tables Project
-***REMOVED***
-***REMOVED*** WHAT THIS ALLOWS:
-***REMOVED*** - Read system table data for Unity Catalog operations
-***REMOVED*** - Access governance, lineage, and audit metadata
-***REMOVED*** - Query system tables for monitoring and reporting
-***REMOVED***
-***REMOVED*** WHEN USED:
-***REMOVED*** - When using Unity Catalog system tables feature
-***REMOVED*** - For governance, lineage, and audit queries
-***REMOVED*** - Only if Unity Catalog is enabled in your workspace
-***REMOVED***
-***REMOVED*** IDENTITIES:
-***REMOVED*** - Unity Catalog Storage SA: db-uc-storage-*@uc-[REGION].iam.gserviceaccount.com
-***REMOVED***   Per-region Unity Catalog service account for storage access
-***REMOVED***
-***REMOVED*** TARGET PROJECTS:
-***REMOVED*** - Databricks Regional System Tables Project
-***REMOVED***   Hosts Unity Catalog system tables storage
-***REMOVED***
-***REMOVED*** STORAGE OPERATIONS:
-***REMOVED*** - google.storage.objects.get: Read system table data
-***REMOVED***
-***REMOVED*** REQUIRED UPDATES:
-***REMOVED*** - Replace db-uc-storage-066pptsgmg-dkbon@... with your UC storage SA
-***REMOVED***   Find this with: SELECT * FROM system.information_schema.storage_credentials
-***REMOVED*** - Replace projects/68598579867 with your region's system tables project
-***REMOVED***   Example: us-east1 system tables = 68598579867
-***REMOVED***
-***REMOVED*** NOTE: Skip this rule if you don't use Unity Catalog
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# EGRESS RULE 3: System Tables Access (Unity Catalog)
+#
+# PURPOSE: Allows Unity Catalog to access system tables for metadata and monitoring
+#
+# TRAFFIC FLOW: Unity Catalog SA → Databricks System Tables Project
+#
+# WHAT THIS ALLOWS:
+# - Read system table data for Unity Catalog operations
+# - Access governance, lineage, and audit metadata
+# - Query system tables for monitoring and reporting
+#
+# WHEN USED:
+# - When using Unity Catalog system tables feature
+# - For governance, lineage, and audit queries
+# - Only if Unity Catalog is enabled in your workspace
+#
+# IDENTITIES:
+# - Unity Catalog Storage SA: db-uc-storage-*@uc-[REGION].iam.gserviceaccount.com
+#   Per-region Unity Catalog service account for storage access
+#
+# TARGET PROJECTS:
+# - Databricks Regional System Tables Project
+#   Hosts Unity Catalog system tables storage
+#
+# STORAGE OPERATIONS:
+# - google.storage.objects.get: Read system table data
+#
+# REQUIRED UPDATES:
+# - Replace db-uc-storage-066pptsgmg-dkbon@... with your UC storage SA
+#   Find this with: SELECT * FROM system.information_schema.storage_credentials
+# - Replace projects/68598579867 with your region's system tables project
+#   Example: us-east1 system tables = 68598579867
+#
+# NOTE: Skip this rule if you don't use Unity Catalog
+################################################################################
 - egressTo:
     operations:
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-      ***REMOVED*** Cloud Storage API Operations
-      ***REMOVED*** Required for: Reading Unity Catalog system tables
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+      ############################################################################
+      # Cloud Storage API Operations
+      # Required for: Reading Unity Catalog system tables
+      ############################################################################
       - serviceName: storage.googleapis.com
         methodSelectors:
-          ***REMOVED*** Object read - Read system table data
-          ***REMOVED*** System tables include:
-          ***REMOVED*** - Governance data (access audits, permissions)
-          ***REMOVED*** - Lineage data (data flow and dependencies)
-          ***REMOVED*** - Query history and performance metrics
+          # Object read - Read system table data
+          # System tables include:
+          # - Governance data (access audits, permissions)
+          # - Lineage data (data flow and dependencies)
+          # - Query history and performance metrics
           - method: google.storage.objects.get
 
     resources:
-      ***REMOVED*** Databricks Regional System Tables Project
-      ***REMOVED*** Hosts Unity Catalog system tables storage
-      ***REMOVED*** Find your region's project number here:
-      ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region
-      ***REMOVED***
-      ***REMOVED*** Example system tables projects by region:
-      ***REMOVED*** - us-east1: 68598579867
-      ***REMOVED*** - us-east4: (check Databricks documentation)
-      - projects/68598579867  ***REMOVED*** UPDATE: Your region's system tables project
+      # Databricks Regional System Tables Project
+      # Hosts Unity Catalog system tables storage
+      # Find your region's project number here:
+      # https://docs.databricks.com/gcp/en/resources/ip-domain-region
+      #
+      # Example system tables projects by region:
+      # - us-east1: 68598579867
+      # - us-east4: (check Databricks documentation)
+      - projects/68598579867  # UPDATE: Your region's system tables project
 
   egressFrom:
     identities:
-    ***REMOVED*** Unity Catalog Storage Service Account
-    ***REMOVED*** Per-region SA for Unity Catalog storage operations
-    ***REMOVED*** Format: db-uc-storage-<ID>-<SUFFIX>@uc-<region>.iam.gserviceaccount.com
-    ***REMOVED***
-    ***REMOVED*** Find your UC storage SA with:
-    ***REMOVED*** SELECT * FROM system.information_schema.storage_credentials
-    ***REMOVED*** or from the IAM console after Unity Catalog is enabled
+    # Unity Catalog Storage Service Account
+    # Per-region SA for Unity Catalog storage operations
+    # Format: db-uc-storage-<ID>-<SUFFIX>@uc-<region>.iam.gserviceaccount.com
+    #
+    # Find your UC storage SA with:
+    # SELECT * FROM system.information_schema.storage_credentials
+    # or from the IAM console after Unity Catalog is enabled
     - serviceAccount:db-uc-storage-066pptsgmg-dkbon@uc-useast1.iam.gserviceaccount.com
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** EGRESS RULE 4: Classic Cluster Bootstrap Artifacts
-***REMOVED***
-***REMOVED*** PURPOSE: Allows cluster nodes to download bootstrap artifacts during initialization
-***REMOVED***
-***REMOVED*** TRAFFIC FLOW: Cluster Nodes → Databricks Regional Control Plane Project
-***REMOVED***
-***REMOVED*** WHAT THIS ALLOWS:
-***REMOVED*** - Download cluster initialization scripts and binaries
-***REMOVED*** - Access Databricks runtime components
-***REMOVED*** - Retrieve configuration files for cluster setup
-***REMOVED***
-***REMOVED*** WHEN USED:
-***REMOVED*** - During cluster initialization (node bootstrap)
-***REMOVED*** - When launching classic GCE-based clusters
-***REMOVED***
-***REMOVED*** WHY ANY_IDENTITY?
-***REMOVED*** VPC-SC doesn't capture the specific identity for these storage API calls.
-***REMOVED*** The calls are read-only (google.storage.objects.get) which limits security risk.
-***REMOVED***
-***REMOVED*** SECURITY CONSIDERATIONS:
-***REMOVED*** - Only read operations are allowed (no write/delete)
-***REMOVED*** - Requests must still originate from within VPC-SC perimeter
-***REMOVED*** - Limited to specific Databricks control plane project
-***REMOVED***
-***REMOVED*** TARGET PROJECTS:
-***REMOVED*** - Databricks Regional Control Plane Project
-***REMOVED***   Contains cluster bootstrap artifacts
-***REMOVED***
-***REMOVED*** STORAGE OPERATIONS:
-***REMOVED*** - google.storage.objects.get: Download bootstrap artifacts (read-only)
-***REMOVED***
-***REMOVED*** REQUIRED UPDATES:
-***REMOVED*** - Replace projects/121886670913 with your region's control plane project
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# EGRESS RULE 4: Classic Cluster Bootstrap Artifacts
+#
+# PURPOSE: Allows cluster nodes to download bootstrap artifacts during initialization
+#
+# TRAFFIC FLOW: Cluster Nodes → Databricks Regional Control Plane Project
+#
+# WHAT THIS ALLOWS:
+# - Download cluster initialization scripts and binaries
+# - Access Databricks runtime components
+# - Retrieve configuration files for cluster setup
+#
+# WHEN USED:
+# - During cluster initialization (node bootstrap)
+# - When launching classic GCE-based clusters
+#
+# WHY ANY_IDENTITY?
+# VPC-SC doesn't capture the specific identity for these storage API calls.
+# The calls are read-only (google.storage.objects.get) which limits security risk.
+#
+# SECURITY CONSIDERATIONS:
+# - Only read operations are allowed (no write/delete)
+# - Requests must still originate from within VPC-SC perimeter
+# - Limited to specific Databricks control plane project
+#
+# TARGET PROJECTS:
+# - Databricks Regional Control Plane Project
+#   Contains cluster bootstrap artifacts
+#
+# STORAGE OPERATIONS:
+# - google.storage.objects.get: Download bootstrap artifacts (read-only)
+#
+# REQUIRED UPDATES:
+# - Replace projects/121886670913 with your region's control plane project
+################################################################################
 - egressTo:
     operations:
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-      ***REMOVED*** Cloud Storage API Operations
-      ***REMOVED*** Required for: Downloading cluster bootstrap artifacts
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+      ############################################################################
+      # Cloud Storage API Operations
+      # Required for: Downloading cluster bootstrap artifacts
+      ############################################################################
       - serviceName: storage.googleapis.com
         methodSelectors:
-          ***REMOVED*** Object read - Download bootstrap artifacts
-          ***REMOVED*** Note: Read-only operation for security
+          # Object read - Download bootstrap artifacts
+          # Note: Read-only operation for security
           - method: google.storage.objects.get
 
     resources:
-      ***REMOVED*** Databricks Regional Control Plane Project
-      ***REMOVED*** Hosts cluster bootstrap artifacts
-      ***REMOVED*** Find your region's project number here:
-      ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region
-      ***REMOVED***
-      ***REMOVED*** Example: us-east4 control plane = 121886670913
-      - projects/121886670913  ***REMOVED*** UPDATE: Your region's control plane project
+      # Databricks Regional Control Plane Project
+      # Hosts cluster bootstrap artifacts
+      # Find your region's project number here:
+      # https://docs.databricks.com/gcp/en/resources/ip-domain-region
+      #
+      # Example: us-east4 control plane = 121886670913
+      - projects/121886670913  # UPDATE: Your region's control plane project
 
   egressFrom:
-    ***REMOVED*** ANY_IDENTITY used because VPC-SC doesn't capture the specific identity
-    ***REMOVED*** for these storage API calls during cluster bootstrap
-    ***REMOVED***
-    ***REMOVED*** SECURITY NOTE:
-    ***REMOVED*** - Only read operations (get) are allowed, not write/delete
-    ***REMOVED*** - Requests still subject to VPC-SC perimeter restrictions
-    ***REMOVED*** - Limited to specific Databricks control plane project
+    # ANY_IDENTITY used because VPC-SC doesn't capture the specific identity
+    # for these storage API calls during cluster bootstrap
+    #
+    # SECURITY NOTE:
+    # - Only read operations (get) are allowed, not write/delete
+    # - Requests still subject to VPC-SC perimeter restrictions
+    # - Limited to specific Databricks control plane project
     identityType: ANY_IDENTITY
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** EXAMPLE: Group-based Egress Rules (Optional, Commented Out)
-***REMOVED***
-***REMOVED*** PURPOSE: Example of how to use Google Groups for egress control
-***REMOVED***
-***REMOVED*** This commented section demonstrates an alternative approach using Google Groups
-***REMOVED*** instead of individual service accounts. Uncomment and customize if needed.
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** - egressTo:
-***REMOVED***     operations:
-***REMOVED***       - serviceName: storage.googleapis.com
-***REMOVED***         methodSelectors:
-***REMOVED***          - method: google.storage.objects.get
-***REMOVED***     resources:
-***REMOVED***       - projects/522339604799  ***REMOVED*** Databricks regional us-east4 control plane
-***REMOVED***
-***REMOVED***   egressFrom:
-***REMOVED***     identities:
-***REMOVED***     ***REMOVED*** Google Group containing authorized service accounts
-***REMOVED***     ***REMOVED*** Useful for managing multiple SAs with a single rule
-***REMOVED***     - group:databricks-group@databricks.com
+################################################################################
+# EXAMPLE: Group-based Egress Rules (Optional, Commented Out)
+#
+# PURPOSE: Example of how to use Google Groups for egress control
+#
+# This commented section demonstrates an alternative approach using Google Groups
+# instead of individual service accounts. Uncomment and customize if needed.
+################################################################################
+# - egressTo:
+#     operations:
+#       - serviceName: storage.googleapis.com
+#         methodSelectors:
+#          - method: google.storage.objects.get
+#     resources:
+#       - projects/522339604799  # Databricks regional us-east4 control plane
+#
+#   egressFrom:
+#     identities:
+#     # Google Group containing authorized service accounts
+#     # Useful for managing multiple SAs with a single rule
+#     - group:databricks-group@databricks.com
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** CONFIGURATION SUMMARY:
-***REMOVED***
-***REMOVED*** This egress policy file includes 4 rule groups:
-***REMOVED*** 1. ✅ Runtime Images (REQUIRED) - Download Databricks VM images
-***REMOVED*** 2. ✅ Bootstrap & Health Logs (REQUIRED) - Cluster initialization and monitoring
-***REMOVED*** 3. ⚠️  System Tables (OPTIONAL) - Unity Catalog system tables (if using UC)
-***REMOVED*** 4. ✅ Bootstrap Artifacts (REQUIRED) - Classic cluster initialization
-***REMOVED***
-***REMOVED*** REQUIRED DATABRICKS PROJECT NUMBERS:
-***REMOVED*** You need to find and update these project numbers for your region:
-***REMOVED***
-***REMOVED*** 1. VM Images Project (323146983994)
-***REMOVED***    - GLOBAL project - DO NOT CHANGE
-***REMOVED***    - Same for all regions
-***REMOVED***
-***REMOVED*** 2. Regional Control Plane Project
-***REMOVED***    - Find at: https://docs.databricks.com/gcp/en/resources/ip-domain-region
-***REMOVED***    - Examples: us-east1 = 121886670913
-***REMOVED***
-***REMOVED*** 3. System Tables Project (if using Unity Catalog)
-***REMOVED***    - Find at: https://docs.databricks.com/gcp/en/resources/ip-domain-region
-***REMOVED***    - Examples: us-east1 = 68598579867
-***REMOVED***
-***REMOVED*** REQUIRED SERVICE ACCOUNT IDENTITIES:
-***REMOVED*** You need to update these service account identities:
-***REMOVED***
-***REMOVED*** 1. Consumer SA: db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-***REMOVED***    - Find in IAM console after workspace creation
-***REMOVED***    - Format: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
-***REMOVED***
-***REMOVED*** 2. Delegate SA: delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-***REMOVED***    - Regional Databricks SA for cluster management
-***REMOVED***    - Format: delegate-sa@prod-gcp-us-east1.iam.gserviceaccount.com
-***REMOVED***
-***REMOVED*** 3. UC Storage SA (if using Unity Catalog): db-uc-storage-*@uc-[REGION].iam.gserviceaccount.com
-***REMOVED***    - Find with: SELECT * FROM system.information_schema.storage_credentials
-***REMOVED***
-***REMOVED*** NEXT STEPS:
-***REMOVED***
-***REMOVED*** 1. Update all placeholders:
-***REMOVED***    - [WORKSPACEID] - Your workspace ID (from workspace URL)
-***REMOVED***    - [GEO]-[REGION] - Your deployment region (e.g., us-east1)
-***REMOVED***    - Project numbers - From Databricks regional documentation
-***REMOVED***    - Service account emails - From IAM console or SQL queries
-***REMOVED***
-***REMOVED*** 2. Remove optional rules if not needed:
-***REMOVED***    - Remove System Tables rule (Rule 3) if not using Unity Catalog
-***REMOVED***
-***REMOVED*** 3. Apply together with ingress.yaml:
-***REMOVED***    - Use gcloud CLI to update VPC-SC perimeter
-***REMOVED***    - Test in dry-run mode first
-***REMOVED***    - Monitor VPC-SC logs for violations
-***REMOVED***    - Enforce after successful testing
-***REMOVED***
-***REMOVED*** 4. Test cluster operations:
-***REMOVED***    - Launch a test cluster
-***REMOVED***    - Verify cluster starts successfully
-***REMOVED***    - Check cluster can download runtime images
-***REMOVED***    - Confirm health logs are being written
-***REMOVED***    - Test Unity Catalog queries (if applicable)
-***REMOVED***
-***REMOVED*** TROUBLESHOOTING:
-***REMOVED***
-***REMOVED*** Common Issues:
-***REMOVED***
-***REMOVED*** 1. Cluster fails to start:
-***REMOVED***    - Check egress rule for runtime images (project 323146983994)
-***REMOVED***    - Verify Consumer SA is correct in Rule 1
-***REMOVED***    - Review VPC-SC logs for blocked BulkInsert operations
-***REMOVED***
-***REMOVED*** 2. Bootstrap failures:
-***REMOVED***    - Verify delegate-sa identity is correct in Rule 2
-***REMOVED***    - Check control plane project number is correct
-***REMOVED***    - Ensure storage.googleapis.com is in restricted services
-***REMOVED***
-***REMOVED*** 3. Unity Catalog system tables not accessible:
-***REMOVED***    - Verify UC Storage SA is correct in Rule 3
-***REMOVED***    - Check system tables project number for your region
-***REMOVED***    - Ensure Unity Catalog is enabled in workspace
-***REMOVED***
-***REMOVED*** 4. Health logs not appearing:
-***REMOVED***    - Check Rule 2 includes google.storage.objects.create
-***REMOVED***    - Verify delegate-sa has write permissions
-***REMOVED***    - Review control plane project number
-***REMOVED***
-***REMOVED*** DEBUG COMMANDS:
-***REMOVED***
-***REMOVED*** Check VPC-SC violations:
-***REMOVED*** gcloud logging read "protoPayload.metadata.@type=type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata" \
-***REMOVED***   --limit=50 --format=json
-***REMOVED***
-***REMOVED*** List service accounts in project:
-***REMOVED*** gcloud iam service-accounts list --project=PROJECT_ID
-***REMOVED***
-***REMOVED*** Describe VPC-SC perimeter:
-***REMOVED*** gcloud access-context-manager perimeters describe PERIMETER_NAME \
-***REMOVED***   --policy=POLICY_ID
-***REMOVED***
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# CONFIGURATION SUMMARY:
+#
+# This egress policy file includes 4 rule groups:
+# 1. ✅ Runtime Images (REQUIRED) - Download Databricks VM images
+# 2. ✅ Bootstrap & Health Logs (REQUIRED) - Cluster initialization and monitoring
+# 3. ⚠️  System Tables (OPTIONAL) - Unity Catalog system tables (if using UC)
+# 4. ✅ Bootstrap Artifacts (REQUIRED) - Classic cluster initialization
+#
+# REQUIRED DATABRICKS PROJECT NUMBERS:
+# You need to find and update these project numbers for your region:
+#
+# 1. VM Images Project (323146983994)
+#    - GLOBAL project - DO NOT CHANGE
+#    - Same for all regions
+#
+# 2. Regional Control Plane Project
+#    - Find at: https://docs.databricks.com/gcp/en/resources/ip-domain-region
+#    - Examples: us-east1 = 121886670913
+#
+# 3. System Tables Project (if using Unity Catalog)
+#    - Find at: https://docs.databricks.com/gcp/en/resources/ip-domain-region
+#    - Examples: us-east1 = 68598579867
+#
+# REQUIRED SERVICE ACCOUNT IDENTITIES:
+# You need to update these service account identities:
+#
+# 1. Consumer SA: db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+#    - Find in IAM console after workspace creation
+#    - Format: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
+#
+# 2. Delegate SA: delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+#    - Regional Databricks SA for cluster management
+#    - Format: delegate-sa@prod-gcp-us-east1.iam.gserviceaccount.com
+#
+# 3. UC Storage SA (if using Unity Catalog): db-uc-storage-*@uc-[REGION].iam.gserviceaccount.com
+#    - Find with: SELECT * FROM system.information_schema.storage_credentials
+#
+# NEXT STEPS:
+#
+# 1. Update all placeholders:
+#    - [WORKSPACEID] - Your workspace ID (from workspace URL)
+#    - [GEO]-[REGION] - Your deployment region (e.g., us-east1)
+#    - Project numbers - From Databricks regional documentation
+#    - Service account emails - From IAM console or SQL queries
+#
+# 2. Remove optional rules if not needed:
+#    - Remove System Tables rule (Rule 3) if not using Unity Catalog
+#
+# 3. Apply together with ingress.yaml:
+#    - Use gcloud CLI to update VPC-SC perimeter
+#    - Test in dry-run mode first
+#    - Monitor VPC-SC logs for violations
+#    - Enforce after successful testing
+#
+# 4. Test cluster operations:
+#    - Launch a test cluster
+#    - Verify cluster starts successfully
+#    - Check cluster can download runtime images
+#    - Confirm health logs are being written
+#    - Test Unity Catalog queries (if applicable)
+#
+# TROUBLESHOOTING:
+#
+# Common Issues:
+#
+# 1. Cluster fails to start:
+#    - Check egress rule for runtime images (project 323146983994)
+#    - Verify Consumer SA is correct in Rule 1
+#    - Review VPC-SC logs for blocked BulkInsert operations
+#
+# 2. Bootstrap failures:
+#    - Verify delegate-sa identity is correct in Rule 2
+#    - Check control plane project number is correct
+#    - Ensure storage.googleapis.com is in restricted services
+#
+# 3. Unity Catalog system tables not accessible:
+#    - Verify UC Storage SA is correct in Rule 3
+#    - Check system tables project number for your region
+#    - Ensure Unity Catalog is enabled in workspace
+#
+# 4. Health logs not appearing:
+#    - Check Rule 2 includes google.storage.objects.create
+#    - Verify delegate-sa has write permissions
+#    - Review control plane project number
+#
+# DEBUG COMMANDS:
+#
+# Check VPC-SC violations:
+# gcloud logging read "protoPayload.metadata.@type=type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata" \
+#   --limit=50 --format=json
+#
+# List service accounts in project:
+# gcloud iam service-accounts list --project=PROJECT_ID
+#
+# Describe VPC-SC perimeter:
+# gcloud access-context-manager perimeters describe PERIMETER_NAME \
+#   --policy=POLICY_ID
+#
+################################################################################

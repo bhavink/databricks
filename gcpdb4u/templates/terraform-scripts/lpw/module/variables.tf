@@ -1,4 +1,4 @@
-***REMOVED***GCP variables
+#GCP variables
 variable "google_project_name" {
   type = string
 }
@@ -26,7 +26,7 @@ variable "metastore_id" {
   default = ""
 }
 
-***REMOVED***Databricks account variables
+#Databricks account variables
 variable "databricks_account_id" {
   description = "Databricks account ID (UUID)"
   type        = string
@@ -90,13 +90,13 @@ variable "permissions_spn_role_user" {
   default = ""
 }
 
-***REMOVED***node
+#node
 variable "node_type" {
   type    = string
   default = "e2"
 }
 
-***REMOVED***Network variables
+#Network variables
 variable "network_project_id" {
   type = string
 }
@@ -107,7 +107,7 @@ variable "subnet_id" {
   type = string
 }
 
-***REMOVED***Tag Variables
+#Tag Variables
 variable "apmid" {
   type = string
 }
@@ -144,8 +144,8 @@ variable "notificationdistlist" {
   type = string
 }
 
-***REMOVED***cluster variables
-***REMOVED***note these have default values can be over-rided when user wants different compute types
+#cluster variables
+#note these have default values can be over-rided when user wants different compute types
 variable "small_node_type" {
   type    = string
   default = "e2-standard-4"
@@ -198,7 +198,7 @@ variable "storage_credentials_permissions" {
 }
 
 
-***REMOVED******REMOVED***Databricks SqlWareHouse Variables
+##Databricks SqlWareHouse Variables
 variable "sqlwarehouse_cluster_config" {
   type    = string
   default = ""
@@ -222,9 +222,9 @@ variable "foriegn_catalog_bq_connection" {
 
 
 
-***REMOVED*** MODIFICATION - The following variables are used to control the timing and conditional creation of Databricks workspace resources.
-***REMOVED*** "expected_workspace_status" allows for checks on workspace state; "provision_workspace_resources" should only be set to true once the workspace is RUNNING.
-***REMOVED*** This prevents race conditions and ensures resources are provisioned only when appropriate.
+# MODIFICATION - The following variables are used to control the timing and conditional creation of Databricks workspace resources.
+# "expected_workspace_status" allows for checks on workspace state; "provision_workspace_resources" should only be set to true once the workspace is RUNNING.
+# This prevents race conditions and ensures resources are provisioned only when appropriate.
 
 variable "expected_workspace_status" {
   type    = string
@@ -237,18 +237,18 @@ variable "provision_workspace_resources" {
   description = "Set to true to create workspace resources (computes, catalogs, permissions, etc). Only use after workspace is RUNNING."
 }
 
-***REMOVED*** MODIFICATION
-***REMOVED*** COMMENTED OUT: Variables for Google Workspace Group membership (requires additional permissions)
-***REMOVED*** REQUIRED PERMISSION: ccc.hosted.frontend.directory.v1.DirectoryMembers.Insert
-***REMOVED*** TO ENABLE: Uncomment after configuring domain-wide delegation and admin user impersonation
-***REMOVED*** variable "workspace_operator_group_email" {
-***REMOVED***   type        = string
-***REMOVED***   default     = ""
-***REMOVED***   description = "Google Workspace Group email to add workspace GSA as member. Leave empty to skip group membership."
-***REMOVED*** }
-***REMOVED*** 
-***REMOVED*** variable "google_workspace_customer_id" {
-***REMOVED***   type        = string
-***REMOVED***   default     = ""
-***REMOVED***   description = "Google Workspace customer ID (format: C***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***). Required if workspace_operator_group_email is set. Get via: gcloud organizations list"
-***REMOVED*** }
+# MODIFICATION
+# COMMENTED OUT: Variables for Google Workspace Group membership (requires additional permissions)
+# REQUIRED PERMISSION: ccc.hosted.frontend.directory.v1.DirectoryMembers.Insert
+# TO ENABLE: Uncomment after configuring domain-wide delegation and admin user impersonation
+# variable "workspace_operator_group_email" {
+#   type        = string
+#   default     = ""
+#   description = "Google Workspace Group email to add workspace GSA as member. Leave empty to skip group membership."
+# }
+# 
+# variable "google_workspace_customer_id" {
+#   type        = string
+#   default     = ""
+#   description = "Google Workspace customer ID (format: C########). Required if workspace_operator_group_email is set. Get via: gcloud organizations list"
+# }

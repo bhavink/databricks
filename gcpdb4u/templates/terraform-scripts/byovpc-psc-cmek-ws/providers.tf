@@ -6,7 +6,7 @@ variable "google_shared_vpc_project" {}
 terraform {
   required_providers {
     databricks = {
-      source = "databricks/databricks"
+      source  = "databricks/databricks"
       version = ">=1.24.0"
     }
     google = {
@@ -21,7 +21,7 @@ provider "google" {
 }
 
 provider "google" {
-  alias = "vpc_project"
+  alias   = "vpc_project"
   project = var.google_shared_vpc_project
   region  = var.google_region
 }

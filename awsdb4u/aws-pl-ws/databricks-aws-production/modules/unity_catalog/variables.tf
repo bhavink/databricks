@@ -1,15 +1,15 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Required Variables
-***REMOVED*** ============================================================================
+# ============================================================================
+# Required Variables
+# ============================================================================
 
 variable "prefix" {
   description = "Prefix for resource naming (with random suffix)"
   type        = string
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Existing Metastore (Optional)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Existing Metastore (Optional)
+# ============================================================================
 
 variable "metastore_id" {
   description = "Existing Unity Catalog metastore ID. If provided, skip metastore and root storage creation. The workspace will be attached to this existing metastore."
@@ -71,9 +71,9 @@ variable "workspace_catalog_name" {
   default     = ""
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** S3 Bucket Names
-***REMOVED*** ============================================================================
+# ============================================================================
+# S3 Bucket Names
+# ============================================================================
 
 variable "unity_catalog_root_storage_bucket" {
   description = "S3 bucket name for Unity Catalog root storage"
@@ -85,9 +85,9 @@ variable "unity_catalog_external_bucket" {
   type        = string
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** KMS Key (Optional)
-***REMOVED*** ============================================================================
+# ============================================================================
+# KMS Key (Optional)
+# ============================================================================
 
 variable "enable_encryption" {
   description = "Whether encryption is enabled (used to determine if KMS policy should be created)"
@@ -101,9 +101,9 @@ variable "kms_key_arn" {
   default     = ""
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Tags
-***REMOVED*** ============================================================================
+# ============================================================================
+# Tags
+# ============================================================================
 
 variable "tags" {
   description = "Tags to apply to all resources"

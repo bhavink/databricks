@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Required Variables
-***REMOVED*** ============================================================================
+# ============================================================================
+# Required Variables
+# ============================================================================
 
 variable "prefix" {
   description = "Prefix for resource naming (with random suffix)"
@@ -55,9 +55,9 @@ variable "tags" {
   default     = {}
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Conditional Resource Creation
-***REMOVED*** ============================================================================
+# ============================================================================
+# Conditional Resource Creation
+# ============================================================================
 
 variable "create_uc_root_storage_bucket" {
   description = "Whether to create the Unity Catalog root storage bucket. Set to false when using an existing metastore."

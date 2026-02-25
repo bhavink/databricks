@@ -1,245 +1,245 @@
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** DATABRICKS GCP VPC SERVICE CONTROLS - WORKSPACE CREATION INGRESS POLICY
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED***
-***REMOVED*** PURPOSE:
-***REMOVED*** This policy is used DURING workspace creation to allow Databricks Control
-***REMOVED*** Plane to create necessary resources in your GCP project.
-***REMOVED***
-***REMOVED*** USAGE STAGE: Phase 1 - Workspace Creation
-***REMOVED*** - Apply this policy BEFORE creating a Databricks workspace
-***REMOVED*** - After workspace is successfully created, replace with ingress.yaml + egress.yaml
-***REMOVED***
-***REMOVED*** IMPORTANT NOTES:
-***REMOVED*** - The Consumer SA (db-WORKSPACEID@...) is created dynamically during workspace
-***REMOVED***   creation, so we cannot specify it beforehand - this is why ANY_IDENTITY is used
-***REMOVED*** - This policy should be replaced after workspace creation for tighter security
-***REMOVED***
-***REMOVED*** DOCUMENTATION REFERENCES:
-***REMOVED*** - VPC Service Controls: https://docs.gcp.databricks.com/en/security/network/vpc-sc.html
-***REMOVED*** - Regional Resources: https://docs.databricks.com/gcp/en/resources/ip-domain-region
-***REMOVED*** - Ingress/Egress Rules: https://cloud.google.com/vpc-service-controls/docs/ingress-egress-rules
-***REMOVED***
-***REMOVED*** BEFORE USING:
-***REMOVED*** 1. Replace YOUR_SA@PROJECT.iam.gserviceaccount.com with your workspace creator identity
-***REMOVED*** 2. Replace project numbers with your actual project numbers:
-***REMOVED***    - 68422481410 → Databricks Central project (DO NOT CHANGE)
-***REMOVED***    - 51066298900 → Your region's Control Plane project number
-***REMOVED***    - 1039757121236 → Your VPC/Host project number
-***REMOVED***    - 488622148875 → Your workspace/service project number
-***REMOVED***
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# DATABRICKS GCP VPC SERVICE CONTROLS - WORKSPACE CREATION INGRESS POLICY
+################################################################################
+#
+# PURPOSE:
+# This policy is used DURING workspace creation to allow Databricks Control
+# Plane to create necessary resources in your GCP project.
+#
+# USAGE STAGE: Phase 1 - Workspace Creation
+# - Apply this policy BEFORE creating a Databricks workspace
+# - After workspace is successfully created, replace with ingress.yaml + egress.yaml
+#
+# IMPORTANT NOTES:
+# - The Consumer SA (db-WORKSPACEID@...) is created dynamically during workspace
+#   creation, so we cannot specify it beforehand - this is why ANY_IDENTITY is used
+# - This policy should be replaced after workspace creation for tighter security
+#
+# DOCUMENTATION REFERENCES:
+# - VPC Service Controls: https://docs.gcp.databricks.com/en/security/network/vpc-sc.html
+# - Regional Resources: https://docs.databricks.com/gcp/en/resources/ip-domain-region
+# - Ingress/Egress Rules: https://cloud.google.com/vpc-service-controls/docs/ingress-egress-rules
+#
+# BEFORE USING:
+# 1. Replace YOUR_SA@PROJECT.iam.gserviceaccount.com with your workspace creator identity
+# 2. Replace project numbers with your actual project numbers:
+#    - 68422481410 → Databricks Central project (DO NOT CHANGE)
+#    - 51066298900 → Your region's Control Plane project number
+#    - 1039757121236 → Your VPC/Host project number
+#    - 488622148875 → Your workspace/service project number
+#
+################################################################################
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** INGRESS RULE 1: Workspace Resource Setup
-***REMOVED***
-***REMOVED*** PURPOSE: Allows Databricks Control Plane to set up workspace infrastructure
-***REMOVED***
-***REMOVED*** TRAFFIC FLOW: Databricks Control Plane → Customer Project
-***REMOVED***
-***REMOVED*** WHAT THIS ALLOWS:
-***REMOVED*** - Reading network, firewall, and subnet configurations
-***REMOVED*** - Setting IAM policies for workspace resources
-***REMOVED*** - Creating workspace service account and roles
-***REMOVED*** - Enabling required Google APIs
-***REMOVED*** - Creating PSC forwarding rules (for PSC workspaces)
-***REMOVED***
-***REMOVED*** IDENTITIES:
-***REMOVED*** - Workspace creator (user or service account you specify)
-***REMOVED*** - Can be multiple identities (uncomment group/user lines as needed)
-***REMOVED***
-***REMOVED*** SOURCE PROJECTS:
-***REMOVED*** - Databricks Central project (68422481410) - Required for all workspace creation
-***REMOVED*** - Databricks Regional Control Plane project - Specific to your region
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# INGRESS RULE 1: Workspace Resource Setup
+#
+# PURPOSE: Allows Databricks Control Plane to set up workspace infrastructure
+#
+# TRAFFIC FLOW: Databricks Control Plane → Customer Project
+#
+# WHAT THIS ALLOWS:
+# - Reading network, firewall, and subnet configurations
+# - Setting IAM policies for workspace resources
+# - Creating workspace service account and roles
+# - Enabling required Google APIs
+# - Creating PSC forwarding rules (for PSC workspaces)
+#
+# IDENTITIES:
+# - Workspace creator (user or service account you specify)
+# - Can be multiple identities (uncomment group/user lines as needed)
+#
+# SOURCE PROJECTS:
+# - Databricks Central project (68422481410) - Required for all workspace creation
+# - Databricks Regional Control Plane project - Specific to your region
+################################################################################
 - ingressFrom:
     identities:
-    ***REMOVED*** Workspace Creator Identities
-    ***REMOVED*** Uncomment and specify the identity creating the workspace:
-    ***REMOVED***   - group:databricks-admins@corp.com        ***REMOVED*** Google Group
-    ***REMOVED***   - user:admin@corp.com                     ***REMOVED*** Individual user
-      - serviceAccount:YOUR_SA@PROJECT.iam.gserviceaccount.com  ***REMOVED*** Service Account
+    # Workspace Creator Identities
+    # Uncomment and specify the identity creating the workspace:
+    #   - group:databricks-admins@corp.com        # Google Group
+    #   - user:admin@corp.com                     # Individual user
+      - serviceAccount:YOUR_SA@PROJECT.iam.gserviceaccount.com  # Service Account
 
     sources:
-    ***REMOVED*** Databricks Project Sources
-    ***REMOVED*** Find your regional project number here:
-    ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
+    # Databricks Project Sources
+    # Find your regional project number here:
+    # https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers
 
-      ***REMOVED*** Databricks Central project - REQUIRED for all workspace creation
-      ***REMOVED*** DO NOT CHANGE THIS PROJECT NUMBER
+      # Databricks Central project - REQUIRED for all workspace creation
+      # DO NOT CHANGE THIS PROJECT NUMBER
       - resource: projects/68422481410
 
-      ***REMOVED*** Databricks Regional Control Plane project
-      ***REMOVED*** REPLACE with your region's Control Plane project number
-      ***REMOVED*** Example: us-east1 = 51066298900, us-central1 = 121886670913
-      - resource: projects/51066298900  ***REMOVED*** UPDATE: Your region's control plane project
+      # Databricks Regional Control Plane project
+      # REPLACE with your region's Control Plane project number
+      # Example: us-east1 = 51066298900, us-central1 = 121886670913
+      - resource: projects/51066298900  # UPDATE: Your region's control plane project
 
   ingressTo:
     operations:
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-      ***REMOVED*** Compute Engine API Operations
-      ***REMOVED*** Required for: Network configuration, firewall setup, PSC endpoints
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+      ############################################################################
+      # Compute Engine API Operations
+      # Required for: Network configuration, firewall setup, PSC endpoints
+      ############################################################################
       - methodSelectors:
-          ***REMOVED*** Network configuration - Read VPC network settings
+          # Network configuration - Read VPC network settings
           - method: 'NetworksService.Get'
 
-          ***REMOVED*** Project information - Verify project access and configuration
+          # Project information - Verify project access and configuration
           - method: 'ProjectsService.Get'
 
-          ***REMOVED*** Firewall rules - Read and create required firewall rules
+          # Firewall rules - Read and create required firewall rules
           - method: 'FirewallsService.Get'
-          - method: 'FirewallsService.Insert'  ***REMOVED*** Create workspace firewall rules
+          - method: 'FirewallsService.Insert'  # Create workspace firewall rules
 
-          ***REMOVED*** Subnet configuration - Read and configure subnet permissions
+          # Subnet configuration - Read and configure subnet permissions
           - method: 'SubnetworksService.Get'
-          - method: 'SubnetworksService.SetPolicy'  ***REMOVED*** Set IAM policy on subnet
-          - method: 'SubnetworksService.GetPolicy'  ***REMOVED*** Read subnet IAM policy
+          - method: 'SubnetworksService.SetPolicy'  # Set IAM policy on subnet
+          - method: 'SubnetworksService.GetPolicy'  # Read subnet IAM policy
 
-          ***REMOVED*** Operation tracking - Monitor async operations progress
+          # Operation tracking - Monitor async operations progress
           - method: 'GlobalOperationsService.Get'
 
-          ***REMOVED*** PSC-specific - Create Private Service Connect forwarding rules
-          ***REMOVED*** Only used for PSC-enabled workspaces
+          # PSC-specific - Create Private Service Connect forwarding rules
+          # Only used for PSC-enabled workspaces
           - method: 'RegionForwardingRulesService.Get'
         serviceName: compute.googleapis.com
 
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-      ***REMOVED*** Service Usage API Operations
-      ***REMOVED*** Required for: Enabling required Google APIs in customer project
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+      ############################################################################
+      # Service Usage API Operations
+      # Required for: Enabling required Google APIs in customer project
+      ############################################################################
       - methodSelectors:
-          ***REMOVED*** Allow all methods because VPC-SC doesn't support fine-grained filtering
-          ***REMOVED*** The only call needed: google.api.serviceusage.v1.ServiceUsage.ListServices
-          ***REMOVED*** This verifies required APIs (compute, storage, etc.) are enabled
+          # Allow all methods because VPC-SC doesn't support fine-grained filtering
+          # The only call needed: google.api.serviceusage.v1.ServiceUsage.ListServices
+          # This verifies required APIs (compute, storage, etc.) are enabled
           - method: '*'
         serviceName: serviceusage.googleapis.com
 
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-      ***REMOVED*** Cloud Resource Manager API Operations
-      ***REMOVED*** Required for: Setting project-level IAM policies
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+      ############################################################################
+      # Cloud Resource Manager API Operations
+      # Required for: Setting project-level IAM policies
+      ############################################################################
       - methodSelectors:
-          ***REMOVED*** Set IAM policy - Grant workspace SA permissions on project
+          # Set IAM policy - Grant workspace SA permissions on project
           - method: 'Projects.SetIamPolicy'
         serviceName: cloudresourcemanager.googleapis.com
 
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-      ***REMOVED*** IAM API Operations
-      ***REMOVED*** Required for: Creating workspace service account and custom roles
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+      ############################################################################
+      # IAM API Operations
+      # Required for: Creating workspace service account and custom roles
+      ############################################################################
       - methodSelectors:
-          ***REMOVED*** Role management - Read and create custom roles
+          # Role management - Read and create custom roles
           - method: 'IAM.GetRole'
           - method: 'IAM.CreateRole'
 
-          ***REMOVED*** IAM policy management - Read and set IAM policies
+          # IAM policy management - Read and set IAM policies
           - method: 'IAM.GetIamPolicy'
           - method: 'IAM.SetIamPolicy'
 
-          ***REMOVED*** Service account - Read service account details
+          # Service account - Read service account details
           - method: 'IAM.GetServiceAccount'
         serviceName: iam.googleapis.com
 
     resources:
-      ***REMOVED*** Target projects where these operations are allowed
-      - projects/1039757121236  ***REMOVED*** UPDATE: Your VPC/Host project number
-      - projects/488622148875   ***REMOVED*** UPDATE: Your workspace/service project number
+      # Target projects where these operations are allowed
+      - projects/1039757121236  # UPDATE: Your VPC/Host project number
+      - projects/488622148875   # UPDATE: Your workspace/service project number
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** INGRESS RULE 2: DBFS Storage Creation
-***REMOVED***
-***REMOVED*** PURPOSE: Allows Databricks to create DBFS storage buckets
-***REMOVED***
-***REMOVED*** WHY ANY_IDENTITY?
-***REMOVED*** The workspace-specific service account (Consumer SA) is created DURING workspace
-***REMOVED*** creation by Databricks. The format is:
-***REMOVED***   db-[WORKSPACEID]@prod-gcp-[REGION].iam.gserviceaccount.com
-***REMOVED***
-***REMOVED*** Since the workspace ID is generated dynamically and unknown beforehand, we
-***REMOVED*** cannot specify the exact service account identity in this policy. Therefore,
-***REMOVED*** we use ANY_IDENTITY with source project restrictions to limit access.
-***REMOVED***
-***REMOVED*** SECURITY CONSIDERATIONS:
-***REMOVED*** - Requests must still originate from Databricks Central project (68422481410)
-***REMOVED*** - Requests must match Access Level (Control Plane NAT IPs)
-***REMOVED*** - Only storage bucket creation and KMS operations are allowed
-***REMOVED*** - After workspace creation, remove this rule or replace with specific Consumer SA
-***REMOVED***
-***REMOVED*** WHAT THIS CREATES:
-***REMOVED*** - projects/[PROJECT]/buckets/databricks-[WORKSPACEID] (main DBFS bucket)
-***REMOVED*** - projects/[PROJECT]/buckets/databricks-[WORKSPACEID]-system (system bucket)
-***REMOVED***
-***REMOVED*** POST-CREATION:
-***REMOVED*** After workspace is created, you can replace this rule with a specific identity
-***REMOVED*** rule in ingress.yaml that explicitly lists the Consumer SA
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# INGRESS RULE 2: DBFS Storage Creation
+#
+# PURPOSE: Allows Databricks to create DBFS storage buckets
+#
+# WHY ANY_IDENTITY?
+# The workspace-specific service account (Consumer SA) is created DURING workspace
+# creation by Databricks. The format is:
+#   db-[WORKSPACEID]@prod-gcp-[REGION].iam.gserviceaccount.com
+#
+# Since the workspace ID is generated dynamically and unknown beforehand, we
+# cannot specify the exact service account identity in this policy. Therefore,
+# we use ANY_IDENTITY with source project restrictions to limit access.
+#
+# SECURITY CONSIDERATIONS:
+# - Requests must still originate from Databricks Central project (68422481410)
+# - Requests must match Access Level (Control Plane NAT IPs)
+# - Only storage bucket creation and KMS operations are allowed
+# - After workspace creation, remove this rule or replace with specific Consumer SA
+#
+# WHAT THIS CREATES:
+# - projects/[PROJECT]/buckets/databricks-[WORKSPACEID] (main DBFS bucket)
+# - projects/[PROJECT]/buckets/databricks-[WORKSPACEID]-system (system bucket)
+#
+# POST-CREATION:
+# After workspace is created, you can replace this rule with a specific identity
+# rule in ingress.yaml that explicitly lists the Consumer SA
+################################################################################
 - ingressFrom:
-    ***REMOVED*** Use ANY_IDENTITY because Consumer SA doesn't exist yet
-    ***REMOVED*** This identity is created dynamically at workspace creation time
+    # Use ANY_IDENTITY because Consumer SA doesn't exist yet
+    # This identity is created dynamically at workspace creation time
     identityType: ANY_IDENTITY
 
     sources:
-      ***REMOVED*** Databricks Central project - Creates DBFS buckets on behalf of workspace
-      ***REMOVED*** DO NOT CHANGE THIS PROJECT NUMBER
+      # Databricks Central project - Creates DBFS buckets on behalf of workspace
+      # DO NOT CHANGE THIS PROJECT NUMBER
       - resource: projects/68422481410
 
   ingressTo:
     operations:
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-      ***REMOVED*** Cloud Storage API Operations
-      ***REMOVED*** Required for: Creating DBFS storage buckets
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+      ############################################################################
+      # Cloud Storage API Operations
+      # Required for: Creating DBFS storage buckets
+      ############################################################################
       - methodSelectors:
-          ***REMOVED*** Create DBFS buckets - Required during workspace creation
-          ***REMOVED*** RECOMMENDATION: Remove this permission after workspace creation
-          ***REMOVED*** and replace with specific Consumer SA in ingress.yaml
+          # Create DBFS buckets - Required during workspace creation
+          # RECOMMENDATION: Remove this permission after workspace creation
+          # and replace with specific Consumer SA in ingress.yaml
           - method: 'google.storage.buckets.create'
         serviceName: storage.googleapis.com
 
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-      ***REMOVED*** Cloud KMS API Operations (Optional)
-      ***REMOVED*** Required for: Customer-Managed Encryption Keys (CMEK)
-      ***REMOVED*** Only needed if you're using CMEK for DBFS encryption
-      ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+      ############################################################################
+      # Cloud KMS API Operations (Optional)
+      # Required for: Customer-Managed Encryption Keys (CMEK)
+      # Only needed if you're using CMEK for DBFS encryption
+      ############################################################################
       - methodSelectors:
-          ***REMOVED*** Allow all methods because VPC-SC doesn't support method filtering for KMS
-          ***REMOVED*** Required operations: encrypt, decrypt, getKeyRing, getCryptoKey
-          ***REMOVED*** RECOMMENDATION: Remove if not using CMEK, or remove after workspace creation
+          # Allow all methods because VPC-SC doesn't support method filtering for KMS
+          # Required operations: encrypt, decrypt, getKeyRing, getCryptoKey
+          # RECOMMENDATION: Remove if not using CMEK, or remove after workspace creation
           - method: '*'
         serviceName: cloudkms.googleapis.com
 
     resources:
-      ***REMOVED*** Target project where DBFS buckets will be created
-      - projects/488622148875  ***REMOVED*** UPDATE: Your workspace/service project number
+      # Target project where DBFS buckets will be created
+      - projects/488622148875  # UPDATE: Your workspace/service project number
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** NEXT STEPS AFTER WORKSPACE CREATION:
-***REMOVED***
-***REMOVED*** 1. Verify workspace created successfully:
-***REMOVED***    - Check Databricks UI to confirm workspace is accessible
-***REMOVED***    - Verify DBFS buckets exist: databricks-[WORKSPACEID] and databricks-[WORKSPACEID]-system
-***REMOVED***    - Confirm Consumer SA exists: db-[WORKSPACEID]@prod-gcp-[REGION].iam.gserviceaccount.com
-***REMOVED***
-***REMOVED*** 2. Update VPC-SC perimeter:
-***REMOVED***    - Replace this policy with ingress.yaml (operational ingress rules)
-***REMOVED***    - Add egress.yaml (cluster egress rules)
-***REMOVED***    - Test in dry-run mode first
-***REMOVED***    - Enforce updated perimeter
-***REMOVED***
-***REMOVED*** 3. Test cluster creation:
-***REMOVED***    - Launch a test cluster to verify egress policies work
-***REMOVED***    - Confirm cluster can access DBFS and runtime images
-***REMOVED***    - Monitor VPC-SC logs for any violations
-***REMOVED***
-***REMOVED*** TROUBLESHOOTING:
-***REMOVED*** - If workspace creation fails with VPC-SC violation:
-***REMOVED***   • Check Access Level includes correct Control Plane IPs
-***REMOVED***   • Verify project numbers are correct for your region
-***REMOVED***   • Review VPC-SC audit logs: gcloud logging read "protoPayload.metadata.@type=type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata"
-***REMOVED***
-***REMOVED*** - If DBFS bucket creation fails:
-***REMOVED***   • Ensure ANY_IDENTITY rule is present
-***REMOVED***   • Verify Databricks Central project (68422481410) is in sources
-***REMOVED***   • Check that storage.googleapis.com is in restricted services
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# NEXT STEPS AFTER WORKSPACE CREATION:
+#
+# 1. Verify workspace created successfully:
+#    - Check Databricks UI to confirm workspace is accessible
+#    - Verify DBFS buckets exist: databricks-[WORKSPACEID] and databricks-[WORKSPACEID]-system
+#    - Confirm Consumer SA exists: db-[WORKSPACEID]@prod-gcp-[REGION].iam.gserviceaccount.com
+#
+# 2. Update VPC-SC perimeter:
+#    - Replace this policy with ingress.yaml (operational ingress rules)
+#    - Add egress.yaml (cluster egress rules)
+#    - Test in dry-run mode first
+#    - Enforce updated perimeter
+#
+# 3. Test cluster creation:
+#    - Launch a test cluster to verify egress policies work
+#    - Confirm cluster can access DBFS and runtime images
+#    - Monitor VPC-SC logs for any violations
+#
+# TROUBLESHOOTING:
+# - If workspace creation fails with VPC-SC violation:
+#   • Check Access Level includes correct Control Plane IPs
+#   • Verify project numbers are correct for your region
+#   • Review VPC-SC audit logs: gcloud logging read "protoPayload.metadata.@type=type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata"
+#
+# - If DBFS bucket creation fails:
+#   • Ensure ANY_IDENTITY rule is present
+#   • Verify Databricks Central project (68422481410) is in sources
+#   • Check that storage.googleapis.com is in restricted services
+################################################################################

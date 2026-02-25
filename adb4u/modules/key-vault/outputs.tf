@@ -43,15 +43,15 @@ output "key_name" {
 output "key_vault_configuration" {
   description = "Key Vault configuration summary"
   value = {
-    key_vault_created       = var.create_key_vault
-    key_vault_id            = local.key_vault_id
-    key_id                  = local.key_id
-    purge_protection        = var.create_key_vault ? azurerm_key_vault.this[0].purge_protection_enabled : null
-    soft_delete_enabled     = var.enable_soft_delete
-    auto_rotation_enabled   = var.enable_auto_rotation
-    rotation_policy_days    = var.enable_auto_rotation ? var.rotation_policy_days : null
-    key_type                = var.key_type
-    key_size                = var.key_size
+    key_vault_created     = var.create_key_vault
+    key_vault_id          = local.key_vault_id
+    key_id                = local.key_id
+    purge_protection      = var.create_key_vault ? azurerm_key_vault.this[0].purge_protection_enabled : null
+    soft_delete_enabled   = var.enable_soft_delete
+    auto_rotation_enabled = var.enable_auto_rotation
+    rotation_policy_days  = var.enable_auto_rotation ? var.rotation_policy_days : null
+    key_type              = var.key_type
+    key_size              = var.key_size
   }
 }
 

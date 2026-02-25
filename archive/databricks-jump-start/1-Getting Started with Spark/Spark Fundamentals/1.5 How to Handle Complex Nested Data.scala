@@ -1,9 +1,9 @@
 // Databricks notebook source
-// MAGIC %md ***REMOVED******REMOVED***Five Spark SQL Helper Utility Functions to Extract and Explore Complex Data Types
+// MAGIC %md ##Five Spark SQL Helper Utility Functions to Extract and Explore Complex Data Types
 
 // COMMAND ----------
 
-// MAGIC %md While this [in-depth blog lays out and explains the concepts and motivations](https://databricks.com/blog/2017/02/23/working-complex-data-formats-structured-streaming-apache-spark-2-1.html) for processing and handling complex data types and formats, this notebook example examines how you can apply them, with a few concrete examples, for data types that you might encounter in your use cases. This short notebook tutorial shows ways in which you can explore and employ a number of new helper Spark SQL utility functions and APIs as part of [`org.apache.spark.sql.functions`](https://spark.apache.org/docs/latest/api/scala/index.html***REMOVED***org.apache.spark.sql.functions$) package. In particular, they come in handy while doing Streaming ETL, in which data are JSON objects with complex and nested structures: Map and Structs embedded as JSON:
+// MAGIC %md While this [in-depth blog lays out and explains the concepts and motivations](https://databricks.com/blog/2017/02/23/working-complex-data-formats-structured-streaming-apache-spark-2-1.html) for processing and handling complex data types and formats, this notebook example examines how you can apply them, with a few concrete examples, for data types that you might encounter in your use cases. This short notebook tutorial shows ways in which you can explore and employ a number of new helper Spark SQL utility functions and APIs as part of [`org.apache.spark.sql.functions`](https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.functions$) package. In particular, they come in handy while doing Streaming ETL, in which data are JSON objects with complex and nested structures: Map and Structs embedded as JSON:
 // MAGIC 
 // MAGIC * `get_json_object()`
 // MAGIC * `from_json()`
@@ -40,7 +40,7 @@ val jsonSchema = new StructType()
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED*** Create a Dataset from the above schema
+// MAGIC %md ##### Create a Dataset from the above schema
 
 // COMMAND ----------
 
@@ -87,7 +87,7 @@ eventsDS.printSchema
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** How to use `get_json_object()`
+// MAGIC %md ### How to use `get_json_object()`
 
 // COMMAND ----------
 
@@ -125,11 +125,11 @@ display(jsDF)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** How to use `from_json()`
+// MAGIC %md ### How to use `from_json()`
 
 // COMMAND ----------
 
-// MAGIC %md A variation of `get_json_object()`, this function uses schema to extract individual columns. Using [_from_json()_](https://spark.apache.org/docs/latest/api/scala/index.html***REMOVED***org.apache.spark.sql.functions$) helper function within the _select()_ Dataset API call, I can extract or decode data's attributes and values from a JSON string into a DataFrame as columns, dictated by a schema. As well using the schema, I ascribe all associated atrributes and values within this JSON to represent as an entity *devices*. As such, not only can you use the `device.attribute` to retrieve its respective value but also all values using the *** notation.
+// MAGIC %md A variation of `get_json_object()`, this function uses schema to extract individual columns. Using [_from_json()_](https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.functions$) helper function within the _select()_ Dataset API call, I can extract or decode data's attributes and values from a JSON string into a DataFrame as columns, dictated by a schema. As well using the schema, I ascribe all associated atrributes and values within this JSON to represent as an entity *devices*. As such, not only can you use the `device.attribute` to retrieve its respective value but also all values using the *** notation.
 // MAGIC 
 // MAGIC In example below:
 // MAGIC * Uses the schema above to extract from the JSON string attributes and values and represent them as individual columns as part of `devices`
@@ -160,11 +160,11 @@ display(devicesUSDF)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** How to use `to_json()`
+// MAGIC %md ### How to use `to_json()`
 
 // COMMAND ----------
 
-// MAGIC %md Now, let's do the reverse: you can convert or encode our filtered devices into JSON string using [`to_json()`](https://spark.apache.org/docs/latest/api/scala/index.html***REMOVED***org.apache.spark.sql.functions$). That is, convert a JSON struct into a string. The result can be republished, for instance, to Kafka or saved on disk as parquet files. To learn how to write to Kafka and other sinks, [read this blog](https://databricks.com/blog/2017/04/04/real-time-end-to-end-integration-with-apache-kafka-in-apache-sparks-structured-streaming.html) and our series on [Structured Streaming blogs.](https://databricks.com/blog/2017/01/19/real-time-streaming-etl-structured-streaming-apache-spark-2-1.html)
+// MAGIC %md Now, let's do the reverse: you can convert or encode our filtered devices into JSON string using [`to_json()`](https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.functions$). That is, convert a JSON struct into a string. The result can be republished, for instance, to Kafka or saved on disk as parquet files. To learn how to write to Kafka and other sinks, [read this blog](https://databricks.com/blog/2017/04/04/real-time-end-to-end-integration-with-apache-kafka-in-apache-sparks-structured-streaming.html) and our series on [Structured Streaming blogs.](https://databricks.com/blog/2017/01/19/real-time-streaming-etl-structured-streaming-apache-spark-2-1.html)
 
 // COMMAND ----------
 
@@ -188,7 +188,7 @@ display(stringJsonDF)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** How to use `selectExpr()`
+// MAGIC %md ### How to use `selectExpr()`
 
 // COMMAND ----------
 
@@ -236,7 +236,7 @@ devicesDF.createOrReplaceTempView("devicesDFT")
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** To verify that all your string conversions are preserved in the above DataFrame `stringJsonDF`, let's save to blob storage as Parquet.
+// MAGIC %md ### To verify that all your string conversions are preserved in the above DataFrame `stringJsonDF`, let's save to blob storage as Parquet.
 
 // COMMAND ----------
 
@@ -282,7 +282,7 @@ display(parquetDF)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Nested Structures
+// MAGIC %md ## Nested Structures
 // MAGIC It's not unreasonable to assume that your JSON nested structures may have Maps as well as nested JSON. For illustration, let's use a single string comprised of  complex and nested data types, including a Map. In a real life scenario, this could be a reading from a device event, with dangerous levels of C02 emissions or high temperature readings, that needs Network Operation Center (NOC) notification for some immediate action. 
 
 // COMMAND ----------
@@ -386,11 +386,11 @@ display(df)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** How to use `explode()`
+// MAGIC %md ### How to use `explode()`
 
 // COMMAND ----------
 
-// MAGIC %md The [`explode()`](https://spark.apache.org/docs/latest/api/scala/index.html***REMOVED***org.apache.spark.sql.functions$) function is used to show how to extract nested structures. Plus, it sheds more light when we see how it works alongside `to_json()` and `from_json()` functions, when extracting attributes and values from complex JSON structures. So on occasion, you will want to use `explode()`, alongside `to_json()` and `from_json()` functions. And here's one case where we do.
+// MAGIC %md The [`explode()`](https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.functions$) function is used to show how to extract nested structures. Plus, it sheds more light when we see how it works alongside `to_json()` and `from_json()` functions, when extracting attributes and values from complex JSON structures. So on occasion, you will want to use `explode()`, alongside `to_json()` and `from_json()` functions. And here's one case where we do.
 // MAGIC 
 // MAGIC The `explode()` function creates a new row for each element in the given map column. In this case, the map column is `source`. Note that for each key-value in the map, you have a respective Row, in this case four.
 
@@ -449,7 +449,7 @@ display(notifydevicesDS)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** Function for alert notifications
+// MAGIC %md ### Function for alert notifications
 
 // COMMAND ----------
 
@@ -487,7 +487,7 @@ val message = "[***ALERT***: %s; data_center: %s, device_name: %s, temperature: 
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** Iterate over alert devices and take action
+// MAGIC %md ### Iterate over alert devices and take action
 
 // COMMAND ----------
 
@@ -499,7 +499,7 @@ notifydevicesDS.foreach(d => logAlerts(Console.err, d, "ACTION NEED! HIGH TEPERA
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** Send alerts as JSON to Apache Kafka topic
+// MAGIC %md ### Send alerts as JSON to Apache Kafka topic
 
 // COMMAND ----------
 
@@ -521,7 +521,7 @@ notifydevicesDS.foreach(d => logAlerts(Console.err, d, "ACTION NEED! HIGH TEPERA
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Nest Device Data
+// MAGIC %md ## Nest Device Data
 
 // COMMAND ----------
 
@@ -606,7 +606,7 @@ val nestSchema2 = new StructType()
 
 // COMMAND ----------
 
-// MAGIC %md By creating a simple Dataset, you can then use all [Dataset methods](https://spark.apache.org/docs/latest/api/scala/index.html***REMOVED***org.apache.spark.sql.Dataset) to do ETL, using utility functions from above: `from_json()`, `to_json()`, `explode()` and `selectExpr()`.
+// MAGIC %md By creating a simple Dataset, you can then use all [Dataset methods](https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.Dataset) to do ETL, using utility functions from above: `from_json()`, `to_json()`, `explode()` and `selectExpr()`.
 
 // COMMAND ----------
 
@@ -795,5 +795,5 @@ display(joineDFs)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** Summary
+// MAGIC %md ### Summary
 // MAGIC The point of this short tutorial has been to demonstrate the easy use of utility functions to extract JSON attributes from a complex and nested structure. And once you have exploded or flattened or parsed the desired values into respective DataFrames or Datasets, you can as easily extract and query them as you would any DataFrame or Dataset, using respective APIs. Check our [Structured Streaming series part 3](https://databricks.com/blog/2017/04/26/processing-data-in-apache-kafka-with-structured-streaming-in-apache-spark-2-2.html), where we show how you can read Nest device logs from Apache Kafka and do some ETL on them.

@@ -3,10 +3,10 @@ variable "vpc_project_id" {
   type        = string
 }
 
-***REMOVED*** variable "vpc_project_region" {
-***REMOVED***   description = "Default region for resources"
-***REMOVED***   type        = string
-***REMOVED*** }
+# variable "vpc_project_region" {
+#   description = "Default region for resources"
+#   type        = string
+# }
 
 variable "network_name" {
   description = "Name of the VPC network"
@@ -37,24 +37,24 @@ variable "create_psc_resources" {
 
 variable "destination_ips" {
   description = "Destination IPs for each region"
-  type = map(string)
+  type        = map(string)
 }
 
 variable "databricks_hive_ips" {
   description = "Destination IPs for databricks managed hive for each region"
-  type = map(string)
+  type        = map(string)
 }
 
 variable "create_cmk_resources" {
   description = "Flag to enable or disable the creation of KMS resources"
   type        = bool
-  default     = false  ***REMOVED*** Set to true to enable KMS resource creation
+  default     = false # Set to true to enable KMS resource creation
 }
 
 variable "create_psc_endpoints" {
   description = "Flag to enable or disable the creation of PSC endpoints"
   type        = bool
-  default     = false  ***REMOVED*** Set to true to enable PSC endpoint creation
+  default     = false # Set to true to enable PSC endpoint creation
 }
 
 variable "psc_attachments" {
@@ -66,7 +66,7 @@ variable "psc_attachments" {
 }
 
 variable "private_googleapi_ips" {
-  type    = list(string)
+  type = list(string)
   default = [
     "199.36.153.10",
     "199.36.153.11",

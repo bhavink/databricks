@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style C: Dark Botanical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  :root {
+    --bg-primary: #0f0f0f;
+    --text-primary: #e8e4df;
+    --text-secondary: #9a9590;
+    --accent-warm: #d4a574;
+    --accent-pink: #e8b4b8;
+    --accent-gold: #c9b896;
+    --border: rgba(212,165,116,0.12);
+    --title-size: clamp(2.4rem, 5.5vw, 5.5rem);
+    --body-size: clamp(0.78rem, 1.2vw, 0.95rem);
+    --slide-padding: clamp(1.5rem, 4.5vw, 5rem);
+  }
+
+  body {
+    background: var(--bg-primary);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--text-primary);
+  }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--slide-padding);
+    gap: clamp(1.2rem, 2.5vh, 2.5rem);
+    position: relative;
+  }
+
+  /* ── Abstract shapes — CSS only, no illustrations ── */
+  .abstract-shapes {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  /* Large blurred circle — top right */
+  .shape-1 {
+    position: absolute;
+    top: -15vh;
+    right: -10vw;
+    width: min(55vw, 600px);
+    height: min(55vw, 600px);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,165,116,0.12) 0%, rgba(212,165,116,0.04) 45%, transparent 70%);
+    filter: blur(40px);
+  }
+
+  /* Medium blurred circle — bottom left */
+  .shape-2 {
+    position: absolute;
+    bottom: -8vh;
+    left: -5vw;
+    width: min(35vw, 380px);
+    height: min(35vw, 380px);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,180,184,0.08) 0%, transparent 65%);
+    filter: blur(50px);
+  }
+
+  /* Small accent circle — mid right */
+  .shape-3 {
+    position: absolute;
+    top: 38%;
+    right: 8vw;
+    width: min(18vw, 200px);
+    height: min(18vw, 200px);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,184,150,0.1) 0%, transparent 70%);
+    filter: blur(20px);
+  }
+
+  /* Thin vertical accent line */
+  .accent-line {
+    position: absolute;
+    right: clamp(3rem, 7vw, 7rem);
+    top: 15%;
+    bottom: 15%;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(212,165,116,0.25) 30%,
+      rgba(212,165,116,0.25) 70%,
+      transparent
+    );
+    opacity: 0;
+    animation: fadeIn 1s ease 0.8s forwards;
+  }
+
+  /* Small dot on the line */
+  .accent-line::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-warm);
+  }
+
+  /* ── Content ── */
+  .content-wrap {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2.2vh, 2rem);
+    max-width: min(70vw, 760px);
+  }
+
+  /* Category / eyebrow */
+  .category {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    opacity: 0;
+    animation: fadeIn 0.6s ease 0.3s forwards;
+  }
+
+  .category-line {
+    width: 28px;
+    height: 1px;
+    background: var(--accent-warm);
+    flex-shrink: 0;
+  }
+
+  .category-text {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+  }
+
+  /* Main heading — Cormorant, elegant serif */
+  h1 {
+    font-family: 'Cormorant', serif;
+    font-size: var(--title-size);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
+  }
+
+  h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--accent-warm);
+  }
+
+  /* Thin horizontal rule */
+  .rule {
+    width: clamp(2rem, 5vw, 4rem);
+    height: 1px;
+    background: var(--border);
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.9s forwards;
+  }
+
+  /* Body copy */
+  .body-text {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: var(--body-size);
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1.75;
+    max-width: 52ch;
+    opacity: 0;
+    transform: translateY(12px);
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.72s forwards;
+  }
+
+  /* Pillars / key points */
+  .pillars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.9s forwards;
+  }
+
+  .pillar-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(0.72rem, 1.05vw, 0.875rem);
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .pillar-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    flex-shrink: 0;
+    margin-top: 0.45em;
+  }
+
+  /* Bottom: metadata */
+  .bottom-meta {
+    position: absolute;
+    z-index: 2;
+    bottom: var(--slide-padding);
+    left: var(--slide-padding);
+    right: var(--slide-padding);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 1.1s forwards;
+  }
+
+  .meta-left {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(0.58rem, 0.8vw, 0.68rem);
+    font-weight: 300;
+    color: rgba(154,149,144,0.5);
+    letter-spacing: 0.08em;
+  }
+
+  .meta-right {
+    font-family: 'Cormorant', serif;
+    font-size: clamp(0.7rem, 1vw, 0.85rem);
+    font-weight: 300;
+    font-style: italic;
+    color: rgba(212,165,116,0.4);
+    letter-spacing: 0.04em;
+  }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  @media (max-height: 600px) {
+    :root { --slide-padding: clamp(0.75rem, 2.5vw, 1.5rem); }
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <!-- Abstract background shapes -->
+  <div class="abstract-shapes">
+    <div class="shape-1"></div>
+    <div class="shape-2"></div>
+    <div class="shape-3"></div>
+  </div>
+
+  <!-- Thin vertical accent line -->
+  <div class="accent-line"></div>
+
+  <!-- Main content -->
+  <div class="content-wrap">
+    <div class="category">
+      <div class="category-line"></div>
+      <div class="category-text">Databricks · AI Governance · 2026</div>
+    </div>
+
+    <h1>
+      Governing<br>
+      <em>Intelligent</em><br>
+      Systems
+    </h1>
+
+    <div class="rule"></div>
+
+    <p class="body-text">
+      A principled approach to authentication, authorization,
+      and observability — for AI workloads from Genie Space
+      to multi-agent orchestration at enterprise scale.
+    </p>
+
+    <div class="pillars">
+      <div class="pillar-item">
+        <div class="pillar-dot"></div>
+        Zero-trust authentication across all Databricks AI products
+      </div>
+      <div class="pillar-item">
+        <div class="pillar-dot"></div>
+        Unity Catalog four-layer access control model
+      </div>
+      <div class="pillar-item">
+        <div class="pillar-dot"></div>
+        Real-time audit logging, compliance, and observability
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom meta -->
+  <div class="bottom-meta">
+    <div class="meta-left">Databricks Field Engineering — 2026</div>
+    <div class="meta-right">Style C — Dark Botanical</div>
+  </div>
+
+</div>
+</body>
+</html>

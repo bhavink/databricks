@@ -1,5 +1,5 @@
 // Databricks notebook source
-// MAGIC %md ***REMOVED*** Decision Trees for handwritten digit recognition
+// MAGIC %md # Decision Trees for handwritten digit recognition
 // MAGIC 
 // MAGIC This notebook demonstrates learning a [Decision Tree](https://en.wikipedia.org/wiki/Decision_tree_learning) using Spark's distributed implementation.  It gives the reader a better understanding of some critical [hyperparameters](https://en.wikipedia.org/wiki/Hyperparameter_optimization) for the tree learning algorithm, using examples to demonstrate how tuning the hyperparameters can improve accuracy.
 // MAGIC 
@@ -17,7 +17,7 @@
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Load MNIST training and test datasets
+// MAGIC %md ## Load MNIST training and test datasets
 // MAGIC 
 // MAGIC Our datasets are vectors of pixels representing images of handwritten digits.  For example:
 // MAGIC 
@@ -49,7 +49,7 @@ display(training)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Train a Decision Tree
+// MAGIC %md ## Train a Decision Tree
 // MAGIC 
 // MAGIC We begin by training a decision tree using the default settings.  Before training, we want to tell the algorithm that the labels are categories 0-9, rather than continuous values.  We use the `StringIndexer` class to do this.  We tie this feature preprocessing together with the tree algorithm using a `Pipeline`.  ML Pipelines are tools Spark provides for piecing together Machine Learning algorithms into workflows.  To learn more about Pipelines, check out other ML example notebooks in Databricks and the [ML Pipelines user guide](http://spark.apache.org/docs/latest/ml-guide.html).
 
@@ -93,7 +93,7 @@ display(tree)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Exploring "maxDepth": training trees of different sizes
+// MAGIC %md ## Exploring "maxDepth": training trees of different sizes
 // MAGIC 
 // MAGIC In this section, we test tuning a single hyperparameter `maxDepth`, which determines how deep (and large) the tree can be.  We will train trees at varying depths and see how it affects the accuracy on our held-out test set.
 // MAGIC 
@@ -144,7 +144,7 @@ display(accuracies)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Exploring "maxBins": discretization for efficient distributed computing
+// MAGIC %md ## Exploring "maxBins": discretization for efficient distributed computing
 // MAGIC 
 // MAGIC This section explores a more expert-level setting `maxBins`.  For efficient distributed training of Decision Trees, Spark and most other libraries discretize (or "bin") continuous features (such as pixel values) into a finite number of values.  This is an important step for the distributed implementation, but it introduces a tradeoff: Larger `maxBins` mean your data will be more accurately represented, but it will also mean more communication (and slower training).
 // MAGIC 
@@ -174,9 +174,9 @@ display(accuracies)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED*** What's next?
+// MAGIC %md #### What's next?
 // MAGIC 
-// MAGIC * **Explore**: Try out tuning other parameters of trees---or even ensembles like [Random Forests or Gradient-Boosted Trees](http://spark.apache.org/docs/latest/ml-classification-regression.html***REMOVED***tree-ensembles).
+// MAGIC * **Explore**: Try out tuning other parameters of trees---or even ensembles like [Random Forests or Gradient-Boosted Trees](http://spark.apache.org/docs/latest/ml-classification-regression.html#tree-ensembles).
 // MAGIC * **Automated tuning**: This type of tuning does not have to be done by hand.  (We did it by hand here to show the effects of tuning in detail.)  MLlib provides automated tuning functionality via `CrossValidator`.  Check out the other Databricks ML Pipeline guides or the [Spark ML user guide](http://spark.apache.org/docs/latest/ml-guide.html) for details.
 // MAGIC 
 // MAGIC **Resources**

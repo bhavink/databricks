@@ -6,8 +6,8 @@ terraform {
       version = "~> 4.0"
     }
     databricks = {
-      source  = "databricks/databricks"
-      version = "~> 1.40"
+      source                = "databricks/databricks"
+      version               = "~> 1.40"
       configuration_aliases = [databricks.account, databricks.workspace]
     }
     random = {

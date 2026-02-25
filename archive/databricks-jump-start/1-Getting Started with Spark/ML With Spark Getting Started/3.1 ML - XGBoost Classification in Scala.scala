@@ -1,9 +1,9 @@
 // Databricks notebook source
-// MAGIC %md ***REMOVED*** XGBoost Classification with Spark DataFrames
+// MAGIC %md # XGBoost Classification with Spark DataFrames
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Prepare Data
+// MAGIC %md ## Prepare Data
 
 // COMMAND ----------
 
@@ -58,7 +58,7 @@ display(xgbInput)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED*** Train XGBoost Model with Spark DataFrames
+// MAGIC %md #### Train XGBoost Model with Spark DataFrames
 
 // COMMAND ----------
 
@@ -94,7 +94,7 @@ val labelConverter = new IndexToString()
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** Embed XGBoost in ML Pipeline
+// MAGIC %md ### Embed XGBoost in ML Pipeline
 
 // COMMAND ----------
 

@@ -1,82 +1,82 @@
-***REMOVED*** Databricks notebook source
-***REMOVED*** MAGIC %md
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC ***REMOVED*** Spark interfaces
-***REMOVED*** MAGIC There are three key Spark interfaces that you should know about.
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC ***REMOVED******REMOVED******REMOVED******REMOVED*** Resilient Distributed Dataset (RDD)
-***REMOVED*** MAGIC Apache Spark’s first abstraction was the RDD. It is an interface to a sequence of data objects that consist of one or more types that are located across a collection of machines (a cluster). RDDs can be created in a variety of ways and are the “lowest level” API available. While this is the original data structure for Apache Spark, you should focus on the DataFrame API, which is a superset of the RDD functionality. The RDD API is available in the Java, Python, and Scala languages.
-***REMOVED*** MAGIC ***REMOVED******REMOVED******REMOVED******REMOVED*** DataFrame
-***REMOVED*** MAGIC These are similar in concept to the DataFrame you may be familiar with in the pandas Python library and the R language. The DataFrame API is available in the Java, Python, R, and Scala languages.
-***REMOVED*** MAGIC ***REMOVED******REMOVED******REMOVED******REMOVED*** Dataset
-***REMOVED*** MAGIC A combination of DataFrame and RDD. It provides the typed interface that is available in RDDs while providing the convenience of the DataFrame. The Dataset API is available in the Java and Scala languages.
-***REMOVED*** MAGIC In many scenarios, especially with the performance optimizations embedded in DataFrames and Datasets, it will not be necessary to work with RDDs. But it is important to understand the RDD abstraction because:
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC The RDD is the underlying infrastructure that allows Spark to run so fast and provide data lineage.
-***REMOVED*** MAGIC If you are diving into more advanced components of Spark, it may be necessary to use RDDs.
-***REMOVED*** MAGIC The visualizations within the Spark UI reference RDDs.
-***REMOVED*** MAGIC When you develop Spark applications, you typically use **DataFrames** and **Datasets**.
+# Databricks notebook source
+# MAGIC %md
+# MAGIC 
+# MAGIC # Spark interfaces
+# MAGIC There are three key Spark interfaces that you should know about.
+# MAGIC 
+# MAGIC #### Resilient Distributed Dataset (RDD)
+# MAGIC Apache Spark’s first abstraction was the RDD. It is an interface to a sequence of data objects that consist of one or more types that are located across a collection of machines (a cluster). RDDs can be created in a variety of ways and are the “lowest level” API available. While this is the original data structure for Apache Spark, you should focus on the DataFrame API, which is a superset of the RDD functionality. The RDD API is available in the Java, Python, and Scala languages.
+# MAGIC #### DataFrame
+# MAGIC These are similar in concept to the DataFrame you may be familiar with in the pandas Python library and the R language. The DataFrame API is available in the Java, Python, R, and Scala languages.
+# MAGIC #### Dataset
+# MAGIC A combination of DataFrame and RDD. It provides the typed interface that is available in RDDs while providing the convenience of the DataFrame. The Dataset API is available in the Java and Scala languages.
+# MAGIC In many scenarios, especially with the performance optimizations embedded in DataFrames and Datasets, it will not be necessary to work with RDDs. But it is important to understand the RDD abstraction because:
+# MAGIC 
+# MAGIC The RDD is the underlying infrastructure that allows Spark to run so fast and provide data lineage.
+# MAGIC If you are diving into more advanced components of Spark, it may be necessary to use RDDs.
+# MAGIC The visualizations within the Spark UI reference RDDs.
+# MAGIC When you develop Spark applications, you typically use **DataFrames** and **Datasets**.
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC ***REMOVED*** Databricks datasets
-***REMOVED*** MAGIC Databricks includes a variety of datasets within the Workspace that you can use to learn Spark or test out algorithms. 
-***REMOVED*** MAGIC <br>You’ll see these throughout the getting started guide. 
-***REMOVED*** MAGIC <br>The datasets are available in the **/databricks-datasets** folder
+# MAGIC %md
+# MAGIC 
+# MAGIC # Databricks datasets
+# MAGIC Databricks includes a variety of datasets within the Workspace that you can use to learn Spark or test out algorithms. 
+# MAGIC <br>You’ll see these throughout the getting started guide. 
+# MAGIC <br>The datasets are available in the **/databricks-datasets** folder
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Quick Start Using Python
-***REMOVED*** MAGIC * Using a Databricks notebook to showcase DataFrame operations using Python
-***REMOVED*** MAGIC * Reference http://spark.apache.org/docs/latest/quick-start.html
+# MAGIC %md ## Quick Start Using Python
+# MAGIC * Using a Databricks notebook to showcase DataFrame operations using Python
+# MAGIC * Reference http://spark.apache.org/docs/latest/quick-start.html
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Take a look at the file system
+# Take a look at the file system
 display(dbutils.fs.ls("/databricks-datasets/samples/docs/"))
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md DataFrames have ***transformations***, which return pointers to new DataFrames, and ***actions***, which return values.
+# MAGIC %md DataFrames have ***transformations***, which return pointers to new DataFrames, and ***actions***, which return values.
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** transformation
+# transformation
 textFile = spark.read.text("/databricks-datasets/samples/docs/README.md")
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** action
+# action
 textFile.count()
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Output the first line from the text file
+# Output the first line from the text file
 textFile.first()
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md 
-***REMOVED*** MAGIC Now we're using a filter ***transformation*** to return a new DataFrame with a subset of the items in the file.
+# MAGIC %md 
+# MAGIC Now we're using a filter ***transformation*** to return a new DataFrame with a subset of the items in the file.
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Filter all of the lines within the DataFrame
+# Filter all of the lines within the DataFrame
 linesWithSpark = textFile.filter(textFile.value.contains("Spark"))
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md Notice that this completes quickly because it is a transformation but lacks any action.  
-***REMOVED*** MAGIC * But when performing the actions below (e.g. count, take) then you will see the executions.
+# MAGIC %md Notice that this completes quickly because it is a transformation but lacks any action.  
+# MAGIC * But when performing the actions below (e.g. count, take) then you will see the executions.
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Perform a count (action) 
+# Perform a count (action) 
 linesWithSpark.count()
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Output the first five rows
+# Output the first five rows
 linesWithSpark.take(5)

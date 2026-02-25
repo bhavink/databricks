@@ -11,7 +11,7 @@ data "google_client_openid_userinfo" "me" {}
 data "google_client_config" "current" {}
 
 
-***REMOVED*** Random suffix for databricks network and workspace
+# Random suffix for databricks network and workspace
 resource "random_string" "databricks_suffix" {
   special = false
   upper   = false
@@ -19,21 +19,21 @@ resource "random_string" "databricks_suffix" {
 }
 
 
-***REMOVED*** Provision databricks network configuration
+# Provision databricks network configuration
 resource "databricks_mws_networks" "databricks_network" {
-  provider     = databricks.accounts
-  account_id   = var.databricks_account_id
-  ***REMOVED*** name needs to be of length 3-30 incuding [a-z,A-Z,-_]
+  provider   = databricks.accounts
+  account_id = var.databricks_account_id
+  # name needs to be of length 3-30 incuding [a-z,A-Z,-_]
   network_name = "${var.google_shared_vpc_project}-nw-${random_string.databricks_suffix.result}"
   gcp_network_info {
-    network_project_id    = var.google_shared_vpc_project
-    vpc_id                = var.google_vpc_id
-    subnet_id             = var.node_subnet
-    subnet_region         = var.google_region
+    network_project_id = var.google_shared_vpc_project
+    vpc_id             = var.google_vpc_id
+    subnet_id          = var.node_subnet
+    subnet_region      = var.google_region
   }
 }
-***REMOVED*** Provision databricks workspace in a customer managed vpc
-***REMOVED*** https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/workspaces.html***REMOVED***create-a-workspace-using-the-account-console
+# Provision databricks workspace in a customer managed vpc
+# https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/workspaces.html#create-a-workspace-using-the-account-console
 
 resource "databricks_mws_workspaces" "databricks_workspace" {
   provider       = databricks.accounts
@@ -50,13 +50,13 @@ resource "databricks_mws_workspaces" "databricks_workspace" {
 
 
 data "databricks_group" "admins" {
-  depends_on   = [ databricks_mws_workspaces.databricks_workspace ]
+  depends_on   = [databricks_mws_workspaces.databricks_workspace]
   provider     = databricks.workspace
   display_name = "admins"
 }
 
 resource "databricks_user" "me" {
-  depends_on = [ databricks_mws_workspaces.databricks_workspace ]
+  depends_on = [databricks_mws_workspaces.databricks_workspace]
   provider   = databricks.workspace
   user_name  = var.databricks_admin_user
 }

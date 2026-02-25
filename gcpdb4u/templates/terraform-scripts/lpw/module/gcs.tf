@@ -13,7 +13,7 @@ resource "google_storage_bucket" "internal_bucket" {
     "ssp"             = lower(var.ssp)
     "environment"     = lower(var.environment)
   }
-  ***REMOVED*** MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
+  # MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
   depends_on = [databricks_storage_credential.this, null_resource.wait_for_workspace_running]
 }
 
@@ -33,6 +33,6 @@ resource "google_storage_bucket" "external_bucket" {
     "ssp"             = lower(var.ssp)
     "environment"     = lower(var.environment)
   }
-  ***REMOVED*** MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
+  # MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
   depends_on = [databricks_storage_credential.this, null_resource.wait_for_workspace_running]
 }

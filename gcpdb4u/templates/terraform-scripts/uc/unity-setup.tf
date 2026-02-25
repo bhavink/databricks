@@ -26,15 +26,15 @@ https://registry.terraform.io/providers/databricks/databricks/latest/docs/resour
 
 variable "databricks_account_id" {}
 variable "uc_admin_group_name" {}
-variable databricks_admin_user {}
-variable group_name1{}
-variable group_name2{}
+variable "databricks_admin_user" {}
+variable "group_name1" {}
+variable "group_name2" {}
 
 data "google_client_openid_userinfo" "me" {}
 data "google_client_config" "current" {}
 
 
-***REMOVED*** Random suffix for databricks resources
+# Random suffix for databricks resources
 resource "random_string" "databricks_suffix" {
   special = false
   upper   = false
@@ -47,8 +47,8 @@ locals {
 }
 
 
-***REMOVED*** extract workspace ID for unity catalog metastore assignment
-***REMOVED*** or provide a hard coded value
+# extract workspace ID for unity catalog metastore assignment
+# or provide a hard coded value
 locals {
   workspace_id = "<workspace-id>" //databricks_mws_workspaces.databricks_workspace.workspace_id
 }
@@ -60,40 +60,40 @@ resource "databricks_group" "uc_admins" {
 }
 
 // create admin user1
-resource "databricks_user" "admin_member0" { 
-  provider     = databricks.accounts
+resource "databricks_user" "admin_member0" {
+  provider  = databricks.accounts
   user_name = "${random_string.databricks_suffix.result}@databricks.com"
 }
 
 // retrieve existing user from account console
 data "databricks_user" "admin_member1" {
-  provider     = databricks.accounts
+  provider  = databricks.accounts
   user_name = var.databricks_admin_user
 }
 
 // retrieve existing user from account console
 data "databricks_user" "admin_member2" {
-  provider     = databricks.accounts
+  provider  = databricks.accounts
   user_name = var.google_service_account_email
 }
 
 // add user to group
-resource "databricks_group_member" "admin_member0" { 
-  provider     = databricks.accounts
+resource "databricks_group_member" "admin_member0" {
+  provider  = databricks.accounts
   group_id  = databricks_group.uc_admins.id
   member_id = databricks_user.admin_member0.id
 }
 
 // add user to group
-resource "databricks_group_member" "admin_member1" { 
-  provider     = databricks.accounts
+resource "databricks_group_member" "admin_member1" {
+  provider  = databricks.accounts
   group_id  = databricks_group.uc_admins.id
   member_id = data.databricks_user.admin_member1.id
 }
 
 // add user to group
-resource "databricks_group_member" "admin_member2" { 
-  provider     = databricks.accounts
+resource "databricks_group_member" "admin_member2" {
+  provider  = databricks.accounts
   group_id  = databricks_group.uc_admins.id
   member_id = data.databricks_user.admin_member2.id
 }
@@ -113,12 +113,12 @@ resource "databricks_metastore" "this" {
   storage_root  = "gs://${google_storage_bucket.unity_metastore.name}"
   force_destroy = true
   owner         = var.uc_admin_group_name
-  region = var.google_region
+  region        = var.google_region
 }
 
-***REMOVED*** at this moment destroying databricks_metastore_data_access resource is not supported using TF
-***REMOVED*** please use `terraform state rm databricks_metastore_data_access.first` and the manually delete 
-***REMOVED*** metastore on the account console
+# at this moment destroying databricks_metastore_data_access resource is not supported using TF
+# please use `terraform state rm databricks_metastore_data_access.first` and the manually delete 
+# metastore on the account console
 
 resource "databricks_metastore_data_access" "first" {
   provider     = databricks.accounts
@@ -162,8 +162,8 @@ resource "databricks_group" "data_eng" {
 }
 
 // add user
-resource "databricks_user" "member0" { 
-  provider     = databricks.accounts
+resource "databricks_user" "member0" {
+  provider  = databricks.accounts
   user_name = "${random_string.databricks_suffix.result}_dev@company.com"
 }
 
@@ -175,8 +175,8 @@ resource "databricks_group" "data_science" {
 }
 
 // add user
-resource "databricks_user" "member1" { 
-  provider     = databricks.accounts
+resource "databricks_user" "member1" {
+  provider  = databricks.accounts
   user_name = "${random_string.databricks_suffix.result}_scientist@company.com"
 }
 
@@ -184,7 +184,7 @@ resource "databricks_user" "member1" {
 // assign groups to workspace
 
 resource "databricks_mws_permission_assignment" "add_admin_group" {
-  provider = databricks.accounts
+  provider     = databricks.accounts
   workspace_id = local.workspace_id //databricks_mws_workspaces.this.workspace_id
   principal_id = databricks_group.data_science.id
   permissions  = ["ADMIN"]
@@ -193,7 +193,7 @@ resource "databricks_mws_permission_assignment" "add_admin_group" {
 // assign groups to workspace
 
 resource "databricks_mws_permission_assignment" "add_non_admin_group" {
-  provider = databricks.accounts
+  provider     = databricks.accounts
   workspace_id = local.workspace_id //databricks_mws_workspaces.this.workspace_id
   principal_id = databricks_group.data_eng.id
   permissions  = ["USER"]

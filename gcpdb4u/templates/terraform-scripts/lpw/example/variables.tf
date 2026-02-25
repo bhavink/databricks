@@ -1,5 +1,5 @@
-***REMOVED*** MODIFICATION: Single phase variable for simplified deployment
-***REMOVED*** Reason: Avoid editing main.tf between phases, pass -var="phase=X" instead
+# MODIFICATION: Single phase variable for simplified deployment
+# Reason: Avoid editing main.tf between phases, pass -var="phase=X" instead
 variable "phase" {
   type        = string
   description = "Deployment phase: PROVISIONING or RUNNING (case-insensitive)"
@@ -11,9 +11,9 @@ variable "phase" {
   }
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** Databricks Account Configuration
-***REMOVED*** ========================================================================
+# ========================================================================
+# Databricks Account Configuration
+# ========================================================================
 
 variable "databricks_account_id" {
   description = "Databricks account ID (UUID)"
@@ -26,9 +26,9 @@ variable "databricks_google_service_account" {
   type        = string
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** Regional Databricks Configuration
-***REMOVED*** ========================================================================
+# ========================================================================
+# Regional Databricks Configuration
+# ========================================================================
 
 variable "private_access_settings_id" {
   description = "Regional private access settings IDs (map of region to UUID)"
@@ -54,9 +54,9 @@ variable "databricks_metastore_id" {
   sensitive   = true
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** Workspace Configuration
-***REMOVED*** ========================================================================
+# ========================================================================
+# Workspace Configuration
+# ========================================================================
 
 variable "workspace_name" {
   description = "Name of the Databricks workspace"
@@ -68,9 +68,9 @@ variable "metastore_id" {
   type        = string
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** GCP Network Configuration
-***REMOVED*** ========================================================================
+# ========================================================================
+# GCP Network Configuration
+# ========================================================================
 
 variable "network_project_id" {
   description = "GCP project ID containing the VPC network"
@@ -87,9 +87,9 @@ variable "subnet_id" {
   type        = string
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** GCP Project Configuration
-***REMOVED*** ========================================================================
+# ========================================================================
+# GCP Project Configuration
+# ========================================================================
 
 variable "gcpprojectid" {
   description = "GCP project ID for Databricks workspace resources"
@@ -107,9 +107,9 @@ variable "google_region" {
   default     = "us-east4"
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** Metadata and Tags
-***REMOVED*** ========================================================================
+# ========================================================================
+# Metadata and Tags
+# ========================================================================
 
 variable "notificationdistlist" {
   description = "Email distribution list for notifications"
@@ -143,9 +143,9 @@ variable "applicationtier" {
   default     = "tier2"
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** Optional: Billing and Tracking Codes
-***REMOVED*** ========================================================================
+# ========================================================================
+# Optional: Billing and Tracking Codes
+# ========================================================================
 
 variable "costcenter" {
   description = "Cost center code for billing tracking (optional)"
@@ -171,9 +171,9 @@ variable "trproductid" {
   default     = ""
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** Compute Configuration
-***REMOVED*** ========================================================================
+# ========================================================================
+# Compute Configuration
+# ========================================================================
 
 variable "node_type" {
   description = "GCP machine type family (e2, n1, n2, etc.)"
@@ -187,9 +187,9 @@ variable "compute_types" {
   default     = "Small,Medium,Large"
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** Permissions Configuration
-***REMOVED*** ========================================================================
+# ========================================================================
+# Permissions Configuration
+# ========================================================================
 
 variable "permissions_group_role_user" {
   description = "Comma-separated list of groups to grant USER role"
@@ -230,9 +230,9 @@ variable "pool_usage_permissions" {
   type        = string
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** External Project Configuration
-***REMOVED*** ========================================================================
+# ========================================================================
+# External Project Configuration
+# ========================================================================
 
 variable "external_project" {
   description = "Whether to use external project for GCS buckets"
@@ -246,9 +246,9 @@ variable "bucket_project_id" {
   default     = ""
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** Unity Catalog Configuration
-***REMOVED*** ========================================================================
+# ========================================================================
+# Unity Catalog Configuration
+# ========================================================================
 
 variable "unity_catalog_config" {
   description = "JSON string defining Unity Catalog configuration"
@@ -270,9 +270,9 @@ variable "storage_credentials_permissions" {
   type        = string
 }
 
-***REMOVED*** ========================================================================
-***REMOVED*** SQL Warehouse Configuration
-***REMOVED*** ========================================================================
+# ========================================================================
+# SQL Warehouse Configuration
+# ========================================================================
 
 variable "sqlwarehouse_cluster_config" {
   description = "JSON string defining SQL warehouse configuration"

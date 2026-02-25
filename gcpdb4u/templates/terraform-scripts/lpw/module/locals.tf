@@ -1,6 +1,6 @@
 locals {
 
-  ***REMOVED*** Databricks Account Configuration
+  # Databricks Account Configuration
   databricks_account_id  = var.databricks_account_id
   databricks_account_url = "https://accounts.gcp.databricks.com"
 
@@ -9,7 +9,7 @@ locals {
   large_node_type  = "${var.node_type}-standard-16"
   all_node_types   = "${var.node_type}-standard-4,${var.node_type}-standard-8,${var.node_type}-standard-16,${var.node_type}-standard-32,${var.node_type}-highmem-4,${var.node_type}-highmem-8,${var.node_type}-highmem-16,${var.node_type}-highmem-32"
 
-  ***REMOVED*** Personal compute node types - uses all available node types by default
+  # Personal compute node types - uses all available node types by default
   personal_compute_nodes = split(",", local.all_node_types)
   personal_compute_node_types = {
     "node_type_id" : {
@@ -19,12 +19,12 @@ locals {
     }
   }
 
-  ***REMOVED*** Regional Configuration - Private Access and VPC Endpoints
-  ***REMOVED*** Provided via variables - these are region-specific identifiers
+  # Regional Configuration - Private Access and VPC Endpoints
+  # Provided via variables - these are region-specific identifiers
   private_access_settings_id      = var.private_access_settings_id
-  dataplane_relay_vpc_endpoint_id = var.dataplane_relay_vpc_endpoint_id ***REMOVED*** ngrok
-  rest_api_vpc_endpoint_id        = var.rest_api_vpc_endpoint_id        ***REMOVED*** plproxy
-  databricks_metastore_id         = var.databricks_metastore_id         ***REMOVED*** Unity Catalog metastores
+  dataplane_relay_vpc_endpoint_id = var.dataplane_relay_vpc_endpoint_id # ngrok
+  rest_api_vpc_endpoint_id        = var.rest_api_vpc_endpoint_id        # plproxy
+  databricks_metastore_id         = var.databricks_metastore_id         # Unity Catalog metastores
 
   pool_configs = {
     Small = {
@@ -492,7 +492,7 @@ locals {
 
 
 
-***REMOVED*** Flattening the nested maps for all policies, but filter based on variable `policy_type`
+# Flattening the nested maps for all policies, but filter based on variable `policy_type`
 locals {
   all_policies = flatten([
     for policy_type, policy_map in local.policies : [
@@ -500,12 +500,12 @@ locals {
         type  = policy_type
         name  = policy_key
         value = policy_value
-      } if contains(split(",", var.compute_types), policy_type) ***REMOVED*** Apply filter based on `policy_type`
+      } if contains(split(",", var.compute_types), policy_type) # Apply filter based on `policy_type`
     ]
   ])
 
-  ***REMOVED*** MODIFICATION - added check to make sure that workspace is in running state before provisioning workspace resources
-  ***REMOVED*** Create map for cluster policies - only when workspace resources should be provisioned
+  # MODIFICATION - added check to make sure that workspace is in running state before provisioning workspace resources
+  # Create map for cluster policies - only when workspace resources should be provisioned
   cluster_policies_map = {
     for policy in local.all_policies :
     "${policy.type}_${policy.name}" => policy
@@ -515,7 +515,7 @@ locals {
 
 
 
-***REMOVED***ext_unity catalog converter
+#ext_unity catalog converter
 locals {
 
   json_compatible_ext_unity_catalog_config = (var.ext_unity_catalog_config != "") ? replace(var.ext_unity_catalog_config, "'", "\"") : ""
@@ -525,7 +525,7 @@ locals {
   }
 }
 
-***REMOVED***ext_unity catalog permission 
+#ext_unity catalog permission 
 
 locals {
   json_compatible_ext_unity_catalog_permissions = (var.ext_unity_catalog_permissions != "") ? replace(var.ext_unity_catalog_permissions, "'", "\"") : ""
@@ -536,7 +536,7 @@ locals {
 }
 
 
-***REMOVED***unity catalog converter
+#unity catalog converter
 locals {
 
   json_compatible_unity_catalog_config = (var.unity_catalog_config != "") ? replace(var.unity_catalog_config, "'", "\"") : ""
@@ -546,7 +546,7 @@ locals {
   }
 }
 
-***REMOVED***unity catalog permission 
+#unity catalog permission 
 
 locals {
   json_compatible_unity_catalog_permissions = (var.unity_catalog_permissions != "") ? replace(var.unity_catalog_permissions, "'", "\"") : ""
@@ -557,7 +557,7 @@ locals {
 }
 
 
-***REMOVED***external location permissions
+#external location permissions
 locals {
   json_compatible_external_location_permissions = (var.external_location_permissions != "") ? replace(var.external_location_permissions, "'", "\"") : ""
   external_location_perm_list                   = (local.json_compatible_external_location_permissions != "") ? (jsondecode(local.json_compatible_external_location_permissions)) : []
@@ -567,7 +567,7 @@ locals {
 }
 
 
-***REMOVED***storage location permissions
+#storage location permissions
 locals {
   json_compatible_storage_credentials_permissions = (var.storage_credentials_permissions != "") ? replace(var.storage_credentials_permissions, "'", "\"") : ""
   storage_credentials_perm_list                   = (local.json_compatible_storage_credentials_permissions != "") ? (jsondecode(local.json_compatible_storage_credentials_permissions)) : []
@@ -576,7 +576,7 @@ locals {
   }
 }
 
-***REMOVED***permissions group
+#permissions group
 locals {
   permissions_group_role_admin_list = (var.permissions_group_role_admin != "") ? split(",", var.permissions_group_role_admin) : []
   create_group_admin                = length(local.permissions_group_role_admin_list) > 0
@@ -585,7 +585,7 @@ locals {
   create_group_user                = length(local.permissions_group_role_user_list) > 0
 }
 
-***REMOVED***permission users
+#permission users
 locals {
   permissions_user_role_admin_list = (var.permissions_user_role_admin != "") ? split(",", var.permissions_user_role_admin) : []
   create_user_admin                = length(local.permissions_user_role_admin_list) > 0
@@ -594,7 +594,7 @@ locals {
   create_user_user                = length(local.permissions_user_role_user_list) > 0
 }
 
-***REMOVED***permission spn
+#permission spn
 locals {
   permissions_spn_role_admin_list = (var.permissions_spn_role_admin != "") ? split(",", var.permissions_spn_role_admin) : []
   create_spn_admin                = length(local.permissions_spn_role_admin_list) > 0
@@ -603,7 +603,7 @@ locals {
   create_spn_user                = length(local.permissions_spn_role_user_list) > 0
 }
 
-***REMOVED***sql warehouse
+#sql warehouse
 locals {
   json_compatible_sqlwarehouse_config = (var.sqlwarehouse_cluster_config != "") ? replace(var.sqlwarehouse_cluster_config, "'", "\"") : ""
   sqlwarehouse_cluster_config_list    = (local.json_compatible_sqlwarehouse_config != "") ? (jsondecode(local.json_compatible_sqlwarehouse_config)) : []
@@ -662,7 +662,7 @@ locals {
 
 }
 
-***REMOVED***cluster permission
+#cluster permission
 locals {
   json_compatible_cluster_policy_permissions = (var.cluster_policy_permissions != "") ? replace(var.cluster_policy_permissions, "'", "\"") : ""
   cluster_perm_list                          = (local.json_compatible_cluster_policy_permissions != "") ? (jsondecode(local.json_compatible_cluster_policy_permissions)) : []
@@ -671,7 +671,7 @@ locals {
   }
 }
 
-***REMOVED***pool permission
+#pool permission
 locals {
   json_compatible_pool_usage_permissions = (var.pool_usage_permissions != "") ? replace(var.pool_usage_permissions, "'", "\"") : ""
   pool_perm_list                         = (local.json_compatible_pool_usage_permissions != "") ? (jsondecode(local.json_compatible_pool_usage_permissions)) : []

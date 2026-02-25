@@ -1,5 +1,5 @@
 // Databricks notebook source
-// MAGIC %md ***REMOVED*** Structured Streaming using Scala DataFrames API
+// MAGIC %md # Structured Streaming using Scala DataFrames API
 // MAGIC 
 // MAGIC Apache Spark 2.0 adds the first version of a new higher-level stream processing API, Structured Streaming. In this notebook we are going to take a quick look at how to use DataFrame API to build Structured Streaming applications. We want to compute real-time metrics like running counts and windowed counts on a stream of timestamped actions (e.g. Open, Close, etc).
 // MAGIC 
@@ -7,7 +7,7 @@
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Sample Data
+// MAGIC %md ## Sample Data
 // MAGIC We have some sample action data as files in `/databricks-datasets/structured-streaming/events/` which we are going to use to build this appication. Let's take a look at the contents of this directory.
 
 // COMMAND ----------
@@ -29,7 +29,7 @@
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Batch/Interactive Processing
+// MAGIC %md ## Batch/Interactive Processing
 // MAGIC The usual first step in attempting to process the data is to interactively query the data. Let's define a static DataFrame on the files, and give it a table name.
 
 // COMMAND ----------
@@ -87,7 +87,7 @@ staticCountsDF.createOrReplaceTempView("static_counts")
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Stream Processing 
+// MAGIC %md ## Stream Processing 
 // MAGIC Now that we have analyzed the data interactively, let's convert this to a streaming query that continuously updates as data comes. Since we just have a static set of files, we are going to emulate a stream from them by reading one file at a time, in the chronological order they were created. The query we have to write is pretty much the same as the interactive query above.
 
 // COMMAND ----------
@@ -185,7 +185,7 @@ Thread.sleep(5000)  // wait a bit more for more data to be computed
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED***What's next?
+// MAGIC %md ##What's next?
 // MAGIC If you want to learn more about Structured Streaming, here are a few pointers.
 // MAGIC 
 // MAGIC - Databricks blog posts on Structured Streaming and Continuous Applications

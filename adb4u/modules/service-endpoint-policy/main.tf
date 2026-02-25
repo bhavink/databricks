@@ -55,7 +55,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "this" {
   definition {
     name        = "databricks-system-storage"
     description = "Allow access to Databricks-managed system storage (artifacts, logs, DBR images, system tables)"
-    service     = "Global"  # Required for service aliases
+    service     = "Global" # Required for service aliases
     service_resources = [
       "/services/Azure/Databricks" # Special alias for Databricks-managed storage
     ]

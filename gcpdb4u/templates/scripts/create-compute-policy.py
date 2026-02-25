@@ -1,13 +1,13 @@
 import requests
 import json
 
-***REMOVED*** Replace these with your Databricks instance URL and personal access token
+# Replace these with your Databricks instance URL and personal access token
 DATABRICKS_INSTANCE = 'https://<your-databricks-workspace-url>'
-***REMOVED*** ex: https://123456789108.8.gcp.databricks.com
+# ex: https://123456789108.8.gcp.databricks.com
 DATABRICKS_TOKEN = 'https://<your-databricks-token>'
-***REMOVED*** ex: https://docs.gcp.databricks.com/en/dev-tools/auth/pat.html
+# ex: https://docs.gcp.databricks.com/en/dev-tools/auth/pat.html
 
-***REMOVED*** Set up the request headers
+# Set up the request headers
 headers = {
     'Authorization': f'Bearer {DATABRICKS_TOKEN}',
     'Content-Type': 'application/json'
@@ -49,7 +49,7 @@ def list_policies(policy_name):
     else:
         print(f"Failed to list policies: {response.text}")
 
-***REMOVED*** Example usage
+# Example usage
 policy_definitions = [
     {
         "name": "n2-highmem-4-reservation-policy",

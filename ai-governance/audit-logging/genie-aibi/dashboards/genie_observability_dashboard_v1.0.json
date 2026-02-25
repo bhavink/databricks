@@ -156,7 +156,7 @@
         "  SUBSTRING(content, 1, 100) AS prompt_preview, ",
         "  created_date ",
         "FROM main.genie_analytics.message_details ",
-        "WHERE created_date >= date_sub(CURRENT_DATE(), 7) ",
+        "WHERE created_date >= date_sub(CURRENT_DATE(), 90) ",
         "ORDER BY created_timestamp DESC ",
         "LIMIT 50 "
       ]
@@ -1016,7 +1016,7 @@
               },
               "frame": {
                 "showTitle": true,
-                "title": "Recent Message Status (Last 7 Days)"
+                "title": "Recent Message Status (Last 90 Days)"
               }
             }
           },

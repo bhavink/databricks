@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style B: Electric Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  :root {
+    --bg-dark: #0a0a0a;
+    --bg-white: #ffffff;
+    --accent-blue: #4361ee;
+    --accent-blue-light: #7b93f5;
+    --text-dark: #0a0a0a;
+    --text-light: #ffffff;
+    --text-muted-dark: #555;
+    --text-muted-light: rgba(255,255,255,0.55);
+    --title-size: clamp(2.2rem, 5vw, 4.8rem);
+    --body-size: clamp(0.78rem, 1.3vw, 1rem);
+    --slide-padding: clamp(1.5rem, 4vw, 4.5rem);
+  }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+  }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    position: relative;
+  }
+
+  /* ── TOP PANEL: White ── */
+  .panel-top {
+    background: var(--bg-white);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    padding: var(--slide-padding);
+    padding-bottom: clamp(1rem, 2.5vw, 2.5rem);
+    gap: 2rem;
+    align-items: end;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.1s forwards;
+  }
+
+  /* Accent bar on right edge of top panel */
+  .panel-top::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: var(--accent-blue);
+  }
+
+  .brand-mark {
+    position: absolute;
+    top: var(--slide-padding);
+    right: calc(var(--slide-padding) + 14px);
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted-dark);
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.3s forwards;
+  }
+
+  .top-main {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: clamp(0.75rem, 1.5vh, 1.2rem);
+  }
+
+  .eyebrow {
+    font-size: clamp(0.62rem, 0.9vw, 0.75rem);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-blue);
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.4s forwards;
+  }
+
+  h1 {
+    font-size: var(--title-size);
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+  }
+
+  .top-meta {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    text-align: right;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.6s forwards;
+  }
+
+  .meta-number {
+    font-size: clamp(3rem, 6vw, 6rem);
+    font-weight: 800;
+    color: rgba(67,97,238,0.08);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .meta-label {
+    font-size: clamp(0.6rem, 0.85vw, 0.7rem);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted-dark);
+  }
+
+  /* ── BOTTOM PANEL: Blue ── */
+  .panel-bottom {
+    background: var(--accent-blue);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    padding: var(--slide-padding);
+    padding-top: clamp(1rem, 2.5vw, 2.5rem);
+    gap: clamp(1rem, 3vw, 3rem);
+    align-items: start;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.55s forwards;
+  }
+
+  /* Accent bar on right edge of bottom panel */
+  .panel-bottom::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: rgba(255,255,255,0.2);
+  }
+
+  /* Subtle background texture */
+  .panel-bottom::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -30deg,
+      transparent,
+      transparent 20px,
+      rgba(255,255,255,0.02) 20px,
+      rgba(255,255,255,0.02) 21px
+    );
+    pointer-events: none;
+  }
+
+  .brand-mark-bottom {
+    position: absolute;
+    bottom: var(--slide-padding);
+    right: calc(var(--slide-padding) + 14px);
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.9s forwards;
+  }
+
+  /* Quote / hero text in bottom panel */
+  .quote-block {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1.2vh, 1rem);
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(14px);
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards;
+  }
+
+  .quote-text {
+    font-size: clamp(1rem, 2.2vw, 1.9rem);
+    font-weight: 700;
+    color: var(--text-light);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    max-width: 55ch;
+  }
+
+  .quote-text em {
+    font-style: normal;
+    color: rgba(255,255,255,0.55);
+    font-weight: 400;
+  }
+
+  .quote-attribution {
+    font-size: clamp(0.65rem, 0.95vw, 0.8rem);
+    font-weight: 500;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.04em;
+  }
+
+  /* Right side: key stats */
+  .stats-block {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.6rem, 1.2vh, 1rem);
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    animation: fadeIn 0.6s ease 0.85s forwards;
+  }
+
+  .stat-item {
+    text-align: right;
+  }
+
+  .stat-value {
+    display: block;
+    font-size: clamp(1.4rem, 2.8vw, 2.5rem);
+    font-weight: 800;
+    color: var(--text-light);
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .stat-desc {
+    display: block;
+    font-size: clamp(0.6rem, 0.85vw, 0.7rem);
+    font-weight: 500;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 0.1rem;
+  }
+
+  .stat-divider {
+    width: 100%;
+    height: 1px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* Style badge */
+  .style-badge {
+    position: absolute;
+    top: var(--slide-padding);
+    right: calc(var(--slide-padding) + 14px);
+    font-size: clamp(0.55rem, 0.78vw, 0.65rem);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    z-index: 5;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.2s forwards;
+  }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  @media (max-height: 600px) {
+    :root { --slide-padding: clamp(0.75rem, 2.5vw, 1.5rem); }
+    .meta-number { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <!-- TOP: White panel -->
+  <div class="panel-top">
+    <div class="brand-mark">Databricks · 2026</div>
+    <div class="top-main">
+      <div class="eyebrow">AI Governance · Deep Dive</div>
+      <h1>Govern AI.<br>Trust Data.</h1>
+    </div>
+    <div class="top-meta">
+      <div class="meta-number">01</div>
+      <div class="meta-label">Introduction</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: Blue panel -->
+  <div class="panel-bottom">
+    <div class="style-badge">Style B — Electric Studio</div>
+    <div class="brand-mark-bottom">Databricks Field Engineering</div>
+
+    <div class="quote-block">
+      <div class="quote-text">
+        Production-ready patterns for authentication, authorization,
+        and audit logging — <em>across every Databricks AI product.</em>
+      </div>
+      <div class="quote-attribution">
+        Genie Space · Agent Bricks · Databricks Apps · Multi-agent Orchestration
+      </div>
+    </div>
+
+    <div class="stats-block">
+      <div class="stat-item">
+        <span class="stat-value">3</span>
+        <span class="stat-desc">Auth Patterns</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">4</span>
+        <span class="stat-desc">Access Layers</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">1K+</span>
+        <span class="stat-desc">User Scale</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,8 +1,8 @@
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint - Workspace (Required for Both Frontend AND Backend Private Link)
-***REMOVED*** - Frontend Private Link: Used for UI/API access by users
-***REMOVED*** - Backend Private Link: Used for cluster REST API calls to control plane
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint - Workspace (Required for Both Frontend AND Backend Private Link)
+# - Frontend Private Link: Used for UI/API access by users
+# - Backend Private Link: Used for cluster REST API calls to control plane
+# ============================================================================
 
 resource "aws_vpc_endpoint" "workspace" {
   count               = local.any_databricks_vpce_enabled ? 1 : 0
@@ -25,10 +25,10 @@ resource "aws_vpc_endpoint" "workspace" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint - Relay (Backend - Secure Cluster Connectivity)
-***REMOVED*** This is CRITICAL for Backend Private Link
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint - Relay (Backend - Secure Cluster Connectivity)
+# This is CRITICAL for Backend Private Link
+# ============================================================================
 
 resource "aws_vpc_endpoint" "relay" {
   count               = var.enable_private_link ? 1 : 0
@@ -51,10 +51,10 @@ resource "aws_vpc_endpoint" "relay" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint - S3 (Gateway Endpoint - FREE!)
-***REMOVED*** Always created to reduce NAT gateway data transfer costs
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint - S3 (Gateway Endpoint - FREE!)
+# Always created to reduce NAT gateway data transfer costs
+# ============================================================================
 
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.databricks_vpc.id
@@ -71,10 +71,10 @@ resource "aws_vpc_endpoint" "s3" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint - STS (For IAM Role Assumption)
-***REMOVED*** Always created to reduce NAT gateway costs and improve security
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint - STS (For IAM Role Assumption)
+# Always created to reduce NAT gateway costs and improve security
+# ============================================================================
 
 resource "aws_vpc_endpoint" "sts" {
   vpc_id              = aws_vpc.databricks_vpc.id
@@ -89,10 +89,10 @@ resource "aws_vpc_endpoint" "sts" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint - Kinesis (For Logging and Lineage)
-***REMOVED*** Always created to reduce NAT gateway costs
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint - Kinesis (For Logging and Lineage)
+# Always created to reduce NAT gateway costs
+# ============================================================================
 
 resource "aws_vpc_endpoint" "kinesis" {
   vpc_id              = aws_vpc.databricks_vpc.id
@@ -107,12 +107,12 @@ resource "aws_vpc_endpoint" "kinesis" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Register VPC Endpoints with Databricks (Account-Level)
-***REMOVED*** These resources register the AWS VPC endpoints with Databricks
-***REMOVED*** ============================================================================
+# ============================================================================
+# Register VPC Endpoints with Databricks (Account-Level)
+# These resources register the AWS VPC endpoints with Databricks
+# ============================================================================
 
-***REMOVED*** Register Workspace VPC Endpoint (Required for both Frontend and Backend Private Link)
+# Register Workspace VPC Endpoint (Required for both Frontend and Backend Private Link)
 resource "databricks_mws_vpc_endpoint" "workspace_vpce" {
   count               = local.any_databricks_vpce_enabled ? 1 : 0
   provider            = databricks.account
@@ -124,7 +124,7 @@ resource "databricks_mws_vpc_endpoint" "workspace_vpce" {
   depends_on = [aws_vpc_endpoint.workspace]
 }
 
-***REMOVED*** Register Relay VPC Endpoint (Backend Private Link)
+# Register Relay VPC Endpoint (Backend Private Link)
 resource "databricks_mws_vpc_endpoint" "relay_vpce" {
   count               = var.enable_private_link ? 1 : 0
   provider            = databricks.account

@@ -1,4 +1,4 @@
-***REMOVED*** Check if routers exist
+# Check if routers exist
 data "google_compute_router" "existing_routers" {
   for_each = var.subnet_configs
   name     = "router-${each.key}"
@@ -14,12 +14,12 @@ resource "google_compute_router" "routers" {
   region   = each.value.region
 
   lifecycle {
-    ***REMOVED*** Prevent destruction if the router already exists
-    ***REMOVED*** prevent_destroy = true
+    # Prevent destruction if the router already exists
+    # prevent_destroy = true
   }
 }
 
-***REMOVED*** Check if NATs exist
+# Check if NATs exist
 data "google_compute_router_nat" "existing_nats" {
   for_each = var.subnet_configs
   name     = "nat-${each.key}"
@@ -30,14 +30,14 @@ data "google_compute_router_nat" "existing_nats" {
 
 resource "google_compute_router_nat" "nats" {
   for_each                           = var.subnet_configs
-  name                              = "nat-${each.key}"
-  router                            = google_compute_router.routers[each.key].name
-  region                            = each.value.region
-  nat_ip_allocate_option           = "AUTO_ONLY"
+  name                               = "nat-${each.key}"
+  router                             = google_compute_router.routers[each.key].name
+  region                             = each.value.region
+  nat_ip_allocate_option             = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 
   lifecycle {
-    ***REMOVED*** Prevent destruction if the NAT already exists
-    ***REMOVED*** prevent_destroy = true
+    # Prevent destruction if the NAT already exists
+    # prevent_destroy = true
   }
 } 

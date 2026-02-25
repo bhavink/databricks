@@ -1,9 +1,9 @@
 // Databricks notebook source
-// MAGIC %md ***REMOVED*** XGBoost Regression with Spark DataFrames
+// MAGIC %md # XGBoost Regression with Spark DataFrames
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED*** Prepare Data
+// MAGIC %md ## Prepare Data
 
 // COMMAND ----------
 
@@ -55,7 +55,7 @@ val trainingSet = split80.cache()
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED*** Train XGBoost Model with Spark DataFrames
+// MAGIC %md #### Train XGBoost Model with Spark DataFrames
 
 // COMMAND ----------
 
@@ -75,7 +75,7 @@ val xgbRegressionModel = xgbRegressor.fit(trainingSet)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED*** Evaluate Model
+// MAGIC %md #### Evaluate Model
 // MAGIC 
 // MAGIC You can evaluate the XGBoost model using Evaluators from MLlib.
 
@@ -104,7 +104,7 @@ print("Root mean squared error: " + rmse)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED*** Tune Model using MLlib Cross Validation
+// MAGIC %md #### Tune Model using MLlib Cross Validation
 
 // COMMAND ----------
 

@@ -40,13 +40,13 @@ locals {
       KeepUntil = var.tag_keepuntil
     }
   )
-  
+
   # Add suffix to metastore name for uniqueness
   metastore_name_with_suffix = var.metastore_name != "" ? "${var.metastore_name}-${random_string.deployment_suffix.result}" : ""
-  
+
   # DBFS storage account name (no special chars, lowercase)
   dbfs_storage_name = "${var.workspace_prefix}${random_string.deployment_suffix.result}dbfs"
-  
+
   # Determine if any CMK feature is enabled
   cmk_enabled = var.enable_cmk_managed_services || var.enable_cmk_managed_disks || var.enable_cmk_dbfs_root
 
@@ -91,12 +91,12 @@ module "key_vault" {
   location            = var.location
 
   # Key configuration (auto-rotation enabled)
-  key_name              = "databricks-cmk"
-  enable_auto_rotation  = true
-  rotation_policy_days  = 90
+  key_name             = "databricks-cmk"
+  enable_auto_rotation = true
+  rotation_policy_days = 90
 
   # Security configuration
-  enable_purge_protection = true
+  enable_purge_protection    = true
   soft_delete_retention_days = 90
 
   tags = local.all_tags
@@ -115,12 +115,12 @@ module "networking" {
   use_existing_network = local.use_existing_network
 
   # Existing network (BYOV)
-  existing_vnet_name               = var.existing_vnet_name
-  existing_resource_group_name     = var.existing_resource_group_name
-  existing_public_subnet_name      = var.existing_public_subnet_name
-  existing_private_subnet_name     = var.existing_private_subnet_name
-  existing_privatelink_subnet_name = var.existing_privatelink_subnet_name
-  existing_nsg_name                = var.existing_nsg_name
+  existing_vnet_name                         = var.existing_vnet_name
+  existing_resource_group_name               = var.existing_resource_group_name
+  existing_public_subnet_name                = var.existing_public_subnet_name
+  existing_private_subnet_name               = var.existing_private_subnet_name
+  existing_privatelink_subnet_name           = var.existing_privatelink_subnet_name
+  existing_nsg_name                          = var.existing_nsg_name
   existing_public_subnet_nsg_association_id  = var.existing_public_subnet_nsg_association_id
   existing_private_subnet_nsg_association_id = var.existing_private_subnet_nsg_association_id
 
@@ -132,7 +132,7 @@ module "networking" {
 
   # Full Private pattern: Private Link enabled, NAT Gateway disabled (air-gapped)
   enable_private_link          = true
-  enable_public_network_access = var.enable_public_network_access  # Pass through to control NSG rule creation
+  enable_public_network_access = var.enable_public_network_access # Pass through to control NSG rule creation
   enable_nat_gateway           = local.enable_nat_gateway
 
   # Core configuration
@@ -156,13 +156,13 @@ module "workspace" {
   workspace_prefix = var.workspace_prefix
 
   # Networking
-  vnet_id                              = module.networking.vnet_id
-  public_subnet_name                   = module.networking.subnet_names["public"]
-  private_subnet_name                  = module.networking.subnet_names["private"]
-  public_subnet_nsg_association_id     = module.networking.public_subnet_nsg_association_id
-  private_subnet_nsg_association_id    = module.networking.private_subnet_nsg_association_id
-  enable_private_link                  = true  # Full Private pattern
-  dbfs_storage_name                    = local.dbfs_storage_name  # Custom DBFS name
+  vnet_id                           = module.networking.vnet_id
+  public_subnet_name                = module.networking.subnet_names["public"]
+  private_subnet_name               = module.networking.subnet_names["private"]
+  public_subnet_nsg_association_id  = module.networking.public_subnet_nsg_association_id
+  private_subnet_nsg_association_id = module.networking.private_subnet_nsg_association_id
+  enable_private_link               = true                    # Full Private pattern
+  dbfs_storage_name                 = local.dbfs_storage_name # Custom DBFS name
 
   # Customer-Managed Keys (enabled by default for Full Private)
   enable_cmk_managed_services = var.enable_cmk_managed_services
@@ -196,7 +196,7 @@ resource "null_resource" "byor_network_validation" {
 
   lifecycle {
     precondition {
-      condition     = (
+      condition = (
         var.existing_vnet_name != "" &&
         var.existing_resource_group_name != "" &&
         var.existing_public_subnet_name != "" &&
@@ -219,7 +219,7 @@ resource "null_resource" "byor_network_validation" {
       EOT
     }
     precondition {
-      condition     = (
+      condition = (
         !local.cmk_enabled ||
         (var.existing_key_vault_id != "" && var.existing_key_id != "")
       )
@@ -240,19 +240,19 @@ module "private_endpoints" {
   source = "../../modules/private-endpoints"
 
   # Workspace configuration
-  workspace_id                      = module.workspace.workspace_id
+  workspace_id                        = module.workspace.workspace_id
   workspace_managed_resource_group_id = module.workspace.managed_resource_group_id
-  workspace_prefix                  = var.workspace_prefix
-  dbfs_storage_name                 = local.dbfs_storage_name
+  workspace_prefix                    = var.workspace_prefix
+  dbfs_storage_name                   = local.dbfs_storage_name
 
   # Network configuration
   vnet_id               = module.networking.vnet_id
   privatelink_subnet_id = module.networking.subnet_ids["privatelink"]
 
   # Unity Catalog storage (will be populated after UC module creates storage)
-  create_uc_metastore_storage      = var.create_metastore
-  uc_metastore_storage_account_id  = var.create_metastore ? module.unity_catalog.metastore_storage_account_id : ""
-  uc_external_storage_account_id   = module.unity_catalog.external_storage_account_id
+  create_uc_metastore_storage         = var.create_metastore
+  uc_metastore_storage_account_id     = var.create_metastore ? module.unity_catalog.metastore_storage_account_id : ""
+  uc_external_storage_account_id      = module.unity_catalog.external_storage_account_id
   enable_uc_storage_private_endpoints = true
 
   # Core configuration
@@ -282,14 +282,14 @@ module "unity_catalog" {
   databricks_account_id = var.databricks_account_id
 
   # Workspace
-  workspace_id     = module.workspace.workspace_id_numeric  # Numeric ID for Unity Catalog
+  workspace_id     = module.workspace.workspace_id_numeric # Numeric ID for Unity Catalog
   workspace_prefix = var.workspace_prefix
 
   # Storage configuration (Full Private: Private Link for all storage)
   create_metastore_storage         = var.create_metastore
   create_external_location_storage = true
-  enable_private_link_storage      = false  # Private Endpoints created by private-endpoints module
-  service_endpoints_enabled        = false  # No Service Endpoints in air-gapped
+  enable_private_link_storage      = false # Private Endpoints created by private-endpoints module
+  service_endpoints_enabled        = false # No Service Endpoints in air-gapped
   metastore_storage_name_prefix    = var.metastore_storage_name_prefix
   external_storage_name_prefix     = var.external_storage_name_prefix
 
@@ -345,15 +345,15 @@ module "service_endpoint_policy" {
   count  = var.enable_service_endpoint_policy ? 1 : 0
   source = "../../modules/service-endpoint-policy"
 
-  workspace_prefix                  = var.workspace_prefix
-  location                          = var.location
-  resource_group_name               = local.resource_group_name
+  workspace_prefix    = var.workspace_prefix
+  location            = var.location
+  resource_group_name = local.resource_group_name
 
-  dbfs_storage_resource_id          = module.workspace.dbfs_storage_account_id
-  uc_metastore_storage_resource_id  = var.create_metastore ? module.unity_catalog.metastore_storage_account_id : ""
-  uc_external_storage_resource_id   = module.unity_catalog.external_storage_account_id
-  additional_storage_ids            = var.additional_allowed_storage_ids
-  random_suffix                     = random_string.deployment_suffix.result
+  dbfs_storage_resource_id         = module.workspace.dbfs_storage_account_id
+  uc_metastore_storage_resource_id = var.create_metastore ? module.unity_catalog.metastore_storage_account_id : ""
+  uc_external_storage_resource_id  = module.unity_catalog.external_storage_account_id
+  additional_storage_ids           = var.additional_allowed_storage_ids
+  random_suffix                    = random_string.deployment_suffix.result
 
   tags = local.all_tags
 
@@ -369,7 +369,7 @@ module "service_endpoint_policy" {
 resource "time_sleep" "wait_for_sep" {
   count           = var.enable_service_endpoint_policy && !local.use_existing_network ? 1 : 0
   create_duration = "30s"
-  
+
   depends_on = [module.service_endpoint_policy]
 }
 

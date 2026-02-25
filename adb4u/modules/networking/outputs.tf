@@ -75,7 +75,7 @@ output "nsg_rules_added" {
     "Outbound Priority 103: VirtualNetwork → VirtualNetwork (Any)",
     "Outbound Priority 104: VirtualNetwork → EventHub (9093)",
     "Outbound Priority 105: VirtualNetwork → Internet (111, 2049) - for library installs",
-  ] : [
+    ] : [
     "NSG rules managed by Databricks (Non-PL mode)"
   ]
 }
@@ -83,16 +83,16 @@ output "nsg_rules_added" {
 output "network_configuration" {
   description = "Summary of network configuration"
   value = {
-    mode                        = var.use_existing_network ? "BYOV (Bring Your Own VNet)" : "Created"
-    vnet_name                   = local.vnet_name
-    public_subnet_name          = local.public_subnet_name
-    private_subnet_name         = local.private_subnet_name
-    privatelink_subnet_name     = var.enable_private_link ? (var.use_existing_network && var.existing_privatelink_subnet_name != "" ? var.existing_privatelink_subnet_name : azurerm_subnet.privatelink[0].name) : "Not configured"
-    nsg_name                   = local.using_existing ? var.existing_nsg_name : azurerm_network_security_group.this[0].name
-    nat_gateway_enabled        = var.enable_nat_gateway
-    nat_gateway_ip             = var.enable_nat_gateway ? azurerm_public_ip.nat[0].ip_address : "Not configured"
-    private_link_enabled       = var.enable_private_link
-    service_endpoints          = ["Microsoft.Storage", "Microsoft.KeyVault"]
+    mode                    = var.use_existing_network ? "BYOV (Bring Your Own VNet)" : "Created"
+    vnet_name               = local.vnet_name
+    public_subnet_name      = local.public_subnet_name
+    private_subnet_name     = local.private_subnet_name
+    privatelink_subnet_name = var.enable_private_link ? (var.use_existing_network && var.existing_privatelink_subnet_name != "" ? var.existing_privatelink_subnet_name : azurerm_subnet.privatelink[0].name) : "Not configured"
+    nsg_name                = local.using_existing ? var.existing_nsg_name : azurerm_network_security_group.this[0].name
+    nat_gateway_enabled     = var.enable_nat_gateway
+    nat_gateway_ip          = var.enable_nat_gateway ? azurerm_public_ip.nat[0].ip_address : "Not configured"
+    private_link_enabled    = var.enable_private_link
+    service_endpoints       = ["Microsoft.Storage", "Microsoft.KeyVault"]
   }
 }
 

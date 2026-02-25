@@ -19,6 +19,6 @@ resource "databricks_grants" "ext_workspace_catalog_permission" {
       ] : grant.value.role == "data_editor" ? ["ALL_PRIVILEGES"] : []
     }
   }
-  ***REMOVED*** MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
+  # MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
   depends_on = [databricks_workspace_binding.ext_catalog, null_resource.wait_for_workspace_running]
 }

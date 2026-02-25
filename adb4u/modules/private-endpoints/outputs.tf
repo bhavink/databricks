@@ -70,15 +70,15 @@ output "uc_external_blob_private_endpoint_id" {
 output "private_endpoints_summary" {
   description = "Summary of Private Endpoints configuration"
   value = {
-    databricks_ui_api_created        = true
-    browser_authentication_created   = true
-    dbfs_dfs_created                 = true
-    dbfs_blob_created                = true
-    uc_metastore_dfs_created         = var.enable_uc_storage_private_endpoints && var.create_uc_metastore_storage
-    uc_metastore_blob_created        = var.enable_uc_storage_private_endpoints && var.create_uc_metastore_storage
-    uc_external_dfs_created          = var.enable_uc_storage_private_endpoints
-    uc_external_blob_created         = var.enable_uc_storage_private_endpoints
-    total_private_endpoints          = 4 + (var.enable_uc_storage_private_endpoints && var.create_uc_metastore_storage ? 2 : 0) + (var.enable_uc_storage_private_endpoints ? 2 : 0)
-    private_dns_zones_created        = 3
+    databricks_ui_api_created      = true
+    browser_authentication_created = true
+    dbfs_dfs_created               = true
+    dbfs_blob_created              = true
+    uc_metastore_dfs_created       = var.enable_uc_storage_private_endpoints && var.create_uc_metastore_storage
+    uc_metastore_blob_created      = var.enable_uc_storage_private_endpoints && var.create_uc_metastore_storage
+    uc_external_dfs_created        = var.enable_uc_storage_private_endpoints
+    uc_external_blob_created       = var.enable_uc_storage_private_endpoints
+    total_private_endpoints        = 4 + (var.enable_uc_storage_private_endpoints && var.create_uc_metastore_storage ? 2 : 0) + (var.enable_uc_storage_private_endpoints ? 2 : 0)
+    private_dns_zones_created      = 3
   }
 }

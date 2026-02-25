@@ -48,7 +48,7 @@ def upsertToDelta(microBatchOutputDF: DataFrame, batchId: Long) {
   */
 }
 
-// Setting ***REMOVED*** partitions to 1 only to make this demo faster.
+// Setting # partitions to 1 only to make this demo faster.
 // Not recommended for actual workloads.
 spark.conf.set("spark.sql.shuffle.partitions", "1")
 
@@ -76,17 +76,17 @@ aggregatesDF.writeStream
 // MAGIC 
 // MAGIC from pyspark import Row
 // MAGIC   
-// MAGIC ***REMOVED*** Function to upsert `microBatchOutputDF` into Delta table using MERGE
+// MAGIC # Function to upsert `microBatchOutputDF` into Delta table using MERGE
 // MAGIC def upsertToDelta(microBatchOutputDF, batchId): 
-// MAGIC   ***REMOVED*** Set the dataframe to view name
+// MAGIC   # Set the dataframe to view name
 // MAGIC   microBatchOutputDF.createOrReplaceTempView("updates")
 // MAGIC 
-// MAGIC   ***REMOVED*** ==============================
-// MAGIC   ***REMOVED*** Supported in DBR 5.5 and above
-// MAGIC   ***REMOVED*** ==============================
+// MAGIC   # ==============================
+// MAGIC   # Supported in DBR 5.5 and above
+// MAGIC   # ==============================
 // MAGIC 
-// MAGIC   ***REMOVED*** Use the view name to apply MERGE
-// MAGIC   ***REMOVED*** NOTE: You have to use the SparkSession that has been used to define the `updates` dataframe
+// MAGIC   # Use the view name to apply MERGE
+// MAGIC   # NOTE: You have to use the SparkSession that has been used to define the `updates` dataframe
 // MAGIC   microBatchOutputDF._jdf.sparkSession().sql("""
 // MAGIC     MERGE INTO aggregates t
 // MAGIC     USING updates s
@@ -95,15 +95,15 @@ aggregatesDF.writeStream
 // MAGIC     WHEN NOT MATCHED THEN INSERT *
 // MAGIC   """)
 // MAGIC 
-// MAGIC ***REMOVED*** Setting ***REMOVED*** partitions to 1 only to make this demo faster.
-// MAGIC ***REMOVED*** Not recommended for actual workloads.
+// MAGIC # Setting # partitions to 1 only to make this demo faster.
+// MAGIC # Not recommended for actual workloads.
 // MAGIC spark.conf.set("spark.sql.shuffle.partitions", "1")
 // MAGIC 
-// MAGIC ***REMOVED*** Reset the output aggregates table
+// MAGIC # Reset the output aggregates table
 // MAGIC spark.createDataFrame([ Row(key=0, count=0) ]).write \
 // MAGIC   .format("delta").mode("overwrite").saveAsTable("aggregates")
 // MAGIC 
-// MAGIC ***REMOVED*** Define the aggregation
+// MAGIC # Define the aggregation
 // MAGIC aggregatesDF = spark.readStream \
 // MAGIC   .format("rate") \
 // MAGIC   .option("rowsPerSecond", "1000") \
@@ -112,7 +112,7 @@ aggregatesDF.writeStream
 // MAGIC   .groupBy("key") \
 // MAGIC   .count()
 // MAGIC 
-// MAGIC ***REMOVED*** Start the query to continuously upsert into aggregates tables in update mode
+// MAGIC # Start the query to continuously upsert into aggregates tables in update mode
 // MAGIC aggregatesDF.writeStream \
 // MAGIC   .format("delta") \
 // MAGIC   .foreachBatch(upsertToDelta) \

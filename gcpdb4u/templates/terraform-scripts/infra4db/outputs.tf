@@ -42,14 +42,14 @@ output "network_details" {
 
 output "service_accounts" {
   description = "List of service accounts created"
-  value       = [
-    google_service_account.databricks_compute.email,  ***REMOVED*** Reference to the created service account
+  value = [
+    google_service_account.databricks_compute.email, # Reference to the created service account
     // Add more service accounts as needed
   ]
 }
 
 
-***REMOVED*** Outputs for KMS resources
+# Outputs for KMS resources
 output "databricks_keyring_ids" {
   value = { for keyring_name, ring in google_kms_key_ring.databricks_keyring : keyring_name => ring.id }
 }
@@ -64,27 +64,27 @@ output "relay_psc_endpoints" {
   value = {
     for k, v in google_compute_forwarding_rule.relay_psc_ep :
     k => {
-      name        = v.name
-      id          = v.id
-      region      = v.region
-      network     = v.network
-      subnetwork  = v.subnetwork
-      ip_address  = v.ip_address
-      target      = v.target
-      service_directory_registration = try(v.service_directory_registration, null)  ***REMOVED*** Optional
-      labels      = v.labels
+      name                           = v.name
+      id                             = v.id
+      region                         = v.region
+      network                        = v.network
+      subnetwork                     = v.subnetwork
+      ip_address                     = v.ip_address
+      target                         = v.target
+      service_directory_registration = try(v.service_directory_registration, null) # Optional
+      labels                         = v.labels
     }
   }
 }
 
 
 output "relay_pe_ip_addresses" {
-  value = { for region, addr in google_compute_address.relay_pe_ip_address : region => addr.address }
+  value       = { for region, addr in google_compute_address.relay_pe_ip_address : region => addr.address }
   description = "Relay PSC IP addresses per region"
 }
 
 output "workspace_pe_ip_addresses" {
-  value = { for region, addr in google_compute_address.workspace_pe_ip_address : region => addr.address }
+  value       = { for region, addr in google_compute_address.workspace_pe_ip_address : region => addr.address }
   description = "Workspace PSC IP addresses per region"
 }
 
@@ -98,15 +98,15 @@ output "workspace_psc_endpoints" {
   value = {
     for k, v in google_compute_forwarding_rule.workspace_psc_ep :
     k => {
-      name        = v.name
-      id          = v.id
-      region      = v.region
-      network     = v.network
-      subnetwork  = v.subnetwork
-      ip_address  = v.ip_address
-      target      = v.target
-      service_directory_registration = try(v.service_directory_registration, null)  ***REMOVED*** Optional
-      labels      = v.labels
+      name                           = v.name
+      id                             = v.id
+      region                         = v.region
+      network                        = v.network
+      subnetwork                     = v.subnetwork
+      ip_address                     = v.ip_address
+      target                         = v.target
+      service_directory_registration = try(v.service_directory_registration, null) # Optional
+      labels                         = v.labels
     }
   }
 }
@@ -118,9 +118,9 @@ output "workspace_psc_status" {
 
 output "custom_roles" {
   description = "List of custom roles created"
-  value       = [
-    google_project_iam_custom_role.databricks_creator_role.name,        ***REMOVED*** Reference to the custom role for workspace creation
-    google_project_iam_custom_role.databricks_creator_role_vpc.name,    ***REMOVED*** Reference to the custom role for VPC project
-  
+  value = [
+    google_project_iam_custom_role.databricks_creator_role.name,     # Reference to the custom role for workspace creation
+    google_project_iam_custom_role.databricks_creator_role_vpc.name, # Reference to the custom role for VPC project
+
   ]
 }

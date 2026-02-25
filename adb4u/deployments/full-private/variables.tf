@@ -133,7 +133,7 @@ variable "privatelink_subnet_address_prefix" {
 variable "enable_nat_gateway" {
   description = "Create NAT Gateway for egress. For Full Private (air-gapped), set to false. Only relevant when use_byor_infrastructure=false."
   type        = bool
-  default     = false  # Disabled by default for Full Private
+  default     = false # Disabled by default for Full Private
 }
 
 # ==============================================
@@ -153,7 +153,7 @@ variable "enable_ncc" {
 variable "enable_service_endpoint_policy" {
   description = "Enable Service Endpoint Policy for storage egress control (classic compute only). Restricts VNet storage access to allow-listed accounts only."
   type        = bool
-  default     = true  # Enabled by default
+  default     = true # Enabled by default
 }
 
 variable "additional_allowed_storage_ids" {
@@ -223,19 +223,19 @@ variable "external_storage_name_prefix" {
 variable "enable_cmk_managed_services" {
   description = "Enable CMK for Databricks managed services (notebooks, secrets). Requires cmk_key_vault_key_id."
   type        = bool
-  default     = true  # Enabled by default for Full Private
+  default     = true # Enabled by default for Full Private
 }
 
 variable "enable_cmk_managed_disks" {
   description = "Enable CMK for managed disks (cluster VM disks). Requires cmk_key_vault_key_id and cmk_key_vault_id."
   type        = bool
-  default     = true  # Enabled by default for Full Private
+  default     = true # Enabled by default for Full Private
 }
 
 variable "enable_cmk_dbfs_root" {
   description = "Enable CMK for DBFS root storage. Requires cmk_key_vault_key_id."
   type        = bool
-  default     = true  # Enabled by default for Full Private
+  default     = true # Enabled by default for Full Private
 }
 
 # Key Vault Configuration (Create or Bring)

@@ -1,9 +1,9 @@
-***REMOVED*** ============================================================================
-***REMOVED*** UC External Storage - Storage Credential, IAM, and External Location
-***REMOVED*** Following SRA pattern for external storage setup
-***REMOVED*** ============================================================================
+# ============================================================================
+# UC External Storage - Storage Credential, IAM, and External Location
+# Following SRA pattern for external storage setup
+# ============================================================================
 
-***REMOVED*** Step 1: Create storage credential with placeholder role (generates external_id)
+# Step 1: Create storage credential with placeholder role (generates external_id)
 resource "databricks_storage_credential" "external_storage" {
   count = var.create_workspace_catalog ? 1 : 0
 
@@ -21,7 +21,7 @@ resource "databricks_storage_credential" "external_storage" {
   ]
 }
 
-***REMOVED*** Step 2: Generate Unity Catalog trust policy using external_id from storage credential
+# Step 2: Generate Unity Catalog trust policy using external_id from storage credential
 data "databricks_aws_unity_catalog_assume_role_policy" "external_location" {
   count = var.create_workspace_catalog ? 1 : 0
 
@@ -31,7 +31,7 @@ data "databricks_aws_unity_catalog_assume_role_policy" "external_location" {
   external_id           = databricks_storage_credential.external_storage[0].aws_iam_role[0].external_id
 }
 
-***REMOVED*** Step 3: Generate Unity Catalog IAM policy for S3 access
+# Step 3: Generate Unity Catalog IAM policy for S3 access
 data "databricks_aws_unity_catalog_policy" "external_location" {
   count = var.create_workspace_catalog ? 1 : 0
 
@@ -40,7 +40,7 @@ data "databricks_aws_unity_catalog_policy" "external_location" {
   role_name      = local.uc_iam_role_name
 }
 
-***REMOVED*** Step 4: Create IAM policy
+# Step 4: Create IAM policy
 resource "aws_iam_policy" "unity_catalog_external" {
   count = var.create_workspace_catalog ? 1 : 0
 
@@ -52,7 +52,7 @@ resource "aws_iam_policy" "unity_catalog_external" {
   })
 }
 
-***REMOVED*** Step 5: Create IAM role with proper trust policy
+# Step 5: Create IAM role with proper trust policy
 resource "aws_iam_role" "unity_catalog_external" {
   count = var.create_workspace_catalog ? 1 : 0
 
@@ -64,7 +64,7 @@ resource "aws_iam_role" "unity_catalog_external" {
   })
 }
 
-***REMOVED*** Step 6: Attach policy to role
+# Step 6: Attach policy to role
 resource "aws_iam_policy_attachment" "unity_catalog_external" {
   count = var.create_workspace_catalog ? 1 : 0
 
@@ -73,7 +73,7 @@ resource "aws_iam_policy_attachment" "unity_catalog_external" {
   policy_arn = aws_iam_policy.unity_catalog_external[0].arn
 }
 
-***REMOVED*** Step 7: Wait for IAM propagation
+# Step 7: Wait for IAM propagation
 resource "time_sleep" "wait_for_uc_iam" {
   count = var.create_workspace_catalog ? 1 : 0
 
@@ -84,9 +84,9 @@ resource "time_sleep" "wait_for_uc_iam" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** External Location
-***REMOVED*** ============================================================================
+# ============================================================================
+# External Location
+# ============================================================================
 
 resource "databricks_external_location" "external_location" {
   count = var.create_workspace_catalog ? 1 : 0

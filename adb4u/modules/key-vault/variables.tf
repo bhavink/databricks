@@ -40,7 +40,7 @@ variable "key_type" {
   description = "Type of key (RSA, RSA-HSM, EC, EC-HSM)"
   type        = string
   default     = "RSA"
-  
+
   validation {
     condition     = contains(["RSA", "RSA-HSM", "EC", "EC-HSM"], var.key_type)
     error_message = "key_type must be one of: RSA, RSA-HSM, EC, EC-HSM"
@@ -51,7 +51,7 @@ variable "key_size" {
   description = "Size of RSA key (2048, 3072, 4096)"
   type        = number
   default     = 2048
-  
+
   validation {
     condition     = contains([2048, 3072, 4096], var.key_size)
     error_message = "key_size must be one of: 2048, 3072, 4096"
@@ -74,7 +74,7 @@ variable "rotation_policy_days" {
   description = "Days after creation before key auto-rotates (minimum 28 days)"
   type        = number
   default     = 90
-  
+
   validation {
     condition     = var.rotation_policy_days >= 28
     error_message = "rotation_policy_days must be at least 28 days"
@@ -107,7 +107,7 @@ variable "soft_delete_retention_days" {
   description = "Days to retain soft-deleted keys (7-90)"
   type        = number
   default     = 90
-  
+
   validation {
     condition     = var.soft_delete_retention_days >= 7 && var.soft_delete_retention_days <= 90
     error_message = "soft_delete_retention_days must be between 7 and 90"

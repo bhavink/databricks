@@ -1,17 +1,17 @@
-***REMOVED***reference
-***REMOVED***https://registry.terraform.io/providers/databricks/databricks/latest/docs/resources/workspace_binding
+#reference
+#https://registry.terraform.io/providers/databricks/databricks/latest/docs/resources/workspace_binding
 
-***REMOVED*** If you use workspaces to isolate user data access, you may want to limit access to catalog, 
-***REMOVED*** external locations or storage credentials from specific workspaces in your account, also known as workspace binding
-***REMOVED*** By default, Databricks assigns the securable to all workspaces attached to the current metastore. 
-***REMOVED*** By using databricks_workspace_binding, the securable will be unassigned from all workspaces and only assigned explicitly using this resource.
-***REMOVED*** Argument Reference
+# If you use workspaces to isolate user data access, you may want to limit access to catalog, 
+# external locations or storage credentials from specific workspaces in your account, also known as workspace binding
+# By default, Databricks assigns the securable to all workspaces attached to the current metastore. 
+# By using databricks_workspace_binding, the securable will be unassigned from all workspaces and only assigned explicitly using this resource.
+# Argument Reference
 
-***REMOVED*** The following arguments are required:
-***REMOVED*** workspace_id - ID of the workspace. Change forces creation of a new resource.
-***REMOVED*** securable_name - Name of securable. Change forces creation of a new resource.
-***REMOVED*** securable_type - Type of securable. Can be catalog, external-location or storage-credential. Default to catalog. Change forces creation of a new resource.
-***REMOVED*** binding_type - (Optional) Binding mode. Default to BINDING_TYPE_READ_WRITE. Possible values are BINDING_TYPE_READ_ONLY, BINDING_TYPE_READ_WRITE.
+# The following arguments are required:
+# workspace_id - ID of the workspace. Change forces creation of a new resource.
+# securable_name - Name of securable. Change forces creation of a new resource.
+# securable_type - Type of securable. Can be catalog, external-location or storage-credential. Default to catalog. Change forces creation of a new resource.
+# binding_type - (Optional) Binding mode. Default to BINDING_TYPE_READ_WRITE. Possible values are BINDING_TYPE_READ_ONLY, BINDING_TYPE_READ_WRITE.
 
 resource "databricks_workspace_binding" "catalog" {
   provider       = databricks.workspace
@@ -21,8 +21,8 @@ resource "databricks_workspace_binding" "catalog" {
   workspace_id   = databricks_mws_workspaces.dbx_workspace.workspace_id
   binding_type   = "BINDING_TYPE_READ_WRITE"
 
-  ***REMOVED*** MODIFICATION: Added explicit workspace binding with dependencies
-  ***REMOVED*** Reason: Ensure catalogs are accessible ONLY from this specific workspace
+  # MODIFICATION: Added explicit workspace binding with dependencies
+  # Reason: Ensure catalogs are accessible ONLY from this specific workspace
   depends_on = [
     databricks_catalog.workspace_catalog,
     databricks_workspace_binding.ext_loc,
@@ -38,8 +38,8 @@ resource "databricks_workspace_binding" "ext_loc" {
   workspace_id   = databricks_mws_workspaces.dbx_workspace.workspace_id
   binding_type   = "BINDING_TYPE_READ_WRITE"
 
-  ***REMOVED*** MODIFICATION: Added explicit workspace binding with dependencies
-  ***REMOVED*** Reason: Ensure external locations are accessible ONLY from this specific workspace
+  # MODIFICATION: Added explicit workspace binding with dependencies
+  # Reason: Ensure external locations are accessible ONLY from this specific workspace
   depends_on = [
     databricks_external_location.external_location,
     databricks_workspace_binding.storage_credential,
@@ -56,8 +56,8 @@ resource "databricks_workspace_binding" "storage_credential" {
   workspace_id   = databricks_mws_workspaces.dbx_workspace.workspace_id
   binding_type   = "BINDING_TYPE_READ_WRITE"
 
-  ***REMOVED*** MODIFICATION: Added explicit workspace binding with dependencies
-  ***REMOVED*** Reason: Ensure storage credentials are accessible ONLY from this specific workspace
+  # MODIFICATION: Added explicit workspace binding with dependencies
+  # Reason: Ensure storage credentials are accessible ONLY from this specific workspace
   depends_on = [
     databricks_storage_credential.this,
     databricks_metastore_assignment.this,

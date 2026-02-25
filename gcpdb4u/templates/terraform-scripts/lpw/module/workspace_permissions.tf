@@ -5,8 +5,8 @@ resource "databricks_mws_permission_assignment" "add_group_role_admin" {
   principal_id = each.value.id
   permissions  = ["ADMIN"]
   depends_on   = [databricks_mws_workspaces.dbx_workspace, databricks_metastore_assignment.this, null_resource.wait_for_workspace_running]
-  ***REMOVED*** MODIFICATION - resource for assigning ADMIN role to groups
-  ***REMOVED*** MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
+  # MODIFICATION - resource for assigning ADMIN role to groups
+  # MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
 }
 
 resource "databricks_mws_permission_assignment" "add_group_role_user" {
@@ -16,8 +16,8 @@ resource "databricks_mws_permission_assignment" "add_group_role_user" {
   principal_id = each.value.id
   permissions  = ["USER"]
   depends_on   = [databricks_mws_workspaces.dbx_workspace, databricks_metastore_assignment.this, null_resource.wait_for_workspace_running]
-  ***REMOVED*** MODIFICATION - resource for assigning USER role to groups
-  ***REMOVED*** MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
+  # MODIFICATION - resource for assigning USER role to groups
+  # MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
 }
 
 resource "databricks_mws_permission_assignment" "add_user_role_user" {
@@ -27,8 +27,8 @@ resource "databricks_mws_permission_assignment" "add_user_role_user" {
   principal_id = each.value.id
   permissions  = ["USER"]
   depends_on   = [databricks_mws_workspaces.dbx_workspace, databricks_metastore_assignment.this, null_resource.wait_for_workspace_running]
-  ***REMOVED*** MODIFICATION - resource for assigning USER role to users
-  ***REMOVED*** MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
+  # MODIFICATION - resource for assigning USER role to users
+  # MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
 }
 
 resource "databricks_mws_permission_assignment" "add_user_role_admin" {
@@ -38,8 +38,8 @@ resource "databricks_mws_permission_assignment" "add_user_role_admin" {
   principal_id = each.value.id
   permissions  = ["ADMIN"]
   depends_on   = [databricks_mws_workspaces.dbx_workspace, databricks_metastore_assignment.this, null_resource.wait_for_workspace_running]
-  ***REMOVED*** MODIFICATION - resource for assigning ADMIN role to users
-  ***REMOVED*** MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
+  # MODIFICATION - resource for assigning ADMIN role to users
+  # MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
 }
 
 resource "databricks_mws_permission_assignment" "add_spn_role_user" {
@@ -49,8 +49,8 @@ resource "databricks_mws_permission_assignment" "add_spn_role_user" {
   principal_id = each.value.id
   permissions  = ["USER"]
   depends_on   = [databricks_mws_workspaces.dbx_workspace, databricks_metastore_assignment.this, null_resource.wait_for_workspace_running]
-  ***REMOVED*** MODIFICATION - resource for assigning USER role to service principals
-  ***REMOVED*** MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
+  # MODIFICATION - resource for assigning USER role to service principals
+  # MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
 }
 
 resource "databricks_mws_permission_assignment" "add_spn_role_admin" {
@@ -60,6 +60,6 @@ resource "databricks_mws_permission_assignment" "add_spn_role_admin" {
   principal_id = each.value.id
   permissions  = ["ADMIN"]
   depends_on   = [databricks_mws_workspaces.dbx_workspace, databricks_metastore_assignment.this, null_resource.wait_for_workspace_running]
-  ***REMOVED*** MODIFICATION - resource for assigning ADMIN role to service principals
-  ***REMOVED*** MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
+  # MODIFICATION - resource for assigning ADMIN role to service principals
+  # MODIFICATION - we wait for workspace to be in running state (using null_resource.wait_for_workspace_running in depends_on)
 }

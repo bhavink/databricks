@@ -162,7 +162,7 @@ resource "databricks_grants" "all_grants" {
   metastore = databricks_metastore.this.id
   grant {
     principal  = var.adb_ws_user1
-    privileges = ["CREATE_CATALOG","CREATE_EXTERNAL_LOCATION","CREATE_STORAGE_CREDENTIAL"]
+    privileges = ["CREATE_CATALOG", "CREATE_EXTERNAL_LOCATION", "CREATE_STORAGE_CREDENTIAL"]
   }
   # grant {
   #   principal  = var.adb_ws_user2

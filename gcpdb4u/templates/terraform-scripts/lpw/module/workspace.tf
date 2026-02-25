@@ -10,10 +10,10 @@ resource "databricks_mws_networks" "dbx_network" {
     subnet_region      = var.google_region
   }
 
-  ***REMOVED***vpc_endpoints {
-  ***REMOVED***  dataplane_relay = [local.dataplane_relay_vpc_endpoint_id[var.google_region]]
-  ***REMOVED***  rest_api        = [local.rest_api_vpc_endpoint_id[var.google_region]]
-  ***REMOVED***}
+  #vpc_endpoints {
+  #  dataplane_relay = [local.dataplane_relay_vpc_endpoint_id[var.google_region]]
+  #  rest_api        = [local.rest_api_vpc_endpoint_id[var.google_region]]
+  #}
 }
 
 resource "databricks_mws_workspaces" "dbx_workspace" {
@@ -27,42 +27,42 @@ resource "databricks_mws_workspaces" "dbx_workspace" {
       project_id = var.google_project_name
     }
   }
-  ***REMOVED*** MODIFICATION - The following optional block is intentionally left blank.
-  ***REMOVED*** Reason: All workspace properties are now set either in the main arguments or in conditional attachments (network/private_access).
-  ***REMOVED*** Phase selection
+  # MODIFICATION - The following optional block is intentionally left blank.
+  # Reason: All workspace properties are now set either in the main arguments or in conditional attachments (network/private_access).
+  # Phase selection
   expected_workspace_status = var.expected_workspace_status
 
-  ***REMOVED*** ---------------------------------------------------------
-  ***REMOVED*** Conditional Attachments (only in Phase 2 = RUNNING)
-  ***REMOVED*** ---------------------------------------------------------
+  # ---------------------------------------------------------
+  # Conditional Attachments (only in Phase 2 = RUNNING)
+  # ---------------------------------------------------------
   network_id                 = var.expected_workspace_status == "RUNNING" ? databricks_mws_networks.dbx_network.network_id : null
   private_access_settings_id = var.expected_workspace_status == "RUNNING" ? local.private_access_settings_id[var.google_region] : null
 
 
-  ***REMOVED***token {} ***REMOVED***v0l02v1 comment
+  #token {} #v0l02v1 comment
 }
 
 
 
-***REMOVED*** MODIFICATION: Added explicit wait for workspace RUNNING state before proceeding with dependent resources.
-***REMOVED*** This ensures that provisioning dependent Databricks resources will only occur after the workspace is fully ready.
-***REMOVED*** Note: This resource introduces a blocking wait loop using gcloud and curl for status polling.
+# MODIFICATION: Added explicit wait for workspace RUNNING state before proceeding with dependent resources.
+# This ensures that provisioning dependent Databricks resources will only occur after the workspace is fully ready.
+# Note: This resource introduces a blocking wait loop using gcloud and curl for status polling.
 
 resource "null_resource" "wait_for_workspace_running" {
   count = var.expected_workspace_status == "RUNNING" ? 1 : 0
 
-  ***REMOVED*** MODIFICATION: Use workspace_id and network_id as triggers to rerun if they change.
+  # MODIFICATION: Use workspace_id and network_id as triggers to rerun if they change.
   triggers = {
     workspace_id = databricks_mws_workspaces.dbx_workspace.workspace_id
     network_id   = databricks_mws_workspaces.dbx_workspace.network_id
   }
 
-  ***REMOVED*** MODIFICATION: Use a local-exec provisioner to poll Databricks workspace status via GCP and Databricks APIs.
+  # MODIFICATION: Use a local-exec provisioner to poll Databricks workspace status via GCP and Databricks APIs.
   provisioner "local-exec" {
     command = <<-EOT
       echo "Waiting for workspace ${databricks_mws_workspaces.dbx_workspace.workspace_id} to reach RUNNING state..."
       
-      ***REMOVED*** Get authentication tokens by impersonating the service account
+      # Get authentication tokens by impersonating the service account
       AUTH_TOKEN=$(gcloud auth print-identity-token \
         --impersonate-service-account="${var.databricks_google_service_account}" \
         --include-email \
@@ -101,17 +101,17 @@ resource "null_resource" "wait_for_workspace_running" {
     EOT
   }
 
-  ***REMOVED*** MODIFICATION: Explicitly depend on workspace resource to make sure it exists first.
+  # MODIFICATION: Explicitly depend on workspace resource to make sure it exists first.
   depends_on = [databricks_mws_workspaces.dbx_workspace]
 }
 
-***REMOVED*** MODIFICATION: Ensure metastore assignment happens only after workspace is RUNNING by depending on null_resource.wait_for_workspace_running.
+# MODIFICATION: Ensure metastore assignment happens only after workspace is RUNNING by depending on null_resource.wait_for_workspace_running.
 resource "databricks_metastore_assignment" "this" {
   count        = var.provision_workspace_resources ? 1 : 0
   provider     = databricks.accounts
   metastore_id = var.metastore_id == "" ? local.databricks_metastore_id[var.google_region] : var.metastore_id
   workspace_id = databricks_mws_workspaces.dbx_workspace.workspace_id
-  ***REMOVED*** MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
+  # MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
   depends_on = [null_resource.wait_for_workspace_running]
 }
 

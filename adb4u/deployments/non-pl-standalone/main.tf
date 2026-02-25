@@ -144,10 +144,10 @@ resource "azurerm_databricks_workspace" "this" {
   customer_managed_key_enabled          = false
 
   custom_parameters {
-    no_public_ip = true
-    public_subnet_name  = azurerm_subnet.public.name
-    private_subnet_name = azurerm_subnet.private.name
-    virtual_network_id  = azurerm_virtual_network.this.id
+    no_public_ip                                         = true
+    public_subnet_name                                   = azurerm_subnet.public.name
+    private_subnet_name                                  = azurerm_subnet.private.name
+    virtual_network_id                                   = azurerm_virtual_network.this.id
     public_subnet_network_security_group_association_id  = azurerm_subnet_network_security_group_association.public.id
     private_subnet_network_security_group_association_id = azurerm_subnet_network_security_group_association.private.id
   }

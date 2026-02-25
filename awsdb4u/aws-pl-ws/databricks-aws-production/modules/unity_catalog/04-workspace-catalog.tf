@@ -1,8 +1,8 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Catalog Creation
-***REMOVED*** Uses root storage bucket when creating new metastore
-***REMOVED*** Uses external storage bucket when using existing metastore
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Catalog Creation
+# Uses root storage bucket when creating new metastore
+# Uses external storage bucket when using existing metastore
+# ============================================================================
 
 resource "databricks_catalog" "workspace_catalog" {
   count = var.create_workspace_catalog ? 1 : 0
@@ -10,7 +10,7 @@ resource "databricks_catalog" "workspace_catalog" {
   provider = databricks.workspace
   name = var.workspace_catalog_name != "" ? (
     replace("${var.workspace_catalog_name}_${var.prefix}-catalog", "-", "_")
-  ) : (
+    ) : (
     replace("${var.prefix}-catalog", "-", "_")
   )
   comment        = "Workspace catalog for ${var.workspace_name}"
@@ -27,9 +27,9 @@ resource "databricks_catalog" "workspace_catalog" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Set Workspace Catalog as Default
-***REMOVED*** ============================================================================
+# ============================================================================
+# Set Workspace Catalog as Default
+# ============================================================================
 
 resource "databricks_default_namespace_setting" "this" {
   count = var.create_workspace_catalog ? 1 : 0

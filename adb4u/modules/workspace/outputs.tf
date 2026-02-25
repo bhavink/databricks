@@ -62,7 +62,7 @@ output "workspace_configuration" {
     sku                           = azurerm_databricks_workspace.this.sku
     location                      = azurerm_databricks_workspace.this.location
     public_network_access_enabled = azurerm_databricks_workspace.this.public_network_access_enabled
-    npip_enabled                  = true  # Always enabled in our pattern
+    npip_enabled                  = true # Always enabled in our pattern
     cmk_managed_services_enabled  = var.enable_cmk_managed_services
     cmk_managed_disks_enabled     = var.enable_cmk_managed_disks
     cmk_dbfs_root_enabled         = var.enable_cmk_dbfs_root

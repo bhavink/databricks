@@ -1,11 +1,11 @@
 -- Databricks notebook source
 -- MAGIC %md
--- MAGIC ***REMOVED*** Databricks in 5 minutes
+-- MAGIC # Databricks in 5 minutes
 
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ***REMOVED******REMOVED*** Create a quickstart cluster
+-- MAGIC ## Create a quickstart cluster
 -- MAGIC 
 -- MAGIC 1. In the sidebar, right-click the **Clusters** button and open the link in a new window.
 -- MAGIC 1. On the Clusters page, click **Create Cluster**.
@@ -18,7 +18,7 @@
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ***REMOVED******REMOVED*** Attach the notebook to the cluster and run all commands in the notebook
+-- MAGIC ## Attach the notebook to the cluster and run all commands in the notebook
 -- MAGIC 
 -- MAGIC 1. Return to this notebook. 
 -- MAGIC 1. In the notebook menu bar, select **<img src="http://docs.databricks.com/_static/images/notebooks/detached.png"/></a> > Quickstart**.
@@ -27,7 +27,7 @@
 -- COMMAND ----------
 
 -- MAGIC %md 
--- MAGIC ***REMOVED******REMOVED*** The next command creates a table from a Databricks dataset
+-- MAGIC ## The next command creates a table from a Databricks dataset
 
 -- COMMAND ----------
 
@@ -61,7 +61,7 @@ SELECT * from diamonds
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ***REMOVED******REMOVED*** The next command manipulates the data and displays the results 
+-- MAGIC ## The next command manipulates the data and displays the results 
 -- MAGIC 
 -- MAGIC Specifically, the command:
 -- MAGIC 1. Selects color and price columns, averages the price, and groups and orders by color.
@@ -74,20 +74,20 @@ SELECT color, avg(price) AS price FROM diamonds GROUP BY color ORDER BY color
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ***REMOVED******REMOVED*** Convert the table to a chart
+-- MAGIC ## Convert the table to a chart
 -- MAGIC 
 -- MAGIC Under the table, click the bar chart <img src="http://docs.databricks.com/_static/images/notebooks/chart-button.png"/></a> icon. 
 
 -- COMMAND ----------
 
 -- MAGIC %md 
--- MAGIC ***REMOVED******REMOVED*** Repeat the same operations using Python DataFrame API. 
+-- MAGIC ## Repeat the same operations using Python DataFrame API. 
 -- MAGIC This is a SQL notebook; by default command statements are passed to a SQL interpreter. To pass command statements to a Python interpreter, include the `%python` magic command.
 
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ***REMOVED******REMOVED*** The next command creates a DataFrame from a Databricks dataset
+-- MAGIC ## The next command creates a DataFrame from a Databricks dataset
 
 -- COMMAND ----------
 
@@ -97,7 +97,7 @@ SELECT color, avg(price) AS price FROM diamonds GROUP BY color ORDER BY color
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ***REMOVED******REMOVED*** The next command manipulates the data and displays the results
+-- MAGIC ## The next command manipulates the data and displays the results
 
 -- COMMAND ----------
 

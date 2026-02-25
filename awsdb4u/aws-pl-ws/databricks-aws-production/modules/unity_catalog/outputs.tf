@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Metastore Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Metastore Outputs
+# ============================================================================
 
 output "metastore_id" {
   description = "Unity Catalog metastore ID (existing or created by Terraform)"
@@ -22,9 +22,9 @@ output "metastore_assignment_id" {
   value       = databricks_metastore_assignment.workspace_assignment.id
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Catalog Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Catalog Outputs
+# ============================================================================
 
 output "workspace_catalog_name" {
   description = "Workspace catalog name (if created)"
@@ -36,9 +36,9 @@ output "workspace_catalog_storage_root" {
   value       = var.create_workspace_catalog ? databricks_catalog.workspace_catalog[0].storage_root : null
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Storage Credential Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Storage Credential Outputs
+# ============================================================================
 
 output "root_storage_credential_name" {
   description = "UC root storage credential name (null if using existing metastore)"
@@ -50,9 +50,9 @@ output "external_storage_credential_name" {
   value       = var.create_workspace_catalog ? databricks_storage_credential.external_storage[0].name : null
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** External Location Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# External Location Outputs
+# ============================================================================
 
 output "root_storage_location_url" {
   description = "UC root storage location URL (null if using existing metastore)"
@@ -64,9 +64,9 @@ output "external_location_url" {
   value       = var.create_workspace_catalog ? databricks_external_location.external_location[0].url : null
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** IAM Role Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# IAM Role Outputs
+# ============================================================================
 
 output "root_storage_iam_role_arn" {
   description = "UC root storage IAM role ARN (null if using existing metastore)"
@@ -78,18 +78,18 @@ output "external_storage_iam_role_arn" {
   value       = var.create_workspace_catalog ? aws_iam_role.unity_catalog_external[0].arn : null
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Admin Outputs (DISABLED)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Admin Outputs (DISABLED)
+# ============================================================================
 
-***REMOVED*** output "workspace_admin_user_id" {
-***REMOVED***   description = "Workspace admin user ID (if assigned)"
-***REMOVED***   value       = var.workspace_admin_email != "" && length(data.databricks_user.workspace_admin) > 0 ? data.databricks_user.workspace_admin[0].id : null
-***REMOVED*** }
-***REMOVED*** 
-***REMOVED*** output "workspace_admin_assignment_id" {
-***REMOVED***   description = "Workspace admin permission assignment ID (if assigned)"
-***REMOVED***   value       = var.workspace_admin_email != "" && length(databricks_mws_permission_assignment.workspace_admin) > 0 ? databricks_mws_permission_assignment.workspace_admin[0].id : null
-***REMOVED*** }
+# output "workspace_admin_user_id" {
+#   description = "Workspace admin user ID (if assigned)"
+#   value       = var.workspace_admin_email != "" && length(data.databricks_user.workspace_admin) > 0 ? data.databricks_user.workspace_admin[0].id : null
+# }
+# 
+# output "workspace_admin_assignment_id" {
+#   description = "Workspace admin permission assignment ID (if assigned)"
+#   value       = var.workspace_admin_email != "" && length(databricks_mws_permission_assignment.workspace_admin) > 0 ? databricks_mws_permission_assignment.workspace_admin[0].id : null
+# }
 
 

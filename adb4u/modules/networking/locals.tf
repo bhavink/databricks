@@ -14,16 +14,16 @@ locals {
   using_existing = var.use_existing_network
 
   # VNet references
-  vnet = local.using_existing ? data.azurerm_virtual_network.existing[0] : azurerm_virtual_network.this[0]
+  vnet      = local.using_existing ? data.azurerm_virtual_network.existing[0] : azurerm_virtual_network.this[0]
   vnet_id   = local.vnet.id
   vnet_name = local.vnet.name
 
   # Subnet references
-  public_subnet = local.using_existing ? data.azurerm_subnet.existing_public[0] : azurerm_subnet.public[0]
+  public_subnet      = local.using_existing ? data.azurerm_subnet.existing_public[0] : azurerm_subnet.public[0]
   public_subnet_id   = local.public_subnet.id
   public_subnet_name = local.public_subnet.name
 
-  private_subnet = local.using_existing ? data.azurerm_subnet.existing_private[0] : azurerm_subnet.private[0]
+  private_subnet      = local.using_existing ? data.azurerm_subnet.existing_private[0] : azurerm_subnet.private[0]
   private_subnet_id   = local.private_subnet.id
   private_subnet_name = local.private_subnet.name
 

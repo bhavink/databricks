@@ -10,7 +10,7 @@ variable "databricks_admin_user" {}
 //data "google_client_openid_userinfo" "me" {}
 //data "google_client_config" "current" {}
 
-***REMOVED*** Random suffix for databricks resources
+# Random suffix for databricks resources
 resource "random_string" "databricks_suffix" {
   special = false
   upper   = false
@@ -18,21 +18,21 @@ resource "random_string" "databricks_suffix" {
 }
 
 
-***REMOVED*** Provision databricks network configuration
+# Provision databricks network configuration
 resource "databricks_mws_networks" "databricks_network" {
-  provider     = databricks.accounts
-  account_id   = var.databricks_account_id
-  ***REMOVED*** name needs to be of length 3-30 incuding [a-z,A-Z,-_]
+  provider   = databricks.accounts
+  account_id = var.databricks_account_id
+  # name needs to be of length 3-30 incuding [a-z,A-Z,-_]
   network_name = "${var.google_shared_vpc_project}-nw-${random_string.databricks_suffix.result}"
   gcp_network_info {
-    network_project_id    = var.google_shared_vpc_project
-    vpc_id                = var.google_vpc_id
-    subnet_id             = var.node_subnet
-    subnet_region         = var.google_region
+    network_project_id = var.google_shared_vpc_project
+    vpc_id             = var.google_vpc_id
+    subnet_id          = var.node_subnet
+    subnet_region      = var.google_region
   }
 }
-***REMOVED*** Provision databricks workspace in a customer managed vpc
-***REMOVED*** https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/workspaces.html***REMOVED***create-a-workspace-using-the-account-console
+# Provision databricks workspace in a customer managed vpc
+# https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/workspaces.html#create-a-workspace-using-the-account-console
 
 resource "databricks_mws_workspaces" "databricks_workspace" {
   provider       = databricks.accounts
@@ -45,32 +45,32 @@ resource "databricks_mws_workspaces" "databricks_workspace" {
     }
   }
   network_id = databricks_mws_networks.databricks_network.network_id
-  
+
 }
 
 
 // add a default user as a workspace admin
 data "databricks_group" "admins" {
-  depends_on   = [ databricks_mws_workspaces.databricks_workspace ]
+  depends_on   = [databricks_mws_workspaces.databricks_workspace]
   provider     = databricks.workspace
   display_name = "admins"
 }
 
 resource "databricks_user" "me" {
-  depends_on = [ databricks_mws_workspaces.databricks_workspace ]
+  depends_on = [databricks_mws_workspaces.databricks_workspace]
   provider   = databricks.workspace
-  user_name  = var.databricks_admin_user 
+  user_name  = var.databricks_admin_user
 }
 
-resource "databricks_group_member" "ws_admin_member0" { 
-  provider     = databricks.workspace
+resource "databricks_group_member" "ws_admin_member0" {
+  provider  = databricks.workspace
   group_id  = data.databricks_group.admins.id
   member_id = databricks_user.me.id
 }
 
 
 resource "databricks_workspace_conf" "this" {
-  depends_on = [ databricks_mws_workspaces.databricks_workspace ]
+  depends_on = [databricks_mws_workspaces.databricks_workspace]
   provider   = databricks.workspace
   custom_config = {
     "enableIpAccessLists" = true
@@ -78,15 +78,15 @@ resource "databricks_workspace_conf" "this" {
 }
 
 resource "databricks_ip_access_list" "this" {
-  depends_on = [ databricks_workspace_conf.this ]
+  depends_on = [databricks_workspace_conf.this]
   provider   = databricks.workspace
-  label = "allow corp vpn1"
-  ***REMOVED*** example allow list
+  label      = "allow corp vpn1"
+  # example allow list
   list_type = "ALLOW"
   ip_addresses = [
     "0.0.0.0/0",
     "18.158.110.150/32"
-    ]
+  ]
 
 }
 

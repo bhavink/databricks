@@ -25,11 +25,11 @@ output "resources" {
   description = "Detailed resource information (workspace, network, Unity Catalog, Private Endpoints, NCC, SEP)"
   value = {
     workspace = {
-      name         = module.workspace.workspace_name
-      url          = module.workspace.workspace_url
-      id           = module.workspace.workspace_id
-      id_numeric   = module.workspace.workspace_id_numeric
-      region       = var.location
+      name       = module.workspace.workspace_name
+      url        = module.workspace.workspace_url
+      id         = module.workspace.workspace_id
+      id_numeric = module.workspace.workspace_id_numeric
+      region     = var.location
     }
     network = {
       vnet_id      = module.networking.vnet_id
@@ -39,16 +39,16 @@ output "resources" {
       nsg_id       = module.networking.nsg_id
     }
     unity_catalog = {
-      metastore_id         = var.create_metastore ? module.unity_catalog.metastore_id : var.existing_metastore_id
-      metastore_storage    = var.create_metastore ? module.unity_catalog.metastore_storage_account_name : "N/A (using existing)"
-      external_location    = module.unity_catalog.external_location_url
-      external_storage     = module.unity_catalog.external_storage_account_name
+      metastore_id      = var.create_metastore ? module.unity_catalog.metastore_id : var.existing_metastore_id
+      metastore_storage = var.create_metastore ? module.unity_catalog.metastore_storage_account_name : "N/A (using existing)"
+      external_location = module.unity_catalog.external_location_url
+      external_storage  = module.unity_catalog.external_storage_account_name
     }
     private_endpoints = {
-      ui_api_endpoint_id          = module.private_endpoints.databricks_ui_api_private_endpoint_id
-      browser_auth_endpoint_id    = module.private_endpoints.browser_authentication_private_endpoint_id
-      private_dns_zones           = module.private_endpoints.private_dns_zones
-      summary                     = module.private_endpoints.private_endpoints_summary
+      ui_api_endpoint_id       = module.private_endpoints.databricks_ui_api_private_endpoint_id
+      browser_auth_endpoint_id = module.private_endpoints.browser_authentication_private_endpoint_id
+      private_dns_zones        = module.private_endpoints.private_dns_zones
+      summary                  = module.private_endpoints.private_endpoints_summary
     }
     ncc = var.enable_ncc ? {
       id   = module.ncc[0].ncc_id
@@ -83,7 +83,7 @@ output "resources" {
 
 output "deployment_summary" {
   description = "Quick status overview of deployed resources"
-  value = <<-EOT
+  value       = <<-EOT
   
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ✅ Databricks Full Private Workspace Deployed

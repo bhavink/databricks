@@ -1,9 +1,9 @@
 
-***REMOVED*** data "databricks_catalog" "ext" {
-***REMOVED***   provider     = databricks.workspace
-***REMOVED***   for_each     = local.ext_unity_catalog_config_map
-***REMOVED***   name         = "${each.value.name}"
-***REMOVED*** }
+# data "databricks_catalog" "ext" {
+#   provider     = databricks.workspace
+#   for_each     = local.ext_unity_catalog_config_map
+#   name         = "${each.value.name}"
+# }
 
 resource "databricks_workspace_binding" "ext_catalog" {
   provider       = databricks.workspace

@@ -128,13 +128,13 @@ resource "databricks_storage_credential" "uc_ext_credendtial1" {
 # Defines an external storage location in Unity Catalog, pointing to the external storage container.
 # This location will allow Databricks to manage and access data stored outside the main storage account.
 resource "databricks_external_location" "uc_ext_location1" {
-  name           = "external"
-  url            = format("abfss://%s@%s.dfs.core.windows.net",
-                          azurerm_storage_container.uc_ext_storage_container.name,
-                          azurerm_storage_account.uc_ext_storage.name)
+  name = "external"
+  url = format("abfss://%s@%s.dfs.core.windows.net",
+    azurerm_storage_container.uc_ext_storage_container.name,
+  azurerm_storage_account.uc_ext_storage.name)
   credential_name = databricks_storage_credential.uc_ext_credendtial1.name
   comment         = "ext location created and managed by terraform"
-  depends_on      = [
+  depends_on = [
     databricks_metastore_assignment.this
   ]
 }
@@ -145,7 +145,7 @@ resource "databricks_grants" "all_grants" {
   metastore = databricks_metastore.this.id
   grant {
     principal  = var.admin_user
-    privileges = ["CREATE_CATALOG","CREATE_EXTERNAL_LOCATION","CREATE_RECIPIENT","CREATE_SHARE","CREATE_PROVIDER"]
+    privileges = ["CREATE_CATALOG", "CREATE_EXTERNAL_LOCATION", "CREATE_RECIPIENT", "CREATE_SHARE", "CREATE_PROVIDER"]
   }
   depends_on = [
     databricks_metastore_assignment.this

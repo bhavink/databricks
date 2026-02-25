@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style G: Notebook Tabs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  :root {
+    --bg-outer: #2d2d2d;
+    --bg-page: #f8f6f1;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555;
+    --text-light: rgba(26,26,26,0.4);
+    --tab-1: #98d4bb;
+    --tab-2: #c7b8ea;
+    --tab-3: #f4b8c5;
+    --tab-4: #a8d8ea;
+    --tab-5: #ffe6a7;
+    --shadow: 0 8px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2);
+    --title-size: clamp(2.2rem, 5vw, 5rem);
+    --body-size: clamp(0.75rem, 1.2vw, 0.95rem);
+  }
+
+  body {
+    background: var(--bg-outer);
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1.5rem, 4vh, 4rem) clamp(1.5rem, 4vw, 5rem);
+    position: relative;
+  }
+
+  /* Outer dark texture */
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 30px,
+      rgba(255,255,255,0.015) 30px,
+      rgba(255,255,255,0.015) 31px
+    );
+    pointer-events: none;
+  }
+
+  /* ── Paper card ── */
+  .paper-card {
+    position: relative;
+    background: var(--bg-page);
+    border-radius: 3px;
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: min(92vw, 1100px);
+    height: min(88vh, 700px);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: slideUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  }
+
+  /* ── Binder holes (left edge) ── */
+  .binder-holes {
+    width: clamp(1.5rem, 3vw, 2.5rem);
+    background: rgba(0,0,0,0.04);
+    border-right: 1px solid rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(1.5rem, 4vh, 3rem) 0;
+    gap: clamp(1.5rem, 4vh, 3rem);
+    flex-shrink: 0;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.55s forwards;
+  }
+
+  .hole {
+    width: clamp(12px, 1.5vw, 18px);
+    height: clamp(12px, 1.5vw, 18px);
+    border-radius: 50%;
+    background: var(--bg-outer);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+    flex-shrink: 0;
+  }
+
+  /* ── Page content ── */
+  .page-content {
+    padding: clamp(1.5rem, 4vh, 4rem) clamp(1.5rem, 3.5vw, 3.5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(1rem, 2.5vh, 2.2rem);
+    overflow: hidden;
+  }
+
+  /* Top meta line */
+  .page-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.65s forwards;
+  }
+
+  .meta-chapter {
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-light);
+  }
+
+  .meta-sep {
+    width: 1.5rem;
+    height: 1px;
+    background: rgba(26,26,26,0.2);
+  }
+
+  .meta-date {
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    font-weight: 400;
+    color: var(--text-light);
+  }
+
+  /* Headline */
+  h1 {
+    font-family: 'Bodoni Moda', serif;
+    font-size: var(--title-size);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    opacity: 0;
+    transform: translateY(18px);
+    animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards;
+  }
+
+  h1 em {
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* Thin rule under heading */
+  .page-rule {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.95s forwards;
+  }
+
+  .rule-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(26,26,26,0.15);
+  }
+
+  .rule-diamond {
+    width: 6px;
+    height: 6px;
+    background: var(--text-primary);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  /* Body */
+  .page-body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: var(--body-size);
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1.75;
+    max-width: 55ch;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.85s forwards;
+  }
+
+  /* Chapter list */
+  .chapter-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(0.4rem, 1vh, 0.7rem) clamp(1rem, 2vw, 2rem);
+    opacity: 0;
+    transform: translateY(8px);
+    animation: slideUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) 1s forwards;
+  }
+
+  .chapter-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.68rem, 1vw, 0.82rem);
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .chapter-num {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(0.7rem, 1vw, 0.85rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    flex-shrink: 0;
+    min-width: 1.4rem;
+  }
+
+  /* ── Colored tabs (right edge) ── */
+  .tabs-column {
+    width: clamp(1.8rem, 3.5vw, 3rem);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.4s forwards;
+  }
+
+  .tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-left: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .tab-1 { background: var(--tab-1); }
+  .tab-2 { background: var(--tab-2); }
+  .tab-3 { background: var(--tab-3); }
+  .tab-4 { background: var(--tab-4); }
+  .tab-5 { background: var(--tab-5); }
+
+  /* Vertical text on each tab */
+  .tab-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.5rem, 1vh, 0.7rem);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(26,26,26,0.55);
+    transform: rotate(180deg);
+    white-space: nowrap;
+  }
+
+  /* Active tab has a small marker */
+  .tab.active {
+    border-left: 3px solid rgba(0,0,0,0.2);
+  }
+
+  .tab.active .tab-text {
+    color: rgba(26,26,26,0.8);
+  }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  @media (max-height: 600px) {
+    .slide { padding: clamp(0.5rem, 2vh, 1rem) clamp(0.75rem, 2vw, 2rem); }
+    .chapter-list { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="paper-card">
+
+    <!-- Binder holes -->
+    <div class="binder-holes">
+      <div class="hole"></div>
+      <div class="hole"></div>
+      <div class="hole"></div>
+    </div>
+
+    <!-- Page content -->
+    <div class="page-content">
+      <div class="page-meta">
+        <div class="meta-chapter">Databricks · AI Governance</div>
+        <div class="meta-sep"></div>
+        <div class="meta-date">2026 Edition</div>
+      </div>
+
+      <h1>The Complete<br>Guide to <em>AI</em><br>Governance</h1>
+
+      <div class="page-rule">
+        <div class="rule-line"></div>
+        <div class="rule-diamond"></div>
+        <div class="rule-line"></div>
+      </div>
+
+      <p class="page-body">
+        A structured deep dive into authentication, authorization,
+        and observability for Genie Space, Agent Bricks, and
+        Databricks Apps — production-ready for enterprise scale.
+      </p>
+
+      <div class="chapter-list">
+        <div class="chapter-item">
+          <span class="chapter-num">01</span>
+          Authentication Patterns
+        </div>
+        <div class="chapter-item">
+          <span class="chapter-num">02</span>
+          Authorization with UC
+        </div>
+        <div class="chapter-item">
+          <span class="chapter-num">03</span>
+          Genie Space Deep Dive
+        </div>
+        <div class="chapter-item">
+          <span class="chapter-num">04</span>
+          Multi-Agent Orchestration
+        </div>
+        <div class="chapter-item">
+          <span class="chapter-num">05</span>
+          Audit Logging
+        </div>
+        <div class="chapter-item">
+          <span class="chapter-num">06</span>
+          Scale Scenarios
+        </div>
+      </div>
+    </div>
+
+    <!-- Colored tabs -->
+    <div class="tabs-column">
+      <div class="tab tab-1 active"><span class="tab-text">Overview</span></div>
+      <div class="tab tab-2"><span class="tab-text">Auth</span></div>
+      <div class="tab tab-3"><span class="tab-text">Authz</span></div>
+      <div class="tab tab-4"><span class="tab-text">Genie</span></div>
+      <div class="tab tab-5"><span class="tab-text">Scale</span></div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

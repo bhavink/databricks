@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Networking Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Networking Outputs
+# ============================================================================
 
 output "vpc_id" {
   description = "VPC ID"
@@ -17,9 +17,9 @@ output "workspace_security_group_id" {
   value       = module.networking.workspace_security_group_id
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Storage Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Storage Outputs
+# ============================================================================
 
 output "root_storage_bucket" {
   description = "Root storage bucket name"
@@ -41,9 +41,9 @@ output "unity_catalog_root_storage_bucket" {
   value       = module.storage.unity_catalog_root_storage_bucket
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** IAM Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# IAM Outputs
+# ============================================================================
 
 output "cross_account_role_arn" {
   description = "Cross-account IAM role ARN"
@@ -55,9 +55,9 @@ output "instance_profile_arn" {
   value       = module.iam.instance_profile_arn
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Outputs
+# ============================================================================
 
 output "workspace_id" {
   description = "Databricks workspace ID"
@@ -74,9 +74,9 @@ output "workspace_status" {
   value       = module.databricks_workspace.workspace_status
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Unity Catalog Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Unity Catalog Outputs
+# ============================================================================
 
 output "metastore_id" {
   description = "Unity Catalog metastore ID"
@@ -98,9 +98,9 @@ output "external_location_url" {
   value       = module.unity_catalog.external_location_url
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** User Assignment Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# User Assignment Outputs
+# ============================================================================
 
 output "workspace_admin_user_id" {
   description = "Workspace admin user ID (if assigned)"
@@ -117,9 +117,9 @@ output "workspace_admin_permission_id" {
   value       = length(module.user_assignment) > 0 ? module.user_assignment[0].permission_assignment_id : null
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Deployment Summary
-***REMOVED*** ============================================================================
+# ============================================================================
+# Deployment Summary
+# ============================================================================
 
 output "deployment_summary" {
   description = "Deployment summary and next steps"

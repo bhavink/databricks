@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Grant Workspace Admin ALL_PRIVILEGES on Catalog
-***REMOVED*** ============================================================================
+# ============================================================================
+# Grant Workspace Admin ALL_PRIVILEGES on Catalog
+# ============================================================================
 
 resource "databricks_grant" "workspace_catalog_admin" {
   count = var.create_workspace_catalog ? 1 : 0
@@ -16,9 +16,9 @@ resource "databricks_grant" "workspace_catalog_admin" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Grant Metastore Admin to Workspace Admin
-***REMOVED*** ============================================================================
+# ============================================================================
+# Grant Metastore Admin to Workspace Admin
+# ============================================================================
 
 resource "databricks_grant" "metastore_grants" {
   count = var.create_workspace_catalog ? 1 : 0
@@ -34,9 +34,9 @@ resource "databricks_grant" "metastore_grants" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Grants for Root Storage Location
-***REMOVED*** ============================================================================
+# ============================================================================
+# Grants for Root Storage Location
+# ============================================================================
 
 resource "databricks_grant" "root_storage_location_grants" {
   count = var.create_workspace_catalog ? 1 : 0
@@ -50,9 +50,9 @@ resource "databricks_grant" "root_storage_location_grants" {
   depends_on = [databricks_external_location.root_storage]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Grants for External Location
-***REMOVED*** ============================================================================
+# ============================================================================
+# Grants for External Location
+# ============================================================================
 
 resource "databricks_grant" "external_location_grants" {
   count = var.create_workspace_catalog ? 1 : 0

@@ -4,8 +4,8 @@
         methodSelectors:
           - method: 'artifactregistry.googleapis.com/DockerRead'
     resources:
-      ***REMOVED*** Databricks runtime image repo
-      - projects/643670579914 ***REMOVED*** Databricks global runtime artifact
+      # Databricks runtime image repo
+      - projects/643670579914 # Databricks global runtime artifact
 
   egressFrom:
     identities:
@@ -19,9 +19,9 @@
           - method: google.storage.objects.create
           - method: google.storage.objects.list
     resources:
-      ***REMOVED*** Databricks workspace health and telemetry logs
-      - projects/121886670913  ***REMOVED*** Databricks regional us-east4 control plane
-      - projects/68422481410  ***REMOVED*** Databricks regional us-central1 control plane
+      # Databricks workspace health and telemetry logs
+      - projects/121886670913  # Databricks regional us-east4 control plane
+      - projects/68422481410  # Databricks regional us-central1 control plane
 
   egressFrom:
     identities:
@@ -33,8 +33,8 @@
         methodSelectors:
          - method: google.storage.objects.get
     resources:
-      ***REMOVED*** Databricks system tables
-      - projects/522339604799  ***REMOVED*** Databricks regional us-east4 control plane
+      # Databricks system tables
+      - projects/522339604799  # Databricks regional us-east4 control plane
 
   egressFrom:
     identities:

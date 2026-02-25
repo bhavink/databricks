@@ -8,7 +8,7 @@
 
 output "copy_paste_config" {
   description = "Copy-paste this entire block into your workspace deployment terraform.tfvars"
-  value = <<-EOT
+  value       = <<-EOT
 # ==============================================
 # BYOR Configuration (from BYOR deployment)
 # Copy-paste this section into deployments/non-pl/terraform.tfvars
@@ -186,7 +186,7 @@ output "cmk_key_id" {
 
 output "deployment_summary" {
   description = "Summary of BYOR deployment"
-  value = <<-EOT
+  value       = <<-EOT
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✅ BYOR Deployment Complete

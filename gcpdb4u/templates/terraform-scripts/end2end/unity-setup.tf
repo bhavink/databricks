@@ -24,9 +24,9 @@ https://registry.terraform.io/providers/databricks/databricks/latest/docs/resour
 
 //variable "databricks_account_id" {}
 variable "uc_admin_group_name" {}
-variable group_name1 {}
-variable group_name2 {}
-variable metastore_name {}
+variable "group_name1" {}
+variable "group_name2" {}
+variable "metastore_name" {}
 
 data "google_client_openid_userinfo" "me" {}
 data "google_client_config" "current" {}
@@ -39,41 +39,41 @@ resource "databricks_group" "uc_admins" {
 }
 
 // create uc admin user
-resource "databricks_user" "admin_member1" { 
-  provider     = databricks.accounts
+resource "databricks_user" "admin_member1" {
+  provider  = databricks.accounts
   user_name = "${random_string.databricks_suffix.result}@example.com"
 }
 
 // retrieve existing user/service account from account console
 data "databricks_user" "admin_member2" {
-  provider   = databricks.accounts
+  provider  = databricks.accounts
   user_name = var.google_service_account_email
 }
 
 // add user to uc admin group
-resource "databricks_group_member" "admin_member1" { 
-  provider     = databricks.accounts
+resource "databricks_group_member" "admin_member1" {
+  provider  = databricks.accounts
   group_id  = databricks_group.uc_admins.id
   member_id = databricks_user.admin_member1.id
 }
 
 // add user to uc admin group
-resource "databricks_group_member" "admin_member2" { 
-  provider     = databricks.accounts
+resource "databricks_group_member" "admin_member2" {
+  provider  = databricks.accounts
   group_id  = databricks_group.uc_admins.id
   member_id = data.databricks_user.admin_member2.id // SA already exists in the account console
 }
 
 // create managed storage account for metastore
-// https://docs.gcp.databricks.com/data-governance/unity-catalog/index.html***REMOVED***managed-storage
+// https://docs.gcp.databricks.com/data-governance/unity-catalog/index.html#managed-storage
 resource "google_storage_bucket" "unity_metastore" {
   name          = "${var.metastore_name}-${var.google_region}-${random_string.databricks_suffix.result}"
   location      = var.google_region
   force_destroy = true
 }
 
-***REMOVED*** // create metastore
-***REMOVED*** // https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html
+# // create metastore
+# // https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html
 
 resource "databricks_metastore" "this" {
   depends_on = [
@@ -84,13 +84,13 @@ resource "databricks_metastore" "this" {
   storage_root  = "gs://${google_storage_bucket.unity_metastore.name}"
   force_destroy = true
   owner         = var.uc_admin_group_name
-  region = var.google_region
+  region        = var.google_region
 }
 
-***REMOVED*** at this moment destroying databricks_metastore_data_access resource is not supported using TF
-***REMOVED*** please use `terraform state rm databricks_metastore_data_access.first` and re-run terraform destroy
+# at this moment destroying databricks_metastore_data_access resource is not supported using TF
+# please use `terraform state rm databricks_metastore_data_access.first` and re-run terraform destroy
 
-//https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html***REMOVED***step-2-create-the-metastore-and-generate-a-service-account
+//https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html#step-2-create-the-metastore-and-generate-a-service-account
 resource "databricks_metastore_data_access" "first" {
   depends_on = [
     databricks_metastore.this
@@ -102,7 +102,7 @@ resource "databricks_metastore_data_access" "first" {
   is_default = true
 }
 
-//https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html***REMOVED***step-3-give-the-service-account-access-to-your-gcs-bucket-and-assign-workspaces
+//https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html#step-3-give-the-service-account-access-to-your-gcs-bucket-and-assign-workspaces
 resource "google_storage_bucket_iam_member" "unity_sa_admin" {
   depends_on = [
     databricks_metastore_data_access.first
@@ -123,7 +123,7 @@ resource "google_storage_bucket_iam_member" "unity_sa_reader" {
 
 
 resource "databricks_metastore_assignment" "this" {
-  depends_on = [databricks_mws_workspaces.databricks_workspace]
+  depends_on           = [databricks_mws_workspaces.databricks_workspace]
   provider             = databricks.accounts
   workspace_id         = local.workspace_id
   metastore_id         = databricks_metastore.this.id
@@ -131,15 +131,15 @@ resource "databricks_metastore_assignment" "this" {
 }
 
 resource "databricks_grants" "all_grants" {
-  provider = databricks.workspace
+  provider  = databricks.workspace
   metastore = databricks_metastore.this.id
   grant {
     principal  = var.google_service_account_email
-    privileges = ["CREATE_CATALOG","CREATE_EXTERNAL_LOCATION","CREATE_STORAGE_CREDENTIAL"]
+    privileges = ["CREATE_CATALOG", "CREATE_EXTERNAL_LOCATION", "CREATE_STORAGE_CREDENTIAL"]
   }
   grant {
     principal  = var.databricks_admin_user
-    privileges = ["USE_CONNECTION","CREATE_EXTERNAL_LOCATION","CREATE_STORAGE_CREDENTIAL"]
+    privileges = ["USE_CONNECTION", "CREATE_EXTERNAL_LOCATION", "CREATE_STORAGE_CREDENTIAL"]
   }
   depends_on = [
     databricks_metastore_assignment.this

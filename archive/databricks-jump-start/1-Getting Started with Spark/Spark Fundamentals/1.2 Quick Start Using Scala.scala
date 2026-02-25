@@ -1,5 +1,5 @@
 // Databricks notebook source
-// MAGIC %md ***REMOVED******REMOVED*** Quick Start Using Scala
+// MAGIC %md ## Quick Start Using Scala
 // MAGIC * Using a Databricks notebook to showcase Dataset operations using Scala
 // MAGIC * Reference http://spark.apache.org/docs/latest/quick-start.html
 

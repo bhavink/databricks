@@ -1,28 +1,28 @@
-***REMOVED*** Databricks notebook source
-***REMOVED*** MAGIC %md
-***REMOVED*** MAGIC ***REMOVED*** XGBoost Classification in Python
+# Databricks notebook source
+# MAGIC %md
+# MAGIC # XGBoost Classification in Python
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md
-***REMOVED*** MAGIC 1. Ensure you are using or create a cluster specifying Databricks Runtime Version as **Databricks Runtime 5.4 ML or above**. In Databricks Runtime, you need to install XGBoost by running **Cmd 3**.
-***REMOVED*** MAGIC 2. Attach this notebook to the cluster.
+# MAGIC %md
+# MAGIC 1. Ensure you are using or create a cluster specifying Databricks Runtime Version as **Databricks Runtime 5.4 ML or above**. In Databricks Runtime, you need to install XGBoost by running **Cmd 3**.
+# MAGIC 2. Attach this notebook to the cluster.
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 dbutils.library.installPyPI("xgboost", version="0.90" )
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md
-***REMOVED*** MAGIC ***REMOVED******REMOVED*** Prepare data
+# MAGIC %md
+# MAGIC ## Prepare data
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 import pandas as pd
 import xgboost as xgb
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 raw_input = pd.read_csv("/dbfs/databricks-datasets/Rdatasets/data-001/csv/datasets/iris.csv",
                         header = 0,
@@ -32,44 +32,44 @@ new_input["class"] = new_input["class"].astype('category')
 new_input["classIndex"] = new_input["class"].cat.codes
 print(new_input)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 from sklearn.model_selection import train_test_split
-***REMOVED*** Split to train/test
+# Split to train/test
 training_df, test_df = train_test_split(new_input)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md
-***REMOVED*** MAGIC ***REMOVED******REMOVED*** Train XGBoost Model with Pandas DataFrames
+# MAGIC %md
+# MAGIC ## Train XGBoost Model with Pandas DataFrames
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 dtrain = xgb.DMatrix(training_df[["sepal length","sepal width", "petal length", "petal width"]], label=training_df["classIndex"])
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 param = {'max_depth': 2, 'eta': 1, 'silent': 1, 'objective': 'multi:softmax'}
 param['nthread'] = 4
 param['eval_metric'] = 'auc'
 param['num_class'] = 6
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 num_round = 10
 bst = xgb.train(param, dtrain, num_round)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md
-***REMOVED*** MAGIC ***REMOVED******REMOVED*** Prediction
+# MAGIC %md
+# MAGIC ## Prediction
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 dtest = xgb.DMatrix(test_df[["sepal length","sepal width", "petal length", "petal width"]])
 ypred = bst.predict(dtest)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 from sklearn.metrics import precision_score
 

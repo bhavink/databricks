@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Security Group for Databricks Workspace (Clusters)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Security Group for Databricks Workspace (Clusters)
+# ============================================================================
 
 resource "aws_security_group" "workspace_sg" {
   name        = "${var.prefix}-workspace-sg"
@@ -12,11 +12,11 @@ resource "aws_security_group" "workspace_sg" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Security Group - Ingress Rules
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Security Group - Ingress Rules
+# ============================================================================
 
-***REMOVED*** Allow internal cluster communication (all TCP)
+# Allow internal cluster communication (all TCP)
 resource "aws_security_group_rule" "workspace_ingress_tcp" {
   type              = "ingress"
   from_port         = 0
@@ -27,7 +27,7 @@ resource "aws_security_group_rule" "workspace_ingress_tcp" {
   description       = "Allow internal TCP communication between cluster nodes"
 }
 
-***REMOVED*** Allow internal cluster communication (all UDP)
+# Allow internal cluster communication (all UDP)
 resource "aws_security_group_rule" "workspace_ingress_udp" {
   type              = "ingress"
   from_port         = 0
@@ -38,11 +38,11 @@ resource "aws_security_group_rule" "workspace_ingress_udp" {
   description       = "Allow internal UDP communication between cluster nodes"
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Security Group - Egress Rules
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Security Group - Egress Rules
+# ============================================================================
 
-***REMOVED*** Self-referencing egress for internal cluster communication
+# Self-referencing egress for internal cluster communication
 resource "aws_security_group_rule" "workspace_egress_self_tcp" {
   type              = "egress"
   from_port         = 0
@@ -63,8 +63,8 @@ resource "aws_security_group_rule" "workspace_egress_self_udp" {
   description       = "Allow internal UDP communication between cluster nodes"
 }
 
-***REMOVED*** Egress to VPC Endpoint Security Group (for Databricks PrivateLink)
-***REMOVED*** Only create when Databricks VPC endpoints are enabled
+# Egress to VPC Endpoint Security Group (for Databricks PrivateLink)
+# Only create when Databricks VPC endpoints are enabled
 resource "aws_security_group_rule" "workspace_egress_to_vpce_443" {
   count                    = local.any_databricks_vpce_enabled ? 1 : 0
   type                     = "egress"
@@ -98,7 +98,7 @@ resource "aws_security_group_rule" "workspace_egress_to_vpce_8443_8451" {
   description              = "Allow control plane and Unity Catalog communication to Databricks VPC endpoints"
 }
 
-***REMOVED*** Egress to Internet for library downloads, external data sources, and S3 access
+# Egress to Internet for library downloads, external data sources, and S3 access
 resource "aws_security_group_rule" "workspace_egress_https" {
   type              = "egress"
   from_port         = 443
@@ -109,13 +109,13 @@ resource "aws_security_group_rule" "workspace_egress_https" {
   description       = "Allow HTTPS for library downloads, external API calls, S3 (DBFS, logs, artifacts)"
 }
 
-***REMOVED*** Control plane and Unity Catalog communication (Databricks requirement)
-***REMOVED*** NOTE: 0.0.0.0/0 is required by Databricks but does NOT compromise Private Link security
-***REMOVED*** - Security groups are PERMISSION filters, NOT routing devices
-***REMOVED*** - With Private Link: DNS returns private IP → route table directs to VPC endpoint (stays private)
-***REMOVED*** - Without Private Link: DNS returns public IP → route table directs to NAT gateway (goes public)
-***REMOVED*** - The 0.0.0.0/0 CIDR allows the traffic but doesn't control the path
-***REMOVED*** - See ARCHITECTURE.md for detailed traffic flow sequence diagrams
+# Control plane and Unity Catalog communication (Databricks requirement)
+# NOTE: 0.0.0.0/0 is required by Databricks but does NOT compromise Private Link security
+# - Security groups are PERMISSION filters, NOT routing devices
+# - With Private Link: DNS returns private IP → route table directs to VPC endpoint (stays private)
+# - Without Private Link: DNS returns public IP → route table directs to NAT gateway (goes public)
+# - The 0.0.0.0/0 CIDR allows the traffic but doesn't control the path
+# - See ARCHITECTURE.md for detailed traffic flow sequence diagrams
 resource "aws_security_group_rule" "workspace_egress_control_plane" {
   type              = "egress"
   from_port         = 8443
@@ -126,7 +126,7 @@ resource "aws_security_group_rule" "workspace_egress_control_plane" {
   description       = "Allow control plane API (8443), Unity Catalog (8444), and future extendibility (8445-8451)"
 }
 
-***REMOVED*** FIPS encryption support (optional - only if compliance security profile enabled)
+# FIPS encryption support (optional - only if compliance security profile enabled)
 resource "aws_security_group_rule" "workspace_egress_fips" {
   type              = "egress"
   from_port         = 2443
@@ -137,8 +137,8 @@ resource "aws_security_group_rule" "workspace_egress_fips" {
   description       = "Allow FIPS encryption for compliance security profile (optional)"
 }
 
-***REMOVED*** Hive metastore connectivity (LEGACY - NOT USED with Unity Catalog)
-***REMOVED*** Unity Catalog workspaces do not require port 3306
+# Hive metastore connectivity (LEGACY - NOT USED with Unity Catalog)
+# Unity Catalog workspaces do not require port 3306
 resource "aws_security_group_rule" "workspace_egress_mysql" {
   type              = "egress"
   from_port         = 3306
@@ -149,7 +149,7 @@ resource "aws_security_group_rule" "workspace_egress_mysql" {
   description       = "Allow MySQL for external metastore connectivity (LEGACY - not used with Unity Catalog)"
 }
 
-***REMOVED*** DNS resolution
+# DNS resolution
 resource "aws_security_group_rule" "workspace_egress_dns_tcp" {
   type              = "egress"
   from_port         = 53
@@ -170,10 +170,10 @@ resource "aws_security_group_rule" "workspace_egress_dns_udp" {
   description       = "Allow DNS resolution (UDP)"
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Security Group for VPC Endpoints
-***REMOVED*** Always created for AWS service endpoints (S3/STS/Kinesis) and Databricks VPCEs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Security Group for VPC Endpoints
+# Always created for AWS service endpoints (S3/STS/Kinesis) and Databricks VPCEs
+# ============================================================================
 
 resource "aws_security_group" "vpce_sg" {
   name        = "${var.prefix}-vpce-sg"
@@ -185,12 +185,12 @@ resource "aws_security_group" "vpce_sg" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint Security Group - Ingress Rules
-***REMOVED*** Only create when Databricks VPC endpoints are enabled
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint Security Group - Ingress Rules
+# Only create when Databricks VPC endpoints are enabled
+# ============================================================================
 
-***REMOVED*** Allow HTTPS from workspace security group (for Databricks + AWS service endpoints)
+# Allow HTTPS from workspace security group (for Databricks + AWS service endpoints)
 resource "aws_security_group_rule" "vpce_ingress_https" {
   count                    = local.any_databricks_vpce_enabled ? 1 : 0
   type                     = "ingress"
@@ -202,7 +202,7 @@ resource "aws_security_group_rule" "vpce_ingress_https" {
   description              = "Allow HTTPS from workspace clusters to VPC endpoints"
 }
 
-***REMOVED*** Allow SCC port for Relay endpoint (Databricks-specific)
+# Allow SCC port for Relay endpoint (Databricks-specific)
 resource "aws_security_group_rule" "vpce_ingress_scc" {
   count                    = local.any_databricks_vpce_enabled ? 1 : 0
   type                     = "ingress"
@@ -214,7 +214,7 @@ resource "aws_security_group_rule" "vpce_ingress_scc" {
   description              = "Allow SCC from workspace clusters to Relay endpoint"
 }
 
-***REMOVED*** Allow control plane and Unity Catalog ports (Databricks-specific)
+# Allow control plane and Unity Catalog ports (Databricks-specific)
 resource "aws_security_group_rule" "vpce_ingress_control_plane" {
   count                    = local.any_databricks_vpce_enabled ? 1 : 0
   type                     = "ingress"
@@ -226,12 +226,12 @@ resource "aws_security_group_rule" "vpce_ingress_control_plane" {
   description              = "Allow control plane and Unity Catalog communication from workspace clusters"
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint Security Group - Egress Rules
-***REMOVED*** Always created (needed for both Databricks and AWS service endpoints)
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint Security Group - Egress Rules
+# Always created (needed for both Databricks and AWS service endpoints)
+# ============================================================================
 
-***REMOVED*** Allow all outbound (to Databricks control plane and AWS services)
+# Allow all outbound (to Databricks control plane and AWS services)
 resource "aws_security_group_rule" "vpce_egress_all" {
   type              = "egress"
   from_port         = 0

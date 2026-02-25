@@ -8,7 +8,7 @@ locals {
   prefix   = "${var.workspace_prefix}-${random_string.naming.result}"
   location = var.rglocation
   cidr     = var.spokecidr
-  dbfsname = "${var.workspace_prefix}${random_string.naming.result}dbfs" 
+  dbfsname = "${var.workspace_prefix}${random_string.naming.result}dbfs"
   tags = {
     Environment = var.tags_environment
     Owner       = lookup(data.external.me.result, "name")

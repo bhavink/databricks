@@ -263,7 +263,7 @@
       "name": "ds_encounter_patient_heatmap",
       "displayName": "Encounter Class x Patient Gender",
       "queryLines": [
-        "SELECT e.class_display as encounter_class, p.gender, COUNT(*) as encounter_count FROM main.healthcare_fhir.silver_fhir_encounter e JOIN main.healthcare_fhir.silver_fhir_patient p ON e.subject_id = CONCAT('Patient/', p.id) WHERE e.class_display IS NOT NULL GROUP BY e.class_display, p.gender"
+        "SELECT e.class_display as encounter_class, p.gender, COUNT(*) as encounter_count FROM main.healthcare_fhir.silver_fhir_encounter e JOIN main.healthcare_fhir.silver_fhir_patient p ON e.subject_id = p.id WHERE e.class_display IS NOT NULL GROUP BY e.class_display, p.gender"
       ]
     },
     {
@@ -1222,12 +1222,12 @@
                       "expression": "`observation_type`"
                     },
                     {
-                      "name": "value_quantity_value",
-                      "expression": "`value_quantity_value`"
+                      "name": "value",
+                      "expression": "`value`"
                     },
                     {
-                      "name": "value_quantity_unit",
-                      "expression": "`value_quantity_unit`"
+                      "name": "value_unit",
+                      "expression": "`value_unit`"
                     },
                     {
                       "name": "status",
@@ -1252,11 +1252,11 @@
                     "displayName": "Type"
                   },
                   {
-                    "fieldName": "value_quantity_value",
+                    "fieldName": "value",
                     "displayName": "Value"
                   },
                   {
-                    "fieldName": "value_quantity_unit",
+                    "fieldName": "value_unit",
                     "displayName": "Unit"
                   },
                   {

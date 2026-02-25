@@ -2,7 +2,7 @@ from __future__ import print_function
 from pyspark.sql import SparkSession
 
 
-***REMOVED*** Utils for accessing spark and dbutils object
+# Utils for accessing spark and dbutils object
 
 def get_spark():
     return (SparkSession.builder.master("local").getOrCreate())

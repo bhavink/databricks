@@ -8,78 +8,83 @@
 gcpdb4u/templates/.DS_Store
 .DS_Store
 
-***REMOVED*** Terraform state files (contain sensitive infrastructure details)
+# Terraform state files (contain sensitive infrastructure details)
 *.tfstate
 *.tfstate.backup
 
-***REMOVED*** Terraform configuration files with secrets
+# Terraform configuration files with secrets
 terraform.tfvars
 terraform.tfvars.json
 
-***REMOVED*** Terraform working directory
+# Terraform working directory
 .terraform/
 .terraform.lock.hcl
 
-***REMOVED*** Crash logs
+# Crash logs
 crash.log
 
-***REMOVED*** Ignore any plan output files
+# Ignore any plan output files
 *.tfplan
 
-***REMOVED*** Override files (local customizations)
+# Override files (local customizations)
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
 
-***REMOVED*** Ignore Terraform provider plugins (if manually downloaded)
+# Ignore Terraform provider plugins (if manually downloaded)
 .terraform.d/
 
-***REMOVED*** Ignore any archive files (for module packaging)
+# Ignore any archive files (for module packaging)
 *.zip
 
-***REMOVED*** macOS system files
+# macOS system files
 .DS_Store
 
-***REMOVED*** VS Code settings
+# VS Code settings
 .vscode/
 .history/
 
-***REMOVED*** GitHub Actions secrets (store actual secrets in GitHub repo settings, not files)
+# GitHub Actions secrets (store actual secrets in GitHub repo settings, not files)
 .github/workflows/secrets.yml
 .github/workflows/.env
 
-***REMOVED*** AWS credentials
+# AWS credentials
 .aws/
 
-***REMOVED*** SSH keys
+# SSH keys
 .ssh/
 id_rsa
 id_rsa.pub
 
-***REMOVED*** Compiled Java files
+# Compiled Java files
 *.class
 *.jar
 *.war
 *.ear
 
-***REMOVED*** IntelliJ IDEA project files
+# IntelliJ IDEA project files
 .idea/
 *.iml
 
-***REMOVED*** Virtual environment
+# Virtual environment
 venv/
 *.pyc
 __pycache__/
 
-***REMOVED*** Jupyter Notebook checkpoints
+# Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
-***REMOVED*** Environment variables
+# Environment variables
 .env
 *.env
 
-***REMOVED*** Private keys & security credentials
+# Session files
+*.session
+.session
+.session_store
+
+# Private keys & security credentials
 *.pem
 *.key
 *.crt
@@ -90,30 +95,30 @@ __pycache__/
 *.pfx
 *.gpg
 
-***REMOVED*** ========================================
-***REMOVED*** DATABRICKS CREDENTIALS & CONFIG
-***REMOVED*** ========================================
-***REMOVED*** Databricks CLI configuration (contains PAT tokens)
+# ========================================
+# DATABRICKS CREDENTIALS & CONFIG
+# ========================================
+# Databricks CLI configuration (contains PAT tokens)
 .databrickscfg
 .databricks.cfg
 databricks.cfg
 
-***REMOVED*** Databricks notebooks with embedded tokens/credentials
+# Databricks notebooks with embedded tokens/credentials
 **/Workspace/**/*.py
 **/Workspace/**/*.scala
 **/Workspace/**/*.sql
 **/Workspace/**/*.r
 
-***REMOVED*** Databricks tokens and profiles
+# Databricks tokens and profiles
 *.dbc
 .databricks/
 databricks-token.txt
 pat-token*.txt
 
-***REMOVED*** ========================================
-***REMOVED*** GCP CREDENTIALS (CRITICAL!)
-***REMOVED*** ========================================
-***REMOVED*** GCP service account keys - NEVER commit these!
+# ========================================
+# GCP CREDENTIALS (CRITICAL!)
+# ========================================
+# GCP service account keys - NEVER commit these!
 *-key.json
 *-credentials.json
 *-service-account.json
@@ -121,38 +126,38 @@ service-account*.json
 gcp-key*.json
 sa-key*.json
 
-***REMOVED*** GCP application default credentials
+# GCP application default credentials
 application_default_credentials.json
 gcloud-credentials.json
 
-***REMOVED*** GCP configuration directory
+# GCP configuration directory
 .config/gcloud/
 
-***REMOVED*** Google Cloud SDK
+# Google Cloud SDK
 google-cloud-sdk/
 .gcloud/
 
-***REMOVED*** ========================================
-***REMOVED*** AZURE CREDENTIALS
-***REMOVED*** ========================================
-***REMOVED*** Azure CLI credentials
+# ========================================
+# AZURE CREDENTIALS
+# ========================================
+# Azure CLI credentials
 .azure/
 azure.conf
 azureProfile.json
 azureTokens.json
 
-***REMOVED*** Azure service principal files
+# Azure service principal files
 sp-credentials.json
 client-secret*.txt
 azure-credentials*.json
 
-***REMOVED*** Azure Databricks specific
+# Azure Databricks specific
 .azuredatabricks/
 azuredatabricks.cfg
 
-***REMOVED*** ========================================
-***REMOVED*** AWS CREDENTIALS (Enhanced)
-***REMOVED*** ========================================
+# ========================================
+# AWS CREDENTIALS (Enhanced)
+# ========================================
 .aws/
 credentials
 .aws_credentials
@@ -160,14 +165,14 @@ aws_credentials
 aws-config.json
 *.pem
 
-***REMOVED*** AWS specific key files
+# AWS specific key files
 *-aws-key.json
 awscliv2.zip
 
-***REMOVED*** ========================================
-***REMOVED*** CONFIGURATION FILES WITH SECRETS
-***REMOVED*** ========================================
-***REMOVED*** Multiple environment file patterns
+# ========================================
+# CONFIGURATION FILES WITH SECRETS
+# ========================================
+# Multiple environment file patterns
 .env.*
 .env.local
 .env.development
@@ -176,7 +181,7 @@ awscliv2.zip
 .env.test
 *.env.backup
 
-***REMOVED*** Configuration files that might contain secrets
+# Configuration files that might contain secrets
 config.json
 config.yaml
 config.yml
@@ -187,17 +192,17 @@ settings.json
 appsettings.json
 appsettings.*.json
 
-***REMOVED*** Connection strings
+# Connection strings
 connection*.json
 connection-string*.txt
 conn-string*.txt
 database.ini
 db-config*.json
 
-***REMOVED*** ========================================
-***REMOVED*** API KEYS & TOKENS
-***REMOVED*** ========================================
-***REMOVED*** Various API key formats
+# ========================================
+# API KEYS & TOKENS
+# ========================================
+# Various API key formats
 api-key*.txt
 api_key*.txt
 apikey*.txt
@@ -207,14 +212,14 @@ access-token*.txt
 refresh-token*.txt
 bearer-token*.txt
 
-***REMOVED*** OAuth credentials
+# OAuth credentials
 oauth*.json
 client-secret*.json
 
-***REMOVED*** ========================================
-***REMOVED*** BACKUP & TEMPORARY FILES
-***REMOVED*** ========================================
-***REMOVED*** Backup files that might contain sensitive data
+# ========================================
+# BACKUP & TEMPORARY FILES
+# ========================================
+# Backup files that might contain sensitive data
 *.backup
 *.bak
 *.old
@@ -222,92 +227,92 @@ client-secret*.json
 *.tmp
 *.swp
 *~
-.***REMOVED****
-\***REMOVED****\***REMOVED***
+.#*
+\#*\#
 
-***REMOVED*** Temporary directories
+# Temporary directories
 tmp/
 temp/
 .tmp/
 
-***REMOVED*** ========================================
-***REMOVED*** LOGS (may contain sensitive information)
-***REMOVED*** ========================================
-***REMOVED*** Log files
+# ========================================
+# LOGS (may contain sensitive information)
+# ========================================
+# Log files
 *.log
 logs/
 log/
 *.log.*
 
-***REMOVED*** Databricks cluster logs
+# Databricks cluster logs
 driver-logs/
 executor-logs/
 eventlog/
 
-***REMOVED*** ========================================
-***REMOVED*** DOCKER & KUBERNETES SECRETS
-***REMOVED*** ========================================
-***REMOVED*** Docker configs that might have credentials
+# ========================================
+# DOCKER & KUBERNETES SECRETS
+# ========================================
+# Docker configs that might have credentials
 docker-compose.override.yml
 .dockercfg
 
-***REMOVED*** Kubernetes secrets
+# Kubernetes secrets
 kubeconfig
 *.kubeconfig
 .kube/config
 
-***REMOVED*** Helm values with secrets
+# Helm values with secrets
 values-secrets.yaml
 secrets-*.yaml
 
-***REMOVED*** ========================================
-***REMOVED*** DATABASE FILES
-***REMOVED*** ========================================
-***REMOVED*** Local database files
+# ========================================
+# DATABASE FILES
+# ========================================
+# Local database files
 *.db
 *.sqlite
 *.sqlite3
 *.mdb
 
-***REMOVED*** Database dumps
+# Database dumps
 *.sql.gz
 *.dump
 *.dmp
 
-***REMOVED*** ========================================
-***REMOVED*** MISCELLANEOUS SENSITIVE FILES
-***REMOVED*** ========================================
-***REMOVED*** Password files
+# ========================================
+# MISCELLANEOUS SENSITIVE FILES
+# ========================================
+# Password files
 password*.txt
 passwd*.txt
 credentials.txt
 
-***REMOVED*** Private data directories
+# Private data directories
 private/
 .private/
 confidential/
 .secrets/
 
-***REMOVED*** Notebook outputs that might contain sensitive data
+# Notebook outputs that might contain sensitive data
 *.ipynb
 .ipynb_checkpoints/
 
-***REMOVED*** Archives that might contain credentials
+# Archives that might contain credentials
 *.tar.gz
 *.tgz
 *.7z
 *.rar
 
-***REMOVED*** macOS extended attributes (can leak info)
+# macOS extended attributes (can leak info)
 ._*
 .Spotlight-V100
 .Trashes
 
-***REMOVED*** Claude Code generated documentation
+# Claude Code generated documentation
 CLAUDE.md
 CLAUDE.local.md
 
-***REMOVED*** Do not commit: archive files with hardcoded keys / tokens
+# Do not commit: archive files with hardcoded keys / tokens
 archive/databricks-jump-start/cryptography/main.py
 archive/databricks-rest-api-collection/token-management/Token Managment.postman_collection.json
 

@@ -72,7 +72,7 @@ resource "azurerm_subnet" "public" {
     "Microsoft.Storage",
     "Microsoft.KeyVault",
   ]
-  
+
   # Service Endpoint Policy IDs (optional - for storage egress control)
   service_endpoint_policy_ids = var.service_endpoint_policy_ids
 }
@@ -103,7 +103,7 @@ resource "azurerm_subnet" "private" {
     "Microsoft.Storage",
     "Microsoft.KeyVault",
   ]
-  
+
   # Service Endpoint Policy IDs (optional - for storage egress control)
   service_endpoint_policy_ids = var.service_endpoint_policy_ids
 }

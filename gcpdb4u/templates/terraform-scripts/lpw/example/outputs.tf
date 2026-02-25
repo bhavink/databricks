@@ -1,5 +1,5 @@
-***REMOVED*** MODIFICATION: Added deployment phase outputs
-***REMOVED*** Reason: Show current phase status and guide user to next deployment step
+# MODIFICATION: Added deployment phase outputs
+# Reason: Show current phase status and guide user to next deployment step
 
 output "workspace_id" {
   value       = module.local_databricks.workspace_id
@@ -16,8 +16,8 @@ output "network_id" {
   description = "Databricks network configuration ID"
 }
 
-***REMOVED*** MODIFICATION: Added workspace GSA email output
-***REMOVED*** Reason: Show workspace service account for manual addition to operator group
+# MODIFICATION: Added workspace GSA email output
+# Reason: Show workspace service account for manual addition to operator group
 output "workspace_gsa_email" {
   value       = module.local_databricks.workspace_gsa_email
   description = "Workspace GSA (db-*) - MANUAL ACTION: Add to lpw-ws-operator@databricks.com"

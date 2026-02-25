@@ -2,29 +2,29 @@ name: ingressPolicy-databricks-lpw-workspace
 ingressPolicies:
   - ingressFrom:
       sources:
-        - project: "projects/68422481410" ***REMOVED*** regional control plane project
+        - project: "projects/68422481410" # regional control plane project
       identities:
-        ***REMOVED***   - group:group@corp.com
-        ***REMOVED***   - user:user@corp.com
+        #   - group:group@corp.com
+        #   - user:user@corp.com
         - serviceAccount:YOUR_GSA@PROJECT.iam.gserviceaccount.com
       resources:
-        - "projects/491105714337"  ***REMOVED*** your vpc project id
+        - "projects/491105714337"  # your vpc project id
       operations:
         - serviceName: "compute.googleapis.com"
           methodSelectors:
             - method: "compute.v1.SubnetworksService.Get"
             - method: "compute.v1.NetworksService.Get"
             - method: "compute.v1.SubnetworksService.TestPermissions"
-  ***REMOVED******REMOVED*** This is a must have rule
-  ***REMOVED*** required to creare storage buckets for databricks file system aka dbfs
+  ## This is a must have rule
+  # required to creare storage buckets for databricks file system aka dbfs
   - ingressFrom:
       sources:
-        - project: "projects/68422481410" ***REMOVED*** regional control plane project
+        - project: "projects/68422481410" # regional control plane project
       identities:
-        - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com ***REMOVED*** wsGSA
+        - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com # wsGSA
     ingressTo:
       resources:
-        - "projects/553970327688"  ***REMOVED*** your service or workspace project
+        - "projects/553970327688"  # your service or workspace project
       operations:
         - serviceName: "storage.googleapis.com"
           methodSelectors:
@@ -33,16 +33,16 @@ ingressPolicies:
           methodSelectors:
             - method: "compute.v1.ZonesService.List"
 
-  ***REMOVED******REMOVED*** Only required if you are using CMK
-  ***REMOVED******REMOVED*** https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
+  ## Only required if you are using CMK
+  ## https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
   - ingressFrom:
       sources:
-        - project: "projects/68422481410" ***REMOVED*** regional control plane project
+        - project: "projects/68422481410" # regional control plane project
       identities:
-        - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com ***REMOVED*** wsGSA
+        - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com # wsGSA
     ingressTo:
       resources:
-        - "projects/553970327688"  ***REMOVED*** your service or workspace project
+        - "projects/553970327688"  # your service or workspace project
       operations:
         - serviceName: "cloudkms.googleapis.com"
           methodSelectors:

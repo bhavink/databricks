@@ -75,9 +75,9 @@ variable "tags" {
   default     = {}
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Private Access Settings
-***REMOVED*** ============================================================================
+# ============================================================================
+# Private Access Settings
+# ============================================================================
 
 variable "public_access_enabled" {
   description = "Allow public access to the workspace (set to false for fully private workspace)"
@@ -89,16 +89,16 @@ variable "private_access_level" {
   description = "Private access level (ACCOUNT or ENDPOINT)"
   type        = string
   default     = "ENDPOINT"
-  
+
   validation {
     condition     = contains(["ACCOUNT", "ENDPOINT"], var.private_access_level)
     error_message = "private_access_level must be either 'ACCOUNT' or 'ENDPOINT'."
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** IP Access Lists (Optional)
-***REMOVED*** ============================================================================
+# ============================================================================
+# IP Access Lists (Optional)
+# ============================================================================
 
 variable "enable_ip_access_lists" {
   description = "Enable IP access lists for workspace security"
@@ -112,9 +112,9 @@ variable "allowed_ip_addresses" {
   default     = []
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace CMK (Optional)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace CMK (Optional)
+# ============================================================================
 
 variable "enable_workspace_cmk" {
   description = "Enable Customer Managed Keys for workspace encryption (both storage and managed services)"

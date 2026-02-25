@@ -1,4 +1,4 @@
-***REMOVED*** Check if VPC exists
+# Check if VPC exists
 data "google_compute_network" "existing_vpc" {
   name    = var.network_name
   project = var.vpc_project_id

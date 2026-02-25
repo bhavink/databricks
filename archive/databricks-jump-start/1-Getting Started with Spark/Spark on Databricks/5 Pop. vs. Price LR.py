@@ -1,30 +1,30 @@
-***REMOVED*** Databricks notebook source
-***REMOVED*** MAGIC %md ***REMOVED*** Population vs. Median Home Prices
-***REMOVED*** MAGIC ***REMOVED******REMOVED******REMOVED******REMOVED*** *Linear Regression with Single Variable*
+# Databricks notebook source
+# MAGIC %md # Population vs. Median Home Prices
+# MAGIC #### *Linear Regression with Single Variable*
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED******REMOVED*** Load and parse the data
+# MAGIC %md ### Load and parse the data
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Use the Spark CSV datasource with options specifying:
-***REMOVED***  - First line of file is a header
-***REMOVED***  - Automatically infer the schema of the data
+# Use the Spark CSV datasource with options specifying:
+#  - First line of file is a header
+#  - Automatically infer the schema of the data
 data = spark.read.csv("/databricks-datasets/samples/population-vs-price/data_geo.csv", header="true", inferSchema="true")
-data.cache()  ***REMOVED*** Cache data for faster reuse
+data.cache()  # Cache data for faster reuse
 data.count()
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 display(data)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-data = data.dropna()  ***REMOVED*** drop rows with missing values
+data = data.dropna()  # drop rows with missing values
 data.count()
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 from pyspark.sql.functions import col
 
@@ -33,7 +33,7 @@ exprs = [col(column).alias(column.replace(' ', '_')) for column in data.columns]
 vdata = data.select(*exprs).selectExpr("2014_Population_estimate as population", "2015_median_sales_price as label")
 display(vdata)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 from pyspark.ml import Pipeline
 from pyspark.ml.feature import VectorAssembler
@@ -44,15 +44,15 @@ stages += [assembler]
 pipeline = Pipeline(stages=stages)
 pipelineModel = pipeline.fit(vdata)
 dataset = pipelineModel.transform(vdata)
-***REMOVED*** Keep relevant columns
+# Keep relevant columns
 selectedcols = ["features", "label"]
 display(dataset.select(selectedcols))
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Scatterplot of the data using ggplot
+# MAGIC %md ## Scatterplot of the data using ggplot
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 import numpy as np
 from pandas import *
@@ -67,81 +67,81 @@ p = ggplot(pydf, aes('pop','price')) + \
     scale_x_log10() + scale_y_log10()
 display(p)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Linear Regression
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC **Goal**
-***REMOVED*** MAGIC * Predict y = 2015 Median Housing Price
-***REMOVED*** MAGIC * Using feature x = 2014 Population Estimate
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC **References**
-***REMOVED*** MAGIC * [MLlib LinearRegression user guide](http://spark.apache.org/docs/latest/ml-classification-regression.html***REMOVED***linear-regression)
-***REMOVED*** MAGIC * [PySpark LinearRegression API](http://spark.apache.org/docs/latest/api/python/pyspark.ml.html***REMOVED***pyspark.ml.regression.LinearRegression)
+# MAGIC %md ## Linear Regression
+# MAGIC 
+# MAGIC **Goal**
+# MAGIC * Predict y = 2015 Median Housing Price
+# MAGIC * Using feature x = 2014 Population Estimate
+# MAGIC 
+# MAGIC **References**
+# MAGIC * [MLlib LinearRegression user guide](http://spark.apache.org/docs/latest/ml-classification-regression.html#linear-regression)
+# MAGIC * [PySpark LinearRegression API](http://spark.apache.org/docs/latest/api/python/pyspark.ml.html#pyspark.ml.regression.LinearRegression)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Import LinearRegression class
+# Import LinearRegression class
 from pyspark.ml.regression import LinearRegression
-***REMOVED*** Define LinearRegression algorithm
+# Define LinearRegression algorithm
 lr = LinearRegression()
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Fit 2 models, using different regularization parameters
+# Fit 2 models, using different regularization parameters
 modelA = lr.fit(dataset, {lr.regParam:0.0})
 modelB = lr.fit(dataset, {lr.regParam:100.0})
 print(">>>> ModelA intercept: %r, coefficient: %r" % (modelA.intercept, modelA.coefficients[0]))
 print(">>>> ModelB intercept: %r, coefficient: %r" % (modelB.intercept, modelB.coefficients[0]))
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Make predictions
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC Calling `transform()` on data adds a new column of predictions.
+# MAGIC %md ## Make predictions
+# MAGIC 
+# MAGIC Calling `transform()` on data adds a new column of predictions.
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Make predictions
+# Make predictions
 predictionsA = modelA.transform(dataset)
 display(predictionsA)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 predictionsB = modelB.transform(dataset)
 display(predictionsB)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Evaluate the Model
-***REMOVED*** MAGIC ***REMOVED******REMOVED******REMOVED******REMOVED*** Predicted vs. True label
+# MAGIC %md ## Evaluate the Model
+# MAGIC #### Predicted vs. True label
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 from pyspark.ml.evaluation import RegressionEvaluator
 evaluator = RegressionEvaluator(metricName="rmse")
 RMSE = evaluator.evaluate(predictionsA)
 print("ModelA: Root Mean Squared Error = " + str(RMSE))
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 predictionsB = modelB.transform(dataset)
 RMSE = evaluator.evaluate(predictionsB)
 print("ModelB: Root Mean Squared Error = " + str(RMSE))
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Plot residuals versus fitted values
+# MAGIC %md ## Plot residuals versus fitted values
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 display(modelA,dataset)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED*** Linear Regression Plots
+# MAGIC %md # Linear Regression Plots
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 import numpy as np
 from pandas import *
@@ -154,20 +154,20 @@ predB = predictionsB.select("prediction").rdd.map(lambda r: r[0]).collect()
 
 pydf = DataFrame({'pop':pop,'price':price,'predA':predA, 'predB':predB})
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** View the Python Pandas DataFrame (pydf)
+# MAGIC %md ## View the Python Pandas DataFrame (pydf)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 pydf
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** ggplot figure
-***REMOVED*** MAGIC With the Pandas DataFrame (pydf), use ggplot and display the scatterplot and the two regression models
+# MAGIC %md ## ggplot figure
+# MAGIC With the Pandas DataFrame (pydf), use ggplot and display the scatterplot and the two regression models
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 p = ggplot(pydf, aes('pop','price')) + \
     geom_point(color='blue') + \

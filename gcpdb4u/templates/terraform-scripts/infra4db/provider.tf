@@ -1,6 +1,6 @@
 terraform {
   required_version = ">= 1.0"
-  
+
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -8,15 +8,15 @@ terraform {
     }
   }
 
-  
+
 }
 
 provider "google" {
-  project     = var.vpc_project_id
- ***REMOVED*** region      = var.vpc_project_region
+  project = var.vpc_project_id
+  # region      = var.vpc_project_region
 }
 
 provider "google-beta" {
-  project     = var.vpc_project_id
-***REMOVED***  region      = var.vpc_project_region
+  project = var.vpc_project_id
+  #  region      = var.vpc_project_region
 } 

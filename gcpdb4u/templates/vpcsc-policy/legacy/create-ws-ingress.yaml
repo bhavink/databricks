@@ -1,21 +1,21 @@
-***REMOVED*** This policy applies during workspace creation for GCE powered databricks workspaces
-***REMOVED*** Ingress rule for Databricks services
+# This policy applies during workspace creation for GCE powered databricks workspaces
+# Ingress rule for Databricks services
 - ingressFrom:
     identities:
-    ***REMOVED***   - group:group@corp.com
-    ***REMOVED***   - user:user@corp.com
+    #   - group:group@corp.com
+    #   - user:user@corp.com
       - serviceAccount:YOUR_SA@PROJECT.iam.gserviceaccount.com
     sources:
-    ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
-    ***REMOVED*** Find your regional control plane VPC host project ***REMOVED***
-    ***REMOVED*** Do not change the Central Project number listed below, its a must have requirement
-      ***REMOVED*** Databricks Central project - only required at workspace creation
+    # https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers
+    # Find your regional control plane VPC host project #
+    # Do not change the Central Project number listed below, its a must have requirement
+      # Databricks Central project - only required at workspace creation
       - resource: projects/68422481410
-      ***REMOVED*** Databricks regional control plane project (us-east1)
+      # Databricks regional control plane project (us-east1)
       - resource: projects/51066298900
   ingressTo:
     operations:
-      ***REMOVED*** Compute Engine operations
+      # Compute Engine operations
       - methodSelectors:
           - method: 'NetworksService.Get'
           - method: 'ProjectsService.Get'
@@ -26,15 +26,15 @@
           - method: 'SubnetworksService.GetPolicy'
           - method: 'GlobalOperationsService.Get'
         serviceName: compute.googleapis.com
-      ***REMOVED*** There seems to be no way to specify method calls so we will be allowing all of the method calls
-      ***REMOVED*** This is the only call we need google.api.serviceusage.v1.ServiceUsage.ListServices
+      # There seems to be no way to specify method calls so we will be allowing all of the method calls
+      # This is the only call we need google.api.serviceusage.v1.ServiceUsage.ListServices
       - methodSelectors:
           - method: '*'
         serviceName: serviceusage.googleapis.com
       - methodSelectors:
           - method: 'Projects.SetIamPolicy' 
         serviceName: cloudresourcemanager.googleapis.com
-      ***REMOVED*** IAM operations
+      # IAM operations
       - methodSelectors:
           - method: 'IAM.GetRole'
           - method: 'IAM.CreateRole'
@@ -43,26 +43,26 @@
           - method: 'IAM.SetIamPolicy'
         serviceName: iam.googleapis.com
     resources:
-      - projects/NUMBER ***REMOVED*** vpc project
-      - projects/NUMBER  ***REMOVED*** workspace project
+      - projects/NUMBER # vpc project
+      - projects/NUMBER  # workspace project
 
-***REMOVED*** We have to use ANY_IDENTIY because the buckets.create call is made by the
-***REMOVED*** Workspace SA which is created dyamically at the time of workspace creation
-***REMOVED*** There is no way to know the name before hand
-***REMOVED*** After the workspace is created you could remove this call or 
-***REMOVED*** For ref please check ingress.yaml
+# We have to use ANY_IDENTIY because the buckets.create call is made by the
+# Workspace SA which is created dyamically at the time of workspace creation
+# There is no way to know the name before hand
+# After the workspace is created you could remove this call or 
+# For ref please check ingress.yaml
 - ingressFrom:
     identityType: ANY_IDENTITY
     sources:
-      ***REMOVED*** Databricks central project - only required at workspace creation (us-central1)
+      # Databricks central project - only required at workspace creation (us-central1)
       - resource: projects/68422481410
   ingressTo:
     operations:
-***REMOVED*** Google Cloud Storage operations
+# Google Cloud Storage operations
       - methodSelectors:
-          ***REMOVED*** The following permissions are required for DBFS storage creation
-          ***REMOVED*** Remove this permission after workspace is created
+          # The following permissions are required for DBFS storage creation
+          # Remove this permission after workspace is created
           - method: 'google.storage.buckets.create'
         serviceName: storage.googleapis.com
     resources:
-      - projects/NUMBER ***REMOVED*** workspace project
+      - projects/NUMBER # workspace project

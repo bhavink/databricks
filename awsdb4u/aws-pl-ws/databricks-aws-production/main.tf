@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** AWS Databricks Private Link Deployment - Modular Version
-***REMOVED*** ============================================================================
+# ============================================================================
+# AWS Databricks Private Link Deployment - Modular Version
+# ============================================================================
 
 terraform {
   required_version = ">= 1.0"
@@ -8,7 +8,7 @@ terraform {
   required_providers {
     databricks = {
       source  = "databricks/databricks"
-      version = "~> 1.70"  ***REMOVED*** Try latest to see if backend-only issue is fixed
+      version = "~> 1.70" # Try latest to see if backend-only issue is fixed
     }
     aws = {
       source  = "hashicorp/aws"
@@ -25,21 +25,21 @@ terraform {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Providers
-***REMOVED*** ============================================================================
+# ============================================================================
+# Providers
+# ============================================================================
 
 provider "aws" {
   region = var.region
 
-  ***REMOVED*** Option 1: Use named AWS CLI profile (recommended for local development)
+  # Option 1: Use named AWS CLI profile (recommended for local development)
   profile = var.aws_profile
 
-  ***REMOVED*** Option 2: Use default AWS CLI credentials or environment variables
-  ***REMOVED*** Comment out the 'profile' line above and Terraform will automatically use:
-  ***REMOVED*** - AWS CLI default credentials (aws configure)
-  ***REMOVED*** - AWS SSO session (aws sso login)
-  ***REMOVED*** - Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
+  # Option 2: Use default AWS CLI credentials or environment variables
+  # Comment out the 'profile' line above and Terraform will automatically use:
+  # - AWS CLI default credentials (aws configure)
+  # - AWS SSO session (aws sso login)
+  # - Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
 }
 
 provider "databricks" {
@@ -57,9 +57,9 @@ provider "databricks" {
   client_secret = var.databricks_client_secret
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Random Suffix for Unique Resource Naming
-***REMOVED*** ============================================================================
+# ============================================================================
+# Random Suffix for Unique Resource Naming
+# ============================================================================
 
 resource "random_string" "suffix" {
   length  = 4
@@ -67,11 +67,11 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** AWS Data Sources
-***REMOVED*** ============================================================================
+# ============================================================================
+# AWS Data Sources
+# ============================================================================
 
-***REMOVED*** Get available AZs in the region (excludes local zones)
+# Get available AZs in the region (excludes local zones)
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -81,34 +81,34 @@ data "aws_availability_zones" "available" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Local Variables and Validation
-***REMOVED*** ============================================================================
+# ============================================================================
+# Local Variables and Validation
+# ============================================================================
 
 locals {
   prefix         = "${var.prefix}-${random_string.suffix.result}"
   workspace_name = "${var.workspace_name}-${random_string.suffix.result}"
 
-  ***REMOVED*** Private Link configuration - single flag controls both frontend and backend
-  ***REMOVED*** When enabled: Creates workspace endpoint (UI/API) + relay endpoint (SCC) + VPCE security group
+  # Private Link configuration - single flag controls both frontend and backend
+  # When enabled: Creates workspace endpoint (UI/API) + relay endpoint (SCC) + VPCE security group
   any_vpce_enabled = var.enable_private_link
 
-  ***REMOVED*** Auto-select first 2 available AZs if not specified
-  ***REMOVED*** User can override by setting availability_zones variable
+  # Auto-select first 2 available AZs if not specified
+  # User can override by setting availability_zones variable
   availability_zones = length(var.availability_zones) > 0 ? var.availability_zones : slice(data.aws_availability_zones.available.names, 0, 2)
 
-  ***REMOVED*** Databricks reserved IP ranges that MUST be avoided
+  # Databricks reserved IP ranges that MUST be avoided
   databricks_reserved_ranges = [
-    "127.187.216.0/24", ***REMOVED*** Databricks internal apps
-    "192.168.216.0/24", ***REMOVED*** Databricks internal apps
-    "198.18.216.0/24",  ***REMOVED*** Databricks internal apps
-    "172.17.0.0/16"     ***REMOVED*** Docker default network (DCS clusters)
+    "127.187.216.0/24", # Databricks internal apps
+    "192.168.216.0/24", # Databricks internal apps
+    "198.18.216.0/24",  # Databricks internal apps
+    "172.17.0.0/16"     # Docker default network (DCS clusters)
   ]
 
-  ***REMOVED*** Extract first 2 octets from VPC CIDR for validation
+  # Extract first 2 octets from VPC CIDR for validation
   vpc_first_two_octets = join(".", slice(split(".", var.vpc_cidr), 0, 2))
 
-  ***REMOVED*** Check if VPC CIDR conflicts with Databricks reserved ranges
+  # Check if VPC CIDR conflicts with Databricks reserved ranges
   vpc_cidr_safe = !contains([
     "127.187",
     "192.168",
@@ -117,11 +117,11 @@ locals {
   ], local.vpc_first_two_octets)
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Validation
-***REMOVED*** ============================================================================
+# ============================================================================
+# Validation
+# ============================================================================
 
-***REMOVED*** Validate availability zones
+# Validate availability zones
 resource "terraform_data" "validate_azs" {
   lifecycle {
     precondition {
@@ -136,7 +136,7 @@ resource "terraform_data" "validate_azs" {
   }
 }
 
-***REMOVED*** Validate VPC CIDR doesn't conflict with Databricks reserved ranges
+# Validate VPC CIDR doesn't conflict with Databricks reserved ranges
 resource "terraform_data" "validate_vpc_cidr" {
   lifecycle {
     precondition {
@@ -159,9 +159,9 @@ resource "terraform_data" "validate_vpc_cidr" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Networking Module
-***REMOVED*** ============================================================================
+# ============================================================================
+# Networking Module
+# ============================================================================
 
 module "networking" {
   source = "./modules/networking"
@@ -174,9 +174,9 @@ module "networking" {
   public_subnet_cidrs      = var.public_subnet_cidrs
   availability_zones       = local.availability_zones
 
-  ***REMOVED*** VPC Endpoint Configuration
+  # VPC Endpoint Configuration
   enable_private_link = var.enable_private_link
-  ***REMOVED*** VPCE service names are auto-detected based on region - only set to override
+  # VPCE service names are auto-detected based on region - only set to override
   workspace_vpce_service = var.workspace_vpce_service
   relay_vpce_service     = var.relay_vpce_service
 
@@ -188,18 +188,18 @@ module "networking" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** IAM Module
-***REMOVED*** NOTE: Created early - cross-account role name needed for KMS workspace CMK policy
-***REMOVED*** ============================================================================
+# ============================================================================
+# IAM Module
+# NOTE: Created early - cross-account role name needed for KMS workspace CMK policy
+# ============================================================================
 
 module "iam" {
   source = "./modules/iam"
 
-  prefix                            = local.prefix
-  aws_account_id                    = var.aws_account_id
-  databricks_account_id             = var.databricks_account_id
-  ***REMOVED*** Unity Catalog bucket ARNs will be added via depends_on after storage module
+  prefix                = local.prefix
+  aws_account_id        = var.aws_account_id
+  databricks_account_id = var.databricks_account_id
+  # Unity Catalog bucket ARNs will be added via depends_on after storage module
   unity_catalog_bucket_arn          = ""
   unity_catalog_external_bucket_arn = ""
   tags                              = var.tags
@@ -209,34 +209,34 @@ module "iam" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** KMS Module (Optional Encryption)
-***REMOVED*** NOTE: Uses constructed cross-account role ARN (role created in IAM module)
-***REMOVED*** ============================================================================
+# ============================================================================
+# KMS Module (Optional Encryption)
+# NOTE: Uses constructed cross-account role ARN (role created in IAM module)
+# ============================================================================
 
 module "kms" {
   source = "./modules/kms"
 
-  prefix                            = local.prefix
-  aws_account_id                    = var.aws_account_id
-  databricks_account_id             = var.databricks_account_id
-  enable_encryption                 = var.enable_encryption
-  enable_workspace_cmk              = var.enable_workspace_cmk
-  existing_workspace_cmk_key_arn    = var.existing_workspace_cmk_key_arn
-  existing_workspace_cmk_key_alias  = var.existing_workspace_cmk_key_alias
-  cmk_admin_arn                     = var.cmk_admin_arn
-  kms_key_deletion_window           = var.kms_key_deletion_window
-  unity_catalog_role_name           = module.iam.unity_catalog_role_name
-  tags                              = var.tags
-  
+  prefix                           = local.prefix
+  aws_account_id                   = var.aws_account_id
+  databricks_account_id            = var.databricks_account_id
+  enable_encryption                = var.enable_encryption
+  enable_workspace_cmk             = var.enable_workspace_cmk
+  existing_workspace_cmk_key_arn   = var.existing_workspace_cmk_key_arn
+  existing_workspace_cmk_key_alias = var.existing_workspace_cmk_key_alias
+  cmk_admin_arn                    = var.cmk_admin_arn
+  kms_key_deletion_window          = var.kms_key_deletion_window
+  unity_catalog_role_name          = module.iam.unity_catalog_role_name
+  tags                             = var.tags
+
   depends_on = [
-    module.iam  ***REMOVED*** Ensures cross-account role exists before KMS key creation
+    module.iam # Ensures cross-account role exists before KMS key creation
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Storage Module
-***REMOVED*** ============================================================================
+# ============================================================================
+# Storage Module
+# ============================================================================
 
 module "storage" {
   source = "./modules/storage"
@@ -252,7 +252,7 @@ module "storage" {
   kms_key_arn                            = module.kms.key_arn
   tags                                   = var.tags
 
-  ***REMOVED*** Only create UC root storage bucket when NOT using an existing metastore
+  # Only create UC root storage bucket when NOT using an existing metastore
   create_uc_root_storage_bucket = var.metastore_id == ""
 
   providers = {
@@ -262,9 +262,9 @@ module "storage" {
   depends_on = [module.kms]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Databricks Workspace Module
-***REMOVED*** ============================================================================
+# ============================================================================
+# Databricks Workspace Module
+# ============================================================================
 
 module "databricks_workspace" {
   source = "./modules/databricks_workspace"
@@ -277,32 +277,32 @@ module "databricks_workspace" {
   client_id             = var.databricks_client_id
   client_secret         = var.databricks_client_secret
 
-  ***REMOVED*** From networking module
+  # From networking module
   vpc_id                      = module.networking.vpc_id
   private_subnet_ids          = module.networking.private_subnet_ids
   workspace_security_group_id = module.networking.workspace_security_group_id
 
-  ***REMOVED*** VPC Endpoint Configuration
+  # VPC Endpoint Configuration
   enable_private_link = var.enable_private_link
   workspace_vpce_id   = module.networking.databricks_workspace_vpce_id
   relay_vpce_id       = module.networking.databricks_relay_vpce_id
 
-  ***REMOVED*** Private Access Settings
+  # Private Access Settings
   existing_private_access_settings_id = var.existing_private_access_settings_id
   public_access_enabled               = var.public_access_enabled
   private_access_level                = var.private_access_level
 
-  ***REMOVED*** From storage module
+  # From storage module
   root_storage_bucket = module.storage.root_storage_bucket
 
-  ***REMOVED*** From IAM module
+  # From IAM module
   cross_account_role_arn = module.iam.cross_account_role_arn
 
-  ***REMOVED*** IP Access Lists (Optional)
+  # IP Access Lists (Optional)
   enable_ip_access_lists = var.enable_ip_access_lists
   allowed_ip_addresses   = var.allowed_ip_addresses
 
-  ***REMOVED*** Workspace CMK (Optional) - Single key for both storage and managed services
+  # Workspace CMK (Optional) - Single key for both storage and managed services
   enable_workspace_cmk        = var.enable_workspace_cmk
   workspace_storage_key_arn   = module.kms.workspace_storage_key_arn
   workspace_storage_key_alias = module.kms.workspace_storage_key_alias
@@ -322,9 +322,9 @@ module "databricks_workspace" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Unity Catalog Module
-***REMOVED*** ============================================================================
+# ============================================================================
+# Unity Catalog Module
+# ============================================================================
 
 module "unity_catalog" {
   source = "./modules/unity_catalog"
@@ -346,7 +346,7 @@ module "unity_catalog" {
   kms_key_arn                       = module.kms.key_arn
   tags                              = var.tags
 
-  ***REMOVED*** Use existing metastore if provided, otherwise create a new one
+  # Use existing metastore if provided, otherwise create a new one
   metastore_id = var.metastore_id
 
   providers = {
@@ -360,11 +360,11 @@ module "unity_catalog" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** User Assignment Module (Workspace Admin)
-***REMOVED*** Assigns existing Databricks account user as workspace admin
-***REMOVED*** Reference: https://github.com/databricks/terraform-databricks-sra/tree/main/aws/tf/modules/databricks_account/user_assignment
-***REMOVED*** ============================================================================
+# ============================================================================
+# User Assignment Module (Workspace Admin)
+# Assigns existing Databricks account user as workspace admin
+# Reference: https://github.com/databricks/terraform-databricks-sra/tree/main/aws/tf/modules/databricks_account/user_assignment
+# ============================================================================
 
 module "user_assignment" {
   source = "./modules/user_assignment"

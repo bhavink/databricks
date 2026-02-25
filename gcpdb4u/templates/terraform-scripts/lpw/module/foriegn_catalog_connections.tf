@@ -10,6 +10,6 @@ resource "databricks_connection" "bigquery" {
   properties = {
     purpose = "bq_connection"
   }
-  ***REMOVED*** MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
+  # MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
   depends_on = [null_resource.wait_for_workspace_running]
 }

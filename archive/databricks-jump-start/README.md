@@ -28,7 +28,7 @@ To install databricks cli simply run
 
 Then set up authentication using username/password or
 
-[authentication token](https://docs.databricks.com/api/latest/authentication.html***REMOVED***token-management) Credentials are stored at ``~/.databrickscfg``.
+[authentication token](https://docs.databricks.com/api/latest/authentication.html#token-management) Credentials are stored at ``~/.databrickscfg``.
 
 - ``databricks configure`` (enter hostname/username/password at prompt)
 - ``databricks configure --token`` (enter hostname/auth-token at prompt)
@@ -62,8 +62,8 @@ To authenticate and access Databricks REST/CLI APIs, you use personal access tok
 
 Please follow instructions mentioned over here to get one
 
-- [Databricks](https://docs.azuredatabricks.net/api/latest/authentication.html***REMOVED***token-management)
-- [Azure Databricks](https://docs.azuredatabricks.net/api/latest/authentication.html***REMOVED***token-management)
+- [Databricks](https://docs.azuredatabricks.net/api/latest/authentication.html#token-management)
+- [Azure Databricks](https://docs.azuredatabricks.net/api/latest/authentication.html#token-management)
 
 Projects
 ------------------

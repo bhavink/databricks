@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Grant Workspace Admin ALL_PRIVILEGES on Catalog
-***REMOVED*** ============================================================================
+# ============================================================================
+# Grant Workspace Admin ALL_PRIVILEGES on Catalog
+# ============================================================================
 
 resource "databricks_grant" "workspace_catalog_admin" {
   count = var.create_workspace_catalog ? 1 : 0
@@ -16,10 +16,10 @@ resource "databricks_grant" "workspace_catalog_admin" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Grant Metastore Admin to Workspace Admin
-***REMOVED*** Uses effective metastore ID (existing or newly created)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Grant Metastore Admin to Workspace Admin
+# Uses effective metastore ID (existing or newly created)
+# ============================================================================
 
 resource "databricks_grant" "metastore_grants" {
   count = var.create_workspace_catalog ? 1 : 0
@@ -35,10 +35,10 @@ resource "databricks_grant" "metastore_grants" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Grants for Root Storage Location
-***REMOVED*** Only created when NOT using an existing metastore
-***REMOVED*** ============================================================================
+# ============================================================================
+# Grants for Root Storage Location
+# Only created when NOT using an existing metastore
+# ============================================================================
 
 resource "databricks_grant" "root_storage_location_grants" {
   count = !local.use_existing_metastore && var.create_workspace_catalog ? 1 : 0
@@ -52,9 +52,9 @@ resource "databricks_grant" "root_storage_location_grants" {
   depends_on = [databricks_external_location.root_storage]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Grants for External Location
-***REMOVED*** ============================================================================
+# ============================================================================
+# Grants for External Location
+# ============================================================================
 
 resource "databricks_grant" "external_location_grants" {
   count = var.create_workspace_catalog ? 1 : 0

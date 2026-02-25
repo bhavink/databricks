@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** IAM Instance Profile for Databricks Clusters
-***REMOVED*** ============================================================================
+# ============================================================================
+# IAM Instance Profile for Databricks Clusters
+# ============================================================================
 
 resource "aws_iam_role" "instance_profile_role" {
   name = "${var.prefix}-instance-profile-role"
@@ -32,7 +32,7 @@ resource "aws_iam_instance_profile" "instance_profile" {
   })
 }
 
-***REMOVED*** Optional: Add policies for instance profile if needed for data access
+# Optional: Add policies for instance profile if needed for data access
 resource "aws_iam_policy" "instance_profile_policy" {
   name        = "${var.prefix}-instance-profile-policy"
   description = "Policy for Databricks cluster instance profile"

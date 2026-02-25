@@ -5,7 +5,7 @@ variable "google_region" {}
 terraform {
   required_providers {
     databricks = {
-      source = "databricks/databricks"
+      source  = "databricks/databricks"
       version = ">=1.28.0"
     }
     google = {
@@ -23,7 +23,7 @@ provider "databricks" {
   alias                  = "accounts"
   host                   = "https://accounts.gcp.databricks.com"
   google_service_account = var.google_service_account_email
-  account_id = var.databricks_account_id
+  account_id             = var.databricks_account_id
 }
 
 provider "databricks" {

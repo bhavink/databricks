@@ -1,5 +1,5 @@
 -- Databricks notebook source
--- MAGIC %md ***REMOVED******REMOVED*** Population versus Price
+-- MAGIC %md ## Population versus Price
 
 -- COMMAND ----------
 
@@ -8,12 +8,12 @@
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC ***REMOVED*** Use the Spark CSV datasource with options specifying:
--- MAGIC ***REMOVED***  - First line of file is a header
--- MAGIC ***REMOVED***  - Automatically infer the schema of the data
+-- MAGIC # Use the Spark CSV datasource with options specifying:
+-- MAGIC #  - First line of file is a header
+-- MAGIC #  - Automatically infer the schema of the data
 -- MAGIC data = spark.read.csv("/databricks-datasets/samples/population-vs-price/data_geo.csv", header="true", inferSchema="true") 
--- MAGIC data.cache()  ***REMOVED*** Cache data for faster reuse
--- MAGIC data = data.dropna() ***REMOVED*** drop rows with missing values
+-- MAGIC data.cache()  # Cache data for faster reuse
+-- MAGIC data = data.dropna() # drop rows with missing values
 
 -- COMMAND ----------
 
@@ -28,12 +28,12 @@
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC ***REMOVED*** Register table so it is accessible via SQL Context
+-- MAGIC # Register table so it is accessible via SQL Context
 -- MAGIC data.createOrReplaceTempView("data_geo")
 
 -- COMMAND ----------
 
--- MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED*** Hover over the state for 2015 Median Home Prices
+-- MAGIC %md #### Hover over the state for 2015 Median Home Prices
 
 -- COMMAND ----------
 
@@ -41,7 +41,7 @@ select `State Code`, `2015 median sales price` from data_geo
 
 -- COMMAND ----------
 
--- MAGIC %md ***REMOVED******REMOVED*** Top 10 Cities by 2015 Median Sales Price
+-- MAGIC %md ## Top 10 Cities by 2015 Median Sales Price
 
 -- COMMAND ----------
 
@@ -49,7 +49,7 @@ select City, `2014 Population estimate`/1000 as `2014 Population Estimate (1000s
 
 -- COMMAND ----------
 
--- MAGIC %md ***REMOVED******REMOVED*** 2014 Population Estimates in Washington State
+-- MAGIC %md ## 2014 Population Estimates in Washington State
 
 -- COMMAND ----------
 
@@ -57,7 +57,7 @@ select City, `2014 Population estimate` from data_geo where `State Code` = 'WA';
 
 -- COMMAND ----------
 
--- MAGIC %md ***REMOVED******REMOVED*** 2015 Median Sales Price Box Plot
+-- MAGIC %md ## 2015 Median Sales Price Box Plot
 -- MAGIC 
 -- MAGIC Box plot shows means + variation of prices.
 
@@ -67,7 +67,7 @@ select `State Code`, `2015 median sales price` from data_geo order by `2015 medi
 
 -- COMMAND ----------
 
--- MAGIC %md ***REMOVED******REMOVED*** 2015 Median Sales Price by State Histogram
+-- MAGIC %md ## 2015 Median Sales Price by State Histogram
 
 -- COMMAND ----------
 
@@ -75,7 +75,7 @@ select `State Code`, `2015 median sales price` from data_geo order by `2015 medi
 
 -- COMMAND ----------
 
--- MAGIC %md ***REMOVED******REMOVED*** 2015 Median Sales Price by State Quantile Plot >= $ 300,000
+-- MAGIC %md ## 2015 Median Sales Price by State Quantile Plot >= $ 300,000
 -- MAGIC 
 -- MAGIC Quantile plots help describe distributions (in this case, the distribution of sales prices across cities) and highlight aspects such as skewed distributions.
 
@@ -85,7 +85,7 @@ select `State Code`, `2015 median sales price` from data_geo where `2015 median 
 
 -- COMMAND ----------
 
--- MAGIC %md ***REMOVED******REMOVED*** Cities with 2015 Median Sales Price >= $ 300,000
+-- MAGIC %md ## Cities with 2015 Median Sales Price >= $ 300,000
 
 -- COMMAND ----------
 
@@ -93,7 +93,7 @@ select `City`, `State Code`, `2015 median sales price` from data_geo where `2015
 
 -- COMMAND ----------
 
--- MAGIC %md ***REMOVED******REMOVED*** 2015 Median Sales Price Q-Q Plot
+-- MAGIC %md ## 2015 Median Sales Price Q-Q Plot
 -- MAGIC 
 -- MAGIC Q-Q plots provide yet another view of distributions.  See [Wikipedia on Q-Q Plots](https://en.wikipedia.org/wiki/Q%E2%80%93Q_plot) for more background.
 

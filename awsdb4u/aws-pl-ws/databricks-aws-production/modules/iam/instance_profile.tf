@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** IAM Instance Profile for Databricks Clusters
-***REMOVED*** ============================================================================
+# ============================================================================
+# IAM Instance Profile for Databricks Clusters
+# ============================================================================
 
 resource "aws_iam_role" "instance_profile_role" {
   name = "${var.prefix}-instance-profile-role"
@@ -32,7 +32,7 @@ resource "aws_iam_instance_profile" "instance_profile" {
   })
 }
 
-***REMOVED*** Optional: Add policies for instance profile if needed for data access
+# Optional: Add policies for instance profile if needed for data access
 resource "aws_iam_policy" "instance_profile_policy" {
   name        = "${var.prefix}-instance-profile-policy"
   description = "Policy for Databricks cluster instance profile"
@@ -40,7 +40,7 @@ resource "aws_iam_policy" "instance_profile_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = concat(
-      ***REMOVED*** S3 ListBucket permission - only add if external bucket ARN is provided
+      # S3 ListBucket permission - only add if external bucket ARN is provided
       var.unity_catalog_external_bucket_arn != "" ? [
         {
           Effect = "Allow"
@@ -52,7 +52,7 @@ resource "aws_iam_policy" "instance_profile_policy" {
           ]
         }
       ] : [],
-      ***REMOVED*** S3 GetObject/PutObject permissions - only add if external bucket ARN is provided
+      # S3 GetObject/PutObject permissions - only add if external bucket ARN is provided
       var.unity_catalog_external_bucket_arn != "" ? [
         {
           Effect = "Allow"
@@ -65,7 +65,7 @@ resource "aws_iam_policy" "instance_profile_policy" {
           ]
         }
       ] : [],
-      ***REMOVED*** Placeholder statement if no bucket ARN provided (policy must have at least one statement)
+      # Placeholder statement if no bucket ARN provided (policy must have at least one statement)
       var.unity_catalog_external_bucket_arn == "" ? [
         {
           Effect = "Allow"

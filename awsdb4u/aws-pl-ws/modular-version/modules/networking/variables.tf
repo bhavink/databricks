@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Required Variables
-***REMOVED*** ============================================================================
+# ============================================================================
+# Required Variables
+# ============================================================================
 
 variable "prefix" {
   description = "Prefix for resource naming (with random suffix)"
@@ -43,9 +43,9 @@ variable "tags" {
   default     = {}
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint Service Names (Region-Specific)
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint Service Names (Region-Specific)
+# ============================================================================
 
 variable "workspace_vpce_service" {
   description = "Databricks workspace VPC endpoint service name (region-specific). See: https://docs.databricks.com/resources/supported-regions.html"

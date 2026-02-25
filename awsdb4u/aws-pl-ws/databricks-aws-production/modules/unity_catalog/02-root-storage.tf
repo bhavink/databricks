@@ -1,10 +1,10 @@
-***REMOVED*** ============================================================================
-***REMOVED*** UC Root Storage - Storage Credential, IAM, and External Location
-***REMOVED*** Following SRA pattern for root storage setup
-***REMOVED*** Only created when NOT using an existing metastore (metastore_id is empty)
-***REMOVED*** ============================================================================
+# ============================================================================
+# UC Root Storage - Storage Credential, IAM, and External Location
+# Following SRA pattern for root storage setup
+# Only created when NOT using an existing metastore (metastore_id is empty)
+# ============================================================================
 
-***REMOVED*** Step 1: Create storage credential for root storage with placeholder role (generates external_id)
+# Step 1: Create storage credential for root storage with placeholder role (generates external_id)
 resource "databricks_storage_credential" "root_storage" {
   count = !local.use_existing_metastore && var.create_workspace_catalog ? 1 : 0
 
@@ -22,7 +22,7 @@ resource "databricks_storage_credential" "root_storage" {
   ]
 }
 
-***REMOVED*** Step 2: Generate Unity Catalog trust policy using external_id from root storage credential
+# Step 2: Generate Unity Catalog trust policy using external_id from root storage credential
 data "databricks_aws_unity_catalog_assume_role_policy" "root_storage" {
   count = !local.use_existing_metastore && var.create_workspace_catalog ? 1 : 0
 
@@ -32,7 +32,7 @@ data "databricks_aws_unity_catalog_assume_role_policy" "root_storage" {
   external_id           = databricks_storage_credential.root_storage[0].aws_iam_role[0].external_id
 }
 
-***REMOVED*** Step 3: Generate Unity Catalog IAM policy for S3 access to UC root storage bucket
+# Step 3: Generate Unity Catalog IAM policy for S3 access to UC root storage bucket
 data "databricks_aws_unity_catalog_policy" "root_storage" {
   count = !local.use_existing_metastore && var.create_workspace_catalog ? 1 : 0
 
@@ -41,7 +41,7 @@ data "databricks_aws_unity_catalog_policy" "root_storage" {
   role_name      = local.uc_root_iam_role_name
 }
 
-***REMOVED*** Step 4: Create IAM policy for root storage
+# Step 4: Create IAM policy for root storage
 resource "aws_iam_policy" "unity_catalog_root" {
   count = !local.use_existing_metastore && var.create_workspace_catalog ? 1 : 0
 
@@ -53,7 +53,7 @@ resource "aws_iam_policy" "unity_catalog_root" {
   })
 }
 
-***REMOVED*** Step 5: Create IAM role for root storage with proper trust policy
+# Step 5: Create IAM role for root storage with proper trust policy
 resource "aws_iam_role" "unity_catalog_root" {
   count = !local.use_existing_metastore && var.create_workspace_catalog ? 1 : 0
 
@@ -65,7 +65,7 @@ resource "aws_iam_role" "unity_catalog_root" {
   })
 }
 
-***REMOVED*** Step 6: Attach policy to root storage role
+# Step 6: Attach policy to root storage role
 resource "aws_iam_policy_attachment" "unity_catalog_root" {
   count = !local.use_existing_metastore && var.create_workspace_catalog ? 1 : 0
 
@@ -74,7 +74,7 @@ resource "aws_iam_policy_attachment" "unity_catalog_root" {
   policy_arn = aws_iam_policy.unity_catalog_root[0].arn
 }
 
-***REMOVED*** Step 7: Wait for IAM propagation for root storage
+# Step 7: Wait for IAM propagation for root storage
 resource "time_sleep" "wait_for_uc_root_iam" {
   count = !local.use_existing_metastore && var.create_workspace_catalog ? 1 : 0
 
@@ -84,14 +84,14 @@ resource "time_sleep" "wait_for_uc_root_iam" {
     aws_iam_policy_attachment.unity_catalog_root
   ]
 
-  ***REMOVED*** Force replacement when IAM policy changes
+  # Force replacement when IAM policy changes
   triggers = {
     policy_version = aws_iam_policy.unity_catalog_root[0].id
     role_arn       = aws_iam_role.unity_catalog_root[0].arn
   }
 }
 
-***REMOVED*** Step 8: Create external location for UC root storage
+# Step 8: Create external location for UC root storage
 resource "databricks_external_location" "root_storage" {
   count = !local.use_existing_metastore && var.create_workspace_catalog ? 1 : 0
 
@@ -100,9 +100,9 @@ resource "databricks_external_location" "root_storage" {
   url             = "s3://${var.unity_catalog_root_storage_bucket}/"
   credential_name = databricks_storage_credential.root_storage[0].name
   comment         = "External location for UC root storage"
-  force_destroy   = true  ***REMOVED*** Allow deletion even if dependent tables exist
+  force_destroy   = true # Allow deletion even if dependent tables exist
 
-  ***REMOVED*** Force recreation when bucket or IAM changes
+  # Force recreation when bucket or IAM changes
   lifecycle {
     replace_triggered_by = [
       time_sleep.wait_for_uc_root_iam[0].id

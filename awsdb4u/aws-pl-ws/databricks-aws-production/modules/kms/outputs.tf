@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** S3 Encryption KMS Key Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# S3 Encryption KMS Key Outputs
+# ============================================================================
 
 output "key_id" {
   description = "S3 KMS key ID (if encryption enabled)"
@@ -17,9 +17,9 @@ output "key_alias" {
   value       = var.enable_encryption ? aws_kms_alias.databricks[0].name : null
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace CMK Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace CMK Outputs
+# ============================================================================
 
 output "workspace_storage_key_arn" {
   description = "Workspace KMS key ARN (for DBFS, EBS, and managed services encryption)"

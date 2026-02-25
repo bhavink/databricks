@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Unity Catalog Module - Provider Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# Unity Catalog Module - Provider Configuration
+# ============================================================================
 
 terraform {
   required_providers {
@@ -16,29 +16,29 @@ terraform {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Unity Catalog Metastore (Account-Level)
-***REMOVED*** Create new metastore following SRA pattern
-***REMOVED*** ============================================================================
+# ============================================================================
+# Unity Catalog Metastore (Account-Level)
+# Create new metastore following SRA pattern
+# ============================================================================
 
 resource "databricks_metastore" "this" {
   provider      = databricks.account
   name          = "${var.region}-${var.prefix}-metastore"
   region        = var.region
-  owner         = var.client_id ***REMOVED*** Service principal as owner (needed for workspace provider operations)
+  owner         = var.client_id # Service principal as owner (needed for workspace provider operations)
   force_destroy = false
 
-  ***REMOVED*** No storage_root - following SRA pattern for flexibility
-  ***REMOVED*** Storage credentials and external locations managed at workspace level
+  # No storage_root - following SRA pattern for flexibility
+  # Storage credentials and external locations managed at workspace level
 
-  ***REMOVED*** No depends_on - metastore is created independently of workspace
-  ***REMOVED*** Only needs account provider which is always available
+  # No depends_on - metastore is created independently of workspace
+  # Only needs account provider which is always available
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Unity Catalog Metastore Data Access Configuration
-***REMOVED*** TEMPORARILY COMMENTED - Will be added in Phase 2
-***REMOVED*** ============================================================================
+# ============================================================================
+# Unity Catalog Metastore Data Access Configuration
+# TEMPORARILY COMMENTED - Will be added in Phase 2
+# ============================================================================
 
 /*
 resource "databricks_metastore_data_access" "metastore_data_access" {
@@ -56,10 +56,10 @@ resource "databricks_metastore_data_access" "metastore_data_access" {
 }
 */
 
-***REMOVED*** ============================================================================
-***REMOVED*** Assign Metastore to Workspace
-***REMOVED*** Dynamically uses the metastore ID created above
-***REMOVED*** ============================================================================
+# ============================================================================
+# Assign Metastore to Workspace
+# Dynamically uses the metastore ID created above
+# ============================================================================
 
 resource "databricks_metastore_assignment" "workspace_assignment" {
   provider             = databricks.account
@@ -72,42 +72,42 @@ resource "databricks_metastore_assignment" "workspace_assignment" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Admin Assignment via Unity Catalog
-***REMOVED*** Flow: WS Created → UC Metastore Created → UC Assigned to WS → Add User as Admin
-***REMOVED*** Uses account-level APIs to create user and grant workspace admin permission
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Admin Assignment via Unity Catalog
+# Flow: WS Created → UC Metastore Created → UC Assigned to WS → Add User as Admin
+# Uses account-level APIs to create user and grant workspace admin permission
+# ============================================================================
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Admin Assignment via Unity Catalog
-***REMOVED*** TEMPORARILY DISABLED - Uncomment when ready to assign workspace admin
-***REMOVED*** Reference: https://github.com/databricks/terraform-databricks-sra/blob/main/aws/tf/modules/databricks_account/user_assignment/main.tf
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Admin Assignment via Unity Catalog
+# TEMPORARILY DISABLED - Uncomment when ready to assign workspace admin
+# Reference: https://github.com/databricks/terraform-databricks-sra/blob/main/aws/tf/modules/databricks_account/user_assignment/main.tf
+# ============================================================================
 
-***REMOVED*** ***REMOVED*** Look up the workspace admin user from account console
-***REMOVED*** data "databricks_user" "workspace_admin" {
-***REMOVED***   count = var.workspace_admin_email != "" ? 1 : 0
-***REMOVED*** 
-***REMOVED***   provider  = databricks.account
-***REMOVED***   user_name = var.workspace_admin_email
-***REMOVED*** }
-***REMOVED*** 
-***REMOVED*** ***REMOVED*** Assign user as workspace admin using account-level permission assignment
-***REMOVED*** resource "databricks_mws_permission_assignment" "workspace_admin" {
-***REMOVED***   count = var.workspace_admin_email != "" ? 1 : 0
-***REMOVED*** 
-***REMOVED***   provider     = databricks.account
-***REMOVED***   workspace_id = var.workspace_id
-***REMOVED***   principal_id = data.databricks_user.workspace_admin[0].id
-***REMOVED***   permissions  = ["ADMIN"]
-***REMOVED*** 
-***REMOVED***   lifecycle {
-***REMOVED***     ignore_changes = [principal_id]
-***REMOVED***   }
-***REMOVED*** 
-***REMOVED***   depends_on = [
-***REMOVED***     databricks_metastore_assignment.workspace_assignment
-***REMOVED***   ]
-***REMOVED*** }
+# # Look up the workspace admin user from account console
+# data "databricks_user" "workspace_admin" {
+#   count = var.workspace_admin_email != "" ? 1 : 0
+# 
+#   provider  = databricks.account
+#   user_name = var.workspace_admin_email
+# }
+# 
+# # Assign user as workspace admin using account-level permission assignment
+# resource "databricks_mws_permission_assignment" "workspace_admin" {
+#   count = var.workspace_admin_email != "" ? 1 : 0
+# 
+#   provider     = databricks.account
+#   workspace_id = var.workspace_id
+#   principal_id = data.databricks_user.workspace_admin[0].id
+#   permissions  = ["ADMIN"]
+# 
+#   lifecycle {
+#     ignore_changes = [principal_id]
+#   }
+# 
+#   depends_on = [
+#     databricks_metastore_assignment.workspace_assignment
+#   ]
+# }
 
 

@@ -15,7 +15,7 @@ resource "databricks_grants" "storage_credential_premissions" {
     }
 
   }
-  ***REMOVED*** MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
+  # MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
   depends_on = [databricks_storage_credential.this, databricks_workspace_binding.storage_credential, null_resource.wait_for_workspace_running]
 }
 
@@ -36,7 +36,7 @@ resource "databricks_grants" "external_location_permissions" {
       ] : grant.value.role == "admin" ? ["ALL_PRIVILEGES"] : []
     }
   }
-  ***REMOVED*** MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
+  # MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
   depends_on = [databricks_external_location.external_location, databricks_workspace_binding.ext_loc, null_resource.wait_for_workspace_running]
 }
 
@@ -60,6 +60,6 @@ resource "databricks_grants" "workspace_catalog_permission" {
       ] : grant.value.role == "data_editor" ? ["ALL_PRIVILEGES"] : []
     }
   }
-  ***REMOVED*** MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
+  # MODIFICATION - added null_resource.wait_for_workspace_running dependency to make sure that workspace is in running state
   depends_on = [databricks_catalog.workspace_catalog, databricks_workspace_binding.catalog, null_resource.wait_for_workspace_running]
 }

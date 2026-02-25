@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Networking Module - Provider Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# Networking Module - Provider Configuration
+# ============================================================================
 
 terraform {
   required_providers {
@@ -16,9 +16,9 @@ terraform {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC
+# ============================================================================
 
 resource "aws_vpc" "databricks_vpc" {
   cidr_block           = var.vpc_cidr
@@ -30,14 +30,14 @@ resource "aws_vpc" "databricks_vpc" {
   })
 
   lifecycle {
-    ***REMOVED*** Prevent VPC destruction if resources are still attached
+    # Prevent VPC destruction if resources are still attached
     prevent_destroy = false
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Public Subnets (for NAT Gateways)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Public Subnets (for NAT Gateways)
+# ============================================================================
 
 resource "aws_subnet" "public" {
   count                   = length(var.public_subnet_cidrs)
@@ -51,9 +51,9 @@ resource "aws_subnet" "public" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Private Subnets (for Databricks Clusters)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Private Subnets (for Databricks Clusters)
+# ============================================================================
 
 resource "aws_subnet" "private" {
   count             = length(var.private_subnet_cidrs)
@@ -66,9 +66,9 @@ resource "aws_subnet" "private" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** PrivateLink Subnets (for VPC Endpoints)
-***REMOVED*** ============================================================================
+# ============================================================================
+# PrivateLink Subnets (for VPC Endpoints)
+# ============================================================================
 
 resource "aws_subnet" "privatelink" {
   count             = length(var.privatelink_subnet_cidrs)
@@ -81,9 +81,9 @@ resource "aws_subnet" "privatelink" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Internet Gateway (for Public Subnets)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Internet Gateway (for Public Subnets)
+# ============================================================================
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.databricks_vpc.id
@@ -93,9 +93,9 @@ resource "aws_internet_gateway" "igw" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Elastic IPs for NAT Gateways
-***REMOVED*** ============================================================================
+# ============================================================================
+# Elastic IPs for NAT Gateways
+# ============================================================================
 
 resource "aws_eip" "nat" {
   count  = length(var.public_subnet_cidrs)
@@ -108,9 +108,9 @@ resource "aws_eip" "nat" {
   depends_on = [aws_internet_gateway.igw]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** NAT Gateways (High Availability - one per AZ)
-***REMOVED*** ============================================================================
+# ============================================================================
+# NAT Gateways (High Availability - one per AZ)
+# ============================================================================
 
 resource "aws_nat_gateway" "nat" {
   count         = length(var.public_subnet_cidrs)
@@ -124,9 +124,9 @@ resource "aws_nat_gateway" "nat" {
   depends_on = [aws_internet_gateway.igw]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Route Table - Public Subnets
-***REMOVED*** ============================================================================
+# ============================================================================
+# Route Table - Public Subnets
+# ============================================================================
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.databricks_vpc.id
@@ -147,9 +147,9 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Route Tables - Private Subnets (one per AZ for HA NAT)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Route Tables - Private Subnets (one per AZ for HA NAT)
+# ============================================================================
 
 resource "aws_route_table" "private" {
   count  = length(var.private_subnet_cidrs)
@@ -171,9 +171,9 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private[count.index].id
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Route Table - PrivateLink Subnets (local VPC only, no internet)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Route Table - PrivateLink Subnets (local VPC only, no internet)
+# ============================================================================
 
 resource "aws_route_table" "privatelink" {
   vpc_id = aws_vpc.databricks_vpc.id

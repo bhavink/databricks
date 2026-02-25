@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** Databricks Account Configuration Variables
-***REMOVED*** ============================================================================
+# ============================================================================
+# Databricks Account Configuration Variables
+# ============================================================================
 
 variable "databricks_account_id" {
   description = "Databricks account ID (found in account console)"
@@ -29,9 +29,9 @@ variable "aws_profile" {
   default     = ""
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Configuration
+# ============================================================================
 
 variable "workspace_name" {
   description = "Name of the Databricks workspace"
@@ -51,9 +51,9 @@ variable "region" {
   default     = "us-west-2"
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Network Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# Network Configuration
+# ============================================================================
 
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
@@ -95,9 +95,9 @@ variable "availability_zones" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint Service Names (Region-Specific)
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint Service Names (Region-Specific)
+# ============================================================================
 
 variable "enable_private_link" {
   description = <<-EOT
@@ -133,9 +133,9 @@ variable "relay_vpce_service" {
   default     = ""
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** S3 Bucket Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# S3 Bucket Configuration
+# ============================================================================
 
 variable "root_storage_bucket_name" {
   description = "S3 bucket name for Databricks root storage (must be globally unique)"
@@ -157,9 +157,9 @@ variable "unity_catalog_root_storage_bucket_name" {
   type        = string
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Security Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# Security Configuration
+# ============================================================================
 
 variable "enable_encryption" {
   description = "Enable KMS encryption for S3 buckets and EBS volumes"
@@ -173,9 +173,9 @@ variable "kms_key_deletion_window" {
   default     = 30
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Customer Managed Keys (Optional)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Customer Managed Keys (Optional)
+# ============================================================================
 
 variable "enable_workspace_cmk" {
   description = "Enable Customer Managed Keys for workspace storage (DBFS, EBS) and managed services encryption"
@@ -223,10 +223,10 @@ variable "cmk_admin_arn" {
   default     = null
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Private Access Settings
-***REMOVED*** NOTE: PAS is an ACCOUNT-LEVEL object that can be SHARED across multiple workspaces
-***REMOVED*** ============================================================================
+# ============================================================================
+# Private Access Settings
+# NOTE: PAS is an ACCOUNT-LEVEL object that can be SHARED across multiple workspaces
+# ============================================================================
 
 variable "existing_private_access_settings_id" {
   description = <<-EOT
@@ -242,11 +242,11 @@ variable "existing_private_access_settings_id" {
     2. Second+ workspaces: Set to PAS ID from first workspace (reuses existing PAS)
 
     Example:
-      ***REMOVED*** First workspace
-      existing_private_access_settings_id = ""  ***REMOVED*** Creates new PAS
+      # First workspace
+      existing_private_access_settings_id = ""  # Creates new PAS
 
-      ***REMOVED*** Second workspace (reuses PAS from first)
-      existing_private_access_settings_id = "pas-abc123"  ***REMOVED*** From first workspace output
+      # Second workspace (reuses PAS from first)
+      existing_private_access_settings_id = "pas-abc123"  # From first workspace output
 
     Network Configuration is always created (one per workspace, cannot be shared).
   EOT
@@ -278,9 +278,9 @@ variable "private_access_level" {
   default     = "ACCOUNT"
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** User Management
-***REMOVED*** ============================================================================
+# ============================================================================
+# User Management
+# ============================================================================
 
 variable "workspace_admin_email" {
   description = "Email address for workspace admin user"
@@ -306,9 +306,9 @@ variable "metastore_id" {
   default     = ""
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** IP Access Lists (Optional Security Feature)
-***REMOVED*** ============================================================================
+# ============================================================================
+# IP Access Lists (Optional Security Feature)
+# ============================================================================
 
 variable "enable_ip_access_lists" {
   description = "Enable IP access lists for workspace security"
@@ -322,9 +322,9 @@ variable "allowed_ip_addresses" {
   default     = []
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Tags
-***REMOVED*** ============================================================================
+# ============================================================================
+# Tags
+# ============================================================================
 
 variable "tags" {
   description = "Additional tags to apply to resources"

@@ -1,5 +1,5 @@
 // Databricks notebook source
-// MAGIC %md ***REMOVED******REMOVED*** How to Process IoT Device JSON Data Using Dataset
+// MAGIC %md ## How to Process IoT Device JSON Data Using Dataset
 
 // COMMAND ----------
 
@@ -10,7 +10,7 @@
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED***Reading JSON as a Dataset
+// MAGIC %md ####Reading JSON as a Dataset
 
 // COMMAND ----------
 
@@ -55,7 +55,7 @@ display(ds)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED*** Iterating, transforming, and filtering Dataset
+// MAGIC %md #### Iterating, transforming, and filtering Dataset
 
 // COMMAND ----------
 
@@ -134,7 +134,7 @@ display(ds.map(d => (d.temp, d.humidity, d.cca3)).groupBy($"_3").avg())
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED*** Visualizing datasets
+// MAGIC %md #### Visualizing datasets
 
 // COMMAND ----------
 

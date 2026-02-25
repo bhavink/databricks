@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** PHASE 1 OUTPUTS - Workspace and Network
-***REMOVED*** ============================================================================
+# ============================================================================
+# PHASE 1 OUTPUTS - Workspace and Network
+# ============================================================================
 
 output "workspace_id" {
   description = "Databricks workspace ID"
@@ -27,19 +27,19 @@ output "workspace_gcp_service_account" {
   value       = databricks_mws_workspaces.dbx_workspace.gcp_workspace_sa
 }
 
-***REMOVED*** MODIFICATION: Added workspace GSA email output
-***REMOVED*** Reason: Make workspace GSA email easily accessible for reference and verification
-***REMOVED*** NOTE: Manual action required - add this GSA to your operator group manually
+# MODIFICATION: Added workspace GSA email output
+# Reason: Make workspace GSA email easily accessible for reference and verification
+# NOTE: Manual action required - add this GSA to your operator group manually
 output "workspace_gsa_email" {
   description = "Workspace Google Service Account email (db-* format) - MANUAL ACTION: Add to operator group"
   value       = local.workspace_gsa_email
 }
 
-***REMOVED*** COMMENTED OUT: workspace_operator_group_email output (group membership feature disabled)
-***REMOVED*** output "workspace_operator_group_email" {
-***REMOVED***   description = "Google Workspace Group email that workspace GSA was added to"
-***REMOVED***   value       = var.workspace_operator_group_email
-***REMOVED*** }
+# COMMENTED OUT: workspace_operator_group_email output (group membership feature disabled)
+# output "workspace_operator_group_email" {
+#   description = "Google Workspace Group email that workspace GSA was added to"
+#   value       = var.workspace_operator_group_email
+# }
 
 output "network_id" {
   description = "Network configuration ID"
@@ -63,9 +63,9 @@ output "workspace_full" {
   sensitive   = true
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** PHASE 3 OUTPUTS - Workspace Resources
-***REMOVED*** ============================================================================
+# ============================================================================
+# PHASE 3 OUTPUTS - Workspace Resources
+# ============================================================================
 
 output "databricks_host" {
   description = "Databricks workspace host URL"
@@ -177,15 +177,15 @@ output "gcs_buckets" {
   ) : {}
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** RESOURCE COUNTS (for verification)
-***REMOVED*** ============================================================================
+# ============================================================================
+# RESOURCE COUNTS (for verification)
+# ============================================================================
 
 output "resource_counts" {
   description = "Count of resources created by phase"
   value = {
-    phase_1_resources = 2                                                  ***REMOVED*** Always: network + workspace
-    phase_2_resources = var.expected_workspace_status == "RUNNING" ? 1 : 0 ***REMOVED*** null_resource polling
+    phase_1_resources = 2                                                  # Always: network + workspace
+    phase_2_resources = var.expected_workspace_status == "RUNNING" ? 1 : 0 # null_resource polling
     phase_3_resources = var.provision_workspace_resources ? {
       instance_pools      = length(databricks_instance_pool.compute_pools)
       cluster_policies    = length(databricks_cluster_policy.this) + (length(databricks_cluster_policy.personal_vm) > 0 ? 1 : 0) + (length(databricks_cluster_policy.shared_compute) > 0 ? 1 : 0)

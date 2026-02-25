@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style F: Swiss Modern</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  :root {
+    --bg: #ffffff;
+    --black: #000000;
+    --red: #ff3300;
+    --gray-light: #f2f2f2;
+    --gray-mid: #cccccc;
+    --gray-dark: #555555;
+    --title-size: clamp(2.4rem, 6vw, 6rem);
+    --body-size: clamp(0.75rem, 1.2vw, 0.95rem);
+    --slide-padding: clamp(1.5rem, 4vw, 4rem);
+  }
+
+  body {
+    background: var(--bg);
+    font-family: 'Archivo', sans-serif;
+    color: var(--black);
+  }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    position: relative;
+  }
+
+  /* ── Visible grid overlay ── */
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+    background-size: clamp(40px, 5vw, 80px) clamp(40px, 5vw, 80px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Header row ── */
+  .header {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: stretch;
+    border-bottom: 2px solid var(--black);
+    opacity: 0;
+    animation: fadeIn 0.3s ease 0.1s forwards;
+  }
+
+  .header-number {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(0.7rem, 1vw, 0.85rem);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: var(--bg);
+    background: var(--black);
+    padding: clamp(0.5rem, 1.2vh, 0.9rem) clamp(0.75rem, 1.5vw, 1.5rem);
+    display: flex;
+    align-items: center;
+  }
+
+  .header-title {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-dark);
+    padding: clamp(0.5rem, 1.2vh, 0.9rem) clamp(0.75rem, 1.5vw, 1.5rem);
+    display: flex;
+    align-items: center;
+    border-left: 2px solid var(--black);
+  }
+
+  .header-tag {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    font-weight: 500;
+    color: var(--bg);
+    background: var(--red);
+    padding: clamp(0.5rem, 1.2vh, 0.9rem) clamp(0.75rem, 1.5vw, 1.5rem);
+    display: flex;
+    align-items: center;
+    border-left: 2px solid var(--black);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Center: Asymmetric layout ── */
+  .main-content {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 2fr 1px 1fr;
+    overflow: hidden;
+  }
+
+  /* Left: big type */
+  .left-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(1.5rem, 3vh, 3rem) var(--slide-padding);
+    gap: clamp(0.8rem, 1.8vh, 1.5rem);
+    border-right: 2px solid var(--black);
+  }
+
+  .col-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(0.58rem, 0.8vw, 0.68rem);
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gray-dark);
+    opacity: 0;
+    animation: fadeIn 0.4s ease 0.4s forwards;
+  }
+
+  h1 {
+    font-family: 'Archivo', sans-serif;
+    font-size: var(--title-size);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: var(--black);
+    opacity: 0;
+    transform: translateY(24px);
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+  }
+
+  /* Red geometric accent shape */
+  .geo-accent {
+    width: clamp(3rem, 6vw, 6rem);
+    height: clamp(3rem, 6vw, 6rem);
+    background: var(--red);
+    flex-shrink: 0;
+    align-self: flex-start;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.75s forwards;
+  }
+
+  .left-body {
+    font-family: 'Nunito', sans-serif;
+    font-size: var(--body-size);
+    font-weight: 400;
+    color: var(--gray-dark);
+    line-height: 1.65;
+    max-width: 45ch;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: slideUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.75s forwards;
+  }
+
+  /* Right: info column */
+  .right-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(1.5rem, 3vh, 3rem) clamp(1.2rem, 2.5vw, 2.5rem);
+    gap: clamp(0.8rem, 1.8vh, 1.5rem);
+    opacity: 0;
+    animation: fadeIn 0.6s ease 0.7s forwards;
+  }
+
+  .right-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-bottom: clamp(0.6rem, 1.5vh, 1.2rem);
+    border-bottom: 1px solid var(--gray-mid);
+  }
+
+  .right-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .right-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(0.58rem, 0.78vw, 0.65rem);
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+
+  .right-value {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(0.78rem, 1.2vw, 1rem);
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.3;
+  }
+
+  .right-sub {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(0.62rem, 0.88vw, 0.72rem);
+    font-weight: 400;
+    color: var(--gray-dark);
+    line-height: 1.5;
+  }
+
+  /* ── Footer row ── */
+  .footer {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: stretch;
+    border-top: 2px solid var(--black);
+    opacity: 0;
+    animation: fadeIn 0.4s ease 1s forwards;
+  }
+
+  .footer-left {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(0.58rem, 0.8vw, 0.68rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-dark);
+    padding: clamp(0.5rem, 1.2vh, 0.8rem) var(--slide-padding);
+    display: flex;
+    align-items: center;
+    border-right: 2px solid var(--black);
+  }
+
+  .footer-mid {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--slide-padding);
+    gap: clamp(0.4rem, 1vw, 1rem);
+  }
+
+  .footer-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gray-mid);
+  }
+
+  .footer-dot.active {
+    background: var(--black);
+  }
+
+  .footer-right {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(0.55rem, 0.75vw, 0.65rem);
+    font-weight: 400;
+    color: var(--gray-dark);
+    background: var(--gray-light);
+    padding: clamp(0.5rem, 1.2vh, 0.8rem) var(--slide-padding);
+    display: flex;
+    align-items: center;
+    border-left: 2px solid var(--black);
+    letter-spacing: 0.06em;
+  }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  @media (max-height: 600px) {
+    :root { --slide-padding: clamp(0.75rem, 2.5vw, 1.5rem); }
+    .geo-accent { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="grid-overlay"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-number">01 / 20</div>
+    <div class="header-title">Databricks · AI Governance · Deep Dive · 2026</div>
+    <div class="header-tag">Field Engineering</div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="left-column">
+      <div class="col-label">Overview</div>
+      <h1>AI<br>Security<br>at Scale.</h1>
+      <div class="geo-accent"></div>
+      <p class="left-body">
+        Authentication, authorization, and observability
+        patterns for Genie Space, Agent Bricks, and
+        Databricks Apps — production-ready from day one.
+      </p>
+    </div>
+
+    <div></div><!-- grid divider -->
+
+    <div class="right-column">
+      <div class="right-section">
+        <div class="right-label">Auth Patterns</div>
+        <div class="right-value">3 Universal Patterns</div>
+        <div class="right-sub">Service Principal · OBO · Manual Credentials</div>
+      </div>
+      <div class="right-section">
+        <div class="right-label">Access Control</div>
+        <div class="right-value">4-Layer UC Model</div>
+        <div class="right-sub">Workspace · Grants · ABAC · Row/Col Filters</div>
+      </div>
+      <div class="right-section">
+        <div class="right-label">Scale</div>
+        <div class="right-value">1,000+ Users</div>
+        <div class="right-sub">AWS · Azure · GCP — all clouds tested</div>
+      </div>
+      <div class="right-section">
+        <div class="right-label">Compliance</div>
+        <div class="right-value">Audit Ready</div>
+        <div class="right-sub">HIPAA · SOC2 · GDPR patterns included</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-left">Databricks Field Engineering</div>
+    <div class="footer-mid">
+      <div class="footer-dot active"></div>
+      <div class="footer-dot"></div>
+      <div class="footer-dot"></div>
+      <div class="footer-dot"></div>
+      <div class="footer-dot"></div>
+    </div>
+    <div class="footer-right">Style F — Swiss Modern</div>
+  </div>
+</div>
+</body>
+</html>

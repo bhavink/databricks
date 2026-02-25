@@ -1,49 +1,49 @@
-***REMOVED*** Databricks notebook source
-***REMOVED*** MAGIC %md ***REMOVED*** MLflow PyTorch Notebook
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC This is an MLflow PyTorch notebook is based on [MLflow's PyTorch TensorBoard tutorial](https://github.com/mlflow/mlflow/blob/master/examples/pytorch/mnist_tensorboard_artifact.py).
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC - This notebook demonstrates how to run PyTorch to fit a neural network on MNIST handwritten digit recognition data.
-***REMOVED*** MAGIC - The run results are logged to an MLFlow server. 
-***REMOVED*** MAGIC - Training metrics and weights in TensorFlow event format are logged locally and then uploaded to the MLflow run's artifact directory.
-***REMOVED*** MAGIC - TensorBoard is started on the local log and then optionally on the uploaded log.
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC In this tutorial you:
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC - Create a GPU-enabled cluster
-***REMOVED*** MAGIC - Install the MLflow library on the cluster
-***REMOVED*** MAGIC - Run a neural network on MNIST handwritten digit recognition data
-***REMOVED*** MAGIC - View the results of training the network in the MLflow experiment UI
-***REMOVED*** MAGIC - View the results of training the network in TensorBoard
+# Databricks notebook source
+# MAGIC %md # MLflow PyTorch Notebook
+# MAGIC 
+# MAGIC This is an MLflow PyTorch notebook is based on [MLflow's PyTorch TensorBoard tutorial](https://github.com/mlflow/mlflow/blob/master/examples/pytorch/mnist_tensorboard_artifact.py).
+# MAGIC 
+# MAGIC - This notebook demonstrates how to run PyTorch to fit a neural network on MNIST handwritten digit recognition data.
+# MAGIC - The run results are logged to an MLFlow server. 
+# MAGIC - Training metrics and weights in TensorFlow event format are logged locally and then uploaded to the MLflow run's artifact directory.
+# MAGIC - TensorBoard is started on the local log and then optionally on the uploaded log.
+# MAGIC 
+# MAGIC In this tutorial you:
+# MAGIC 
+# MAGIC - Create a GPU-enabled cluster
+# MAGIC - Install the MLflow library on the cluster
+# MAGIC - Run a neural network on MNIST handwritten digit recognition data
+# MAGIC - View the results of training the network in the MLflow experiment UI
+# MAGIC - View the results of training the network in TensorBoard
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED******REMOVED*** Create a cluster and install MLflow on your cluster
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC 1. Create a GPU-enabled cluster specifying:
-***REMOVED*** MAGIC     - **Databricks Runtime Version:** Databricks Runtime 5.0 ML GPU or above
-***REMOVED*** MAGIC     - **Python Version:** Python 3
-***REMOVED*** MAGIC 1. Install required library.
-***REMOVED*** MAGIC    1. Create required library.
-***REMOVED*** MAGIC     * Source **PyPI** and enter `mlflow[extras]`.
-***REMOVED*** MAGIC    1. Install the library into the cluster.
-***REMOVED*** MAGIC 1. Attach this notebook to the cluster.
+# MAGIC %md ### Create a cluster and install MLflow on your cluster
+# MAGIC 
+# MAGIC 1. Create a GPU-enabled cluster specifying:
+# MAGIC     - **Databricks Runtime Version:** Databricks Runtime 5.0 ML GPU or above
+# MAGIC     - **Python Version:** Python 3
+# MAGIC 1. Install required library.
+# MAGIC    1. Create required library.
+# MAGIC     * Source **PyPI** and enter `mlflow[extras]`.
+# MAGIC    1. Install the library into the cluster.
+# MAGIC 1. Attach this notebook to the cluster.
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Train an MNIST digit recognizer using PyTorch
+# MAGIC %md ## Train an MNIST digit recognizer using PyTorch
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 import mlflow
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Trains using PyTorch and logs training metrics and weights in TensorFlow event format to the MLflow run's artifact directory. 
-***REMOVED*** This stores the TensorFlow events in MLflow for later access using TensorBoard.
-***REMOVED***
-***REMOVED*** Code based on https://github.com/mlflow/mlflow/blob/master/example/tutorial/pytorch_tensorboard.py.
-***REMOVED***
+# Trains using PyTorch and logs training metrics and weights in TensorFlow event format to the MLflow run's artifact directory. 
+# This stores the TensorFlow events in MLflow for later access using TensorBoard.
+#
+# Code based on https://github.com/mlflow/mlflow/blob/master/example/tutorial/pytorch_tensorboard.py.
+#
 
 from __future__ import print_function
 import os
@@ -62,7 +62,7 @@ from tensorflow.summary import scalar
 from tensorflow.summary import histogram
 from chardet.universaldetector import UniversalDetector
 
-***REMOVED*** Create Params dictionary
+# Create Params dictionary
 class Params(object):
 	def __init__(self, batch_size, test_batch_size, epochs, lr, momentum, seed, cuda, log_interval):
 		self.batch_size = batch_size
@@ -74,7 +74,7 @@ class Params(object):
 		self.cuda = cuda
 		self.log_interval = log_interval
 
-***REMOVED*** Configure args
+# Configure args
 args = Params(64, 1000, 10, 0.01, 0.5, 1, True, 200)
 
 cuda = not args.cuda and torch.cuda.is_available()
@@ -129,7 +129,7 @@ if cuda:
 
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
-writer = None ***REMOVED*** Will be used to write TensorBoard events
+writer = None # Will be used to write TensorBoard events
 
 def train(epoch):
     model.train()
@@ -160,8 +160,8 @@ def test(epoch):
                 data, target = data.cuda(), target.cuda()
             data, target = Variable(data), Variable(target)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').data.item() ***REMOVED*** sum up batch loss
-            pred = output.data.max(1)[1] ***REMOVED*** get the index of the max log-probability
+            test_loss += F.nll_loss(output, target, reduction='sum').data.item() # sum up batch loss
+            pred = output.data.max(1)[1] # get the index of the max log-probability
             correct += pred.eq(target.data).cpu().sum().item()
 
     test_loss /= len(test_loader.dataset)
@@ -177,17 +177,17 @@ def log_scalar(name, value, step):
     writer.add_summary(scalar(name, value).eval(), step)
     mlflow.log_metric(name, value, step=step)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Create a TensorFlow session and start MLflow
+# MAGIC %md ## Create a TensorFlow session and start MLflow
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 import mlflow.pytorch
 
 sess = tf.InteractiveSession()
 with mlflow.start_run() as run:  
-  ***REMOVED*** Log our parameters into mlflow
+  # Log our parameters into mlflow
   for key, value in vars(args).items():
       mlflow.log_param(key, value)
 
@@ -196,7 +196,7 @@ with mlflow.start_run() as run:
   writer = tf.summary.FileWriter(output_dir, graph=sess.graph) 
 
   for epoch in range(1, args.epochs + 1):
-      ***REMOVED*** print out active_run
+      # print out active_run
       print("Active Run ID: %s, Epoch: %s \n" % (run.info.run_uuid, epoch))
 
       train(epoch)
@@ -205,36 +205,36 @@ with mlflow.start_run() as run:
   print("Uploading TensorFlow events as a run artifact.")
   mlflow.log_artifacts(output_dir, artifact_path="events")
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED*** MLflow UI for the PyTorch MNIST Run
-***REMOVED*** MAGIC <img src="https://docs.databricks.com/_static/images/mlflow/mlflow-pytorch-mlflow-ui.gif" width=1000/>
+# MAGIC %md #### MLflow UI for the PyTorch MNIST Run
+# MAGIC <img src="https://docs.databricks.com/_static/images/mlflow/mlflow-pytorch-mlflow-ui.gif" width=1000/>
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Start TensorBoard on local directory
+# MAGIC %md ## Start TensorBoard on local directory
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 dbutils.tensorboard.start(output_dir)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED******REMOVED*** View the results in TensorBoard
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC <img src="https://docs.databricks.com/_static/images/third-party-integrations/tensorflow/tensorboard.png"/>
-***REMOVED*** MAGIC 
-***REMOVED*** MAGIC Click the **View TensorBoard** link. It should look like the following:
+# MAGIC %md ### View the results in TensorBoard
+# MAGIC 
+# MAGIC <img src="https://docs.databricks.com/_static/images/third-party-integrations/tensorflow/tensorboard.png"/>
+# MAGIC 
+# MAGIC Click the **View TensorBoard** link. It should look like the following:
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED******REMOVED******REMOVED*** TensorBoard for the PyTorch MNIST Run
-***REMOVED*** MAGIC <img src="https://docs.databricks.com/_static/images/mlflow/mlflow-pytorch-tensorboard.gif" width=1000/>
+# MAGIC %md #### TensorBoard for the PyTorch MNIST Run
+# MAGIC <img src="https://docs.databricks.com/_static/images/mlflow/mlflow-pytorch-tensorboard.gif" width=1000/>
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Stop TensorBoard
+# MAGIC %md ## Stop TensorBoard
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 dbutils.tensorboard.stop()

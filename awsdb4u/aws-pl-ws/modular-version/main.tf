@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** AWS Databricks Private Link Deployment - Modular Version
-***REMOVED*** ============================================================================
+# ============================================================================
+# AWS Databricks Private Link Deployment - Modular Version
+# ============================================================================
 
 terraform {
   required_version = ">= 1.0"
@@ -25,21 +25,21 @@ terraform {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Providers
-***REMOVED*** ============================================================================
+# ============================================================================
+# Providers
+# ============================================================================
 
 provider "aws" {
-  region  = var.region
-  
-  ***REMOVED*** Option 1: Use named AWS CLI profile (recommended for local development)
+  region = var.region
+
+  # Option 1: Use named AWS CLI profile (recommended for local development)
   profile = var.aws_profile
-  
-  ***REMOVED*** Option 2: Use default AWS CLI credentials or environment variables
-  ***REMOVED*** Comment out the 'profile' line above and Terraform will automatically use:
-  ***REMOVED*** - AWS CLI default credentials (aws configure)
-  ***REMOVED*** - AWS SSO session (aws sso login)
-  ***REMOVED*** - Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
+
+  # Option 2: Use default AWS CLI credentials or environment variables
+  # Comment out the 'profile' line above and Terraform will automatically use:
+  # - AWS CLI default credentials (aws configure)
+  # - AWS SSO session (aws sso login)
+  # - Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
 }
 
 provider "databricks" {
@@ -57,9 +57,9 @@ provider "databricks" {
   client_secret = var.client_secret
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Random Suffix for Unique Resource Naming
-***REMOVED*** ============================================================================
+# ============================================================================
+# Random Suffix for Unique Resource Naming
+# ============================================================================
 
 resource "random_string" "suffix" {
   length  = 4
@@ -72,9 +72,9 @@ locals {
   workspace_name = "${var.workspace_name}-${random_string.suffix.result}"
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Networking Module
-***REMOVED*** ============================================================================
+# ============================================================================
+# Networking Module
+# ============================================================================
 
 module "networking" {
   source = "./modules/networking"
@@ -96,10 +96,10 @@ module "networking" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** KMS Module (Optional Encryption)
-***REMOVED*** NOTE: Created early to avoid circular dependencies
-***REMOVED*** ============================================================================
+# ============================================================================
+# KMS Module (Optional Encryption)
+# NOTE: Created early to avoid circular dependencies
+# ============================================================================
 
 module "kms" {
   source = "./modules/kms"
@@ -114,23 +114,23 @@ module "kms" {
   tags                    = var.tags
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Storage Module
-***REMOVED*** ============================================================================
+# ============================================================================
+# Storage Module
+# ============================================================================
 
 module "storage" {
   source = "./modules/storage"
 
-  prefix                                  = local.prefix
-  suffix                                  = random_string.suffix.result
-  databricks_account_id                   = var.databricks_account_id
-  root_storage_bucket_name                = var.root_storage_bucket_name
-  unity_catalog_bucket_name               = var.unity_catalog_bucket_name
-  unity_catalog_external_bucket_name      = var.unity_catalog_external_bucket_name
-  unity_catalog_root_storage_bucket_name  = var.unity_catalog_root_storage_bucket_name
-  enable_encryption                       = var.enable_encryption
-  kms_key_arn                             = module.kms.key_arn
-  tags                                    = var.tags
+  prefix                                 = local.prefix
+  suffix                                 = random_string.suffix.result
+  databricks_account_id                  = var.databricks_account_id
+  root_storage_bucket_name               = var.root_storage_bucket_name
+  unity_catalog_bucket_name              = var.unity_catalog_bucket_name
+  unity_catalog_external_bucket_name     = var.unity_catalog_external_bucket_name
+  unity_catalog_root_storage_bucket_name = var.unity_catalog_root_storage_bucket_name
+  enable_encryption                      = var.enable_encryption
+  kms_key_arn                            = module.kms.key_arn
+  tags                                   = var.tags
 
   providers = {
     databricks.account = databricks.account
@@ -139,19 +139,19 @@ module "storage" {
   depends_on = [module.kms]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** IAM Module
-***REMOVED*** ============================================================================
+# ============================================================================
+# IAM Module
+# ============================================================================
 
 module "iam" {
   source = "./modules/iam"
 
-  prefix                             = local.prefix
-  aws_account_id                     = var.aws_account_id
-  databricks_account_id              = var.databricks_account_id
-  unity_catalog_bucket_arn           = module.storage.unity_catalog_bucket_arn
-  unity_catalog_external_bucket_arn  = module.storage.unity_catalog_external_bucket_arn
-  tags                               = var.tags
+  prefix                            = local.prefix
+  aws_account_id                    = var.aws_account_id
+  databricks_account_id             = var.databricks_account_id
+  unity_catalog_bucket_arn          = module.storage.unity_catalog_bucket_arn
+  unity_catalog_external_bucket_arn = module.storage.unity_catalog_external_bucket_arn
+  tags                              = var.tags
 
   providers = {
     databricks.account = databricks.account
@@ -160,48 +160,48 @@ module "iam" {
   depends_on = [module.storage]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Databricks Workspace Module
-***REMOVED*** ============================================================================
+# ============================================================================
+# Databricks Workspace Module
+# ============================================================================
 
 module "databricks_workspace" {
   source = "./modules/databricks_workspace"
 
-  prefix                    = local.prefix
-  workspace_name            = local.workspace_name
-  region                    = var.region
-  databricks_account_id     = var.databricks_account_id
-  workspace_admin_email     = var.workspace_admin_email
-  client_id                 = var.client_id
-  client_secret             = var.client_secret
-  
-  ***REMOVED*** From networking module
-  vpc_id                    = module.networking.vpc_id
-  private_subnet_ids        = module.networking.private_subnet_ids
+  prefix                = local.prefix
+  workspace_name        = local.workspace_name
+  region                = var.region
+  databricks_account_id = var.databricks_account_id
+  workspace_admin_email = var.workspace_admin_email
+  client_id             = var.client_id
+  client_secret         = var.client_secret
+
+  # From networking module
+  vpc_id                      = module.networking.vpc_id
+  private_subnet_ids          = module.networking.private_subnet_ids
   workspace_security_group_id = module.networking.workspace_security_group_id
-  workspace_vpce_id         = module.networking.databricks_workspace_vpce_id
-  relay_vpce_id             = module.networking.databricks_relay_vpce_id
-  
-  ***REMOVED*** Private Access Settings
-  public_access_enabled     = var.public_access_enabled
-  private_access_level      = var.private_access_level
-  
-  ***REMOVED*** From storage module
-  root_storage_bucket       = module.storage.root_storage_bucket
-  
-  ***REMOVED*** From IAM module
-  cross_account_role_arn    = module.iam.cross_account_role_arn
-  
-  ***REMOVED*** IP Access Lists (Optional)
-  enable_ip_access_lists    = var.enable_ip_access_lists
-  allowed_ip_addresses      = var.allowed_ip_addresses
-  
-  ***REMOVED*** Workspace CMK (Optional) - Single key for both storage and managed services
-  enable_workspace_cmk         = var.enable_workspace_cmk
-  workspace_storage_key_arn    = module.kms.workspace_storage_key_arn
-  workspace_storage_key_alias  = module.kms.workspace_storage_key_alias
-  
-  tags                      = var.tags
+  workspace_vpce_id           = module.networking.databricks_workspace_vpce_id
+  relay_vpce_id               = module.networking.databricks_relay_vpce_id
+
+  # Private Access Settings
+  public_access_enabled = var.public_access_enabled
+  private_access_level  = var.private_access_level
+
+  # From storage module
+  root_storage_bucket = module.storage.root_storage_bucket
+
+  # From IAM module
+  cross_account_role_arn = module.iam.cross_account_role_arn
+
+  # IP Access Lists (Optional)
+  enable_ip_access_lists = var.enable_ip_access_lists
+  allowed_ip_addresses   = var.allowed_ip_addresses
+
+  # Workspace CMK (Optional) - Single key for both storage and managed services
+  enable_workspace_cmk        = var.enable_workspace_cmk
+  workspace_storage_key_arn   = module.kms.workspace_storage_key_arn
+  workspace_storage_key_alias = module.kms.workspace_storage_key_alias
+
+  tags = var.tags
 
   providers = {
     databricks.account   = databricks.account
@@ -216,26 +216,26 @@ module "databricks_workspace" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Unity Catalog Module
-***REMOVED*** ============================================================================
+# ============================================================================
+# Unity Catalog Module
+# ============================================================================
 
 module "unity_catalog" {
   source = "./modules/unity_catalog"
 
-  prefix                              = local.prefix
-  region                              = var.region
-  workspace_name                      = local.workspace_name
-  workspace_id                        = module.databricks_workspace.workspace_id
-  workspace_admin_email               = var.workspace_admin_email
-  client_id                           = var.client_id
-  client_secret                       = var.client_secret
-  aws_account_id                      = var.aws_account_id
-  databricks_account_id               = var.databricks_account_id
-  create_workspace_catalog            = var.create_workspace_catalog
-  unity_catalog_root_storage_bucket   = module.storage.unity_catalog_root_storage_bucket
-  unity_catalog_external_bucket       = module.storage.unity_catalog_external_bucket
-  tags                                = var.tags
+  prefix                            = local.prefix
+  region                            = var.region
+  workspace_name                    = local.workspace_name
+  workspace_id                      = module.databricks_workspace.workspace_id
+  workspace_admin_email             = var.workspace_admin_email
+  client_id                         = var.client_id
+  client_secret                     = var.client_secret
+  aws_account_id                    = var.aws_account_id
+  databricks_account_id             = var.databricks_account_id
+  create_workspace_catalog          = var.create_workspace_catalog
+  unity_catalog_root_storage_bucket = module.storage.unity_catalog_root_storage_bucket
+  unity_catalog_external_bucket     = module.storage.unity_catalog_external_bucket
+  tags                              = var.tags
 
   providers = {
     databricks.account   = databricks.account
@@ -248,11 +248,11 @@ module "unity_catalog" {
   ]
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** User Assignment Module (Workspace Admin)
-***REMOVED*** Assigns existing Databricks account user as workspace admin
-***REMOVED*** Reference: https://github.com/databricks/terraform-databricks-sra/tree/main/aws/tf/modules/databricks_account/user_assignment
-***REMOVED*** ============================================================================
+# ============================================================================
+# User Assignment Module (Workspace Admin)
+# Assigns existing Databricks account user as workspace admin
+# Reference: https://github.com/databricks/terraform-databricks-sra/tree/main/aws/tf/modules/databricks_account/user_assignment
+# ============================================================================
 
 module "user_assignment" {
   source = "./modules/user_assignment"

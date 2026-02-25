@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style A: Bold Signal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  :root {
+    --bg-primary: #1a1a1a;
+    --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    --card-bg: #FF5722;
+    --text-primary: #ffffff;
+    --text-secondary: #888;
+    --text-on-card: #1a1a1a;
+    --title-size: clamp(2rem, 5.5vw, 5rem);
+    --body-size: clamp(0.75rem, 1.3vw, 1rem);
+    --slide-padding: clamp(1.5rem, 4vw, 4rem);
+  }
+
+  body {
+    background: var(--bg-gradient);
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text-primary);
+  }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr auto;
+    padding: var(--slide-padding);
+    gap: clamp(1rem, 2vw, 2rem);
+    position: relative;
+  }
+
+  /* Top bar: number + nav */
+  .slide-number {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(0.65rem, 1vw, 0.8rem);
+    letter-spacing: 0.15em;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeIn 0.4s ease 0.1s forwards;
+  }
+
+  .slide-number span {
+    color: var(--card-bg);
+    font-size: clamp(1.2rem, 2vw, 1.6rem);
+    display: block;
+    line-height: 1;
+    margin-top: 0.2rem;
+    letter-spacing: -0.02em;
+  }
+
+  .nav-breadcrumb {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: start;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    opacity: 0;
+    animation: fadeIn 0.4s ease 0.2s forwards;
+  }
+
+  .nav-item {
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+  }
+
+  .nav-item.active {
+    color: var(--text-primary);
+  }
+
+  .nav-sep {
+    color: var(--text-secondary);
+    opacity: 0.4;
+    font-size: 0.65rem;
+  }
+
+  /* Center card — the focal point */
+  .hero-card {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    background: var(--card-bg);
+    border-radius: clamp(8px, 1vw, 16px);
+    padding: clamp(1.5rem, 3vw, 3rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    position: relative;
+    opacity: 0;
+    transform: translateY(24px);
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+  }
+
+  /* Card texture lines */
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 40%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 8px,
+      rgba(26,26,26,0.06) 8px,
+      rgba(26,26,26,0.06) 9px
+    );
+    pointer-events: none;
+  }
+
+  .card-eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(0.6rem, 0.9vw, 0.75rem);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(26,26,26,0.55);
+  }
+
+  .card-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: var(--title-size);
+    color: var(--text-on-card);
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-subtitle {
+    font-size: clamp(0.75rem, 1.2vw, 0.95rem);
+    font-weight: 400;
+    color: rgba(26,26,26,0.65);
+    max-width: 50ch;
+    line-height: 1.5;
+  }
+
+  .card-tag {
+    background: rgba(26,26,26,0.12);
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    font-weight: 600;
+    color: var(--text-on-card);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Bottom: title label */
+  .bottom-label {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    opacity: 0;
+    animation: fadeIn 0.4s ease 0.9s forwards;
+  }
+
+  .section-label {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(0.6rem, 0.85vw, 0.72rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .style-badge {
+    font-size: clamp(0.55rem, 0.8vw, 0.68rem);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    opacity: 0.6;
+  }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  @media (max-height: 600px) {
+    :root { --slide-padding: clamp(0.75rem, 2.5vw, 1.5rem); }
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="slide-number">
+    Slide
+    <span>01</span>
+  </div>
+
+  <nav class="nav-breadcrumb">
+    <span class="nav-item active">Overview</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-item">Auth Patterns</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-item">Authorization</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-item">Genie Deep Dive</span>
+  </nav>
+
+  <div class="hero-card">
+    <div class="card-eyebrow">Databricks · AI Governance · Deep Dive</div>
+    <div class="card-title">Secure AI<br>at Scale</div>
+    <div class="card-bottom">
+      <div class="card-subtitle">
+        Authentication, authorization, and observability patterns
+        for Genie Space, Agent Bricks, and Databricks Apps.
+      </div>
+      <div class="card-tag">Production Ready</div>
+    </div>
+  </div>
+
+  <div class="bottom-label">
+    <div class="section-label">Databricks Field Engineering — 2026</div>
+    <div class="style-badge">Style A — Bold Signal</div>
+  </div>
+</div>
+</body>
+</html>

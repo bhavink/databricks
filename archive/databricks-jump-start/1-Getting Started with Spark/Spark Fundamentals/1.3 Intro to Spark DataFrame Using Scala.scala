@@ -37,7 +37,7 @@ display(df2)
 
 // COMMAND ----------
 
-// MAGIC %md ***REMOVED******REMOVED******REMOVED*** Working with DataFrames
+// MAGIC %md ### Working with DataFrames
 
 // COMMAND ----------
 
@@ -60,7 +60,7 @@ val parquetDF = spark.read.parquet("/tmp/databricks-df-example.parquet")
 // COMMAND ----------
 
 // DBTITLE 1,Explode the employees column
-// https://spark.apache.org/docs/latest/api/scala/index.html***REMOVED***org.apache.spark.sql.functions$
+// https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.functions$
 
 import org.apache.spark.sql.functions._
 

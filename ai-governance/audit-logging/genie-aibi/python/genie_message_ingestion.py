@@ -224,7 +224,7 @@ def run_ingestion(
             continue
         seen_space_keys.add(key)
         headers = workspace_headers.get(ws_id)
-        base_url = (msg.get("workspace_url") or "").rstrip("/")
+        base_url = (msg["workspace_url"] if "workspace_url" in msg else "").rstrip("/")
         if not headers or not base_url:
             continue
         name = fetch_space_name(base_url, space_id, headers)

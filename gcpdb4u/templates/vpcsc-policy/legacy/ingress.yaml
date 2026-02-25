@@ -1,18 +1,18 @@
-***REMOVED*** This block defines ingress rules for Databricks services running in us-east4 region (example)
+# This block defines ingress rules for Databricks services running in us-east4 region (example)
 - ingressFrom:
-    ***REMOVED*** Identity type is specified using group email
+    # Identity type is specified using group email
     identities:
       - group:databricks-vpc-sc-ingress-group@databricks.com
     sources:
-      ***REMOVED*** Databricks central project - only required at workspace creation (us-central1)
+      # Databricks central project - only required at workspace creation (us-central1)
       - resource: projects/68422481410
-      ***REMOVED*** Databricks regional control plane project (us-east4)
+      # Databricks regional control plane project (us-east4)
       - resource: projects/121886670913  
-      ***REMOVED*** Databricks regional control plane project where serverless SQL (us-east4) compute runs.
+      # Databricks regional control plane project where serverless SQL (us-east4) compute runs.
       - resource: projects/16098739049
   ingressTo:
     operations:
-      ***REMOVED*** Allows specific Google Cloud Storage operations
+      # Allows specific Google Cloud Storage operations
       - methodSelectors:
           - method: google.storage.objects.create
           - method: google.storage.objects.get
@@ -20,16 +20,16 @@
           - method: google.storage.objects.delete
           - method: google.storage.buckets.testIamPermissions
         serviceName: storage.googleapis.com
-      ***REMOVED*** Allows specific Compute Engine operation
+      # Allows specific Compute Engine operation
       - methodSelectors:
           - method: RegionsService.Get
         serviceName: compute.googleapis.com
-      ***REMOVED*** Allows all Google Kubernetes Engine operations
+      # Allows all Google Kubernetes Engine operations
       - methodSelectors:
           - method: '*'
         serviceName: container.googleapis.com
-      ***REMOVED*** Required if you use workload identity
-      ***REMOVED*** https://docs.gcp.databricks.com/en/archive/compute/configure.html***REMOVED***google-service-account
+      # Required if you use workload identity
+      # https://docs.gcp.databricks.com/en/archive/compute/configure.html#google-service-account
       - methodSelectors:
           - method: IAM.GetIamPolicy
           - method: IAM.SetIamPolicy
@@ -37,24 +37,24 @@
     resources:
       - projects/488622148875
 
-***REMOVED*** This block defines ingress rules for a specific user
+# This block defines ingress rules for a specific user
 - ingressFrom:
     identities:
-      ***REMOVED*** To allow a user to access services
-      ***REMOVED*** Not doing this would lock user from accessing any of the services under VPC
-      ***REMOVED*** Helps with debugging or using GCP console or CLI
+      # To allow a user to access services
+      # Not doing this would lock user from accessing any of the services under VPC
+      # Helps with debugging or using GCP console or CLI
       - user:user@example.com
     sources:
       - accessLevel: '*'
   ingressTo:
     operations:
-      ***REMOVED*** Allows all operations on all services
+      # Allows all operations on all services
       - serviceName: '*'
     resources:
       - projects/546577047680
       - projects/488622148875
-***REMOVED*** Optional: Only required if you use audit logging delivery
-***REMOVED*** https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
+# Optional: Only required if you use audit logging delivery
+# https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
 - ingressFrom:
     identities:
       - group:databricks-vpc-sc-ingress-group@databricks.com
@@ -62,7 +62,7 @@
       - resource: projects/85638097580
   ingressTo:
     operations:
-      ***REMOVED*** Allows specific Google Cloud Storage operations for audit log delivery
+      # Allows specific Google Cloud Storage operations for audit log delivery
       - methodSelectors:
           - method: google.storage.objects.create
           - method: google.storage.objects.delete

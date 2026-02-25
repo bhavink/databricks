@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** KMS Module - Provider Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# KMS Module - Provider Configuration
+# ============================================================================
 
 terraform {
   required_providers {
@@ -11,13 +11,13 @@ terraform {
   }
 }
 
-***REMOVED*** Data source for current region
+# Data source for current region
 data "aws_region" "current" {}
 
-***REMOVED*** ============================================================================
-***REMOVED*** KMS Key for S3 Bucket Encryption (Optional)
-***REMOVED*** Used for encrypting S3 buckets (root storage, Unity Catalog)
-***REMOVED*** ============================================================================
+# ============================================================================
+# KMS Key for S3 Bucket Encryption (Optional)
+# Used for encrypting S3 buckets (root storage, Unity Catalog)
+# ============================================================================
 
 resource "aws_kms_key" "databricks" {
   count                   = var.enable_encryption ? 1 : 0
@@ -56,7 +56,7 @@ resource "aws_kms_key_policy" "databricks" {
         Sid    = "Allow Databricks Account to use the key"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::414351767826:root" ***REMOVED*** Databricks AWS account
+          AWS = "arn:aws:iam::414351767826:root" # Databricks AWS account
         }
         Action = [
           "kms:Decrypt",
@@ -88,23 +88,23 @@ resource "aws_kms_key_policy" "databricks" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Customer Managed Keys for Workspace (Optional)
-***REMOVED*** Based on SRA pattern: https://github.com/databricks/terraform-databricks-sra/blob/main/aws/tf/cmk.tf
-***REMOVED*** Single key encrypts workspace storage (DBFS, EBS) and managed services (control plane)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Customer Managed Keys for Workspace (Optional)
+# Based on SRA pattern: https://github.com/databricks/terraform-databricks-sra/blob/main/aws/tf/cmk.tf
+# Single key encrypts workspace storage (DBFS, EBS) and managed services (control plane)
+# ============================================================================
 
 locals {
   cmk_admin_arn             = var.cmk_admin_arn != null ? var.cmk_admin_arn : "arn:aws:iam::${var.aws_account_id}:root"
-  databricks_aws_account_id = "414351767826" ***REMOVED*** Databricks AWS account ID for all regions
-  ***REMOVED*** Construct cross-account role ARN - role name matches IAM module: "${var.prefix}-cross-account-role"
+  databricks_aws_account_id = "414351767826" # Databricks AWS account ID for all regions
+  # Construct cross-account role ARN - role name matches IAM module: "${var.prefix}-cross-account-role"
   cross_account_role_arn = "arn:aws:iam::${var.aws_account_id}:role/${var.prefix}-cross-account-role"
-  
-  ***REMOVED*** Determine if we should create a new key or use existing
-  use_existing_key = var.existing_workspace_cmk_key_arn != ""
+
+  # Determine if we should create a new key or use existing
+  use_existing_key      = var.existing_workspace_cmk_key_arn != ""
   should_create_new_key = var.enable_workspace_cmk && !local.use_existing_key
-  
-  ***REMOVED*** Validation: If existing key ARN is provided, alias must also be provided
+
+  # Validation: If existing key ARN is provided, alias must also be provided
   validate_existing_key = (
     local.use_existing_key && var.existing_workspace_cmk_key_alias == "" ?
     tobool("ERROR: existing_workspace_cmk_key_alias is required when existing_workspace_cmk_key_arn is provided") :
@@ -112,8 +112,8 @@ locals {
   )
 }
 
-***REMOVED*** KMS Key for Workspace (DBFS, EBS, and Managed Services)
-***REMOVED*** Only created if enable_workspace_cmk = true AND no existing key is provided
+# KMS Key for Workspace (DBFS, EBS, and Managed Services)
+# Only created if enable_workspace_cmk = true AND no existing key is provided
 resource "aws_kms_key" "workspace_storage" {
   count = local.should_create_new_key ? 1 : 0
 
@@ -188,11 +188,11 @@ resource "aws_kms_alias" "workspace_storage" {
   target_key_id = aws_kms_key.workspace_storage[0].key_id
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** IAM Policy for Unity Catalog - KMS Permissions
-***REMOVED*** Attached to Unity Catalog role to allow S3 bucket encryption/decryption
-***REMOVED*** Only created when encryption is enabled
-***REMOVED*** ============================================================================
+# ============================================================================
+# IAM Policy for Unity Catalog - KMS Permissions
+# Attached to Unity Catalog role to allow S3 bucket encryption/decryption
+# Only created when encryption is enabled
+# ============================================================================
 
 resource "aws_iam_role_policy" "unity_catalog_kms" {
   count = var.enable_encryption ? 1 : 0

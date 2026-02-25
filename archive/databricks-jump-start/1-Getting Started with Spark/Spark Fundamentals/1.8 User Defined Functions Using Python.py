@@ -1,38 +1,38 @@
-***REMOVED*** Databricks notebook source
-***REMOVED*** DBTITLE 1,Register a function as a UDF
+# Databricks notebook source
+# DBTITLE 1,Register a function as a UDF
 def squared(s):
   return s * s
 spark.udf.register("squaredWithPython", squared)
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
 from pyspark.sql.types import LongType
 def squared_typed(s):
   return s * s
 spark.udf.register("squaredWithPython", squared_typed, LongType())
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** DBTITLE 1,Call the UDF in Spark SQL
+# DBTITLE 1,Call the UDF in Spark SQL
 spark.range(1, 20).registerTempTable("test")
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %sql 
-***REMOVED*** MAGIC select id, squaredWithPython(id) as id_squared from test
+# MAGIC %sql 
+# MAGIC select id, squaredWithPython(id) as id_squared from test
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** DBTITLE 1,Use UDF with DataFrames
+# DBTITLE 1,Use UDF with DataFrames
 from pyspark.sql.functions import udf
 from pyspark.sql.types import LongType
 squared_udf = udf(squared, LongType())
 df = spark.table("test")
 display(df.select("id", squared_udf("id").alias("id_squared")))
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** DBTITLE 1,Alternatively, you can declare the same UDF using annotation syntax:
+# DBTITLE 1,Alternatively, you can declare the same UDF using annotation syntax:
 from pyspark.sql.functions import udf
 @udf("long")
 def squared_udf(s):
@@ -40,5 +40,5 @@ def squared_udf(s):
 df = spark.table("test")
 display(df.select("id", squared_udf("id").alias("id_squared")))
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 

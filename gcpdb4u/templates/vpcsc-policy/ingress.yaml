@@ -1,503 +1,503 @@
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** DATABRICKS GCP VPC SERVICE CONTROLS - OPERATIONAL INGRESS POLICIES
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED***
-***REMOVED*** PURPOSE:
-***REMOVED*** These policies define ingress rules for Databricks workspaces AFTER creation.
-***REMOVED*** They allow Databricks Control Plane and services to manage and operate your
-***REMOVED*** workspaces, clusters, and data storage.
-***REMOVED***
-***REMOVED*** USAGE STAGE: Phase 2 - Post-Workspace Creation
-***REMOVED*** - Apply this policy AFTER workspace is successfully created
-***REMOVED*** - Use together with egress.yaml for complete operational security
-***REMOVED*** - Replaces create-ws-ingress.yaml
-***REMOVED***
-***REMOVED*** IMPORTANT NOTES:
-***REMOVED*** - Update all [WORKSPACEID], [GEO], [REGION] placeholders with actual values
-***REMOVED*** - Update all project numbers to match your deployment
-***REMOVED*** - Add Unity Catalog service accounts if using Unity Catalog
-***REMOVED*** - Add BigQuery rules if using Lakehouse Federation
-***REMOVED*** - Add CMEK rules if using Customer-Managed Encryption Keys
-***REMOVED***
-***REMOVED*** DOCUMENTATION REFERENCES:
-***REMOVED*** - VPC Service Controls: https://docs.gcp.databricks.com/en/security/network/vpc-sc.html
-***REMOVED*** - Regional Resources: https://docs.databricks.com/gcp/en/resources/ip-domain-region
-***REMOVED*** - Unity Catalog: https://docs.databricks.com/gcp/en/sql/language-manual/sql-ref-syntax-aux-describe-credential
-***REMOVED***
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# DATABRICKS GCP VPC SERVICE CONTROLS - OPERATIONAL INGRESS POLICIES
+################################################################################
+#
+# PURPOSE:
+# These policies define ingress rules for Databricks workspaces AFTER creation.
+# They allow Databricks Control Plane and services to manage and operate your
+# workspaces, clusters, and data storage.
+#
+# USAGE STAGE: Phase 2 - Post-Workspace Creation
+# - Apply this policy AFTER workspace is successfully created
+# - Use together with egress.yaml for complete operational security
+# - Replaces create-ws-ingress.yaml
+#
+# IMPORTANT NOTES:
+# - Update all [WORKSPACEID], [GEO], [REGION] placeholders with actual values
+# - Update all project numbers to match your deployment
+# - Add Unity Catalog service accounts if using Unity Catalog
+# - Add BigQuery rules if using Lakehouse Federation
+# - Add CMEK rules if using Customer-Managed Encryption Keys
+#
+# DOCUMENTATION REFERENCES:
+# - VPC Service Controls: https://docs.gcp.databricks.com/en/security/network/vpc-sc.html
+# - Regional Resources: https://docs.databricks.com/gcp/en/resources/ip-domain-region
+# - Unity Catalog: https://docs.databricks.com/gcp/en/sql/language-manual/sql-ref-syntax-aux-describe-credential
+#
+################################################################################
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** INGRESS RULE 1: Workspace Operations
-***REMOVED***
-***REMOVED*** PURPOSE: Allows Databricks Control Plane to manage workspace compute resources
-***REMOVED***
-***REMOVED*** TRAFFIC FLOW: Databricks Regional Control Plane → Customer Project
-***REMOVED***
-***REMOVED*** WHAT THIS ALLOWS:
-***REMOVED*** - Launch and manage GCE cluster instances
-***REMOVED*** - Manage compute disks and operations
-***REMOVED*** - Read network and firewall configurations
-***REMOVED*** - Attach service accounts to clusters (for workload identity)
-***REMOVED*** - Enable required Google APIs
-***REMOVED***
-***REMOVED*** IDENTITIES:
-***REMOVED*** - Consumer SA: db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-***REMOVED***   This is the workspace-specific service account created during workspace creation
-***REMOVED*** - Optional: Add user or group identities for direct access
-***REMOVED***
-***REMOVED*** SOURCE PROJECTS:
-***REMOVED*** - Databricks Regional Control Plane project (specific to your region)
-***REMOVED***
-***REMOVED*** REQUIRED UPDATES:
-***REMOVED*** - Replace db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-***REMOVED***   with your actual Consumer SA (find it in IAM after workspace creation)
-***REMOVED*** - Replace projects/[CONTROL-PLANE-PROJECT-NUMBER] with your region's control plane
-***REMOVED*** - Replace projects/546577047680 with your workspace service project number
-***REMOVED*** - Replace projects/610371902002 with your VPC/host project number
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# INGRESS RULE 1: Workspace Operations
+#
+# PURPOSE: Allows Databricks Control Plane to manage workspace compute resources
+#
+# TRAFFIC FLOW: Databricks Regional Control Plane → Customer Project
+#
+# WHAT THIS ALLOWS:
+# - Launch and manage GCE cluster instances
+# - Manage compute disks and operations
+# - Read network and firewall configurations
+# - Attach service accounts to clusters (for workload identity)
+# - Enable required Google APIs
+#
+# IDENTITIES:
+# - Consumer SA: db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+#   This is the workspace-specific service account created during workspace creation
+# - Optional: Add user or group identities for direct access
+#
+# SOURCE PROJECTS:
+# - Databricks Regional Control Plane project (specific to your region)
+#
+# REQUIRED UPDATES:
+# - Replace db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+#   with your actual Consumer SA (find it in IAM after workspace creation)
+# - Replace projects/[CONTROL-PLANE-PROJECT-NUMBER] with your region's control plane
+# - Replace projects/546577047680 with your workspace service project number
+# - Replace projects/610371902002 with your VPC/host project number
+################################################################################
 - ingressFrom:
     identities:
-    ***REMOVED*** Workspace-specific Consumer Service Account
-    ***REMOVED*** Created during workspace creation - format: db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
-    ***REMOVED*** Example: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
+    # Workspace-specific Consumer Service Account
+    # Created during workspace creation - format: db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
+    # Example: db-311716749948597@prod-gcp-us-east1.iam.gserviceaccount.com
       - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
 
-    ***REMOVED*** Optional: Additional identities for direct access
-    ***REMOVED*** Uncomment if you need workspace admins to manage resources directly:
-     ***REMOVED***- group:databricks-admins@corp.com     ***REMOVED*** Google Group
-     ***REMOVED***- user:admin@corp.com                  ***REMOVED*** Individual user
+    # Optional: Additional identities for direct access
+    # Uncomment if you need workspace admins to manage resources directly:
+     #- group:databricks-admins@corp.com     # Google Group
+     #- user:admin@corp.com                  # Individual user
 
     sources:
-    ***REMOVED*** Databricks Regional Control Plane Project
-    ***REMOVED*** Find your region's project number here:
-    ***REMOVED*** https://docs.databricks.com/gcp/en/resources/ip-domain-region***REMOVED***private-service-connect-psc-attachment-uris-and-project-numbers
-    ***REMOVED***
-    ***REMOVED*** Example project numbers by region:
-    ***REMOVED*** - us-east1: 51066298900
-    ***REMOVED*** - us-east4: 121886670913
-    ***REMOVED*** - us-central1: 121886670913
-    ***REMOVED*** - europe-west2: 216164888453
-      - resource: projects/[CONTROL-PLANE-PROJECT-NUMBER]  ***REMOVED*** UPDATE: Your region's control plane
+    # Databricks Regional Control Plane Project
+    # Find your region's project number here:
+    # https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers
+    #
+    # Example project numbers by region:
+    # - us-east1: 51066298900
+    # - us-east4: 121886670913
+    # - us-central1: 121886670913
+    # - europe-west2: 216164888453
+      - resource: projects/[CONTROL-PLANE-PROJECT-NUMBER]  # UPDATE: Your region's control plane
 
   ingressTo:
     operations:
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-    ***REMOVED*** Compute Engine API Operations
-    ***REMOVED*** Required for: Cluster lifecycle management (create, delete, monitor)
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+    ############################################################################
+    # Compute Engine API Operations
+    # Required for: Cluster lifecycle management (create, delete, monitor)
+    ############################################################################
     - methodSelectors:
-      ***REMOVED*** Network operations - Read VPC network configuration
+      # Network operations - Read VPC network configuration
       - method: NetworksService.Get
 
-      ***REMOVED*** Project operations - Get project metadata
+      # Project operations - Get project metadata
       - method: ProjectsService.Get
 
-      ***REMOVED*** Firewall operations - Read firewall rules
+      # Firewall operations - Read firewall rules
       - method: FirewallsService.Get
 
-      ***REMOVED*** Subnet operations - Read and manage subnet IAM policies
+      # Subnet operations - Read and manage subnet IAM policies
       - method: SubnetworksService.Get
-      - method: SubnetworksService.SetPolicy    ***REMOVED*** Set IAM policy on subnet
-      - method: SubnetworksService.GetPolicy    ***REMOVED*** Read IAM policy from subnet
+      - method: SubnetworksService.SetPolicy    # Set IAM policy on subnet
+      - method: SubnetworksService.GetPolicy    # Read IAM policy from subnet
 
-      ***REMOVED*** Instance operations - Full cluster instance lifecycle management
-      - method: InstancesService.List           ***REMOVED*** List all compute instances
-      - method: InstancesService.Get            ***REMOVED*** Get specific instance details
-      - method: InstancesService.BulkInsert     ***REMOVED*** Create multiple instances (cluster nodes)
-      - method: InstancesService.Delete         ***REMOVED*** Terminate cluster instances
-      - method: InstancesService.SetLabels      ***REMOVED*** Add labels to instances for tracking
+      # Instance operations - Full cluster instance lifecycle management
+      - method: InstancesService.List           # List all compute instances
+      - method: InstancesService.Get            # Get specific instance details
+      - method: InstancesService.BulkInsert     # Create multiple instances (cluster nodes)
+      - method: InstancesService.Delete         # Terminate cluster instances
+      - method: InstancesService.SetLabels      # Add labels to instances for tracking
 
-      ***REMOVED*** Disk operations - Manage persistent disks attached to cluster nodes
-      - method: DisksService.List               ***REMOVED*** List disks
-      - method: DisksService.Get                ***REMOVED*** Get disk details
-      - method: DisksService.SetLabels          ***REMOVED*** Add labels to disks
+      # Disk operations - Manage persistent disks attached to cluster nodes
+      - method: DisksService.List               # List disks
+      - method: DisksService.Get                # Get disk details
+      - method: DisksService.SetLabels          # Add labels to disks
 
-      ***REMOVED*** Zone/Region operations - Query available zones and regions
-      - method: ZonesService.List               ***REMOVED*** List available zones
-      - method: RegionsService.List             ***REMOVED*** List available regions
-      - method: RegionsService.Get              ***REMOVED*** Get region details
+      # Zone/Region operations - Query available zones and regions
+      - method: ZonesService.List               # List available zones
+      - method: RegionsService.List             # List available regions
+      - method: RegionsService.Get              # Get region details
 
-      ***REMOVED*** Operation tracking - Monitor async operation progress
-      - method: GlobalOperationsService.Get     ***REMOVED*** Track global operations
-      - method: RegionOperationsService.List    ***REMOVED*** List regional operations
-      - method: ZoneOperationsService.List      ***REMOVED*** List zonal operations
-      - method: ZoneOperationsService.Get       ***REMOVED*** Get operation status
+      # Operation tracking - Monitor async operation progress
+      - method: GlobalOperationsService.Get     # Track global operations
+      - method: RegionOperationsService.List    # List regional operations
+      - method: ZoneOperationsService.List      # List zonal operations
+      - method: ZoneOperationsService.Get       # Get operation status
       serviceName: compute.googleapis.com
 
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-    ***REMOVED*** Service Usage API Operations
-    ***REMOVED*** Required for: Verifying enabled Google APIs
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+    ############################################################################
+    # Service Usage API Operations
+    # Required for: Verifying enabled Google APIs
+    ############################################################################
     - methodSelectors:
-      ***REMOVED*** Allow all methods - VPC-SC doesn't support method filtering for this API
-      ***REMOVED*** Primary call: google.api.serviceusage.v1.ServiceUsage.ListServices
-      ***REMOVED*** Verifies required APIs (compute, storage, iam) are enabled
+      # Allow all methods - VPC-SC doesn't support method filtering for this API
+      # Primary call: google.api.serviceusage.v1.ServiceUsage.ListServices
+      # Verifies required APIs (compute, storage, iam) are enabled
       - method: '*'
       serviceName: serviceusage.googleapis.com
 
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-    ***REMOVED*** Cloud Resource Manager API Operations
-    ***REMOVED*** Required for: Attaching service accounts to clusters
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+    ############################################################################
+    # Cloud Resource Manager API Operations
+    # Required for: Attaching service accounts to clusters
+    ############################################################################
     - methodSelectors:
-      ***REMOVED*** Set IAM policy - Required for:
-      ***REMOVED*** 1. Attaching databricks-compute GSA to classic compute clusters
-      ***REMOVED*** 2. Workload Identity feature (custom SA attachment to clusters)
-      ***REMOVED*** Reference: https://docs.databricks.com/gcp/en/compute/configure***REMOVED***google-service-account
+      # Set IAM policy - Required for:
+      # 1. Attaching databricks-compute GSA to classic compute clusters
+      # 2. Workload Identity feature (custom SA attachment to clusters)
+      # Reference: https://docs.databricks.com/gcp/en/compute/configure#google-service-account
       - method: Projects.SetIamPolicy
       serviceName: cloudresourcemanager.googleapis.com
 
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-    ***REMOVED*** IAM API Operations
-    ***REMOVED*** Required for: Reading service account and IAM policy information
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+    ############################################################################
+    # IAM API Operations
+    # Required for: Reading service account and IAM policy information
+    ############################################################################
     - methodSelectors:
-      ***REMOVED*** Read IAM policies - Get current IAM policies on resources
+      # Read IAM policies - Get current IAM policies on resources
       - method: IAM.GetIamPolicy
 
-      ***REMOVED*** Service account operations - Read service account details
-      ***REMOVED*** Used when attaching service accounts to clusters
+      # Service account operations - Read service account details
+      # Used when attaching service accounts to clusters
       - method: IAM.GetServiceAccount
       serviceName: iam.googleapis.com
 
     resources:
-    ***REMOVED*** Target projects where these operations are allowed
-    - projects/546577047680  ***REMOVED*** UPDATE: Your workspace service project number
-    - projects/610371902002  ***REMOVED*** UPDATE: Your VPC/host project number
+    # Target projects where these operations are allowed
+    - projects/546577047680  # UPDATE: Your workspace service project number
+    - projects/610371902002  # UPDATE: Your VPC/host project number
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** INGRESS RULE 2: Storage Operations (DBFS and Unity Catalog)
-***REMOVED***
-***REMOVED*** PURPOSE: Allows Databricks services to access Cloud Storage for DBFS and Unity Catalog
-***REMOVED***
-***REMOVED*** TRAFFIC FLOW: Databricks Services → Customer Cloud Storage
-***REMOVED***
-***REMOVED*** WHAT THIS ALLOWS:
-***REMOVED*** - Read/write/delete objects in DBFS buckets
-***REMOVED*** - Unity Catalog metadata storage access
-***REMOVED*** - Serverless compute storage access
-***REMOVED***
-***REMOVED*** IDENTITIES:
-***REMOVED*** - Consumer SA: db-[WORKSPACEID]@... (workspace-specific)
-***REMOVED*** - Unity Catalog SA: db-uc-credential-*@uc-[REGION].iam.gserviceaccount.com
-***REMOVED***   (Find UC credentials: DESCRIBE CREDENTIAL in Databricks SQL)
-***REMOVED***
-***REMOVED*** SOURCE PROJECTS:
-***REMOVED*** - Databricks Regional Control Plane project (classic compute)
-***REMOVED*** - Unity Catalog regional project (Unity Catalog storage)
-***REMOVED*** - Serverless Compute regional project (serverless SQL/DLT)
-***REMOVED***
-***REMOVED*** STORAGE BUCKETS ACCESSED:
-***REMOVED*** - databricks-[WORKSPACEID] (main DBFS bucket)
-***REMOVED*** - databricks-[WORKSPACEID]-system (system bucket)
-***REMOVED*** - Unity Catalog managed storage buckets
-***REMOVED*** - User-created external storage buckets
-***REMOVED***
-***REMOVED*** REQUIRED UPDATES:
-***REMOVED*** - Replace db-[WORKSPACEID]@... with your actual Consumer SA
-***REMOVED*** - Replace db-uc-credential-*@... with your Unity Catalog credential SA(s)
-***REMOVED*** - Update project numbers for control plane, Unity Catalog, and serverless
-***REMOVED*** - Update target project number (where storage buckets reside)
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# INGRESS RULE 2: Storage Operations (DBFS and Unity Catalog)
+#
+# PURPOSE: Allows Databricks services to access Cloud Storage for DBFS and Unity Catalog
+#
+# TRAFFIC FLOW: Databricks Services → Customer Cloud Storage
+#
+# WHAT THIS ALLOWS:
+# - Read/write/delete objects in DBFS buckets
+# - Unity Catalog metadata storage access
+# - Serverless compute storage access
+#
+# IDENTITIES:
+# - Consumer SA: db-[WORKSPACEID]@... (workspace-specific)
+# - Unity Catalog SA: db-uc-credential-*@uc-[REGION].iam.gserviceaccount.com
+#   (Find UC credentials: DESCRIBE CREDENTIAL in Databricks SQL)
+#
+# SOURCE PROJECTS:
+# - Databricks Regional Control Plane project (classic compute)
+# - Unity Catalog regional project (Unity Catalog storage)
+# - Serverless Compute regional project (serverless SQL/DLT)
+#
+# STORAGE BUCKETS ACCESSED:
+# - databricks-[WORKSPACEID] (main DBFS bucket)
+# - databricks-[WORKSPACEID]-system (system bucket)
+# - Unity Catalog managed storage buckets
+# - User-created external storage buckets
+#
+# REQUIRED UPDATES:
+# - Replace db-[WORKSPACEID]@... with your actual Consumer SA
+# - Replace db-uc-credential-*@... with your Unity Catalog credential SA(s)
+# - Update project numbers for control plane, Unity Catalog, and serverless
+# - Update target project number (where storage buckets reside)
+################################################################################
 - ingressFrom:
     identities:
-    ***REMOVED*** Workspace Consumer Service Account
-    ***REMOVED*** Manages DBFS and workspace-level storage access
+    # Workspace Consumer Service Account
+    # Manages DBFS and workspace-level storage access
     - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
 
-    ***REMOVED*** Unity Catalog Credential Service Accounts
-    ***REMOVED*** One or more may exist depending on your Unity Catalog configuration
-    ***REMOVED*** Find your UC credentials with: DESCRIBE CREDENTIAL <credential_name>
-    ***REMOVED*** Format: db-uc-credential-<ID>-<SUFFIX>@uc-<region>.iam.gserviceaccount.com
+    # Unity Catalog Credential Service Accounts
+    # One or more may exist depending on your Unity Catalog configuration
+    # Find your UC credentials with: DESCRIBE CREDENTIAL <credential_name>
+    # Format: db-uc-credential-<ID>-<SUFFIX>@uc-<region>.iam.gserviceaccount.com
     - serviceAccount:db-uc-credential-06akrlmcak-xn@uc-useast1.iam.gserviceaccount.com
-    ***REMOVED*** Add additional UC credentials as needed:
-    ***REMOVED*** - serviceAccount:db-uc-credential-<ID2>-<SUFFIX2>@uc-<region>.iam.gserviceaccount.com
+    # Add additional UC credentials as needed:
+    # - serviceAccount:db-uc-credential-<ID2>-<SUFFIX2>@uc-<region>.iam.gserviceaccount.com
 
     sources:
-    ***REMOVED*** Databricks project sources where storage calls originate
-    ***REMOVED*** Reference: https://docs.databricks.com/gcp/en/resources/ip-domain-region
+    # Databricks project sources where storage calls originate
+    # Reference: https://docs.databricks.com/gcp/en/resources/ip-domain-region
 
-    ***REMOVED*** Databricks Regional Control Plane - Classic compute storage access
-    ***REMOVED*** Example: us-east1 = 121886670913
-    - resource: projects/121886670913  ***REMOVED*** UPDATE: Regional control plane project
+    # Databricks Regional Control Plane - Classic compute storage access
+    # Example: us-east1 = 121886670913
+    - resource: projects/121886670913  # UPDATE: Regional control plane project
 
-    ***REMOVED*** Unity Catalog Regional Project - Unity Catalog storage operations
-    ***REMOVED*** Example: us-east1 UC = 522339604799
-    - resource: projects/522339604799  ***REMOVED*** UPDATE: Unity Catalog regional project
+    # Unity Catalog Regional Project - Unity Catalog storage operations
+    # Example: us-east1 UC = 522339604799
+    - resource: projects/522339604799  # UPDATE: Unity Catalog regional project
 
-    ***REMOVED*** Serverless Compute Regional Project - Serverless SQL/DLT storage
-    ***REMOVED*** Example: us-east1 serverless = 748623325325
-    - resource: projects/748623325325  ***REMOVED*** UPDATE: Serverless compute project
+    # Serverless Compute Regional Project - Serverless SQL/DLT storage
+    # Example: us-east1 serverless = 748623325325
+    - resource: projects/748623325325  # UPDATE: Serverless compute project
 
   ingressTo:
     operations:
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-    ***REMOVED*** Cloud Storage API Operations
-    ***REMOVED*** Required for: DBFS access, Unity Catalog storage, user bucket access
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+    ############################################################################
+    # Cloud Storage API Operations
+    # Required for: DBFS access, Unity Catalog storage, user bucket access
+    ############################################################################
     - methodSelectors:
-      ***REMOVED*** Object operations - Read, write, delete files in storage buckets
-      - method: google.storage.objects.get      ***REMOVED*** Read objects (files)
-      - method: google.storage.objects.list     ***REMOVED*** List objects in bucket
-      - method: google.storage.objects.create   ***REMOVED*** Write new objects
-      - method: google.storage.objects.delete   ***REMOVED*** Delete objects
+      # Object operations - Read, write, delete files in storage buckets
+      - method: google.storage.objects.get      # Read objects (files)
+      - method: google.storage.objects.list     # List objects in bucket
+      - method: google.storage.objects.create   # Write new objects
+      - method: google.storage.objects.delete   # Delete objects
 
-      ***REMOVED*** Bucket operations - Read bucket metadata and check permissions
-      - method: google.storage.buckets.get              ***REMOVED*** Get bucket metadata
-      - method: google.storage.buckets.testIamPermissions  ***REMOVED*** Check bucket access
+      # Bucket operations - Read bucket metadata and check permissions
+      - method: google.storage.buckets.get              # Get bucket metadata
+      - method: google.storage.buckets.testIamPermissions  # Check bucket access
       serviceName: storage.googleapis.com
 
     resources:
-    ***REMOVED*** Target project where storage buckets are located
-    ***REMOVED*** Typically the workspace service project or VPC project
-    - projects/610371902002  ***REMOVED*** UPDATE: Project number where buckets reside
+    # Target project where storage buckets are located
+    # Typically the workspace service project or VPC project
+    - projects/610371902002  # UPDATE: Project number where buckets reside
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** INGRESS RULE 3: Lakehouse Federation to BigQuery (Optional)
-***REMOVED***
-***REMOVED*** PURPOSE: Allows Databricks Serverless Compute to access BigQuery for Lakehouse Federation
-***REMOVED***
-***REMOVED*** TRAFFIC FLOW: Databricks Serverless Compute → Customer BigQuery
-***REMOVED***
-***REMOVED*** WHAT THIS ALLOWS:
-***REMOVED*** - Query BigQuery tables from Databricks notebooks/SQL
-***REMOVED*** - Read BigQuery datasets and table metadata
-***REMOVED*** - Create, update, delete BigQuery tables from Databricks
-***REMOVED*** - Execute BigQuery jobs from Databricks
-***REMOVED***
-***REMOVED*** WHEN TO USE:
-***REMOVED*** - If you use Lakehouse Federation to query BigQuery data sources
-***REMOVED*** - If you run federated queries across Databricks and BigQuery
-***REMOVED*** - Skip this rule if you don't use BigQuery integration
-***REMOVED***
-***REMOVED*** IDENTITIES:
-***REMOVED*** - Custom Google Service Account with BigQuery permissions
-***REMOVED***   (You must create this SA and grant it BigQuery access)
-***REMOVED***
-***REMOVED*** SOURCE PROJECTS:
-***REMOVED*** - Serverless Compute regional project
-***REMOVED***
-***REMOVED*** REQUIRED UPDATES:
-***REMOVED*** - Replace [YOUR-GSA-HAVING-BQ-ACCESS]@[PROJECT].iam.gserviceaccount.com
-***REMOVED***   with your actual service account that has BigQuery permissions
-***REMOVED*** - Update serverless compute project number
-***REMOVED*** - Update target project number (where BigQuery datasets reside)
-***REMOVED*** - Adjust method selectors based on your required BigQuery operations
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# INGRESS RULE 3: Lakehouse Federation to BigQuery (Optional)
+#
+# PURPOSE: Allows Databricks Serverless Compute to access BigQuery for Lakehouse Federation
+#
+# TRAFFIC FLOW: Databricks Serverless Compute → Customer BigQuery
+#
+# WHAT THIS ALLOWS:
+# - Query BigQuery tables from Databricks notebooks/SQL
+# - Read BigQuery datasets and table metadata
+# - Create, update, delete BigQuery tables from Databricks
+# - Execute BigQuery jobs from Databricks
+#
+# WHEN TO USE:
+# - If you use Lakehouse Federation to query BigQuery data sources
+# - If you run federated queries across Databricks and BigQuery
+# - Skip this rule if you don't use BigQuery integration
+#
+# IDENTITIES:
+# - Custom Google Service Account with BigQuery permissions
+#   (You must create this SA and grant it BigQuery access)
+#
+# SOURCE PROJECTS:
+# - Serverless Compute regional project
+#
+# REQUIRED UPDATES:
+# - Replace [YOUR-GSA-HAVING-BQ-ACCESS]@[PROJECT].iam.gserviceaccount.com
+#   with your actual service account that has BigQuery permissions
+# - Update serverless compute project number
+# - Update target project number (where BigQuery datasets reside)
+# - Adjust method selectors based on your required BigQuery operations
+################################################################################
 - ingressFrom:
     identities:
-    ***REMOVED*** Custom Service Account with BigQuery Access
-    ***REMOVED*** You must create this SA and grant appropriate BigQuery IAM roles:
-    ***REMOVED*** - roles/bigquery.dataViewer (read access)
-    ***REMOVED*** - roles/bigquery.jobUser (execute queries)
-    ***REMOVED*** - roles/bigquery.dataEditor (write access, if needed)
+    # Custom Service Account with BigQuery Access
+    # You must create this SA and grant appropriate BigQuery IAM roles:
+    # - roles/bigquery.dataViewer (read access)
+    # - roles/bigquery.jobUser (execute queries)
+    # - roles/bigquery.dataEditor (write access, if needed)
     - serviceAccount:[YOUR-GSA-HAVING-BQ-ACCESS]@[PROJECT].iam.gserviceaccount.com
 
     sources:
-    ***REMOVED*** Serverless Compute Regional Project
-    ***REMOVED*** BigQuery queries from Databricks run through serverless compute
-    ***REMOVED*** Example: us-east1 serverless = 748623325325
-    - resource: projects/748623325325  ***REMOVED*** UPDATE: Serverless compute project
+    # Serverless Compute Regional Project
+    # BigQuery queries from Databricks run through serverless compute
+    # Example: us-east1 serverless = 748623325325
+    - resource: projects/748623325325  # UPDATE: Serverless compute project
 
   ingressTo:
     operations:
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-    ***REMOVED*** BigQuery API Operations
-    ***REMOVED*** Required for: Lakehouse Federation queries to BigQuery
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+    ############################################################################
+    # BigQuery API Operations
+    # Required for: Lakehouse Federation queries to BigQuery
+    ############################################################################
     - methodSelectors:
-    ***REMOVED*** IMPORTANT: Adjust these methods based on your use case
-    ***REMOVED*** Below is a sample rule - add/remove methods as needed
+    # IMPORTANT: Adjust these methods based on your use case
+    # Below is a sample rule - add/remove methods as needed
 
-      ***REMOVED*** BigQuery Storage Read API - High-performance table reads
-      - method: 'BigQueryRead.CreateReadSession'  ***REMOVED*** Create read session for efficient reads
+      # BigQuery Storage Read API - High-performance table reads
+      - method: 'BigQueryRead.CreateReadSession'  # Create read session for efficient reads
 
-      ***REMOVED*** Table operations - Read and manage BigQuery tables
-      - method: 'bigquery.tables.get'             ***REMOVED*** Get table metadata
-      - method: 'bigquery.tables.getData'         ***REMOVED*** Read table data
-      - method: 'bigquery.tables.list'            ***REMOVED*** List tables in dataset
-      - method: 'bigquery.tables.create'          ***REMOVED*** Create new tables
-      - method: 'bigquery.tables.update'          ***REMOVED*** Update table schema
-      - method: 'bigquery.tables.delete'          ***REMOVED*** Delete tables
-      - method: 'bigquery.tables.updateData'      ***REMOVED*** Insert/update table data
+      # Table operations - Read and manage BigQuery tables
+      - method: 'bigquery.tables.get'             # Get table metadata
+      - method: 'bigquery.tables.getData'         # Read table data
+      - method: 'bigquery.tables.list'            # List tables in dataset
+      - method: 'bigquery.tables.create'          # Create new tables
+      - method: 'bigquery.tables.update'          # Update table schema
+      - method: 'bigquery.tables.delete'          # Delete tables
+      - method: 'bigquery.tables.updateData'      # Insert/update table data
 
-      ***REMOVED*** Dataset operations - Manage BigQuery datasets
-      - method: 'bigquery.datasets.get'           ***REMOVED*** Get dataset metadata
-      - method: 'bigquery.datasets.create'        ***REMOVED*** Create datasets
+      # Dataset operations - Manage BigQuery datasets
+      - method: 'bigquery.datasets.get'           # Get dataset metadata
+      - method: 'bigquery.datasets.create'        # Create datasets
 
-      ***REMOVED*** Job operations - Execute BigQuery queries
-      - method: 'bigquery.jobs.create'            ***REMOVED*** Run queries and jobs
+      # Job operations - Execute BigQuery queries
+      - method: 'bigquery.jobs.create'            # Run queries and jobs
       serviceName: bigquery.googleapis.com
 
     resources:
-    ***REMOVED*** Target project where BigQuery datasets reside
-    - projects/610371902002  ***REMOVED*** UPDATE: Project with BigQuery datasets
+    # Target project where BigQuery datasets reside
+    - projects/610371902002  # UPDATE: Project with BigQuery datasets
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** INGRESS RULE 4: Audit Log Delivery (Optional)
-***REMOVED***
-***REMOVED*** PURPOSE: Allows Databricks to deliver audit logs to your Cloud Storage bucket
-***REMOVED***
-***REMOVED*** TRAFFIC FLOW: Databricks Audit Log Service → Customer Storage Bucket
-***REMOVED***
-***REMOVED*** WHAT THIS ALLOWS:
-***REMOVED*** - Write audit logs to your designated storage bucket
-***REMOVED*** - Read and delete existing log files (for log rotation/management)
-***REMOVED*** - Check bucket permissions before writing
-***REMOVED***
-***REMOVED*** WHEN TO USE:
-***REMOVED*** - If you configured audit log delivery to a customer-managed GCS bucket
-***REMOVED*** - Reference: https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
-***REMOVED*** - Skip this rule if you don't use audit log delivery
-***REMOVED***
-***REMOVED*** IDENTITIES:
-***REMOVED*** - log-delivery@databricks-prod-master.iam.gserviceaccount.com
-***REMOVED***   (Databricks-owned service account for log delivery)
-***REMOVED***
-***REMOVED*** SOURCE PROJECTS:
-***REMOVED*** - Databricks audit log delivery projects (2 global projects)
-***REMOVED***
-***REMOVED*** STORAGE BUCKET:
-***REMOVED*** - Your designated audit log storage bucket (configured in Databricks account settings)
-***REMOVED***
-***REMOVED*** REQUIRED UPDATES:
-***REMOVED*** - Update target project number (where audit log bucket resides)
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# INGRESS RULE 4: Audit Log Delivery (Optional)
+#
+# PURPOSE: Allows Databricks to deliver audit logs to your Cloud Storage bucket
+#
+# TRAFFIC FLOW: Databricks Audit Log Service → Customer Storage Bucket
+#
+# WHAT THIS ALLOWS:
+# - Write audit logs to your designated storage bucket
+# - Read and delete existing log files (for log rotation/management)
+# - Check bucket permissions before writing
+#
+# WHEN TO USE:
+# - If you configured audit log delivery to a customer-managed GCS bucket
+# - Reference: https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
+# - Skip this rule if you don't use audit log delivery
+#
+# IDENTITIES:
+# - log-delivery@databricks-prod-master.iam.gserviceaccount.com
+#   (Databricks-owned service account for log delivery)
+#
+# SOURCE PROJECTS:
+# - Databricks audit log delivery projects (2 global projects)
+#
+# STORAGE BUCKET:
+# - Your designated audit log storage bucket (configured in Databricks account settings)
+#
+# REQUIRED UPDATES:
+# - Update target project number (where audit log bucket resides)
+################################################################################
 - ingressFrom:
     identities:
-    ***REMOVED*** Databricks Log Delivery Service Account
-    ***REMOVED*** This is a Databricks-owned SA - DO NOT CHANGE
+    # Databricks Log Delivery Service Account
+    # This is a Databricks-owned SA - DO NOT CHANGE
     - serviceAccount:log-delivery@databricks-prod-master.iam.gserviceaccount.com
 
     sources:
-    ***REMOVED*** Databricks Audit Log Delivery Projects
-    ***REMOVED*** These are global Databricks projects - DO NOT CHANGE THESE NUMBERS
-    - resource: projects/68422481410   ***REMOVED*** Databricks audit log delivery project 1
-    - resource: projects/85638097580   ***REMOVED*** Databricks audit log delivery project 2
+    # Databricks Audit Log Delivery Projects
+    # These are global Databricks projects - DO NOT CHANGE THESE NUMBERS
+    - resource: projects/68422481410   # Databricks audit log delivery project 1
+    - resource: projects/85638097580   # Databricks audit log delivery project 2
 
   ingressTo:
     operations:
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-    ***REMOVED*** Cloud Storage API Operations
-    ***REMOVED*** Required for: Writing audit logs to customer bucket
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+    ############################################################################
+    # Cloud Storage API Operations
+    # Required for: Writing audit logs to customer bucket
+    ############################################################################
     - methodSelectors:
-      ***REMOVED*** Object operations - Write, read, delete audit log files
-      - method: google.storage.objects.create       ***REMOVED*** Write new audit log files
-      - method: google.storage.objects.delete       ***REMOVED*** Delete old log files (rotation)
-      - method: google.storage.objects.get          ***REMOVED*** Read existing log files
-      - method: google.storage.objects.list         ***REMOVED*** List log files in bucket
+      # Object operations - Write, read, delete audit log files
+      - method: google.storage.objects.create       # Write new audit log files
+      - method: google.storage.objects.delete       # Delete old log files (rotation)
+      - method: google.storage.objects.get          # Read existing log files
+      - method: google.storage.objects.list         # List log files in bucket
 
-      ***REMOVED*** Bucket operations - Check permissions before writing
-      - method: google.storage.buckets.testIamPermissions  ***REMOVED*** Verify write access
+      # Bucket operations - Check permissions before writing
+      - method: google.storage.buckets.testIamPermissions  # Verify write access
       serviceName: storage.googleapis.com
 
     resources:
-    ***REMOVED*** Target project where audit log storage bucket resides
-    ***REMOVED*** This is typically your workspace service project
-    - projects/546577047680  ***REMOVED*** UPDATE: Project with audit log bucket
+    # Target project where audit log storage bucket resides
+    # This is typically your workspace service project
+    - projects/546577047680  # UPDATE: Project with audit log bucket
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** INGRESS RULE 5: Customer-Managed Encryption Keys (CMEK) (Optional)
-***REMOVED***
-***REMOVED*** PURPOSE: Allows Databricks to use customer-managed encryption keys for DBFS
-***REMOVED***
-***REMOVED*** TRAFFIC FLOW: Databricks Control Plane → Customer Cloud KMS
-***REMOVED***
-***REMOVED*** WHAT THIS ALLOWS:
-***REMOVED*** - Encrypt/decrypt data using your Cloud KMS keys
-***REMOVED*** - Access key rings and crypto keys for DBFS encryption
-***REMOVED***
-***REMOVED*** WHEN TO USE:
-***REMOVED*** - If you configured Customer-Managed Encryption Keys (CMEK) for DBFS
-***REMOVED*** - Reference: https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
-***REMOVED*** - Skip this rule if you use Google-managed encryption (default)
-***REMOVED***
-***REMOVED*** IDENTITIES:
-***REMOVED*** - Consumer SA: db-[WORKSPACEID]@...
-***REMOVED***
-***REMOVED*** SOURCE PROJECTS:
-***REMOVED*** - Databricks Regional Control Plane project
-***REMOVED***
-***REMOVED*** KMS OPERATIONS:
-***REMOVED*** - All methods allowed because VPC-SC doesn't support granular KMS method filtering
-***REMOVED*** - Actual operations: encrypt, decrypt, getKeyRing, getCryptoKey, getPublicKey
-***REMOVED***
-***REMOVED*** REQUIRED UPDATES:
-***REMOVED*** - Replace db-[WORKSPACEID]@... with your Consumer SA
-***REMOVED*** - Update control plane project number
-***REMOVED*** - Update target project number (where KMS keys reside)
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# INGRESS RULE 5: Customer-Managed Encryption Keys (CMEK) (Optional)
+#
+# PURPOSE: Allows Databricks to use customer-managed encryption keys for DBFS
+#
+# TRAFFIC FLOW: Databricks Control Plane → Customer Cloud KMS
+#
+# WHAT THIS ALLOWS:
+# - Encrypt/decrypt data using your Cloud KMS keys
+# - Access key rings and crypto keys for DBFS encryption
+#
+# WHEN TO USE:
+# - If you configured Customer-Managed Encryption Keys (CMEK) for DBFS
+# - Reference: https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
+# - Skip this rule if you use Google-managed encryption (default)
+#
+# IDENTITIES:
+# - Consumer SA: db-[WORKSPACEID]@...
+#
+# SOURCE PROJECTS:
+# - Databricks Regional Control Plane project
+#
+# KMS OPERATIONS:
+# - All methods allowed because VPC-SC doesn't support granular KMS method filtering
+# - Actual operations: encrypt, decrypt, getKeyRing, getCryptoKey, getPublicKey
+#
+# REQUIRED UPDATES:
+# - Replace db-[WORKSPACEID]@... with your Consumer SA
+# - Update control plane project number
+# - Update target project number (where KMS keys reside)
+################################################################################
 - ingressFrom:
     identities:
-    ***REMOVED*** Workspace Consumer Service Account
-    ***REMOVED*** This SA needs cloudkms.cryptoKeyEncrypterDecrypter role on your KMS keys
+    # Workspace Consumer Service Account
+    # This SA needs cloudkms.cryptoKeyEncrypterDecrypter role on your KMS keys
     - serviceAccount:db-[WORKSPACEID]@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com
 
     sources:
-    ***REMOVED*** Databricks Regional Control Plane
-    ***REMOVED*** CMEK operations originate from control plane
-    - resource: projects/121886670913  ***REMOVED*** UPDATE: Regional control plane project
+    # Databricks Regional Control Plane
+    # CMEK operations originate from control plane
+    - resource: projects/121886670913  # UPDATE: Regional control plane project
 
   ingressTo:
     operations:
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-    ***REMOVED*** Cloud KMS API Operations
-    ***REMOVED*** Required for: Encrypting/decrypting DBFS data with customer keys
-    ***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+    ############################################################################
+    # Cloud KMS API Operations
+    # Required for: Encrypting/decrypting DBFS data with customer keys
+    ############################################################################
     - methodSelectors:
-      ***REMOVED*** Allow all methods - VPC-SC doesn't support method selectors for KMS
-      ***REMOVED*** Required operations include:
-      ***REMOVED*** - cloudkms.cryptoKeys.encrypt: Encrypt data before storage
-      ***REMOVED*** - cloudkms.cryptoKeys.decrypt: Decrypt data when accessed
-      ***REMOVED*** - cloudkms.keyRings.get: Access key ring metadata
-      ***REMOVED*** - cloudkms.cryptoKeys.get: Access crypto key metadata
-      ***REMOVED*** - cloudkms.cryptoKeys.getPublicKey: For asymmetric keys
+      # Allow all methods - VPC-SC doesn't support method selectors for KMS
+      # Required operations include:
+      # - cloudkms.cryptoKeys.encrypt: Encrypt data before storage
+      # - cloudkms.cryptoKeys.decrypt: Decrypt data when accessed
+      # - cloudkms.keyRings.get: Access key ring metadata
+      # - cloudkms.cryptoKeys.get: Access crypto key metadata
+      # - cloudkms.cryptoKeys.getPublicKey: For asymmetric keys
       - method: '*'
       serviceName: cloudkms.googleapis.com
 
     resources:
-    ***REMOVED*** Target project where Cloud KMS keys reside
-    ***REMOVED*** Typically your workspace service project or separate KMS project
-    - projects/610371902002  ***REMOVED*** UPDATE: Project with KMS keys
+    # Target project where Cloud KMS keys reside
+    # Typically your workspace service project or separate KMS project
+    - projects/610371902002  # UPDATE: Project with KMS keys
 
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
-***REMOVED*** CONFIGURATION SUMMARY:
-***REMOVED***
-***REMOVED*** This ingress policy file includes 5 rule groups:
-***REMOVED*** 1. ✅ Workspace Operations (REQUIRED) - Cluster management and compute operations
-***REMOVED*** 2. ✅ Storage Operations (REQUIRED) - DBFS and Unity Catalog storage access
-***REMOVED*** 3. ⚠️  BigQuery Federation (OPTIONAL) - Only if using Lakehouse Federation
-***REMOVED*** 4. ⚠️  Audit Log Delivery (OPTIONAL) - Only if configured in account settings
-***REMOVED*** 5. ⚠️  CMEK Operations (OPTIONAL) - Only if using customer-managed encryption
-***REMOVED***
-***REMOVED*** NEXT STEPS:
-***REMOVED***
-***REMOVED*** 1. Update all placeholders:
-***REMOVED***    - [WORKSPACEID], [GEO], [REGION] - From your workspace details
-***REMOVED***    - Project numbers - From Databricks regional documentation
-***REMOVED***    - Unity Catalog SAs - From DESCRIBE CREDENTIAL command
-***REMOVED***
-***REMOVED*** 2. Remove optional rules if not needed:
-***REMOVED***    - Remove BigQuery rule if not using Lakehouse Federation
-***REMOVED***    - Remove Audit Log rule if not configured
-***REMOVED***    - Remove CMEK rule if using default encryption
-***REMOVED***
-***REMOVED*** 3. Apply together with egress.yaml:
-***REMOVED***    - Test in dry-run mode first
-***REMOVED***    - Monitor VPC-SC logs for violations
-***REMOVED***    - Enforce after successful testing
-***REMOVED***
-***REMOVED*** 4. Test workspace functionality:
-***REMOVED***    - Launch clusters and verify they start successfully
-***REMOVED***    - Access DBFS: dbutils.fs.ls("dbfs:/")
-***REMOVED***    - Test Unity Catalog access (if configured)
-***REMOVED***    - Verify audit logs appear (if configured)
-***REMOVED***
-***REMOVED*** TROUBLESHOOTING:
-***REMOVED*** - Check VPC-SC logs: gcloud logging read "protoPayload.metadata.@type=type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata"
-***REMOVED*** - Common issues:
-***REMOVED***   • Wrong project numbers → Verify from Databricks regional documentation
-***REMOVED***   • Missing Unity Catalog SAs → Run DESCRIBE CREDENTIAL to get correct SA
-***REMOVED***   • Storage access denied → Verify Consumer SA has Storage Object Admin role
-***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***
+################################################################################
+# CONFIGURATION SUMMARY:
+#
+# This ingress policy file includes 5 rule groups:
+# 1. ✅ Workspace Operations (REQUIRED) - Cluster management and compute operations
+# 2. ✅ Storage Operations (REQUIRED) - DBFS and Unity Catalog storage access
+# 3. ⚠️  BigQuery Federation (OPTIONAL) - Only if using Lakehouse Federation
+# 4. ⚠️  Audit Log Delivery (OPTIONAL) - Only if configured in account settings
+# 5. ⚠️  CMEK Operations (OPTIONAL) - Only if using customer-managed encryption
+#
+# NEXT STEPS:
+#
+# 1. Update all placeholders:
+#    - [WORKSPACEID], [GEO], [REGION] - From your workspace details
+#    - Project numbers - From Databricks regional documentation
+#    - Unity Catalog SAs - From DESCRIBE CREDENTIAL command
+#
+# 2. Remove optional rules if not needed:
+#    - Remove BigQuery rule if not using Lakehouse Federation
+#    - Remove Audit Log rule if not configured
+#    - Remove CMEK rule if using default encryption
+#
+# 3. Apply together with egress.yaml:
+#    - Test in dry-run mode first
+#    - Monitor VPC-SC logs for violations
+#    - Enforce after successful testing
+#
+# 4. Test workspace functionality:
+#    - Launch clusters and verify they start successfully
+#    - Access DBFS: dbutils.fs.ls("dbfs:/")
+#    - Test Unity Catalog access (if configured)
+#    - Verify audit logs appear (if configured)
+#
+# TROUBLESHOOTING:
+# - Check VPC-SC logs: gcloud logging read "protoPayload.metadata.@type=type.googleapis.com/google.cloud.audit.VpcServiceControlAuditMetadata"
+# - Common issues:
+#   • Wrong project numbers → Verify from Databricks regional documentation
+#   • Missing Unity Catalog SAs → Run DESCRIBE CREDENTIAL to get correct SA
+#   • Storage access denied → Verify Consumer SA has Storage Object Admin role
+################################################################################

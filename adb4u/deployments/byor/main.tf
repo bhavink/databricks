@@ -86,7 +86,7 @@ resource "azurerm_network_security_group" "this" {
 
   # Databricks-required rules for NPIP (Secure Cluster Connectivity)
   # Reference: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/customer-managed-vpc
-  
+
   security_rule {
     name                       = "AllowAzureDatabricksControlPlane"
     priority                   = 200
@@ -328,14 +328,14 @@ module "key_vault" {
   count  = var.create_key_vault ? 1 : 0
   source = "../../modules/key-vault"
 
-  create_key_vault       = true
-  key_name               = "databricks-cmk-${random_string.deployment_suffix.result}"
-  key_type               = var.cmk_key_type
-  key_size               = var.cmk_key_size
-  resource_group_name    = local.resource_group_name
-  location               = var.location
-  workspace_prefix       = var.workspace_prefix
-  tags                   = local.all_tags
+  create_key_vault        = true
+  key_name                = "databricks-cmk-${random_string.deployment_suffix.result}"
+  key_type                = var.cmk_key_type
+  key_size                = var.cmk_key_size
+  resource_group_name     = local.resource_group_name
+  location                = var.location
+  workspace_prefix        = var.workspace_prefix
+  tags                    = local.all_tags
   databricks_principal_id = "" # Will be set by workspace team during deployment
 
   depends_on = [

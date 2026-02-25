@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style D: Creative Voltage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  :root {
+    --bg-blue: #0066ff;
+    --bg-dark: #1a1a2e;
+    --accent-neon: #d4ff00;
+    --text-light: #ffffff;
+    --text-on-neon: #1a1a2e;
+    --title-size: clamp(2.2rem, 5.5vw, 5.2rem);
+    --body-size: clamp(0.75rem, 1.2vw, 0.95rem);
+    --slide-padding: clamp(1.5rem, 4vw, 4rem);
+  }
+
+  body { font-family: 'Syne', sans-serif; }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+  }
+
+  /* ── LEFT: Electric Blue panel ── */
+  .panel-left {
+    background: var(--bg-blue);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--slide-padding);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeIn 0.4s ease 0.1s forwards;
+  }
+
+  /* Halftone dot pattern overlay */
+  .panel-left::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px);
+    background-size: 18px 18px;
+    pointer-events: none;
+  }
+
+  .left-top {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-tag {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.58rem, 0.82vw, 0.7rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 0.3rem 0.7rem;
+    border-radius: 3px;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.35s forwards;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: var(--title-size);
+    font-weight: 800;
+    color: var(--text-light);
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-top: clamp(1rem, 2.5vh, 2.5rem);
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateX(-20px);
+    animation: slideRight 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
+  }
+
+  /* Neon badge */
+  .neon-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--accent-neon);
+    color: var(--text-on-neon);
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.6rem, 0.88vw, 0.75rem);
+    font-weight: 700;
+    padding: 0.4rem 0.9rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    width: fit-content;
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.9s forwards;
+  }
+
+  .neon-badge::before {
+    content: '◆';
+    font-size: 0.5em;
+  }
+
+  /* Left bottom metadata */
+  .left-bottom {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 1s forwards;
+  }
+
+  .left-bottom-label {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.58rem, 0.8vw, 0.68rem);
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── RIGHT: Dark panel ── */
+  .panel-right {
+    background: var(--bg-dark);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--slide-padding);
+    gap: clamp(1rem, 2.5vh, 2rem);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.25s forwards;
+  }
+
+  /* Grid line texture on dark panel */
+  .panel-right::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* Neon horizontal rule */
+  .neon-rule {
+    width: clamp(2rem, 5vw, 4rem);
+    height: 2px;
+    background: var(--accent-neon);
+    opacity: 0;
+    animation: expandWidth 0.5s ease 0.65s forwards;
+    transform-origin: left;
+    transform: scaleX(0);
+    position: relative;
+    z-index: 1;
+  }
+
+  .right-body {
+    font-family: 'Syne', sans-serif;
+    font-size: var(--body-size);
+    font-weight: 400;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.7;
+    max-width: 40ch;
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(14px);
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards;
+  }
+
+  /* Coverage list with neon bullets */
+  .coverage-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1.2vh, 0.9rem);
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.85s forwards;
+  }
+
+  .coverage-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(0.72rem, 1.05vw, 0.875rem);
+    font-weight: 600;
+    color: var(--text-light);
+    line-height: 1.4;
+  }
+
+  .coverage-list li::before {
+    content: '→';
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.58rem, 0.82vw, 0.7rem);
+    color: var(--accent-neon);
+    flex-shrink: 0;
+  }
+
+  /* Scale counter */
+  .scale-block {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 1.05s forwards;
+  }
+
+  .scale-num {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 800;
+    color: var(--accent-neon);
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .scale-label {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.58rem, 0.82vw, 0.7rem);
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+
+  .style-badge {
+    position: absolute;
+    bottom: var(--slide-padding);
+    right: var(--slide-padding);
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(0.52rem, 0.72vw, 0.62rem);
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    z-index: 5;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 1.1s forwards;
+  }
+
+  @keyframes slideRight {
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+  @keyframes expandWidth {
+    to { opacity: 1; transform: scaleX(1); }
+  }
+
+  @media (max-height: 600px) {
+    :root { --slide-padding: clamp(0.75rem, 2.5vw, 1.5rem); }
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <!-- LEFT: Blue panel -->
+  <div class="panel-left">
+    <div class="left-top">
+      <div class="section-tag">AI Governance · Deep Dive</div>
+      <h1>Secure.<br>Scale.<br>Ship.</h1>
+    </div>
+    <div class="neon-badge">Production Ready</div>
+    <div class="left-bottom">
+      <div class="left-bottom-label">Databricks Field Engineering — 2026</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Dark panel -->
+  <div class="panel-right">
+    <div class="neon-rule"></div>
+
+    <p class="right-body">
+      End-to-end governance patterns for Databricks AI —
+      from identity passthrough to row-level security,
+      built for 1,000+ users across any cloud.
+    </p>
+
+    <ul class="coverage-list">
+      <li>Authentication Patterns (SP, OBO, Manual)</li>
+      <li>Unity Catalog 4-Layer Access Control</li>
+      <li>Genie Space Security Deep Dive</li>
+      <li>Audit Logging &amp; Observability</li>
+      <li>Multi-Agent Orchestration Governance</li>
+    </ul>
+
+    <div class="scale-block">
+      <div class="scale-num">1K+</div>
+      <div class="scale-label">Users<br>Tested</div>
+    </div>
+  </div>
+
+  <div class="style-badge">Style D — Creative Voltage</div>
+</div>
+</body>
+</html>

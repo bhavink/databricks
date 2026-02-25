@@ -38,9 +38,9 @@ output "private_access_settings_id" {
   value       = databricks_mws_private_access_settings.private_access.private_access_settings_id
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** IP Access Lists Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# IP Access Lists Outputs
+# ============================================================================
 
 output "ip_access_lists_enabled" {
   description = "Whether IP access lists are enabled"

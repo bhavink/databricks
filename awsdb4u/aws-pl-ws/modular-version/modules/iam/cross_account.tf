@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** IAM Module - Provider Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# IAM Module - Provider Configuration
+# ============================================================================
 
 terraform {
   required_providers {
@@ -16,9 +16,9 @@ terraform {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Data Source - Databricks Cross-Account Role External ID
-***REMOVED*** ============================================================================
+# ============================================================================
+# Data Source - Databricks Cross-Account Role External ID
+# ============================================================================
 
 data "databricks_aws_assume_role_policy" "cross_account" {
   provider    = databricks.account
@@ -29,9 +29,9 @@ data "databricks_aws_crossaccount_policy" "cross_account" {
   provider = databricks.account
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** IAM Role - Databricks Cross-Account Role
-***REMOVED*** ============================================================================
+# ============================================================================
+# IAM Role - Databricks Cross-Account Role
+# ============================================================================
 
 resource "aws_iam_role" "cross_account_role" {
   name               = "${var.prefix}-cross-account-role"
@@ -48,6 +48,6 @@ resource "aws_iam_role_policy" "cross_account_policy" {
   policy = data.databricks_aws_crossaccount_policy.cross_account.json
 }
 
-***REMOVED*** Note: S3 access for workspace root storage is managed via bucket policy
-***REMOVED*** not via IAM role policies attached to the cross-account role
+# Note: S3 access for workspace root storage is managed via bucket policy
+# not via IAM role policies attached to the cross-account role
 

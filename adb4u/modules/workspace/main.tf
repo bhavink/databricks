@@ -6,14 +6,14 @@ resource "azurerm_databricks_workspace" "this" {
   name                        = var.workspace_name
   resource_group_name         = var.resource_group_name
   location                    = var.location
-  sku                         = "premium"  # Required for Unity Catalog
+  sku                         = "premium" # Required for Unity Catalog
   managed_resource_group_name = "${var.workspace_prefix}-managed-rg"
 
   # Public network access control
   # - true: Allows public internet access (needed for initial deployment from outside VNet)
   # - false: Forces Private Link only (air-gapped, requires VPN/Bastion/Jump Box access)
   public_network_access_enabled = var.enable_public_network_access
-  
+
   # Network Security Policy: Full Private requires Private Link
   network_security_group_rules_required = var.enable_private_link ? "NoAzureDatabricksRules" : "AllRules"
 
@@ -21,18 +21,18 @@ resource "azurerm_databricks_workspace" "this" {
   # This flag must be enabled if ANY CMK feature is used (Managed Services or DBFS Root)
   # See: https://github.com/hashicorp/terraform-provider-azurerm/blob/main/examples/databricks/customer-managed-key/dbfs/main.tf
   customer_managed_key_enabled = var.enable_cmk_managed_services || var.enable_cmk_dbfs_root ? true : false
-  
+
   # Customer-Managed Keys (CMK) for Managed Services
   # Encrypts notebooks, secrets, queries stored in control plane
   # See: https://github.com/hashicorp/terraform-provider-azurerm/blob/main/examples/databricks/customer-managed-key/managed-services/main.tf
   managed_services_cmk_key_vault_key_id = var.enable_cmk_managed_services ? var.cmk_key_vault_key_id : null
-  
+
   # Customer-Managed Keys (CMK) for Managed Disks
   # Encrypts cluster VM managed disks (data disks only, not OS disks)
   # See: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/databricks_workspace
-  managed_disk_cmk_key_vault_key_id = var.enable_cmk_managed_disks ? var.cmk_key_vault_key_id : null
+  managed_disk_cmk_key_vault_key_id                   = var.enable_cmk_managed_disks ? var.cmk_key_vault_key_id : null
   managed_disk_cmk_rotation_to_latest_version_enabled = var.enable_cmk_managed_disks ? true : null
-  
+
   # VNet injection with Secure Cluster Connectivity (NPIP)
   custom_parameters {
     # NPIP/SCC always enabled - no public IPs on cluster VMs
@@ -46,16 +46,16 @@ resource "azurerm_databricks_workspace" "this" {
     # NSG associations
     public_subnet_network_security_group_association_id  = var.public_subnet_nsg_association_id
     private_subnet_network_security_group_association_id = var.private_subnet_nsg_association_id
-    
+
     # Custom DBFS storage name (Full Private pattern only)
     storage_account_name = var.dbfs_storage_name != "" ? var.dbfs_storage_name : null
   }
 
   # Dependency: Key Vault access must be configured before workspace creation
   # This is handled by the deployment layer with depends_on
-  
+
   tags = var.tags
-  
+
   lifecycle {
     ignore_changes = [
       # Databricks manages these automatically in certain scenarios

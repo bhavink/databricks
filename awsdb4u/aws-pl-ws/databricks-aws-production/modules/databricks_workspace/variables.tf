@@ -49,9 +49,9 @@ variable "workspace_security_group_id" {
   type        = string
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint Configuration
+# ============================================================================
 
 variable "enable_private_link" {
   description = "Whether Databricks Private Link is enabled (creates both workspace and relay VPC endpoints)"
@@ -87,11 +87,11 @@ variable "tags" {
   default     = {}
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Private Access Settings
-***REMOVED*** NOTE: PAS is an ACCOUNT-LEVEL object that can be SHARED across multiple workspaces
-***REMOVED*** Typically used when multiple workspaces share a transit VPC for frontend Private Link
-***REMOVED*** ============================================================================
+# ============================================================================
+# Private Access Settings
+# NOTE: PAS is an ACCOUNT-LEVEL object that can be SHARED across multiple workspaces
+# Typically used when multiple workspaces share a transit VPC for frontend Private Link
+# ============================================================================
 
 variable "existing_private_access_settings_id" {
   description = <<-EOT
@@ -146,9 +146,9 @@ variable "private_access_level" {
   }
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** IP Access Lists (Optional)
-***REMOVED*** ============================================================================
+# ============================================================================
+# IP Access Lists (Optional)
+# ============================================================================
 
 variable "enable_ip_access_lists" {
   description = "Enable IP access lists for workspace security"
@@ -162,9 +162,9 @@ variable "allowed_ip_addresses" {
   default     = []
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace CMK (Optional)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace CMK (Optional)
+# ============================================================================
 
 variable "enable_workspace_cmk" {
   description = "Enable Customer Managed Keys for workspace encryption (both storage and managed services)"

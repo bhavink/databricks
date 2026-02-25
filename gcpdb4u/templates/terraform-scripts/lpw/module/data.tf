@@ -39,7 +39,7 @@ data "databricks_service_principal" "spn_role_user" {
 
 
 
-***REMOVED***gcs
+#gcs
 data "google_storage_bucket" "external_bucket" {
   for_each   = var.external_project && var.provision_workspace_resources ? local.unity_catalog_config_map : {}
   provider   = google.external

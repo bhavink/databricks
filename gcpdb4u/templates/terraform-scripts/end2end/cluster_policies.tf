@@ -1,6 +1,6 @@
-variable custom_tag_cost_center {}
-variable custom_tag_team {}
-variable cluster_policy1_name {}
+variable "custom_tag_cost_center" {}
+variable "custom_tag_team" {}
+variable "cluster_policy1_name" {}
 locals {
   default_policy = {
     "dbus_per_hour" : {
@@ -24,7 +24,7 @@ locals {
 }
 
 resource "databricks_cluster_policy" "fair_use" {
-  provider = databricks.workspace
+  provider   = databricks.workspace
   name       = "${var.cluster_policy1_name} cluster policy"
   definition = jsonencode(local.default_policy)
 
@@ -36,7 +36,7 @@ resource "databricks_cluster_policy" "fair_use" {
 }
 
 resource "databricks_permissions" "can_use_cluster_policyinstance_profile" {
-  provider = databricks.workspace
+  provider          = databricks.workspace
   cluster_policy_id = databricks_cluster_policy.fair_use.id
   access_control {
     group_name       = var.group_name1

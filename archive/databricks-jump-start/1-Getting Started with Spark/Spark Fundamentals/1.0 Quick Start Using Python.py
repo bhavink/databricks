@@ -1,53 +1,53 @@
-***REMOVED*** Databricks notebook source
-***REMOVED*** MAGIC %md ***REMOVED******REMOVED*** Quick Start Using Python
-***REMOVED*** MAGIC * Using a Databricks notebook to showcase DataFrame operations using Python
-***REMOVED*** MAGIC * Reference http://spark.apache.org/docs/latest/quick-start.html
+# Databricks notebook source
+# MAGIC %md ## Quick Start Using Python
+# MAGIC * Using a Databricks notebook to showcase DataFrame operations using Python
+# MAGIC * Reference http://spark.apache.org/docs/latest/quick-start.html
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Take a look at the file system
+# Take a look at the file system
 display(dbutils.fs.ls("/databricks-datasets/samples/docs/"))
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md DataFrames have ***transformations***, which return pointers to new DataFrames, and ***actions***, which return values.
+# MAGIC %md DataFrames have ***transformations***, which return pointers to new DataFrames, and ***actions***, which return values.
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** transformation
+# transformation
 textFile = spark.read.text("/databricks-datasets/samples/docs/README.md")
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** action
+# action
 textFile.count()
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Output the first line from the text file
+# Output the first line from the text file
 textFile.first()
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md 
-***REMOVED*** MAGIC Now we're using a filter ***transformation*** to return a new DataFrame with a subset of the items in the file.
+# MAGIC %md 
+# MAGIC Now we're using a filter ***transformation*** to return a new DataFrame with a subset of the items in the file.
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Filter all of the lines within the DataFrame
+# Filter all of the lines within the DataFrame
 linesWithSpark = textFile.filter(textFile.value.contains("Spark"))
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** MAGIC %md Notice that this completes quickly because it is a transformation but lacks any action.  
-***REMOVED*** MAGIC * But when performing the actions below (e.g. count, take) then you will see the executions.
+# MAGIC %md Notice that this completes quickly because it is a transformation but lacks any action.  
+# MAGIC * But when performing the actions below (e.g. count, take) then you will see the executions.
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Perform a count (action) 
+# Perform a count (action) 
 linesWithSpark.count()
 
-***REMOVED*** COMMAND ----------
+# COMMAND ----------
 
-***REMOVED*** Output the first five rows
+# Output the first five rows
 linesWithSpark.take(5)

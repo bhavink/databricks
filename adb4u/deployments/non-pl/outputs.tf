@@ -42,10 +42,10 @@ output "resources" {
       nat_ip     = module.networking.nat_gateway_public_ip
     }
     unity_catalog = {
-      metastore_id       = module.unity_catalog.metastore_id
-      metastore_name     = module.unity_catalog.metastore_name
-      external_location  = module.unity_catalog.external_location_name
-      external_storage   = module.unity_catalog.external_storage_account_name
+      metastore_id      = module.unity_catalog.metastore_id
+      metastore_name    = module.unity_catalog.metastore_name
+      external_location = module.unity_catalog.external_location_name
+      external_storage  = module.unity_catalog.external_storage_account_name
     }
     ncc = {
       id   = module.ncc.ncc_id
@@ -64,7 +64,7 @@ output "resources" {
       managed_disks         = var.enable_cmk_managed_disks
       dbfs_root             = var.enable_cmk_dbfs_root
       auto_rotation_enabled = local.create_key_vault ? true : null
-      disk_encryption_set   = var.enable_cmk_managed_disks ? {
+      disk_encryption_set = var.enable_cmk_managed_disks ? {
         resource_id  = module.workspace.disk_encryption_set_identity.resource_id
         principal_id = module.workspace.disk_encryption_set_identity.principal_id
       } : null
@@ -78,7 +78,7 @@ output "resources" {
 
 output "deployment_summary" {
   description = "Quick status overview of deployed resources"
-  value = <<-EOT
+  value       = <<-EOT
   
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ✅ Databricks Non-PL Workspace Deployed

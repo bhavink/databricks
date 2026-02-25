@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint - Workspace (Frontend - UI/API Access)
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint - Workspace (Frontend - UI/API Access)
+# ============================================================================
 
 resource "aws_vpc_endpoint" "workspace" {
   vpc_id              = aws_vpc.databricks_vpc.id
@@ -15,10 +15,10 @@ resource "aws_vpc_endpoint" "workspace" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint - Relay (Backend - Secure Cluster Connectivity)
-***REMOVED*** This is CRITICAL for Backend Private Link
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint - Relay (Backend - Secure Cluster Connectivity)
+# This is CRITICAL for Backend Private Link
+# ============================================================================
 
 resource "aws_vpc_endpoint" "relay" {
   vpc_id              = aws_vpc.databricks_vpc.id
@@ -33,9 +33,9 @@ resource "aws_vpc_endpoint" "relay" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint - S3 (Gateway Endpoint - Cost Effective)
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint - S3 (Gateway Endpoint - Cost Effective)
+# ============================================================================
 
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.databricks_vpc.id
@@ -52,9 +52,9 @@ resource "aws_vpc_endpoint" "s3" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint - STS (For IAM Role Assumption)
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint - STS (For IAM Role Assumption)
+# ============================================================================
 
 resource "aws_vpc_endpoint" "sts" {
   vpc_id              = aws_vpc.databricks_vpc.id
@@ -69,9 +69,9 @@ resource "aws_vpc_endpoint" "sts" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint - Kinesis (For Logging and Lineage)
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint - Kinesis (For Logging and Lineage)
+# ============================================================================
 
 resource "aws_vpc_endpoint" "kinesis" {
   vpc_id              = aws_vpc.databricks_vpc.id
@@ -86,12 +86,12 @@ resource "aws_vpc_endpoint" "kinesis" {
   })
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Register VPC Endpoints with Databricks (Account-Level)
-***REMOVED*** These resources register the AWS VPC endpoints with Databricks
-***REMOVED*** ============================================================================
+# ============================================================================
+# Register VPC Endpoints with Databricks (Account-Level)
+# These resources register the AWS VPC endpoints with Databricks
+# ============================================================================
 
-***REMOVED*** Register Workspace VPC Endpoint
+# Register Workspace VPC Endpoint
 resource "databricks_mws_vpc_endpoint" "workspace_vpce" {
   provider            = databricks.account
   account_id          = var.databricks_account_id
@@ -102,7 +102,7 @@ resource "databricks_mws_vpc_endpoint" "workspace_vpce" {
   depends_on = [aws_vpc_endpoint.workspace]
 }
 
-***REMOVED*** Register Relay VPC Endpoint (Backend Private Link)
+# Register Relay VPC Endpoint (Backend Private Link)
 resource "databricks_mws_vpc_endpoint" "relay_vpce" {
   provider            = databricks.account
   account_id          = var.databricks_account_id

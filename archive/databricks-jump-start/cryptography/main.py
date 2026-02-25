@@ -6,13 +6,13 @@ from pyspark.sql.types import *
 spark = get_spark()
 dbutils = get_dbutils(spark)
 
-***REMOVED*** to make it run on your local system add securables.py to (local)spark path
+# to make it run on your local system add securables.py to (local)spark path
 spark.sparkContext.addPyFile('./dist/cryptography-0.0.1-py3.5.egg')
 
 
 def get_key():
-    ***REMOVED***dbutils.secrets.setToken("dksomekey96")
-    ***REMOVED***encryptionKey = dbutils.secrets.get("bk","encryption_key")
+    #dbutils.secrets.setToken("dksomekey96")
+    #encryptionKey = dbutils.secrets.get("bk","encryption_key")
     encryptionKey = str('28cf740e10ea6502422755ec494fda6353760dd872c29abe8d6fd4baaebe5d6f')
     return encryptionKey
 
@@ -40,6 +40,6 @@ encrypted_df = df.select("age","workclass","education", "income" ,
 
 encrypted_df.show()
 
-***REMOVED*** decrypted_df = encrypted_df.select("education","encrypted_income",decrypt(lit(get_key()),"encrypted_income"))
+# decrypted_df = encrypted_df.select("education","encrypted_income",decrypt(lit(get_key()),"encrypted_income"))
 
-***REMOVED*** decrypted_df.show()
+# decrypted_df.show()

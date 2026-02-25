@@ -27,14 +27,14 @@ resource "azurerm_databricks_access_connector" "this" {
 # - Storage accounts will be destroyed even with data (no force_destroy needed)
 
 resource "azurerm_storage_account" "metastore" {
-  count                     = var.create_metastore_storage ? 1 : 0
-  name                      = local.metastore_storage_name
-  resource_group_name       = var.resource_group_name
-  location                  = var.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  is_hns_enabled            = true  # Hierarchical namespace for ADLS Gen2
-  min_tls_version           = "TLS1_2"
+  count                    = var.create_metastore_storage ? 1 : 0
+  name                     = local.metastore_storage_name
+  resource_group_name      = var.resource_group_name
+  location                 = var.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  is_hns_enabled           = true # Hierarchical namespace for ADLS Gen2
+  min_tls_version          = "TLS1_2"
 
   # Public network access control
   public_network_access_enabled = !var.enable_private_link_storage
@@ -69,14 +69,14 @@ resource "azurerm_role_assignment" "metastore_contributor" {
 # ==============================================
 
 resource "azurerm_storage_account" "external" {
-  count                     = var.create_external_location_storage ? 1 : 0
-  name                      = local.external_storage_name
-  resource_group_name       = var.resource_group_name
-  location                  = var.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  is_hns_enabled            = true  # Hierarchical namespace for ADLS Gen2
-  min_tls_version           = "TLS1_2"
+  count                    = var.create_external_location_storage ? 1 : 0
+  name                     = local.external_storage_name
+  resource_group_name      = var.resource_group_name
+  location                 = var.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  is_hns_enabled           = true # Hierarchical namespace for ADLS Gen2
+  min_tls_version          = "TLS1_2"
 
   # Public network access control
   public_network_access_enabled = !var.enable_private_link_storage
@@ -188,15 +188,15 @@ resource "azurerm_private_endpoint" "external_dfs" {
 
 resource "databricks_metastore" "this" {
   provider = databricks.account
-  
+
   count = var.create_metastore ? 1 : 0
   name  = var.metastore_name != "" ? var.metastore_name : "${var.workspace_prefix}-metastore-${var.location}"
-  
+
   storage_root = "abfss://${azurerm_storage_container.metastore[0].name}@${azurerm_storage_account.metastore[0].name}.dfs.core.windows.net/"
-  
+
   region        = var.location
-  force_destroy = true  # CRITICAL: Must be true to allow clean destroy of metastore with root credential
-  
+  force_destroy = true # CRITICAL: Must be true to allow clean destroy of metastore with root credential
+
   # IMPORTANT: Do not add lifecycle.ignore_changes for force_destroy
   # It will prevent clean destroy when you need to tear down resources
 
@@ -209,11 +209,11 @@ resource "databricks_metastore" "this" {
 # Account-level resource
 resource "databricks_metastore_data_access" "this" {
   provider = databricks.account
-  
+
   count        = var.create_metastore ? 1 : 0
   metastore_id = databricks_metastore.this[0].id
   name         = "${var.workspace_prefix}-metastore-access"
-  
+
   azure_managed_identity {
     access_connector_id = local.access_connector_id
   }
@@ -229,7 +229,7 @@ resource "databricks_metastore_data_access" "this" {
 # Account-level resource
 resource "databricks_metastore_assignment" "this" {
   provider = databricks.account
-  
+
   metastore_id = local.metastore_id
   workspace_id = var.workspace_id
 
@@ -247,10 +247,10 @@ resource "databricks_metastore_assignment" "this" {
 
 resource "databricks_storage_credential" "external" {
   provider = databricks.workspace
-  
+
   count = var.create_external_location_storage ? 1 : 0
   name  = "${var.workspace_prefix}-external-credential"
-  
+
   azure_managed_identity {
     access_connector_id = local.access_connector_id
   }
@@ -269,7 +269,7 @@ resource "databricks_storage_credential" "external" {
 
 resource "databricks_external_location" "this" {
   provider = databricks.workspace
-  
+
   count           = var.create_external_location_storage ? 1 : 0
   name            = local.external_location_name
   url             = "abfss://${azurerm_storage_container.external[0].name}@${azurerm_storage_account.external[0].name}.dfs.core.windows.net/"

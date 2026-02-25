@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** User Assignment Module - Variables
-***REMOVED*** ============================================================================
+# ============================================================================
+# User Assignment Module - Variables
+# ============================================================================
 
 variable "user_name" {
   description = "Email address of the user to assign as workspace admin (must exist in Databricks account console)"

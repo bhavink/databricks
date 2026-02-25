@@ -23,7 +23,7 @@
 # Get the NSG ID (works for both new and existing)
 locals {
   nsg_id_for_rules = local.nsg_id
-  
+
   # Only create custom NSG rules when workspace is fully locked down
   create_custom_nsg_rules = var.enable_private_link && !var.enable_public_network_access
 }

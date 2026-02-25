@@ -1,6 +1,6 @@
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Outputs
+# ============================================================================
 
 output "vpc_id" {
   description = "VPC ID"
@@ -12,9 +12,9 @@ output "vpc_cidr" {
   value       = aws_vpc.databricks_vpc.cidr_block
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Subnet Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Subnet Outputs
+# ============================================================================
 
 output "private_subnet_ids" {
   description = "Private subnet IDs for Databricks clusters"
@@ -31,9 +31,9 @@ output "public_subnet_ids" {
   value       = aws_subnet.public[*].id
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Security Group Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Security Group Outputs
+# ============================================================================
 
 output "workspace_security_group_id" {
   description = "Security group ID for Databricks workspace clusters"
@@ -45,9 +45,9 @@ output "vpce_security_group_id" {
   value       = aws_security_group.vpce_sg.id
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** VPC Endpoint Outputs (AWS Resources)
-***REMOVED*** ============================================================================
+# ============================================================================
+# VPC Endpoint Outputs (AWS Resources)
+# ============================================================================
 
 output "workspace_vpce_id" {
   description = "AWS VPC Endpoint ID for Workspace (null if disabled)"
@@ -74,9 +74,9 @@ output "kinesis_vpce_id" {
   value       = aws_vpc_endpoint.kinesis.id
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Databricks MWS VPC Endpoint Outputs (Registered with Databricks)
-***REMOVED*** ============================================================================
+# ============================================================================
+# Databricks MWS VPC Endpoint Outputs (Registered with Databricks)
+# ============================================================================
 
 output "databricks_workspace_vpce_id" {
   description = "Databricks MWS workspace VPC endpoint ID (for workspace configuration, null if disabled)"
@@ -88,9 +88,9 @@ output "databricks_relay_vpce_id" {
   value       = var.enable_private_link ? databricks_mws_vpc_endpoint.relay_vpce[0].vpc_endpoint_id : null
 }
 
-***REMOVED*** ============================================================================
-***REMOVED*** Gateway and Routing Outputs
-***REMOVED*** ============================================================================
+# ============================================================================
+# Gateway and Routing Outputs
+# ============================================================================
 
 output "internet_gateway_id" {
   description = "Internet Gateway ID"

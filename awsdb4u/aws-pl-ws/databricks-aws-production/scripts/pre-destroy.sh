@@ -1,22 +1,22 @@
-***REMOVED***!/bin/bash
-***REMOVED*** =============================================================================
-***REMOVED*** Pre-Destroy Script - Cleanup Databricks Resources
-***REMOVED*** =============================================================================
-***REMOVED*** This script ensures all Databricks-managed resources are terminated before
-***REMOVED*** running terraform destroy to prevent dependency issues.
-***REMOVED***
-***REMOVED*** Usage: ./scripts/pre-destroy.sh [--profile PROFILE] [--region REGION]
-***REMOVED*** =============================================================================
+#!/bin/bash
+# =============================================================================
+# Pre-Destroy Script - Cleanup Databricks Resources
+# =============================================================================
+# This script ensures all Databricks-managed resources are terminated before
+# running terraform destroy to prevent dependency issues.
+#
+# Usage: ./scripts/pre-destroy.sh [--profile PROFILE] [--region REGION]
+# =============================================================================
 
 set -e
 
-***REMOVED*** Default values
+# Default values
 PROFILE="${AWS_PROFILE:-default}"
 REGION="${AWS_REGION:-us-west-2}"
 VPC_ID=""
 
-***REMOVED*** Parse arguments
-while [[ $***REMOVED*** -gt 0 ]]; do
+# Parse arguments
+while [[ $# -gt 0 ]]; do
   case $1 in
     --profile)
       PROFILE="$2"
@@ -44,7 +44,7 @@ echo "Profile: $PROFILE"
 echo "Region:  $REGION"
 echo ""
 
-***REMOVED*** Get VPC ID from Terraform state if not provided
+# Get VPC ID from Terraform state if not provided
 if [ -z "$VPC_ID" ]; then
   echo "Getting VPC ID from Terraform state..."
   VPC_ID=$(terraform output -raw vpc_id 2>/dev/null || echo "")
@@ -68,9 +68,9 @@ fi
 echo "VPC ID: $VPC_ID"
 echo ""
 
-***REMOVED*** =============================================================================
-***REMOVED*** Step 1: Terminate all EC2 instances in the VPC
-***REMOVED*** =============================================================================
+# =============================================================================
+# Step 1: Terminate all EC2 instances in the VPC
+# =============================================================================
 echo "🔍 Checking for EC2 instances in VPC..."
 INSTANCE_IDS=$(aws ec2 describe-instances \
   --filters "Name=vpc-id,Values=$VPC_ID" "Name=instance-state-name,Values=running,pending,stopping,stopped" \
@@ -98,9 +98,9 @@ fi
 
 echo ""
 
-***REMOVED*** =============================================================================
-***REMOVED*** Step 2: Delete all unattached ENIs in the VPC
-***REMOVED*** =============================================================================
+# =============================================================================
+# Step 2: Delete all unattached ENIs in the VPC
+# =============================================================================
 echo "🔍 Checking for network interfaces in VPC..."
 ENI_IDS=$(aws ec2 describe-network-interfaces \
   --filters "Name=vpc-id,Values=$VPC_ID" "Name=status,Values=available" \
@@ -125,9 +125,9 @@ fi
 
 echo ""
 
-***REMOVED*** =============================================================================
-***REMOVED*** Step 3: Wait a few seconds for AWS to propagate changes
-***REMOVED*** =============================================================================
+# =============================================================================
+# Step 3: Wait a few seconds for AWS to propagate changes
+# =============================================================================
 echo "⏳ Waiting for AWS to propagate changes (5 seconds)..."
 sleep 5
 

@@ -1,145 +1,145 @@
-***REMOVED*** ============================================================================
-***REMOVED*** AUTHENTICATION CONFIGURATION
-***REMOVED*** ============================================================================
-***REMOVED*** This configuration uses ENVIRONMENT VARIABLES for sensitive credentials.
-***REMOVED*** Set these in your ~/.zshrc (or ~/.bashrc) file:
-***REMOVED***
-***REMOVED*** Databricks Authentication (Required):
-***REMOVED***   export TF_VAR_databricks_account_id="your-account-id"
-***REMOVED***   export TF_VAR_databricks_client_id="your-service-principal-client-id"
-***REMOVED***   export TF_VAR_databricks_client_secret="your-service-principal-client-secret"
-***REMOVED***
-***REMOVED*** AWS Authentication (Choose ONE option):
-***REMOVED***
-***REMOVED***   Option 1: AWS CLI Profile (Recommended - set aws_profile below)
-***REMOVED***     - Uses named profile from ~/.aws/credentials or ~/.aws/config
-***REMOVED***     - Set aws_profile = "your-profile-name" below
-***REMOVED***
-***REMOVED***   Option 2: AWS Environment Variables
-***REMOVED***     export AWS_ACCESS_KEY_ID="your-access-key"
-***REMOVED***     export AWS_SECRET_ACCESS_KEY="your-secret-key"
-***REMOVED***     export AWS_SESSION_TOKEN="your-session-token"  ***REMOVED*** Optional, for temporary credentials
-***REMOVED***     - Leave aws_profile commented out or empty below
-***REMOVED***
-***REMOVED***   Option 3: AWS SSO (Recommended for enterprise)
-***REMOVED***     - Run: aws sso login --profile your-profile-name
-***REMOVED***     - Set aws_profile = "your-profile-name" below
-***REMOVED***     - Or leave aws_profile empty to use default SSO session
-***REMOVED***
-***REMOVED***   Option 4: IAM Role (for EC2/ECS/Lambda execution)
-***REMOVED***     - Leave aws_profile commented out or empty
-***REMOVED***     - AWS SDK automatically uses instance/task role
-***REMOVED***
-***REMOVED*** ============================================================================
+# ============================================================================
+# AUTHENTICATION CONFIGURATION
+# ============================================================================
+# This configuration uses ENVIRONMENT VARIABLES for sensitive credentials.
+# Set these in your ~/.zshrc (or ~/.bashrc) file:
+#
+# Databricks Authentication (Required):
+#   export TF_VAR_databricks_account_id="your-account-id"
+#   export TF_VAR_databricks_client_id="your-service-principal-client-id"
+#   export TF_VAR_databricks_client_secret="your-service-principal-client-secret"
+#
+# AWS Authentication (Choose ONE option):
+#
+#   Option 1: AWS CLI Profile (Recommended - set aws_profile below)
+#     - Uses named profile from ~/.aws/credentials or ~/.aws/config
+#     - Set aws_profile = "your-profile-name" below
+#
+#   Option 2: AWS Environment Variables
+#     export AWS_ACCESS_KEY_ID="your-access-key"
+#     export AWS_SECRET_ACCESS_KEY="your-secret-key"
+#     export AWS_SESSION_TOKEN="your-session-token"  # Optional, for temporary credentials
+#     - Leave aws_profile commented out or empty below
+#
+#   Option 3: AWS SSO (Recommended for enterprise)
+#     - Run: aws sso login --profile your-profile-name
+#     - Set aws_profile = "your-profile-name" below
+#     - Or leave aws_profile empty to use default SSO session
+#
+#   Option 4: IAM Role (for EC2/ECS/Lambda execution)
+#     - Leave aws_profile commented out or empty
+#     - AWS SDK automatically uses instance/task role
+#
+# ============================================================================
 
-***REMOVED*** ============================================================================
-***REMOVED*** AWS Account Configuration
-***REMOVED*** ============================================================================
-***REMOVED*** aws_account_id = "123456789012"
-***REMOVED*** aws_profile    = "your-aws-profile-name"  ***REMOVED*** Use named profile, or leave empty for env vars/SSO/IAM role
+# ============================================================================
+# AWS Account Configuration
+# ============================================================================
+# aws_account_id = "123456789012"
+# aws_profile    = "your-aws-profile-name"  # Use named profile, or leave empty for env vars/SSO/IAM role
 
-***REMOVED*** Alternative: Set credentials via environment variables instead
-***REMOVED*** export TF_VAR_aws_account_id="123456789012"
-***REMOVED*** Then comment out aws_account_id above
+# Alternative: Set credentials via environment variables instead
+# export TF_VAR_aws_account_id="123456789012"
+# Then comment out aws_account_id above
 
-***REMOVED*** ============================================================================
-***REMOVED*** Workspace Configuration
-***REMOVED*** ============================================================================
+# ============================================================================
+# Workspace Configuration
+# ============================================================================
 workspace_name = "my-databricks-workspace"
 prefix         = "dbx"
 region         = "us-west-1"
 
-***REMOVED*** ============================================================================
-***REMOVED*** Network Configuration
-***REMOVED*** ============================================================================
-***REMOVED*** WARNING: Avoid Databricks reserved ranges: 127.187.216.0/24, 192.168.216.0/24, 198.18.216.0/24, 172.17.0.0/16
-vpc_cidr                 = "10.0.0.0/22"                        ***REMOVED*** /22 = 1024 IPs
-private_subnet_cidrs     = ["10.0.1.0/24", "10.0.2.0/24"]      ***REMOVED*** /24 = 251 usable IPs per subnet (clusters)
-privatelink_subnet_cidrs = ["10.0.3.0/26", "10.0.3.64/26"]     ***REMOVED*** /26 = 59 usable IPs (VPC endpoints)
-public_subnet_cidrs      = ["10.0.0.0/26", "10.0.0.64/26"]     ***REMOVED*** /26 = 59 usable IPs (NAT gateways)
+# ============================================================================
+# Network Configuration
+# ============================================================================
+# WARNING: Avoid Databricks reserved ranges: 127.187.216.0/24, 192.168.216.0/24, 198.18.216.0/24, 172.17.0.0/16
+vpc_cidr                 = "10.0.0.0/22"                        # /22 = 1024 IPs
+private_subnet_cidrs     = ["10.0.1.0/24", "10.0.2.0/24"]      # /24 = 251 usable IPs per subnet (clusters)
+privatelink_subnet_cidrs = ["10.0.3.0/26", "10.0.3.64/26"]     # /26 = 59 usable IPs (VPC endpoints)
+public_subnet_cidrs      = ["10.0.0.0/26", "10.0.0.64/26"]     # /26 = 59 usable IPs (NAT gateways)
 
-***REMOVED*** Availability Zones (auto-detect recommended - leave commented or use manual override)
-***REMOVED*** availability_zones = ["us-west-1a", "us-west-1c"]  ***REMOVED*** Must be exactly 2 AZs
+# Availability Zones (auto-detect recommended - leave commented or use manual override)
+# availability_zones = ["us-west-1a", "us-west-1c"]  # Must be exactly 2 AZs
 
-***REMOVED*** ============================================================================
-***REMOVED*** Private Link Configuration
-***REMOVED*** ============================================================================
-enable_private_link = true  ***REMOVED*** Creates VPC endpoints for Databricks workspace (UI/API) and relay (SCC)
+# ============================================================================
+# Private Link Configuration
+# ============================================================================
+enable_private_link = true  # Creates VPC endpoints for Databricks workspace (UI/API) and relay (SCC)
 
-***REMOVED*** Public Access Control (when Private Link is enabled):
-***REMOVED***   false (default): Front-end connection exclusively via PrivateLink (blocks public internet)
-***REMOVED***   true: Front-end connection via both PrivateLink and public internet
-***REMOVED*** See: https://docs.databricks.com/aws/en/security/network/classic/private-access-settings
+# Public Access Control (when Private Link is enabled):
+#   false (default): Front-end connection exclusively via PrivateLink (blocks public internet)
+#   true: Front-end connection via both PrivateLink and public internet
+# See: https://docs.databricks.com/aws/en/security/network/classic/private-access-settings
 
 public_access_enabled = false
 
-***REMOVED*** Optional: Reuse existing Private Access Settings (PAS) across multiple workspaces
-***REMOVED*** PAS is an ACCOUNT-LEVEL object that can be shared across workspaces in the same region
-***REMOVED*** Use Case: Deploy multiple workspaces sharing the same Private Link configuration
-***REMOVED*** 
-***REMOVED*** Multi-Workspace Pattern:
-***REMOVED***   - First workspace: Leave empty/commented (creates new PAS, use output PAS ID)
-***REMOVED***   - Second+ workspaces: Set to PAS ID from first workspace
-***REMOVED*** 
-***REMOVED*** Example:
-***REMOVED***   existing_private_access_settings_id = "abc-123-def-456"
-***REMOVED*** 
-***REMOVED*** Note: Only relevant when enable_private_link = true
+# Optional: Reuse existing Private Access Settings (PAS) across multiple workspaces
+# PAS is an ACCOUNT-LEVEL object that can be shared across workspaces in the same region
+# Use Case: Deploy multiple workspaces sharing the same Private Link configuration
+# 
+# Multi-Workspace Pattern:
+#   - First workspace: Leave empty/commented (creates new PAS, use output PAS ID)
+#   - Second+ workspaces: Set to PAS ID from first workspace
+# 
+# Example:
+#   existing_private_access_settings_id = "abc-123-def-456"
+# 
+# Note: Only relevant when enable_private_link = true
 
-***REMOVED*** existing_private_access_settings_id = ""
+# existing_private_access_settings_id = ""
 
-***REMOVED*** Optional: Override region-specific VPCE service names (usually auto-detected)
-***REMOVED*** See: https://docs.databricks.com/resources/supported-regions.html
-***REMOVED*** workspace_vpce_service = "com.amazonaws.vpce.us-west-1.vpce-svc-xxxxxxxxxxxxxxxxx"
-***REMOVED*** relay_vpce_service     = "com.amazonaws.vpce.us-west-1.vpce-svc-xxxxxxxxxxxxxxxxx"
+# Optional: Override region-specific VPCE service names (usually auto-detected)
+# See: https://docs.databricks.com/resources/supported-regions.html
+# workspace_vpce_service = "com.amazonaws.vpce.us-west-1.vpce-svc-xxxxxxxxxxxxxxxxx"
+# relay_vpce_service     = "com.amazonaws.vpce.us-west-1.vpce-svc-xxxxxxxxxxxxxxxxx"
 
-***REMOVED*** ============================================================================
-***REMOVED*** S3 Bucket Configuration
-***REMOVED*** ============================================================================
-***REMOVED*** Bucket names must be globally unique across all AWS accounts.
-***REMOVED*** A random suffix is automatically added by Terraform (e.g., "-a1b2c3d4").
-***REMOVED*** Choose descriptive, DNS-compliant names (lowercase, hyphens only).
+# ============================================================================
+# S3 Bucket Configuration
+# ============================================================================
+# Bucket names must be globally unique across all AWS accounts.
+# A random suffix is automatically added by Terraform (e.g., "-a1b2c3d4").
+# Choose descriptive, DNS-compliant names (lowercase, hyphens only).
 
 root_storage_bucket_name                = "my-company-dbx-root-storage"
 unity_catalog_bucket_name               = "my-company-dbx-uc-metastore"
 unity_catalog_root_storage_bucket_name  = "my-company-dbx-uc-root-storage"
 unity_catalog_external_bucket_name      = "my-company-dbx-uc-external"
 
-***REMOVED*** ============================================================================
-***REMOVED*** Unity Catalog Configuration
-***REMOVED*** ============================================================================
-workspace_catalog_name = "prod"  ***REMOVED*** Catalog name for workspace
+# ============================================================================
+# Unity Catalog Configuration
+# ============================================================================
+workspace_catalog_name = "prod"  # Catalog name for workspace
 
-***REMOVED*** Optional: Use existing Unity Catalog metastore instead of creating new one
-***REMOVED*** If provided, skips metastore creation and uses existing metastore
-***REMOVED*** Useful for multi-workspace deployments sharing a single metastore
-***REMOVED*** metastore_id = ""
+# Optional: Use existing Unity Catalog metastore instead of creating new one
+# If provided, skips metastore creation and uses existing metastore
+# Useful for multi-workspace deployments sharing a single metastore
+# metastore_id = ""
 
-***REMOVED*** ============================================================================
-***REMOVED*** Encryption Configuration
-***REMOVED*** ============================================================================
-***REMOVED*** Layer 1: S3 Bucket Encryption (Unity Catalog and Root Bucket)
-enable_encryption = true                     ***REMOVED*** SSE-S3 or SSE-KMS for S3 buckets
-kms_key_deletion_window = 30                  ***REMOVED*** Days before key deletion (7-30)
+# ============================================================================
+# Encryption Configuration
+# ============================================================================
+# Layer 1: S3 Bucket Encryption (Unity Catalog and Root Bucket)
+enable_encryption = true                     # SSE-S3 or SSE-KMS for S3 buckets
+kms_key_deletion_window = 30                  # Days before key deletion (7-30)
 
-***REMOVED*** Layer 2: Databricks Workspace CMK (Independent from S3 encryption)
-***REMOVED*** Encrypts: DBFS (root storage), EBS volumes, Managed Services keys
-***REMOVED*** See: https://docs.databricks.com/aws/en/security/keys/customer-managed-keys-managed-services-aws.html
-***REMOVED*** See: https://docs.databricks.com/aws/en/security/keys/customer-managed-keys-storage-aws.html
-enable_workspace_cmk = false                  ***REMOVED*** Customer-Managed Keys for workspace
+# Layer 2: Databricks Workspace CMK (Independent from S3 encryption)
+# Encrypts: DBFS (root storage), EBS volumes, Managed Services keys
+# See: https://docs.databricks.com/aws/en/security/keys/customer-managed-keys-managed-services-aws.html
+# See: https://docs.databricks.com/aws/en/security/keys/customer-managed-keys-storage-aws.html
+enable_workspace_cmk = false                  # Customer-Managed Keys for workspace
 
-***REMOVED*** Optional: Use existing KMS key for workspace CMK (requires BOTH arn AND alias)
-***REMOVED*** If not provided, a new key will be created
-***REMOVED*** existing_workspace_cmk_key_arn   = "arn:aws:kms:us-west-1:123456789012:key/12345678-1234-1234-1234-123456789012"
-***REMOVED*** existing_workspace_cmk_key_alias = "alias/databricks-workspace-cmk"
+# Optional: Use existing KMS key for workspace CMK (requires BOTH arn AND alias)
+# If not provided, a new key will be created
+# existing_workspace_cmk_key_arn   = "arn:aws:kms:us-west-1:123456789012:key/12345678-1234-1234-1234-123456789012"
+# existing_workspace_cmk_key_alias = "alias/databricks-workspace-cmk"
 
-***REMOVED*** Key Rotation: AWS KMS automatic key rotation is NOT supported for Databricks workspace CMK.
-***REMOVED*** Manual rotation requires creating new key configuration and updating workspace (causes downtime).
-***REMOVED*** See: https://docs.databricks.com/aws/en/security/keys/configure-customer-managed-keys***REMOVED***rotate-an-existing-key
+# Key Rotation: AWS KMS automatic key rotation is NOT supported for Databricks workspace CMK.
+# Manual rotation requires creating new key configuration and updating workspace (causes downtime).
+# See: https://docs.databricks.com/aws/en/security/keys/configure-customer-managed-keys#rotate-an-existing-key
 
-***REMOVED*** ============================================================================
-***REMOVED*** Tagging
-***REMOVED*** ============================================================================
+# ============================================================================
+# Tagging
+# ============================================================================
 tags = {
   Environment = "dev"
   ManagedBy   = "terraform"

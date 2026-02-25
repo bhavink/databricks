@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "1b74040f-f41b-46e2-b60d-df23010650b9",
 		"name": "zPermissions",
-		"description": "This feature is in [Public Preview](https://docs.microsoft.com/azure/databricks/release-notes/release-types).\n\nThe Permissions API supports several objects and endpoints:\n\n* **[Token permissions](***REMOVED***tag/Token-permissions)** — Manage which users can create or use tokens.\n\n* **[Cluster permissions](***REMOVED***tag/Cluster-permissions)** — Manage which users can manage, restart, or attach to clusters.\n\n* **[Pool permissions](***REMOVED***tag/Instance-pool-permissions)** — Manage which users can manage or attach to pools. Some APIs and documentation refer to pools as _instance pools_.\n\n* **[Job permissions](***REMOVED***tag/Job-permissions)** — Manage which users can view, manage, trigger, cancel, or own a job.\n\n* **[Notebook permissions](***REMOVED***tag/Notebook-permissions)** — Manage which users can read, run, edit or manage a notebook.\n\n* **[Directory permissions](***REMOVED***tag/Directory-permissions)** — Manage which users can read, run, edit, or manage all notebooks in a directory.\n\n* **[MLflow registered model permissions](***REMOVED***tag/Registered-model-permissions)** — Manage which users can read, edit, or manage MLflow registered models.\n\n***REMOVED******REMOVED******REMOVED*** Permission Inheritance \nIn some cases, objects can inherit permissions. Object types vary in how they handle inherited permissions from parent objects and root objects of the same object type. View JSON responses for details. Permissions in responses include the `inherited` property set to `true` if those permissions were inherited. In that case, the property `inherited_from_object` indicates from what object it inherited those permissions.\n\nKeep in mind the following rules:\n\n* A root object of each object type does not inherit permissions.\n\n* For tokens, you set permissions on the root object of that type so those object types never inherit permissions.\n\n* For directories, permissions can be inherited from all descendent directories. However, you can set permissions directly on the root directory and it has no parent, so the root directory never inherits permissions.\n\n* All other object types (clusters, pools, jobs, notebooks, registered models) inherit permissions from their root object.\n\nClusters and notebooks can inherit permissions from other object types:\n* Clusters inherit permissions from the root cluster object. Additionally, if the cluster is created from a job, the cluster also inherits permissions from the job.\n\n* Notebooks inherit permissions from descendent directories, similar to how directories inherit permissions from their descendent directories. For example, a notebook with path `/Users/jsmith@example.com/myNotebook` can inherit permissions from **all** of the following objects: `/` (root directory), `/Users`, and `/Users/jsmith@example.com`.\n\nFor every object that you can set direct permissions on, the direct permissions in the JSON response have `inherited` set to `false`.",
+		"description": "This feature is in [Public Preview](https://docs.microsoft.com/azure/databricks/release-notes/release-types).\n\nThe Permissions API supports several objects and endpoints:\n\n* **[Token permissions](#tag/Token-permissions)** — Manage which users can create or use tokens.\n\n* **[Cluster permissions](#tag/Cluster-permissions)** — Manage which users can manage, restart, or attach to clusters.\n\n* **[Pool permissions](#tag/Instance-pool-permissions)** — Manage which users can manage or attach to pools. Some APIs and documentation refer to pools as _instance pools_.\n\n* **[Job permissions](#tag/Job-permissions)** — Manage which users can view, manage, trigger, cancel, or own a job.\n\n* **[Notebook permissions](#tag/Notebook-permissions)** — Manage which users can read, run, edit or manage a notebook.\n\n* **[Directory permissions](#tag/Directory-permissions)** — Manage which users can read, run, edit, or manage all notebooks in a directory.\n\n* **[MLflow registered model permissions](#tag/Registered-model-permissions)** — Manage which users can read, edit, or manage MLflow registered models.\n\n### Permission Inheritance \nIn some cases, objects can inherit permissions. Object types vary in how they handle inherited permissions from parent objects and root objects of the same object type. View JSON responses for details. Permissions in responses include the `inherited` property set to `true` if those permissions were inherited. In that case, the property `inherited_from_object` indicates from what object it inherited those permissions.\n\nKeep in mind the following rules:\n\n* A root object of each object type does not inherit permissions.\n\n* For tokens, you set permissions on the root object of that type so those object types never inherit permissions.\n\n* For directories, permissions can be inherited from all descendent directories. However, you can set permissions directly on the root directory and it has no parent, so the root directory never inherits permissions.\n\n* All other object types (clusters, pools, jobs, notebooks, registered models) inherit permissions from their root object.\n\nClusters and notebooks can inherit permissions from other object types:\n* Clusters inherit permissions from the root cluster object. Additionally, if the cluster is created from a job, the cluster also inherits permissions from the job.\n\n* Notebooks inherit permissions from descendent directories, similar to how directories inherit permissions from their descendent directories. For example, a notebook with path `/Users/jsmith@example.com/myNotebook` can inherit permissions from **all** of the following objects: `/` (root directory), `/Users`, and `/Users/jsmith@example.com`.\n\nFor every object that you can set direct permissions on, the direct permissions in the JSON response have `inherited` set to `false`.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -28,7 +28,7 @@
 										"tokens"
 									]
 								},
-								"description": "Get the set of all token permissions for the workspace. For an overview, see the [introduction to token permissions](***REMOVED***tag/Token-permissions)."
+								"description": "Get the set of all token permissions for the workspace. For an overview, see the [introduction to token permissions](#tag/Token-permissions)."
 							},
 							"response": [
 								{
@@ -174,7 +174,7 @@
 										"tokens"
 									]
 								},
-								"description": "Grant token permissions for one or more users, groups, or service principals. You can only grant the Can Use (`CAN_USE`) permission. The Can Manage (`CAN_MANAGE`) permission level cannot be granted with this API because it is tied automatically to membership in the `admins` group.\n\n**IMPORTANT:** You cannot use this request to revoke (remove) any permissions. The only way to remove permissions is with the [replace token permissions for entire workspace API](***REMOVED***operation/update-all-permissions), which requires you specify the complete set of permissions for all objects that are granted permissions.\n\nTo grant Can Use permission, in the `access_control_list` array in the request body, create an array element for the target object and set its name property (varies by object type) and `permission_level` property to `CAN_USE`.\n\nTo update and replace permissions for all entities for the entire workspace, see [replace token permissions for entire workspace](***REMOVED***operation/update-all-permissions).\n\nFor an overview, see the [introduction to token permissions](***REMOVED***tag/Token-permissions)."
+								"description": "Grant token permissions for one or more users, groups, or service principals. You can only grant the Can Use (`CAN_USE`) permission. The Can Manage (`CAN_MANAGE`) permission level cannot be granted with this API because it is tied automatically to membership in the `admins` group.\n\n**IMPORTANT:** You cannot use this request to revoke (remove) any permissions. The only way to remove permissions is with the [replace token permissions for entire workspace API](#operation/update-all-permissions), which requires you specify the complete set of permissions for all objects that are granted permissions.\n\nTo grant Can Use permission, in the `access_control_list` array in the request body, create an array element for the target object and set its name property (varies by object type) and `permission_level` property to `CAN_USE`.\n\nTo update and replace permissions for all entities for the entire workspace, see [replace token permissions for entire workspace](#operation/update-all-permissions).\n\nFor an overview, see the [introduction to token permissions](#tag/Token-permissions)."
 							},
 							"response": [
 								{
@@ -336,7 +336,7 @@
 										"tokens"
 									]
 								},
-								"description": "Update all token permissions for all users, groups, and service principals for the entire workspace. The permissions that you specify in this request overwrite the existing permissions entirely. You must provide a complete set of all permissions for all objects in one request.\n\nAt the end of processing your request, all users and service principals that do not have either `CAN_USE` or `CAN_MANAGE` permission either explicitly or implicitly due to group assignment no longer have any tokens permissions. Affected users or service principals immediately have all their tokens deleted.\n\nNotes about the special two built-in groups:\n\n* By default, the all users group (group `users`) has `CAN_USE` access. To remove that default access, do not include it in the request. You can add explicit `CAN_USE` access for any other entities.\n* You are required to grant the administrators group (group `admins`) the `CAN_MANAGE` permission. It is unsupported to grant this permission to any other entities.\n**WARNING:** This request has powerful effects for workspace security configuration and on a workspace's users if they already use tokens. Use with caution. This request overwrites all existing token permissions with the data in the request body. By omitting reference to an entity that previously had permissions, access is stripped and existing tokens are permanently deleted.\n\nTo grant token permissions for one specific entity rather than the entire workspace, instead see [update tokens permissions for a specific object](***REMOVED***operation/set-permissions). That API can only add permissions, not revoke permissions.\n\nFor an overview, see the [introduction to token permissions](***REMOVED***tag/Token-permissions)."
+								"description": "Update all token permissions for all users, groups, and service principals for the entire workspace. The permissions that you specify in this request overwrite the existing permissions entirely. You must provide a complete set of all permissions for all objects in one request.\n\nAt the end of processing your request, all users and service principals that do not have either `CAN_USE` or `CAN_MANAGE` permission either explicitly or implicitly due to group assignment no longer have any tokens permissions. Affected users or service principals immediately have all their tokens deleted.\n\nNotes about the special two built-in groups:\n\n* By default, the all users group (group `users`) has `CAN_USE` access. To remove that default access, do not include it in the request. You can add explicit `CAN_USE` access for any other entities.\n* You are required to grant the administrators group (group `admins`) the `CAN_MANAGE` permission. It is unsupported to grant this permission to any other entities.\n**WARNING:** This request has powerful effects for workspace security configuration and on a workspace's users if they already use tokens. Use with caution. This request overwrites all existing token permissions with the data in the request body. By omitting reference to an entity that previously had permissions, access is stripped and existing tokens are permanently deleted.\n\nTo grant token permissions for one specific entity rather than the entire workspace, instead see [update tokens permissions for a specific object](#operation/set-permissions). That API can only add permissions, not revoke permissions.\n\nFor an overview, see the [introduction to token permissions](#tag/Token-permissions)."
 							},
 							"response": [
 								{
@@ -490,7 +490,7 @@
 										"permissionLevels"
 									]
 								},
-								"description": "Returns a JSON representation of the possible permissions levels for tokens. For details, see the [required token permission levels for various actions](***REMOVED***tag/Token-permissions). The results of this request do **not** change based on the state of the workspace or the permissions of the calling user. This request is published for consistency with other permissions APIs."
+								"description": "Returns a JSON representation of the possible permissions levels for tokens. For details, see the [required token permission levels for various actions](#tag/Token-permissions). The results of this request do **not** change based on the state of the workspace or the permissions of the calling user. This request is published for consistency with other permissions APIs."
 							},
 							"response": [
 								{
@@ -817,7 +817,7 @@
 										}
 									]
 								},
-								"description": "Grant cluster permissions for one or more users, groups, or service principals.\n\nThis request only grants (adds) permissions. To revoke, use the [replace all cluster permissions](***REMOVED***operation/update-all-cluster-permissions) operation."
+								"description": "Grant cluster permissions for one or more users, groups, or service principals.\n\nThis request only grants (adds) permissions. To revoke, use the [replace all cluster permissions](#operation/update-all-cluster-permissions) operation."
 							},
 							"response": [
 								{
@@ -1535,7 +1535,7 @@
 										}
 									]
 								},
-								"description": "Grant pool permissions for one or more users, groups, or service principal.\n\nThis request only grants (adds) permissions. To revoke, use the [replace all pool permissions](***REMOVED***operation/update-all-instance-pool-permissions) operation."
+								"description": "Grant pool permissions for one or more users, groups, or service principal.\n\nThis request only grants (adds) permissions. To revoke, use the [replace all pool permissions](#operation/update-all-instance-pool-permissions) operation."
 							},
 							"response": [
 								{
@@ -2252,7 +2252,7 @@
 										}
 									]
 								},
-								"description": "Grant jobs permissions for one or more users, groups, or service principals.\n\nThis request only grants (adds) permissions. To revoke, use the [replace all job permissions](***REMOVED***operation/update-all-job-permissions) operation."
+								"description": "Grant jobs permissions for one or more users, groups, or service principals.\n\nThis request only grants (adds) permissions. To revoke, use the [replace all job permissions](#operation/update-all-job-permissions) operation."
 							},
 							"response": [
 								{
@@ -2969,7 +2969,7 @@
 										}
 									]
 								},
-								"description": "Grant a notebook new permissions for one or more users, groups, or service principals.\n\nThis request only grants (adds) permissions. To revoke, use the [replace all notebook permissions](***REMOVED***operation/update-all-notebook-permissions) operation."
+								"description": "Grant a notebook new permissions for one or more users, groups, or service principals.\n\nThis request only grants (adds) permissions. To revoke, use the [replace all notebook permissions](#operation/update-all-notebook-permissions) operation."
 							},
 							"response": [
 								{
@@ -3687,7 +3687,7 @@
 										}
 									]
 								},
-								"description": "Grant a directory new permissions for one or more users, groups, or service principals.\n\nThis request only grants (adds) permissions. To revoke, use the [replace all directory permissions](***REMOVED***operation/update-all-directory-permissions) operation."
+								"description": "Grant a directory new permissions for one or more users, groups, or service principals.\n\nThis request only grants (adds) permissions. To revoke, use the [replace all directory permissions](#operation/update-all-directory-permissions) operation."
 							},
 							"response": [
 								{

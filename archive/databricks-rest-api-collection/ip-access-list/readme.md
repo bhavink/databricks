@@ -14,11 +14,11 @@ This is what this feature enables. It will provide admins a way to set a whiteli
 Update postman collection
 ===============
 
-- get a databricks platform token aka PAT for [azure](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication***REMOVED***authentication) or [aws](https://docs.databricks.com/dev-tools/api/latest/authentication.html***REMOVED***generate-a-token)
+- get a databricks platform token aka PAT for [azure](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/authentication#authentication) or [aws](https://docs.databricks.com/dev-tools/api/latest/authentication.html#generate-a-token)
 - Use PAT as an authentication bearer token to invoke API's
 - workspaceUrl variable is used to decouple cloud specific databricks control plane endpoints
 e.g. https://[your-az-region].azuredatabricks.net
 
-- Edit postman collection and add an [environment](https://learning.postman.com/docs/postman/variables-and-environments/variables/***REMOVED***variables-quick-start)
+- Edit postman collection and add an [environment](https://learning.postman.com/docs/postman/variables-and-environments/variables/#variables-quick-start)
 - Add ``workspaceUrl`` and ``pat`` variables, these are used within the collection.
 example: db_host = https://eastus2.azuredatabricks.net and pat = REDACTED_DATABRICKS_PAT

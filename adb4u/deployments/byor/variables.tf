@@ -5,7 +5,7 @@
 variable "workspace_prefix" {
   description = "Prefix for all resources (lowercase, alphanumeric only, max 12 chars)"
   type        = string
-  
+
   validation {
     condition     = can(regex("^[a-z0-9]{1,12}$", var.workspace_prefix))
     error_message = "workspace_prefix must be lowercase alphanumeric only, max 12 characters"
@@ -40,7 +40,7 @@ variable "vnet_address_space" {
 variable "public_subnet_address_prefix" {
   description = "Address prefix for public/host subnet (minimum /26, e.g., '10.100.1.0/26')"
   type        = string
-  
+
   validation {
     condition     = can(cidrnetmask(var.public_subnet_address_prefix))
     error_message = "public_subnet_address_prefix must be a valid CIDR block"
@@ -50,7 +50,7 @@ variable "public_subnet_address_prefix" {
 variable "private_subnet_address_prefix" {
   description = "Address prefix for private/container subnet (minimum /26, e.g., '10.100.2.0/26')"
   type        = string
-  
+
   validation {
     condition     = can(cidrnetmask(var.private_subnet_address_prefix))
     error_message = "private_subnet_address_prefix must be a valid CIDR block"
@@ -89,7 +89,7 @@ variable "cmk_key_type" {
   description = "Type of CMK key (RSA, RSA-HSM)"
   type        = string
   default     = "RSA"
-  
+
   validation {
     condition     = contains(["RSA", "RSA-HSM"], var.cmk_key_type)
     error_message = "cmk_key_type must be either 'RSA' or 'RSA-HSM'"
@@ -100,7 +100,7 @@ variable "cmk_key_size" {
   description = "Size of CMK key in bits (2048, 3072, 4096)"
   type        = number
   default     = 2048
-  
+
   validation {
     condition     = contains([2048, 3072, 4096], var.cmk_key_size)
     error_message = "cmk_key_size must be 2048, 3072, or 4096"

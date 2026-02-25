@@ -1,28 +1,28 @@
-***REMOVED*** ==============================================================================
-***REMOVED*** Databricks LPW Workspace Deployment - Configuration Example
-***REMOVED*** ==============================================================================
-***REMOVED*** Copy this file to terraform.tfvars and fill in your actual values
-***REMOVED*** Usage: terraform apply -var="phase=PROVISIONING"
-***REMOVED***        terraform apply -var="phase=RUNNING"
-***REMOVED*** ==============================================================================
+# ==============================================================================
+# Databricks LPW Workspace Deployment - Configuration Example
+# ==============================================================================
+# Copy this file to terraform.tfvars and fill in your actual values
+# Usage: terraform apply -var="phase=PROVISIONING"
+#        terraform apply -var="phase=RUNNING"
+# ==============================================================================
 
-***REMOVED*** ==============================================================================
-***REMOVED*** Databricks Account Configuration
-***REMOVED*** ==============================================================================
+# ==============================================================================
+# Databricks Account Configuration
+# ==============================================================================
 
-***REMOVED*** Your Databricks account ID (UUID format)
-***REMOVED*** Get this from: https://accounts.gcp.databricks.com/ (click on account name)
+# Your Databricks account ID (UUID format)
+# Get this from: https://accounts.gcp.databricks.com/ (click on account name)
 databricks_account_id = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 
-***REMOVED*** GCP service account with permissions to create Databricks workspaces
-***REMOVED*** This SA should have roles: roles/databricks.accountAdmin or similar
+# GCP service account with permissions to create Databricks workspaces
+# This SA should have roles: roles/databricks.accountAdmin or similar
 databricks_google_service_account = "privileged-sa@your-project.iam.gserviceaccount.com"
 
-***REMOVED*** ==============================================================================
-***REMOVED*** Regional Databricks Infrastructure
-***REMOVED*** ==============================================================================
-***REMOVED*** These IDs are region-specific and created during Databricks account setup
-***REMOVED*** Contact your Databricks account team for these values
+# ==============================================================================
+# Regional Databricks Infrastructure
+# ==============================================================================
+# These IDs are region-specific and created during Databricks account setup
+# Contact your Databricks account team for these values
 
 private_access_settings_id = {
   "us-east4"    = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
@@ -44,136 +44,136 @@ databricks_metastore_id = {
   "us-central1" = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 }
 
-***REMOVED*** ==============================================================================
-***REMOVED*** Workspace Configuration
-***REMOVED*** ==============================================================================
+# ==============================================================================
+# Workspace Configuration
+# ==============================================================================
 
 workspace_name = "example-databricks-workspace"
 
-***REMOVED*** Unity Catalog metastore ID for your region
-***REMOVED*** Must match the region specified in google_region below
+# Unity Catalog metastore ID for your region
+# Must match the region specified in google_region below
 metastore_id = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 
-***REMOVED*** ==============================================================================
-***REMOVED*** GCP Network Configuration
-***REMOVED*** ==============================================================================
+# ==============================================================================
+# GCP Network Configuration
+# ==============================================================================
 
-***REMOVED*** Project containing the shared VPC
+# Project containing the shared VPC
 network_project_id = "your-network-project-id"
 
-***REMOVED*** VPC network name (not the full resource path, just the name)
+# VPC network name (not the full resource path, just the name)
 vpc_id = "your-vpc-name"
 
-***REMOVED*** Subnet name for Databricks worker nodes (not the full resource path)
+# Subnet name for Databricks worker nodes (not the full resource path)
 subnet_id = "your-subnet-name"
 
-***REMOVED*** ==============================================================================
-***REMOVED*** GCP Project Configuration
-***REMOVED*** ==============================================================================
+# ==============================================================================
+# GCP Project Configuration
+# ==============================================================================
 
-***REMOVED*** Project where Databricks workspace resources will be created
+# Project where Databricks workspace resources will be created
 gcpprojectid         = "your-databricks-project-id"
 google_project_name  = "your-databricks-project-id"
 google_region        = "us-east4"
 
-***REMOVED*** ==============================================================================
-***REMOVED*** Metadata and Tags
-***REMOVED*** ==============================================================================
+# ==============================================================================
+# Metadata and Tags
+# ==============================================================================
 
 notificationdistlist = "ops-team@example.com"
 teamname             = "data-platform-team"
 org                  = "your-organization"
 owner                = "platform-owner@example.com"
-environment          = "dev"                    ***REMOVED*** dev, staging, prod
+environment          = "dev"                    # dev, staging, prod
 applicationtier      = "tier2"
 
-***REMOVED*** ==============================================================================
-***REMOVED*** Optional: Billing and Tracking Codes
-***REMOVED*** ==============================================================================
-***REMOVED*** These are optional and organization-specific
-***REMOVED*** Leave empty ("") if not used
+# ==============================================================================
+# Optional: Billing and Tracking Codes
+# ==============================================================================
+# These are optional and organization-specific
+# Leave empty ("") if not used
 
-costcenter   = "CC12345"      ***REMOVED*** Cost center code
-apmid        = "APM0000000"   ***REMOVED*** Application Portfolio Management ID
-ssp          = "SSP0000000"   ***REMOVED*** Service & Support Plan ID
-trproductid  = "0000"         ***REMOVED*** Product tracking ID
+costcenter   = "CC12345"      # Cost center code
+apmid        = "APM0000000"   # Application Portfolio Management ID
+ssp          = "SSP0000000"   # Service & Support Plan ID
+trproductid  = "0000"         # Product tracking ID
 
-***REMOVED*** ==============================================================================
-***REMOVED*** Compute Configuration
-***REMOVED*** ==============================================================================
+# ==============================================================================
+# Compute Configuration
+# ==============================================================================
 
-node_type     = "e2"                      ***REMOVED*** GCP machine type family: e2, n1, n2, etc.
-compute_types = "Small,Medium,Large"      ***REMOVED*** Comma-separated: Small, Medium, Large
+node_type     = "e2"                      # GCP machine type family: e2, n1, n2, etc.
+compute_types = "Small,Medium,Large"      # Comma-separated: Small, Medium, Large
 
-***REMOVED*** ==============================================================================
-***REMOVED*** Permissions Configuration
-***REMOVED*** ==============================================================================
-***REMOVED*** These groups MUST exist in your Databricks account before deployment
-***REMOVED*** Create groups at: https://accounts.gcp.databricks.com/ -> User Management -> Groups
+# ==============================================================================
+# Permissions Configuration
+# ==============================================================================
+# These groups MUST exist in your Databricks account before deployment
+# Create groups at: https://accounts.gcp.databricks.com/ -> User Management -> Groups
 
 permissions_group_role_user  = "databricks-readers,databricks-writers,databricks-admins"
-permissions_group_role_admin = ""   ***REMOVED*** Optional: additional admin groups
+permissions_group_role_admin = ""   # Optional: additional admin groups
 
-***REMOVED*** Optional: grant permissions to specific users or service principals
-permissions_user_role_user   = ""   ***REMOVED*** Comma-separated user emails
-permissions_spn_role_user    = ""   ***REMOVED*** Comma-separated service principal application IDs
-permissions_spn_role_admin   = ""   ***REMOVED*** Comma-separated service principal application IDs
+# Optional: grant permissions to specific users or service principals
+permissions_user_role_user   = ""   # Comma-separated user emails
+permissions_spn_role_user    = ""   # Comma-separated service principal application IDs
+permissions_spn_role_admin   = ""   # Comma-separated service principal application IDs
 
-***REMOVED*** Cluster policy permissions (JSON format)
+# Cluster policy permissions (JSON format)
 cluster_policy_permissions = "[{\"role\": \"can_use\", \"shared_compute_access\": \"true\", \"group\": [\"databricks-admins\", \"databricks-writers\"]}]"
 
-***REMOVED*** Instance pool permissions (JSON format)
+# Instance pool permissions (JSON format)
 pool_usage_permissions = "[{\"role\": \"can_manage\", \"group\": [\"databricks-admins\", \"databricks-writers\"]}]"
 
-***REMOVED*** ==============================================================================
-***REMOVED*** External Project Configuration
-***REMOVED*** ==============================================================================
-***REMOVED*** Set to true if GCS buckets should be created in a separate project
+# ==============================================================================
+# External Project Configuration
+# ==============================================================================
+# Set to true if GCS buckets should be created in a separate project
 
 external_project  = false
-bucket_project_id = ""    ***REMOVED*** Only required if external_project = true
+bucket_project_id = ""    # Only required if external_project = true
 
-***REMOVED*** ==============================================================================
-***REMOVED*** Unity Catalog Configuration
-***REMOVED*** ==============================================================================
-***REMOVED*** Define Unity Catalog instances with their associated GCS buckets
+# ==============================================================================
+# Unity Catalog Configuration
+# ==============================================================================
+# Define Unity Catalog instances with their associated GCS buckets
 
 unity_catalog_config = "[{\"name\": \"example_catalog\", \"external_bucket\": \"example-catalog-bucket\", \"shared\": \"false\"}]"
 
-***REMOVED*** Unity Catalog permissions (JSON format)
+# Unity Catalog permissions (JSON format)
 unity_catalog_permissions = "[{\"name\": \"example_catalog\", \"permission\": [{\"role\": \"data_editor\", \"group\": [\"databricks-admins\"]}, {\"role\": \"data_reader\", \"group\": [\"databricks-readers\"]}, {\"role\": \"data_writer\", \"group\": [\"databricks-writers\"]}]}]"
 
-***REMOVED*** External location permissions (JSON format)
+# External location permissions (JSON format)
 external_location_permissions = "[{\"name\": \"example_catalog\", \"permission\": [{\"role\": \"writer\", \"group\": [\"databricks-writers\"]}]}]"
 
-***REMOVED*** Storage credentials permissions (JSON format)
+# Storage credentials permissions (JSON format)
 storage_credentials_permissions = "[{\"name\": \"example_catalog\", \"permission\": [{\"role\": \"writer\", \"group\": [\"databricks-writers\"]}]}]"
 
-***REMOVED*** ==============================================================================
-***REMOVED*** SQL Warehouse Configuration
-***REMOVED*** ==============================================================================
-***REMOVED*** Define SQL warehouses with their size and permissions
+# ==============================================================================
+# SQL Warehouse Configuration
+# ==============================================================================
+# Define SQL warehouses with their size and permissions
 
 sqlwarehouse_cluster_config = "[{\"name\": \"small-sql-wh\", \"config\": {\"type\": \"small\", \"max_instance\": 2, \"serverless\": \"true\"}, \"permission\": [{\"role\": \"can_use\", \"group\": [\"databricks-admins\", \"databricks-writers\"]}]}, {\"name\": \"medium-sql-wh\", \"config\": {\"type\": \"medium\", \"max_instance\": 2, \"serverless\": \"true\"}, \"permission\": [{\"role\": \"can_use\", \"group\": [\"databricks-admins\", \"databricks-writers\"]}]}, {\"name\": \"large-sql-wh\", \"config\": {\"type\": \"large\", \"max_instance\": 2, \"serverless\": \"true\"}, \"permission\": [{\"role\": \"can_use\", \"group\": [\"databricks-admins\", \"databricks-writers\"]}]}]"
 
-***REMOVED*** ==============================================================================
-***REMOVED*** Deployment Instructions
-***REMOVED*** ==============================================================================
-***REMOVED***
-***REMOVED*** PHASE 1: PROVISIONING
-***REMOVED*** ----------------------
-***REMOVED*** 1. Fill in all required values above
-***REMOVED*** 2. Run: terraform init
-***REMOVED*** 3. Run: terraform plan -var="phase=PROVISIONING"
-***REMOVED*** 4. Run: terraform apply -var="phase=PROVISIONING"
-***REMOVED*** 5. Note the workspace_gsa_email from outputs
-***REMOVED*** 6. MANUAL STEP: Add the workspace GSA to your operator group in Google Workspace
-***REMOVED***
-***REMOVED*** PHASE 2: RUNNING
-***REMOVED*** ----------------
-***REMOVED*** 7. Wait for workspace to reach RUNNING status (check Databricks console)
-***REMOVED*** 8. Run: terraform plan -var="phase=RUNNING"
-***REMOVED*** 9. Run: terraform apply -var="phase=RUNNING"
-***REMOVED*** 10. All workspace resources (pools, policies, UC, SQL warehouses) will be created
-***REMOVED***
-***REMOVED*** ==============================================================================
+# ==============================================================================
+# Deployment Instructions
+# ==============================================================================
+#
+# PHASE 1: PROVISIONING
+# ----------------------
+# 1. Fill in all required values above
+# 2. Run: terraform init
+# 3. Run: terraform plan -var="phase=PROVISIONING"
+# 4. Run: terraform apply -var="phase=PROVISIONING"
+# 5. Note the workspace_gsa_email from outputs
+# 6. MANUAL STEP: Add the workspace GSA to your operator group in Google Workspace
+#
+# PHASE 2: RUNNING
+# ----------------
+# 7. Wait for workspace to reach RUNNING status (check Databricks console)
+# 8. Run: terraform plan -var="phase=RUNNING"
+# 9. Run: terraform apply -var="phase=RUNNING"
+# 10. All workspace resources (pools, policies, UC, SQL warehouses) will be created
+#
+# ==============================================================================
