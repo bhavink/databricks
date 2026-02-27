@@ -36,7 +36,8 @@ Introduction to DNS configuration requirements for Databricks workspaces on GCP,
 → 34.138.66.176                               [public IP]
 
 dp-3987447239507508.8.gcp.databricks.com      [dataplane workspace record]
-→ us-east1.gcp.databricks.com                 [shard URL]
+→ 3987547239507508.8.gcp.databricks.com       [workspace URL]
+→ us-east1.gcp.databricks.com                 [shard/regional URL]
 → 34.138.66.176                               [public IP]
 ```
 
@@ -204,7 +205,7 @@ DNS queries are forwarded to **public DNS servers** (e.g., Google Public DNS: 8.
 | Purpose | Zone Name | DNS Name | Type | Record Type | Example Record | Resolves To | Notes |
 |---------|-----------|----------|------|-------------|----------------|-------------|-------|
 | **Frontend DNS (Workspace Access)** | `databricks-public-<region>` | `<region>.gcp.databricks.com.` | Forwarding | CNAME (via public DNS) | `51237447239507508.8.gcp.databricks.com` → `us-east1.gcp.databricks.com` | Public IP via Google Public DNS | Forwarding zone; applies to workspace URLs |
-| **Backend Workspace Records** | Same as above | Same as above | Forwarding | CNAME (via public DNS) | `dp-51237447239507508.8.gcp.databricks.com` → `us-east1.gcp.databricks.com` | Public IP via Google Public DNS | Separate record; applies to backend workspace records |
+| **Backend Workspace Records** | Same as above | Same as above | Forwarding | CNAME (via public DNS) | `dp-51237447239507508.8.gcp.databricks.com` → `51237447239507508.8.gcp.databricks.com` → `us-east1.gcp.databricks.com` | Public IP via Google Public DNS | dp-* resolves via workspace URL then shard/regional URL |
 | **Backend (Tunnel) DNS** | N/A | N/A | N/A | N/A | N/A | Handled by GCP's default DNS | No setup required |
 
 #### Common: Databricks Accounts Console
@@ -374,7 +375,7 @@ sequenceDiagram
 
 #### Non-PSC Flow
 - **Workspace URL**: `workspace_id.gcp.databricks.com` → forwarding zone → public DNS (8.8.8.8) → public IP → internet → Databricks
-- **dp-* record**: `dp-workspace_id.gcp.databricks.com` → forwarding zone → public DNS (8.8.8.8) → public IP → internet → Databricks
+- **dp-* record**: `dp-workspace_id.gcp.databricks.com` → forwarding zone → public DNS (8.8.8.8) → `workspace_id.gcp.databricks.com` → `region.gcp.databricks.com` → public IP → internet → Databricks
 - **Backend**: Handled automatically by GCP default DNS (no configuration needed)
 
 ### Verification
@@ -421,7 +422,7 @@ nslookup 311716749948597.7.gcp.databricks.com 169.254.169.254
 
 **Non-PSC Workspace**:
 - `workspace_id.gcp.databricks.com` should resolve to public IP via forwarding (e.g., 34.138.66.176)
-- `dp-workspace_id.gcp.databricks.com` should resolve to public IP via forwarding
+- `dp-workspace_id.gcp.databricks.com` should resolve via `workspace_id.gcp.databricks.com` → `region.gcp.databricks.com` → public IP
 
 **Both**:
 - `accounts.gcp.databricks.com` should resolve to public IP via forwarding
