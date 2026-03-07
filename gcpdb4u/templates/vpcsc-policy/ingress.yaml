@@ -355,7 +355,7 @@
 #   (Databricks-owned service account for log delivery)
 #
 # SOURCE PROJECTS:
-# - Databricks audit log delivery projects (2 global projects)
+# - Databricks audit log delivery projects (4 projects — 2 original + 2 new as of 2026-03)
 #
 # STORAGE BUCKET:
 # - Your designated audit log storage bucket (configured in Databricks account settings)
@@ -372,8 +372,12 @@
     sources:
     # Databricks Audit Log Delivery Projects
     # These are global Databricks projects - DO NOT CHANGE THESE NUMBERS
-    - resource: projects/68422481410   # Databricks audit log delivery project 1
-    - resource: projects/85638097580   # Databricks audit log delivery project 2
+    # NOTE: New project numbers added 2026-03 per Databricks migration notice.
+    # Old project numbers must be retained during migration period.
+    - resource: projects/68422481410   # Databricks audit log delivery project 1 (original)
+    - resource: projects/85638097580   # Databricks audit log delivery project 2 (original)
+    - resource: projects/682883591785  # Databricks audit log delivery project 3 (new - us-central1, us-east4)
+    - resource: projects/889794603906  # Databricks audit log delivery project 4 (new - all regions)
 
   ingressTo:
     operations:
