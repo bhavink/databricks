@@ -10,18 +10,20 @@
 
 When a Streamlit app calls a custom MCP server, both are Databricks Apps. Each has its own Envoy proxy in front of it:
 
-```
-User browser
-    ↓  HTTPS + session
-[main-app proxy]                    ← Proxy 1
-    ↓  injects X-Forwarded-Access-Token (A), X-Forwarded-Email
-app.py (Streamlit)
-    ↓  Authorization: Bearer {token A}   ← forwards token A
-[mcp-app proxy]                     ← Proxy 2
-    ↓  strips Authorization header
-    ↓  injects X-Forwarded-Access-Token (B)  ← NEW token, NOT token A
-    ↓  injects X-Forwarded-Email             ← correctly set to user's email
-server/main.py (FastMCP)
+```mermaid
+sequenceDiagram
+    participant B as 🌐 User Browser
+    participant P1 as Proxy 1<br/>(main app Envoy)
+    participant A as app.py<br/>(Streamlit)
+    participant P2 as Proxy 2<br/>(MCP app Envoy)
+    participant M as server/main.py<br/>(FastMCP)
+
+    B->>P1: HTTPS + session cookie
+    P1->>A: X-Forwarded-Access-Token: Token A (user JWT)<br/>X-Forwarded-Email: user@example.com
+    A->>P2: Authorization: Bearer Token A
+    Note over P2: ⚠️ strips Authorization header<br/>substitutes own SP token
+    P2->>M: X-Forwarded-Access-Token: Token B (MCP SP JWT)<br/>X-Forwarded-Email: user@example.com ✅
+    Note over M: ✅ Use X-Forwarded-Email for identity<br/>✅ Use WorkspaceClient() M2M for SQL<br/>❌ Token B sub = SP UUID, not user
 ```
 
 **The two-proxy problem**: Proxy 2 does not forward the user's token from app.py. It substitutes its own token (scoped to the custom MCP app's SP). The user's identity from the first proxy never reaches the second app's code via token.
@@ -356,15 +358,24 @@ Incognito only helps if the Databricks workspace SSO session has truly expired. 
 
 ### The fix: delete + recreate the app
 
-```
-App delete
-    ↓  OAuth integration deleted → all refresh tokens invalidated
-App create (new)
-    ↓  New OAuth integration created (new client_id)
-    ↓  Patch scopes IMMEDIATELY on new integration
-User login
-    ↓  New authorization code flow → new refresh token with current scopes
-    ↓  X-Forwarded-Access-Token now includes unity-catalog ✅
+```mermaid
+flowchart TD
+    D["🗑️ App delete"] --> I["OAuth integration deleted\nAll existing refresh tokens invalidated"]
+    I --> C["✨ App create new\nNew OAuth integration + new client_id\nNew app SP UUID"]
+    C --> P["⚡ Patch scopes IMMEDIATELY\ndashboards.genie · genie · model-serving\nsql · all-apis · unity-catalog"]
+    P --> G["Re-run UC grants\nwith new SP UUID"]
+    G --> L["👤 User opens app"]
+    L --> A["New authorization code flow\nNew refresh token with current scopes"]
+    A --> T["✅ X-Forwarded-Access-Token\nnow includes unity-catalog"]
+
+    style D fill:#3b1a1a,stroke:#ef4444,color:#fca5a5
+    style I fill:#3b1a1a,stroke:#ef4444,color:#fca5a5
+    style C fill:#1a2e1a,stroke:#22c55e,color:#86efac
+    style P fill:#1a2e1a,stroke:#22c55e,color:#86efac
+    style G fill:#1a2e1a,stroke:#22c55e,color:#86efac
+    style L fill:#1e293b,stroke:#94a3b8,color:#e2e8f0
+    style A fill:#1e293b,stroke:#94a3b8,color:#e2e8f0
+    style T fill:#1a2e3b,stroke:#3b82f6,color:#93c5fd
 ```
 
 ### Step-by-step (2026-03-08 verified)
