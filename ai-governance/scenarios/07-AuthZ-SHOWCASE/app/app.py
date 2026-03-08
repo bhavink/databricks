@@ -1373,16 +1373,17 @@ See the terminal demo below.
         # Auth label under metrics
         if is_manager:
             st.success(
-                f"✅ You are **{persona}** — `get_rep_quota` returns a value both via the SP (M2M) "
-                "and if you called it directly as yourself (OBO), since your email is in `quota_viewers`."
+                f"✅ You are **{persona}** — `mask_quota` passes because your role is in `authz_showcase_managers`, "
+                f"`authz_showcase_finance`, or `authz_showcase_executives`. The app SP also gets the value "
+                f"because it is explicitly added to `authz_showcase_executives`."
             )
         else:
             st.warning(
-                f"⚠️ You are **{persona}**. Quota shows **N/A** here even though the app calls `get_rep_quota` "
-                f"as the **app SP (M2M)**. Why? `mask_quota` uses `is_member()` — and `is_member()` does not "
-                f"evaluate correctly for service principals in this workspace, so the SP gets NULL just like you would.\n\n"
-                f"**The teaching moment:** the column mask at the data layer enforces access regardless of caller. "
-                f"Attainment and Next Action still work — they don't touch the masked `quota` column directly."
+                f"⚠️ You are **{persona}** — `mask_quota` returns NULL for you because you are not in "
+                f"`authz_showcase_managers`, `authz_showcase_finance`, or `authz_showcase_executives`.\n\n"
+                f"The app SP **does** get the quota value (it is in `authz_showcase_executives`), which is why "
+                f"quota appears above. This is the M2M pattern: the SP's group membership is explicitly "
+                f"controlled so it can fetch privileged data on behalf of the app — your personal access is separate."
             )
 
         # Opportunities table + next action
