@@ -189,7 +189,7 @@ def get_deal_approval_status(opp_id: str) -> dict:
     # based on authenticated user — cannot be forged by the calling application.
     caller = _caller_email()
     if not caller:
-        return {"error": "No authenticated user identity — X-Forwarded-Email not set.", "hint": "Ensure the request comes through the Databricks Apps proxy."}
+        return {"error": "No authenticated user identity - X-Forwarded-Email not set.", "hint": "Ensure the request comes through the Databricks Apps proxy."}
     opp_id = opp_id.lower()   # IDs are stored lowercase (opp_001)
 
     # Step 2 — M2M: check if caller has elevated access (in quota_viewers)
@@ -286,7 +286,7 @@ def submit_deal_for_approval(opp_id: str, justification: str) -> dict:
     # Step 1 — Proxy identity: X-Forwarded-Email is set by Databricks Apps proxy.
     caller = _caller_email()
     if not caller:
-        return {"submitted": False, "error": "No authenticated user identity — X-Forwarded-Email not set."}
+        return {"submitted": False, "error": "No authenticated user identity - X-Forwarded-Email not set."}
     opp_id = opp_id.lower()   # IDs are stored lowercase (opp_001)
 
     # Step 2 — M2M: check elevation
@@ -317,7 +317,7 @@ def submit_deal_for_approval(opp_id: str, justification: str) -> dict:
         return {
             "submitted": False,
             "error":     f"Opportunity {opp_id!r} not found or not accessible.",
-            "hint":      "Caller-scoped filter active — you can only submit deals you own.",
+            "hint":      "Caller-scoped filter active - you can only submit deals you own.",
             "caller_identity": caller,
         }
 
@@ -408,7 +408,7 @@ def get_crm_sync_status(customer_id: str) -> dict:
             "source_system":   "Salesforce",
             "next_sync_in":    "4h",
         },
-        "auth_pattern":   "M2M — app SP identity; no user token forwarded",
+        "auth_pattern":   "M2M - app SP identity; no user token forwarded",
         "sp_identity":    sp_identity,
     }
 
