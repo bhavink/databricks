@@ -19,6 +19,7 @@ import time
 import requests
 import streamlit as st
 from databricks.sdk import WorkspaceClient
+from databricks.sdk.errors import PermissionDenied as _SdkPermissionDenied
 from auth_utils import get_user_context
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -73,6 +74,31 @@ def _sp_client() -> WorkspaceClient:
 
 
 w_sp = _sp_client()
+
+
+@st.cache_resource(show_spinner=False)
+def _resolve_sp_numeric_id() -> str:
+    """Resolve the app SP's numeric SCIM ID from its client_id UUID.
+    Used in terminal demo snippets — auto-updates when the app is recreated.
+    """
+    client_id = os.environ.get("DATABRICKS_CLIENT_ID", "")
+    if not client_id:
+        return "<YOUR_SP_NUMERIC_ID>"
+    try:
+        r = requests.get(
+            f"{host}/api/2.0/preview/scim/v2/ServicePrincipals",
+            headers={**w_sp.config.authenticate()},
+            params={"filter": f'applicationId eq "{client_id}"'},
+            timeout=10,
+        )
+        items = r.json().get("Resources", [])
+        return str(items[0]["id"]) if items else "<YOUR_SP_NUMERIC_ID>"
+    except Exception:
+        return "<YOUR_SP_NUMERIC_ID>"
+
+
+SP_CLIENT_ID  = os.environ.get("DATABRICKS_CLIENT_ID", "<YOUR_SP_CLIENT_UUID>")  # injected by runtime
+SP_NUMERIC_ID = _resolve_sp_numeric_id()                                          # resolved at startup
 
 
 def _sp_headers() -> dict:
@@ -925,6 +951,19 @@ with tab2:
         unsafe_allow_html=True,
     )
 
+    # ── SP grant fix (copy-paste if you get a 403) ───────────────────────────
+    _grant_sql = (
+        f"-- Run in any SQL editor or notebook if Tab 2 returns 403\n"
+        f"GRANT USE CATALOG ON CATALOG authz_showcase        TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT USE SCHEMA  ON SCHEMA  authz_showcase.knowledge_base TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.product_docs          TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.product_docs_index    TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.sales_playbooks       TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.sales_playbooks_index TO `{SP_CLIENT_ID}`;"
+    )
+    with st.expander("🔑 SP grants — copy-paste if you get a 403", expanded=False):
+        st.code(_grant_sql, language="sql")
+
     # ── Session state init ────────────────────────────────────────────────────
     for _k, _v in [
         ("vs_query_input", ""),
@@ -1053,7 +1092,7 @@ with tab3:
     st.markdown(
         '<div style="margin-top:8px;margin-bottom:16px;">'
         '<span class="badge-m2m">M2M</span>&nbsp;&nbsp;'
-        '<span style="color:#64748b;font-size:13px;">App SP · quota enforced by <code>mask_quota</code> column mask via <code>current_user()</code> → <code>quota_viewers</code> lookup</span>'
+        '<span style="color:#64748b;font-size:13px;">App SP · quota enforced by <code>mask_quota</code> column mask via <code>is_member()</code> — SP must be in <code>authz_showcase_executives</code></span>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -1063,6 +1102,34 @@ with tab3:
     is_manager = any(g in ("authz_showcase_managers", "authz_showcase_finance",
                             "authz_showcase_executives")
                      for g in ctx.get("authz_groups", []))
+
+    # ── SP permission fix (copy-paste if you see PermissionDenied) ────────────
+    _wh_grant = (
+        f"# Run once after any app deploy/reset if you see\n"
+        f"# 'PermissionDenied: You do not have permission to use the SQL Warehouse'\n"
+        f"databricks permissions update warehouses <YOUR_WAREHOUSE_ID> \\\n"
+        f"  --profile <YOUR_CLI_PROFILE> \\\n"
+        f"  --json '{{\"access_control_list\": [{{\"service_principal_name\": \"{SP_CLIENT_ID}\", \"permission_level\": \"CAN_USE\"}}]}}'"
+    )
+    _uc_grant3 = (
+        f"-- Run in SQL editor if UC function calls fail\n"
+        f"GRANT USE CATALOG ON CATALOG authz_showcase               TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT USE SCHEMA  ON SCHEMA  authz_showcase.functions      TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT USE SCHEMA  ON SCHEMA  authz_showcase.sales          TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT EXECUTE ON FUNCTION authz_showcase.functions.get_rep_quota         TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT EXECUTE ON FUNCTION authz_showcase.functions.calculate_attainment  TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT EXECUTE ON FUNCTION authz_showcase.functions.recommend_next_action TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT SELECT ON TABLE authz_showcase.sales.opportunities   TO `{SP_CLIENT_ID}`;\n"
+        f"GRANT SELECT ON TABLE authz_showcase.sales.sales_reps      TO `{SP_CLIENT_ID}`;\n"
+        f"-- Also add SP to authz_showcase_executives group (for mask_quota is_member() check):\n"
+        f"-- python3 seed/10_onboard_app_sp.py --profile <YOUR_CLI_PROFILE>"
+    )
+    with st.expander("🔑 SP permissions — copy-paste if you see PermissionDenied", expanded=False):
+        st.markdown("**Step 1 — Warehouse access** (CLI — run after any app deploy/reset):")
+        st.code(_wh_grant, language="bash")
+        st.markdown("**Step 2 — UC object grants** (run in any SQL editor or notebook):")
+        st.code(_uc_grant3, language="sql")
+        st.info("💡 Or run `python3 seed/10_onboard_app_sp.py` to handle all of the above automatically.")
 
     # ── Session state init ────────────────────────────────────────────────────
     for _k, _v in [
@@ -1094,11 +1161,12 @@ Three functions, three different access patterns:
   ensures a rep can only compute attainment over rows they can see.
 - **`recommend_next_action`** — pure business logic, no sensitive data, available to everyone.
 
-The app calls all three as the **app SP (M2M)** — not as you. The SP is listed in
-`quota_viewers` (with role `service_principal`), so it can read quota values. Your role as a viewer
-only affects what the SP is *asked to compute for* (your email), not what the SP is *allowed to see*.
-The quota restriction is enforced by the `mask_quota` column mask — which uses `current_user()` lookup,
-not `is_member()` — ensuring the same policy works correctly across all access paths.
+The app calls all three as the **app SP (M2M)** — not as you. The SP is a member of
+`authz_showcase_executives`, so `mask_quota`'s `is_member()` check passes and quota values are
+visible. Your role as a viewer only affects what the SP is *asked to compute for* (your email),
+not what the SP is *allowed to see*.
+The quota restriction is enforced by the `mask_quota` column mask — which uses `is_member()` —
+making it ideal for M2M contexts where the executing SP's group membership is explicitly controlled.
     """)
     st.divider()
 
@@ -1107,12 +1175,12 @@ not `is_member()` — ensuring the same policy works correctly across all access
         st.markdown(f"""
 **The app calls all three UC functions as the app SP (M2M) — not as you.**
 
-The SP's `current_user()` identity in SQL is its application UUID (`5299e92e-4f66-4be4-a769-ccab1d24d763`).
-The SP is listed in `quota_viewers` with role `service_principal` → quota mask returns the value.
+The SP's `current_user()` identity in SQL is its application UUID (`{SP_CLIENT_ID}`).
+The SP is in `authz_showcase_executives` → `mask_quota`'s `is_member()` check passes → quota visible.
 
 | Function | SP sees | You (OBO) would see | Why the difference |
 |---|---|---|---|
-| `get_rep_quota` | ✅ quota value | ❌ `null` | Column mask uses `current_user()` lookup in `quota_viewers`. SP is listed; you ({persona}) are not → NULL. Enforced by UC engine at every access path. |
+| `get_rep_quota` | ✅ quota value | ❌ `null` | `mask_quota` uses `is_member('authz_showcase_executives')`. SP is in the group; you ({persona}) are not → NULL. Enforced at every UC access path. |
 | `calculate_attainment` | ✅ your attainment | ✅ same value | Same data — row filter + WHERE both resolve to your own opps |
 | `recommend_next_action` | ✅ recommendation | ✅ same value | No access gate — open to all |
 
@@ -1156,7 +1224,7 @@ See the terminal demo below.
             language="bash",
         )
         st.caption(
-            f"Expected: `null` — you are `{persona}`, not listed in `quota_viewers` → mask returns NULL"
+            f"Expected: `null` — you are `{persona}`, not in `authz_showcase_executives` → `mask_quota` returns NULL"
         )
 
         st.divider()
@@ -1185,7 +1253,7 @@ See the terminal demo below.
             f"# Create SP client directly — no env vars needed\n"
             f"sp = WorkspaceClient(\n"
             f"    host=me.config.host,\n"
-            f"    client_id='5299e92e-4f66-4be4-a769-ccab1d24d763',\n"
+            f"    client_id='{SP_CLIENT_ID}',\n"
             f"    client_secret=sp_secret,\n"
             f")\n"
             f"\n"
@@ -1231,7 +1299,7 @@ See the terminal demo below.
             f"    headers={{**me.config.authenticate(), 'Content-Type': 'application/json'}},\n"
             f")\n"
             f"sp = WorkspaceClient(host=me.config.host,\n"
-            f"                     client_id='5299e92e-4f66-4be4-a769-ccab1d24d763',\n"
+            f"                     client_id='{SP_CLIENT_ID}',\n"
             f"                     client_secret=r.json()['secret'])\n"
             f"\n"
             f"wh = next((w.id for w in sp.warehouses.list() if w.enable_serverless_compute),\n"
@@ -1257,12 +1325,20 @@ See the terminal demo below.
     if col_load.button("⚙️ Load my business metrics", type="primary",
                        use_container_width=True, key="fn_load_btn"):
         with st.spinner("Calling UC functions …"):
-            st.session_state.fn_quota      = uc_get_quota(user_email)
-            st.session_state.fn_attainment = uc_get_attainment(user_email)
-            st.session_state.fn_opps       = uc_get_opportunities(user_email)
-            st.session_state.fn_next_action = None
-            st.session_state.fn_opp_id     = ""
-            st.session_state.fn_loaded     = True
+            try:
+                st.session_state.fn_quota      = uc_get_quota(user_email)
+                st.session_state.fn_attainment = uc_get_attainment(user_email)
+                st.session_state.fn_opps       = uc_get_opportunities(user_email)
+                st.session_state.fn_next_action = None
+                st.session_state.fn_opp_id     = ""
+                st.session_state.fn_loaded     = True
+            except _SdkPermissionDenied as e:
+                st.error(f"PermissionDenied: {e}")
+                st.warning("App SP is missing warehouse or UC permissions. Run the grants in the expander above, then retry.")
+                st.markdown("**Warehouse access** (CLI):")
+                st.code(_wh_grant, language="bash")
+                st.markdown("**UC grants** (SQL editor):")
+                st.code(_uc_grant3, language="sql")
 
     col_reset.button("↺ Reset", use_container_width=True, key="fn_reset_btn",
                      on_click=lambda: st.session_state.update({
