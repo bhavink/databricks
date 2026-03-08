@@ -751,13 +751,15 @@
                     <li>PAT not supported</li>
                 </ul>
                 <p style="margin-top: 0.5rem; color: #a855f7; font-size: 0.7rem;">Auth: OAuth only (Manual)</p>
+                <p style="margin-top: 0.5rem; font-size: 0.7rem; color: #f59e0b;">⚠️ Two-proxy problem: when App A calls App B, App B's proxy strips the user token and substitutes its own SP token. Use <code>X-Forwarded-Email</code> for user identity; use M2M for SQL execution.</p>
             </div>
         </div>
-        
+
         <div class="back-links">
             <a href="./" class="back-link">← Back to Orchestration Hub</a>
             <a href="https://docs.databricks.com/aws/en/generative-ai/mcp/connect-external-services" target="_blank" class="back-link">📖 Official Docs</a>
             <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/ORCHESTRATION-ARCHITECTURE.md" target="_blank" class="back-link">📄 Architecture Reference</a>
+            <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/scenarios/07-AuthZ-SHOWCASE/AUTHZ-PATTERNS.md" target="_blank" class="back-link">🔐 AuthZ Patterns (Verified)</a>
         </div>
     </section>
     

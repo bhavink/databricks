@@ -449,8 +449,8 @@
                 <p>Column masks transform values, not hide rows. Users still see the row, just with masked values.</p>
             </div>
             <div class="summary-card">
-                <h4>👥 Group-Based Logic</h4>
-                <p>is_member() function checks group membership to decide masking behavior.</p>
+                <h4>👥 M2M: is_member() Works Great</h4>
+                <p>When an app service principal executes the SQL (M2M), <code>is_member()</code> evaluates the SP's workspace group membership — which you control explicitly. This is the right tool when you own the executing identity.</p>
             </div>
             <div class="summary-card">
                 <h4>🔐 PII/PHI Protection</h4>
@@ -460,9 +460,14 @@
                 <h4>⚡ Same Query, Different View</h4>
                 <p>Users run identical queries but see different values based on their groups.</p>
             </div>
+            <div class="summary-card">
+                <h4>🔗 OBO Context: Use Allowlist Table</h4>
+                <p>In Genie or Agent Bricks OBO flows, <code>is_member()</code> evaluates the service layer's identity — not the calling user's groups. Replace with a <code>current_user()</code> lookup against a UC-governed allowlist table for role-based masks in OBO chains.</p>
+            </div>
         </div>
         <a href="../" class="back-link">← Back to AI Governance</a>
         <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/02-AUTHORIZATION-WITH-UC.md" class="back-link" target="_blank" style="margin-left: 1rem;">📄 View Full Docs on GitHub</a>
+        <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/UC-POLICY-DESIGN-PRINCIPLES.md" class="back-link" target="_blank" style="margin-left: 1rem;">📐 UC Policy Design Principles</a>
     </section>
     
     <script>
