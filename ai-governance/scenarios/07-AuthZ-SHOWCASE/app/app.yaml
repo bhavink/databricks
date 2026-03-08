@@ -1,0 +1,115 @@
+# app.yaml — AI Auth Showcase, Phase 1+2+3+4
+#
+# Tab 1 — Genie + OBO (user authorization):
+#   The Apps proxy injects the authenticated user's OAuth token as
+#   'X-Forwarded-Access-Token'. app.py forwards it to Genie REST calls so
+#   Unity Catalog enforces row filters / column masks per the calling user.
+#
+#   User OAuth scopes required for Tab 1 (configured on the account-level
+#   OAuth integration, NOT in this file — there is no app.yaml scopes field):
+#     - dashboards.genie  (Genie space access)
+#     - genie             (Genie Conversation API — required on Azure)
+#   Patch command (run once after any app delete+create):
+#     databricks account custom-app-integration update '<YOUR_OAUTH_INTEGRATION_ID>' \
+#       --profile adb-account \
+#       --json '{"scopes":["offline_access","email","iam.current-user:read",
+#                "openid","dashboards.genie","genie","iam.access-control:read",
+#                "profile","model-serving","sql","all-apis","unity-catalog"],
+#               "user_authorized_scopes":["dashboards.genie","genie","model-serving","sql","all-apis","unity-catalog"]}'
+#   Scopes required per tab:
+#     dashboards.genie + genie  → Tab 1 (Genie OBO)
+#     model-serving             → Tab 5 (Supervisor Agent OBO)
+#     sql                       → Tab 4 (Custom MCP OBO — warehouse execution)
+#     unity-catalog             → Tab 6 (External MCP proxy — USE CONNECTION check requires this scope)
+#   See IMPLEMENTATION-PLAN.md → Phase 4 → Step 4.2a for the full context.
+#
+# Tab 2 — Vector Search + M2M (app authorization):
+#   The app SP's own credentials (DATABRICKS_CLIENT_ID / SECRET) are used
+#   to query VS indexes and the FM serving endpoint. No user token is
+#   forwarded — every user sees the same knowledge base content.
+#
+# Tab 3 — UC Functions + M2M (app authorization):
+#   The app SP calls UC functions via a SQL warehouse using M2M credentials.
+#   is_member() inside each function enforces group-based access control.
+#
+# resources block:
+#   Declaring resources here auto-grants the app SP the listed permissions
+#   on each app deploy — no manual IAM wiring needed for these resources.
+#
+#   What still requires manual grants (not coverable by the resources block):
+#     GRANT USE CATALOG ON CATALOG authz_showcase TO `<SP_APP_ID>`;
+#     GRANT USE SCHEMA  ON SCHEMA  authz_showcase.sales TO `<SP_APP_ID>`;
+#     GRANT USE SCHEMA  ON SCHEMA  authz_showcase.knowledge_base TO `<SP_APP_ID>`;
+#     GRANT USE SCHEMA  ON SCHEMA  authz_showcase.functions TO `<SP_APP_ID>`;
+#     GRANT SELECT ON TABLE authz_showcase.sales.sales_reps TO `<SP_APP_ID>`;
+#     GRANT SELECT ON TABLE authz_showcase.sales.opportunities TO `<SP_APP_ID>`;
+#     GRANT SELECT ON TABLE authz_showcase.knowledge_base.product_docs TO `<SP_APP_ID>`;
+#     GRANT SELECT ON TABLE authz_showcase.knowledge_base.sales_playbooks TO `<SP_APP_ID>`;
+#     -- Group membership (for is_member() check in get_rep_quota):
+#     databricks groups add-member authz_showcase_executives <SP_ID>
+
+command: ["streamlit", "run", "app.py", "--server.port", "8000", "--server.headless", "true"]
+
+env:
+  - name: GENIE_SPACE_ID
+    value: "<YOUR_GENIE_SPACE_ID>"
+  - name: VS_INDEX
+    value: "authz_showcase.knowledge_base.product_docs_index"
+  - name: VS_INDEX_PB
+    value: "authz_showcase.knowledge_base.sales_playbooks_index"
+  - name: FM_ENDPOINT
+    value: "databricks-meta-llama-3-3-70b-instruct"
+  - name: SQL_WAREHOUSE
+    value: "<YOUR_WAREHOUSE_ID>"
+  - name: UC_FUNCTIONS_CATALOG
+    value: "authz_showcase"
+  - name: SUPERVISOR_ENDPOINT
+    value: "<YOUR_SUPERVISOR_ENDPOINT>"
+  # ── Tab 4: Custom MCP direct URL (OBO + M2M tools) ──────────────────────────
+  - name: CUSTOM_MCP_URL
+    value: "https://authz-showcase-custom-mcp-<YOUR_WORKSPACE_ORG_ID>.3.azure.databricksapps.com/mcp"
+  # ── Tab 6: External MCP connection names (UC governs access) ────────────────
+  - name: GITHUB_CONN
+    value: "authz_showcase_github_conn"
+  - name: CUSTMCP_CONN
+    value: "authz_showcase_custmcp_conn"
+
+resources:
+  # ── Tab 1: Genie (OBO — user token forwarded; SP needs CAN_RUN to proxy) ──
+  - genie:
+      id: "<YOUR_GENIE_SPACE_ID>"
+      permission: CAN_RUN          # Least privilege: start/run conversations
+
+  # ── Tab 2: Vector Search indexes (M2M — SP queries both indexes) ──────────
+  - vector_search_index:
+      name: "authz_showcase.knowledge_base.product_docs_index"
+      permission: CAN_SELECT       # Only permission available for VS indexes
+  - vector_search_index:
+      name: "authz_showcase.knowledge_base.sales_playbooks_index"
+      permission: CAN_SELECT
+
+  # ── Tab 2: Foundation Model endpoint (M2M — SP sends inference requests) ──
+  - serving_endpoint:
+      name: "databricks-meta-llama-3-3-70b-instruct"
+      permission: CAN_QUERY        # Least privilege: send queries only
+
+  # ── Tab 3: SQL Warehouse (M2M — SP executes UC function SELECT calls) ─────
+  - sql_warehouse:
+      id: "<YOUR_WAREHOUSE_ID>"
+      permission: CAN_USE          # Least privilege: run queries only
+
+  # ── Tab 3: UC Functions (M2M — SP calls all three functions) ──────────────
+  - function:
+      name: "authz_showcase.functions.get_rep_quota"
+      permission: CAN_EXECUTE
+  - function:
+      name: "authz_showcase.functions.calculate_attainment"
+      permission: CAN_EXECUTE
+  - function:
+      name: "authz_showcase.functions.recommend_next_action"
+      permission: CAN_EXECUTE
+
+  # ── Tab 5: Supervisor Agent endpoint (OBO — user token forwarded) ───────────
+  - serving_endpoint:
+      name: "<YOUR_SUPERVISOR_ENDPOINT>"
+      permission: CAN_QUERY        # App SP can proxy queries; user OBO token enforces sub-agent auth

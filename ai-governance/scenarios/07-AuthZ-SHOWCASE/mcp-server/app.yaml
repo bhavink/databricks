@@ -1,0 +1,34 @@
+# app.yaml — authz-showcase-custom-mcp (Phase 5)
+#
+# Custom MCP server exposing three tools:
+#   get_deal_approval_status  — OBO (user identity via ModelServingUserCredentials)
+#   submit_deal_for_approval  — OBO (approval record stamped with caller identity)
+#   get_crm_sync_status       — M2M (app SP credentials, WorkspaceClient() no-args)
+#
+# Auth notes:
+#   OBO tools: use ModelServingUserCredentials() — SDK extracts caller's OAuth token
+#     from the Authorization: Bearer header. UC row filters fire as that user.
+#   M2M tools: WorkspaceClient() auto-discovers DATABRICKS_CLIENT_ID/SECRET from env.
+#   PATs: NOT supported for custom MCP servers on Databricks Apps (OAuth only).
+#
+# Docs:
+#   Custom MCP: https://learn.microsoft.com/en-us/azure/databricks/generative-ai/mcp/custom-mcp
+#   Connect external clients: https://learn.microsoft.com/en-us/azure/databricks/generative-ai/mcp/connect-external-services
+
+command: ["uv", "run", "python", "server/main.py"]
+
+# authorization: disabled so the Apps proxy does NOT strip/replace the
+# Authorization header.  app.py forwards the user's OAuth token as
+# "Authorization: Bearer <token>" and our ExtractTokenMiddleware reads it
+# directly.  Token authenticity is enforced by current_user.me() — invalid
+# tokens are rejected by the Databricks IAM API.
+authorization: disabled
+
+env:
+  - name: SQL_WAREHOUSE_ID
+    value: "<YOUR_WAREHOUSE_ID>"
+
+resources:
+  - sql_warehouse:
+      id: "<YOUR_WAREHOUSE_ID>"
+      permission: CAN_USE

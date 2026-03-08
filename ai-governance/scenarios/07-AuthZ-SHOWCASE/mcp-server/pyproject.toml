@@ -1,0 +1,14 @@
+[project]
+name = "authz-showcase-mcp"
+version = "0.1.0"
+description = "Custom MCP server for the AI Auth Showcase — deal approval and CRM sync tools"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp[cli]>=1.9",
+    "databricks-sdk>=0.40.0",
+    "uvicorn>=0.27",
+]
+
+[project.scripts]
+authz-showcase-mcp = "server.main:main"
+

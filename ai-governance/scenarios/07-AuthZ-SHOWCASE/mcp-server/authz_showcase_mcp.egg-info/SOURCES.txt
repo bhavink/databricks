@@ -1,0 +1,9 @@
+pyproject.toml
+authz_showcase_mcp.egg-info/PKG-INFO
+authz_showcase_mcp.egg-info/SOURCES.txt
+authz_showcase_mcp.egg-info/dependency_links.txt
+authz_showcase_mcp.egg-info/entry_points.txt
+authz_showcase_mcp.egg-info/requires.txt
+authz_showcase_mcp.egg-info/top_level.txt
+server/__init__.py
+server/main.py
