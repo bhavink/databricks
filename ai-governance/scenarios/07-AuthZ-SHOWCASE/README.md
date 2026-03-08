@@ -4,26 +4,43 @@ A 6-tab Streamlit app on Databricks Apps that demonstrates every major AI author
 
 ## Architecture
 
+```mermaid
+flowchart TB
+    subgraph APP["🖥️ Databricks App (Streamlit)"]
+        T1["💬 Tab 1\nAsk Genie\n─────\nOBO\nuser token"]
+        T2["🔍 Tab 2\nSearch Knowledge\n─────\nM2M\napp SP"]
+        T3["⚙️ Tab 3\nBusiness Logic\n─────\nM2M\napp SP"]
+        T4["🔧 Tab 4\nCustom MCP\n─────\nOBO\nuser token"]
+        T5["🤖 Tab 5\nAsk Agent\n─────\nOBO\nuser token"]
+        T6["🌐 Tab 6\nExternal Intel\n─────\nOBO\nuser token"]
+    end
+
+    T1 -->|OBO| GENIE["Genie API"]
+    T2 -->|M2M| VS["VS Index\n+ FM API"]
+    T3 -->|M2M| SQL["UC Functions\nvia SQL Warehouse"]
+    T4 -->|OBO + X-Forwarded-Email| MCP["Custom MCP App\n(Databricks App)"]
+    T5 -->|OBO| AGENT["Agent Bricks\nSupervisor"]
+    T6 -->|OBO| UCHP["UC HTTP Proxy"]
+
+    AGENT -->|OBO sub-agent| GENIE
+    AGENT -->|OBO sub-agent| SQL
+    UCHP --> GH["GitHub MCP\nCustom MCP"]
+
+    GENIE & VS & SQL & MCP & AGENT & UCHP --> UC
+
+    UC["🛡️ Unity Catalog — single enforcement point\nRow filters · Column masks · current_user() · is_member() · USE CONNECTION"]
+
+    style APP fill:#1e293b,stroke:#475569,color:#f1f5f9
+    style UC fill:#1e3a5f,stroke:#3b82f6,color:#93c5fd
+    style T1 fill:#0f2d1f,stroke:#22c55e,color:#86efac
+    style T4 fill:#0f2d1f,stroke:#22c55e,color:#86efac
+    style T5 fill:#0f2d1f,stroke:#22c55e,color:#86efac
+    style T6 fill:#0f2d1f,stroke:#22c55e,color:#86efac
+    style T2 fill:#2d1f0f,stroke:#f59e0b,color:#fcd34d
+    style T3 fill:#2d1f0f,stroke:#f59e0b,color:#fcd34d
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      DATABRICKS APP (Streamlit)                         │
-│                                                                         │
-│  Tab 1 💬    Tab 2 🔍    Tab 3 ⚙️    Tab 4 🔧    Tab 5 🤖    Tab 6 🌐   │
-│  Genie       VS Search   UC Funcs    Custom MCP  Agent       Ext MCP   │
-│    │           │           │           │           │           │        │
-│   OBO         M2M         M2M         OBO         OBO         OBO      │
-│  user tok    app SP      app SP      user tok    user tok    user tok  │
-└────┬──────────┬───────────┬───────────┬───────────┬───────────┬────────┘
-     │          │           │           │           │           │
-  Genie API  VS Index    UC Funcs    Custom       Agent       UC HTTP
-             + FM API    via SQL     MCP App      Bricks      Proxy
-                         Warehouse   X-Fwd-       Super-        │
-                                     Email        visor       GitHub MCP
-                                                    │          Custom MCP
-     └──────────┴───────────┴───────────┴───────────┴───────────┘
-              Unity Catalog — single enforcement point
-         Row filters · Column masks · current_user() · is_member() · USE CONNECTION
-```
+
+> Green tabs = OBO (user token propagates end-to-end) · Amber tabs = M2M (app SP identity)
 
 ## Tab Quick Reference
 
