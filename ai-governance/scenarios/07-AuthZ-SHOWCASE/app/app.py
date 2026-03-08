@@ -24,11 +24,11 @@ from auth_utils import get_user_context
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
-GENIE_SPACE_ID  = os.environ.get("GENIE_SPACE_ID",  "<YOUR_GENIE_SPACE_ID>")
+GENIE_SPACE_ID  = os.environ.get("GENIE_SPACE_ID",  "01f117ff5bdd167daf9aed6baa32c4c8")
 VS_INDEX        = os.environ.get("VS_INDEX",       "authz_showcase.knowledge_base.product_docs_index")
 VS_INDEX_PB     = os.environ.get("VS_INDEX_PB",    "authz_showcase.knowledge_base.sales_playbooks_index")
 FM_ENDPOINT     = os.environ.get("FM_ENDPOINT",    "databricks-meta-llama-3-3-70b-instruct")
-SQL_WAREHOUSE   = os.environ.get("SQL_WAREHOUSE",  "<YOUR_WAREHOUSE_ID>")
+SQL_WAREHOUSE   = os.environ.get("SQL_WAREHOUSE",  "093d4ec27ed4bdee")
 UC_FUNCTIONS_CATALOG = os.environ.get("UC_FUNCTIONS_CATALOG", "authz_showcase")
 SUPERVISOR_ENDPOINT  = os.environ.get("SUPERVISOR_ENDPOINT",  "")
 CUSTOM_MCP_URL       = os.environ.get("CUSTOM_MCP_URL",       "")
@@ -83,7 +83,7 @@ def _resolve_sp_numeric_id() -> str:
     """
     client_id = os.environ.get("DATABRICKS_CLIENT_ID", "")
     if not client_id:
-        return "<YOUR_SP_NUMERIC_ID>"
+        return "0"
     try:
         r = requests.get(
             f"{host}/api/2.0/preview/scim/v2/ServicePrincipals",
@@ -92,13 +92,13 @@ def _resolve_sp_numeric_id() -> str:
             timeout=10,
         )
         items = r.json().get("Resources", [])
-        return str(items[0]["id"]) if items else "<YOUR_SP_NUMERIC_ID>"
+        return str(items[0]["id"]) if items else "0"
     except Exception:
-        return "<YOUR_SP_NUMERIC_ID>"
+        return "0"
 
 
-SP_CLIENT_ID  = os.environ.get("DATABRICKS_CLIENT_ID", "<YOUR_SP_CLIENT_UUID>")  # injected by runtime
-SP_NUMERIC_ID = _resolve_sp_numeric_id()                                          # resolved at startup
+SP_CLIENT_ID  = os.environ.get("DATABRICKS_CLIENT_ID", "")   # UUID (injected by runtime)
+SP_NUMERIC_ID = _resolve_sp_numeric_id()                      # numeric SCIM ID
 
 
 def _sp_headers() -> dict:
@@ -845,7 +845,7 @@ with st.sidebar:
             add = f'databricks groups patch {gid} --profile adb-wx1 --json \'{_SCIM_ADD.format(uid=_DEMO_USER_ID)}\''
             st.caption("Step 1 — Terminal:")
             st.code(f"{removes}; \\\n{add}", language="bash")
-            st.caption("Step 2 — [SQL Editor](https://adb-<YOUR_WORKSPACE_ORG_ID>.3.azuredatabricks.net/sql/editor):")
+            st.caption("Step 2 — [SQL Editor](https://adb-1516413757355523.3.azuredatabricks.net/sql/editor):")
             st.code(_QUOTA_SQL[label], language="sql")
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -952,15 +952,14 @@ with tab2:
     )
 
     # ── SP grant fix (copy-paste if you get a 403) ───────────────────────────
-    _grant_sql = (
-        f"-- Run in any SQL editor or notebook if Tab 2 returns 403\n"
-        f"GRANT USE CATALOG ON CATALOG authz_showcase        TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT USE SCHEMA  ON SCHEMA  authz_showcase.knowledge_base TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.product_docs          TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.product_docs_index    TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.sales_playbooks       TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.sales_playbooks_index TO `{SP_CLIENT_ID}`;"
-    )
+    _sp = os.environ.get("DATABRICKS_CLIENT_ID", "run: databricks apps get authz-showcase | grep service_principal_client_id")
+    _grant_sql = f"""-- Run in any SQL editor or notebook if Tab 2 returns 403
+GRANT USE CATALOG ON CATALOG authz_showcase        TO `{_sp}`;
+GRANT USE SCHEMA  ON SCHEMA  authz_showcase.knowledge_base TO `{_sp}`;
+GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.product_docs          TO `{_sp}`;
+GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.product_docs_index    TO `{_sp}`;
+GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.sales_playbooks       TO `{_sp}`;
+GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.sales_playbooks_index TO `{_sp}`;"""
     with st.expander("🔑 SP grants — copy-paste if you get a 403", expanded=False):
         st.code(_grant_sql, language="sql")
 
@@ -1030,6 +1029,9 @@ with tab2:
                 st.session_state.vs_summary = ""
             except requests.HTTPError as e:
                 st.error(f"Vector Search error: {e.response.status_code} — {e.response.text[:300]}")
+                if e.response.status_code == 403:
+                    st.warning("App SP is missing UC grants. Run the SQL below, then retry:")
+                    st.code(_grant_sql, language="sql")
                 st.session_state.vs_results = []
             except Exception as e:
                 st.error(f"Unexpected error: {e}")
@@ -1092,7 +1094,7 @@ with tab3:
     st.markdown(
         '<div style="margin-top:8px;margin-bottom:16px;">'
         '<span class="badge-m2m">M2M</span>&nbsp;&nbsp;'
-        '<span style="color:#64748b;font-size:13px;">App SP · quota enforced by <code>mask_quota</code> column mask via <code>is_member()</code> — SP must be in <code>authz_showcase_executives</code></span>'
+        '<span style="color:#64748b;font-size:13px;">App SP · quota enforced by <code>mask_quota</code> column mask via <code>current_user()</code> → <code>quota_viewers</code> lookup</span>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -1104,32 +1106,30 @@ with tab3:
                      for g in ctx.get("authz_groups", []))
 
     # ── SP permission fix (copy-paste if you see PermissionDenied) ────────────
+    _sp3 = os.environ.get("DATABRICKS_CLIENT_ID", "<SP_UUID>")
     _wh_grant = (
         f"# Run once after any app deploy/reset if you see\n"
         f"# 'PermissionDenied: You do not have permission to use the SQL Warehouse'\n"
-        f"databricks permissions update warehouses <YOUR_WAREHOUSE_ID> \\\n"
-        f"  --profile <YOUR_CLI_PROFILE> \\\n"
-        f"  --json '{{\"access_control_list\": [{{\"service_principal_name\": \"{SP_CLIENT_ID}\", \"permission_level\": \"CAN_USE\"}}]}}'"
+        f"databricks permissions update warehouses {SQL_WAREHOUSE} \\\n"
+        f"  --profile adb-wx1 \\\n"
+        f"  --json '{{\"access_control_list\": [{{\"service_principal_name\": \"{_sp3}\", \"permission_level\": \"CAN_USE\"}}]}}'"
     )
     _uc_grant3 = (
         f"-- Run in SQL editor if UC function calls fail\n"
-        f"GRANT USE CATALOG ON CATALOG authz_showcase               TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT USE SCHEMA  ON SCHEMA  authz_showcase.functions      TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT USE SCHEMA  ON SCHEMA  authz_showcase.sales          TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT EXECUTE ON FUNCTION authz_showcase.functions.get_rep_quota         TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT EXECUTE ON FUNCTION authz_showcase.functions.calculate_attainment  TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT EXECUTE ON FUNCTION authz_showcase.functions.recommend_next_action TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT SELECT ON TABLE authz_showcase.sales.opportunities   TO `{SP_CLIENT_ID}`;\n"
-        f"GRANT SELECT ON TABLE authz_showcase.sales.sales_reps      TO `{SP_CLIENT_ID}`;\n"
-        f"-- Also add SP to authz_showcase_executives group (for mask_quota is_member() check):\n"
-        f"-- python3 seed/10_onboard_app_sp.py --profile <YOUR_CLI_PROFILE>"
+        f"GRANT USE CATALOG ON CATALOG authz_showcase               TO `{_sp3}`;\n"
+        f"GRANT USE SCHEMA  ON SCHEMA  authz_showcase.functions      TO `{_sp3}`;\n"
+        f"GRANT USE SCHEMA  ON SCHEMA  authz_showcase.sales          TO `{_sp3}`;\n"
+        f"GRANT EXECUTE ON FUNCTION authz_showcase.functions.get_rep_quota         TO `{_sp3}`;\n"
+        f"GRANT EXECUTE ON FUNCTION authz_showcase.functions.calculate_attainment  TO `{_sp3}`;\n"
+        f"GRANT EXECUTE ON FUNCTION authz_showcase.functions.recommend_next_action TO `{_sp3}`;\n"
+        f"GRANT SELECT ON TABLE authz_showcase.sales.opportunities   TO `{_sp3}`;\n"
+        f"GRANT SELECT ON TABLE authz_showcase.sales.sales_reps      TO `{_sp3}`;"
     )
     with st.expander("🔑 SP permissions — copy-paste if you see PermissionDenied", expanded=False):
         st.markdown("**Step 1 — Warehouse access** (CLI — run after any app deploy/reset):")
         st.code(_wh_grant, language="bash")
         st.markdown("**Step 2 — UC object grants** (run in any SQL editor or notebook):")
         st.code(_uc_grant3, language="sql")
-        st.info("💡 Or run `python3 seed/10_onboard_app_sp.py` to handle all of the above automatically.")
 
     # ── Session state init ────────────────────────────────────────────────────
     for _k, _v in [
@@ -1224,7 +1224,7 @@ See the terminal demo below.
             language="bash",
         )
         st.caption(
-            f"Expected: `null` — you are `{persona}`, not in `authz_showcase_executives` → `mask_quota` returns NULL"
+            f"Expected: `null` — you are `{persona}`, not listed in `quota_viewers` → mask returns NULL"
         )
 
         st.divider()
@@ -1241,7 +1241,7 @@ See the terminal demo below.
             f"# Bootstrap: use your CLI credentials to generate a fresh SP secret\n"
             f"me = WorkspaceClient(profile='adb-wx1')\n"
             f"r  = requests.post(\n"
-            f"    f\"{{me.config.host}}/api/2.0/accounts/servicePrincipals/<YOUR_SP_NUMERIC_ID>/credentials/secrets\",\n"
+            f"    f\"{{me.config.host}}/api/2.0/accounts/servicePrincipals/{SP_NUMERIC_ID}/credentials/secrets\",\n"
             f"    headers={{**me.config.authenticate(), 'Content-Type': 'application/json'}},\n"
             f")\n"
             f"if r.status_code != 200:\n"
@@ -1300,7 +1300,7 @@ See the terminal demo below.
             f")\n"
             f"if r.status_code != 200:\n"
             f"    print('Secret generation failed:', r.json())\n"
-            f"    print('Quota hit? Run: python3 seed/cleanup_sp_secrets.py --profile <YOUR_CLI_PROFILE>')\n"
+            f"    print('Quota hit? Run: python3 seed/cleanup_sp_secrets.py --profile adb-wx1')\n"
             f"    exit(1)\n"
             f"sp = WorkspaceClient(host=me.config.host,\n"
             f"                     client_id='{SP_CLIENT_ID}',\n"
@@ -1338,7 +1338,7 @@ See the terminal demo below.
                 st.session_state.fn_loaded     = True
             except _SdkPermissionDenied as e:
                 st.error(f"PermissionDenied: {e}")
-                st.warning("App SP is missing warehouse or UC permissions. Run the grants in the expander above, then retry.")
+                st.warning("App SP is missing warehouse or UC permissions. Run the grants below, then retry:")
                 st.markdown("**Warehouse access** (CLI):")
                 st.code(_wh_grant, language="bash")
                 st.markdown("**UC grants** (SQL editor):")
@@ -1908,7 +1908,8 @@ Proxy URL pattern: `{{workspace_host}}/api/2.0/mcp/external/{{connection_name}}`
                         {"owner": gh_owner, "repo": gh_repo, "state": gh_state},
                         token=user_token,
                     )
-                    st.code(json.dumps(result, indent=2), language="json")
+                    with st.expander("📄 Result", expanded=True):
+                        st.code(json.dumps(result, indent=2), language="json")
                 except Exception as e:
                     _show_github_error(e)
 
@@ -1921,7 +1922,8 @@ Proxy URL pattern: `{{workspace_host}}/api/2.0/mcp/external/{{connection_name}}`
                         GITHUB_CONN, "search_repositories", {"query": gh_query},
                         token=user_token,
                     )
-                    st.code(json.dumps(result, indent=2), language="json")
+                    with st.expander("📄 Result", expanded=True):
+                        st.code(json.dumps(result, indent=2), language="json")
                 except Exception as e:
                     _show_github_error(e)
 
@@ -1987,12 +1989,13 @@ w.connections.create(
                     result = _mcp_tool_call(
                         CUSTMCP_CONN, "get_deal_approval_status", {"opp_id": b_opp},
                     )
-                    st.code(json.dumps(result, indent=2), language="json")
-                    st.caption(
-                        "Notice: `caller_identity` shows the **stored credential owner** — "
-                        "the UC connection's bearer token determines the external identity, "
-                        "not the calling user."
-                    )
+                    with st.expander("📄 Result", expanded=True):
+                        st.code(json.dumps(result, indent=2), language="json")
+                        st.caption(
+                            "Notice: `caller_identity` shows the **stored credential owner** — "
+                            "the UC connection's bearer token determines the external identity, "
+                            "not the calling user."
+                        )
                 except PermissionError as e:
                     st.warning(str(e))
                 except Exception as e:
@@ -2004,7 +2007,8 @@ w.connections.create(
                     result = _mcp_tool_call(
                         CUSTMCP_CONN, "get_crm_sync_status", {"customer_id": b_cust},
                     )
-                    st.code(json.dumps(result, indent=2), language="json")
+                    with st.expander("📄 Result", expanded=True):
+                        st.code(json.dumps(result, indent=2), language="json")
                 except PermissionError as e:
                     st.warning(str(e))
                 except Exception as e:
