@@ -1,6 +1,8 @@
 # Genie Space: Multi-Team Access
 
 > **Multiple teams share a Genie Space for analytics, each team sees only their authorized data**
+>
+> **UC policy primer**: Before reading the row filters and column masks below, see [UC Policy Design Principles](../../UC-POLICY-DESIGN-PRINCIPLES.md) — how `current_user()` and `is_member()` behave in Genie OBO contexts.
 
 **Official Use Case:** [AI/BI Genie](https://docs.databricks.com/aws/en/genie/) - Turn your tables into an expert AI chatbot
 

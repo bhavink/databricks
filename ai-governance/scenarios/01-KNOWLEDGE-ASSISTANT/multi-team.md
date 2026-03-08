@@ -1,6 +1,8 @@
 # Knowledge Assistant: Multi-Team Documentation Access
 
 > **Engineering teams share a Knowledge Assistant for technical documentation, with team-specific access controls on Vector Search indexes**
+>
+> **UC policy primer**: Before reading the access control patterns below, see [UC Policy Design Principles](../../UC-POLICY-DESIGN-PRINCIPLES.md) — how `current_user()` and `is_member()` behave in Vector Search OBO vs M2M contexts.
 
 **Official Use Case:** [Knowledge Assistant](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/knowledge-assistant) - Turn your documents into a high-quality chatbot
 

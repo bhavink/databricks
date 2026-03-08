@@ -1,6 +1,8 @@
 # Genie Space: Large Scale with Complex Governance (1000+ Users)
 
 > **Enterprise-wide Genie Space serving 1000+ users with attribute-based access control and hierarchical permissions**
+>
+> **UC policy primer**: Before reading the ABAC patterns below, see [UC Policy Design Principles](../../UC-POLICY-DESIGN-PRINCIPLES.md) — how `current_user()` and `is_member()` behave at scale in Genie OBO, and when the allowlist table pattern is the right choice over `is_member()`.
 
 **Official Use Case:** [AI/BI Genie](https://docs.databricks.com/aws/en/genie/) - Turn your tables into an expert AI chatbot
 

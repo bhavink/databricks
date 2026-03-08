@@ -1,6 +1,8 @@
 # Multi-Agent Supervisor: Coordinating Multiple Genie Spaces
 
 > **Financial advisory platform where supervisor agent routes queries to specialized Genie Spaces with hybrid authentication**
+>
+> **UC policy primer**: Before reading the access control patterns below, see [UC Policy Design Principles](../../UC-POLICY-DESIGN-PRINCIPLES.md) — how `current_user()` and `is_member()` behave when a supervisor routes to Genie OBO sub-agents vs M2M SP contexts.
 
 **Official Use Case:** [Multi-Agent Supervisor](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/multi-agent-supervisor) - Design a multi-agent AI system that brings Genie spaces and agents together
 

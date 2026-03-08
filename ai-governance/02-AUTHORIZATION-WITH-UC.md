@@ -1,6 +1,8 @@
 # Authorization with Unity Catalog
 
 > **Technical reference for Unity Catalog governance across Databricks AI products**
+>
+> **Before writing row filters or column masks**, read [UC Policy Design Principles](UC-POLICY-DESIGN-PRINCIPLES.md) — a single cross-cutting reference for how `current_user()` and `is_member()` behave across all execution contexts (Genie OBO, Agent Bricks, M2M, direct SQL).
 
 ---
 
@@ -772,6 +774,43 @@ RETURN
 ```
 
 **Documentation:** [SQL Functions Reference](https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-functions-builtin.html)
+
+### is_member() vs current_user() Under OBO — Critical Distinction
+
+> Verified on Azure Databricks, March 2026 (AI Auth Showcase build). Applies to Genie, Databricks Apps, and any other OBO path.
+
+When UC row filters or column masks are evaluated under OBO, these two functions behave differently:
+
+| Function | Evaluated as | Correct under OBO? |
+|---|---|---|
+| `current_user()` | The **calling user's email** (the OBO principal) | YES — resolves to the authenticated user |
+| `is_member('group')` | The **SQL execution identity** (e.g., Genie's service account or app SP) | NO — evaluates the service account's groups, not the user's |
+
+**The trap:** A row filter or column mask using `is_member('sales-managers')` will evaluate based on whether Genie's service account is in that group — regardless of which user called Genie via OBO. The result is identical for every user.
+
+**Rule:** Use `current_user()` for OBO-compatible access control. Replace `is_member()` patterns with an allowlist table lookup keyed on `current_user()`:
+
+```sql
+-- WRONG under OBO: is_member evaluates the service account, not the caller
+CREATE FUNCTION masks.redact_quota(value DOUBLE)
+RETURNS DOUBLE
+RETURN CASE WHEN is_member('quota-viewers') THEN value ELSE NULL END;
+
+-- CORRECT under OBO: current_user() always evaluates to the calling user
+CREATE FUNCTION masks.redact_quota_obo(value DOUBLE)
+RETURNS DOUBLE
+RETURN CASE
+    WHEN EXISTS (
+        SELECT 1 FROM catalog.schema.quota_viewers
+        WHERE user_email = current_user()
+    ) THEN value
+    ELSE NULL
+END;
+```
+
+This pattern works correctly for Genie OBO, Databricks Apps, Agent Bricks OBO, and direct SQL — `current_user()` always resolves to the authenticated caller.
+
+> **Last verified:** 2026-03-08, Azure Databricks. Source: AI Auth Showcase build, Phase 3.
 
 ---
 

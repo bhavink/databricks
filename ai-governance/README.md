@@ -90,10 +90,19 @@ Agent Bricks offers pre-configured templates for production-grade AI agents ([do
 | [Knowledge Assistant: Multi-Team](scenarios/01-KNOWLEDGE-ASSISTANT/multi-team.md) | Engineering teams with team-specific documentation | 100-500 | ✅ Complete |
 | [Multi-Agent Supervisor: Genie Coordination](scenarios/04-MULTI-AGENT-SUPERVISOR/genie-coordination.md) | Supervisor routing to specialized Genies | Variable | ✅ Complete |
 
+### 🔐 AI Auth Showcase (Scenario 07)
+
+End-to-end working demonstration of every auth pattern: Genie OBO, Agent Bricks OBO, custom MCP server, external MCP proxy, SQL with user filtering. Verified on Azure Databricks, March 2026.
+
+| Reference | Description |
+|-----------|-------------|
+| [Auth Patterns](scenarios/07-AuthZ-SHOWCASE/AUTHZ-PATTERNS.md) | Hard-won findings: two-proxy problem, OAuth scope map, is_member() OBO context behavior, app.yaml SP lifecycle |
+
 ---
 
 ## 📚 Reference Materials
 
+- **[UC Policy Design Principles](UC-POLICY-DESIGN-PRINCIPLES.md)** - Cross-cutting reference: when to use `current_user()` vs `is_member()` across all products and execution contexts. Read this before writing any row filter or column mask.
 - **[Orchestration Architecture](ORCHESTRATION-ARCHITECTURE.md)** - Comprehensive guide to governed AI orchestration
 - **[Authentication Flows](reference/authentication-flows.md)** - Visual Mermaid diagrams of auth patterns
 - **[Authorization Flows](reference/authorization-flows.md)** - Visual diagrams of UC four-layer access control
@@ -206,6 +215,15 @@ A: Use Unity Catalog audit logs via `system.access.audit` table. See [Authorizat
 **Q: How do I monitor Genie conversations and query performance?**
 A: Use the system tables-based monitoring solution in [Audit Logging & Monitoring](audit-logging/README.md). Provides conversation tracking, user analytics, query insights, and real-time alerting.
 
+**Q: Why does my Genie row filter apply the same result to all users under OBO?**
+A: You are likely using `is_member('group')` in the filter. Under OBO, `is_member()` evaluates the SQL execution identity (Genie's service account), not the calling user. Replace with a `current_user()` + allowlist table lookup. See [Authorization with UC](02-AUTHORIZATION-WITH-UC.md#is_member-vs-current_user-under-obo).
+
+**Q: Why do I get a 403 calling the external MCP proxy even though the app SP has USE CONNECTION?**
+A: The external MCP proxy (`/api/2.0/mcp/external/...`) also validates that the calling OAuth token contains the `unity-catalog` scope claim. Add `unity-catalog` to the app's `user_authorized_scopes`. See [Authentication Patterns](01-AUTHENTICATION-PATTERNS.md#oauth-scope-requirements) and [Authentication Flows](reference/authentication-flows.md#3-databricks-apps-oauth-scope-map).
+
+**Q: My custom MCP server is not seeing the user's token — it always shows the SP identity. Why?**
+A: This is the two-proxy problem. When a Databricks App calls another Databricks App, the second app's proxy strips the incoming Authorization header and injects its own SP token. Use `X-Forwarded-Email` for user identity and M2M for SQL. See [Authentication Flows](reference/authentication-flows.md#4-the-two-proxy-problem).
+
 ---
 
 ## 🤝 Contributing
@@ -245,4 +263,4 @@ Found an issue or have a scenario to add? Contributions welcome:
 
 ---
 
-*Last updated: January 2026*
+*Last updated: 2026-03-08 — Added AI Auth Showcase learnings: OAuth scope map, two-proxy problem, is_member() vs current_user() in OBO contexts, app.yaml SP lifecycle (verified Azure Databricks)*
