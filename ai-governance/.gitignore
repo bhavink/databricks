@@ -1,0 +1,5 @@
+# Demo-specific files with real infrastructure IDs — keep locally, not in repo
+scenarios/07-AuthZ-SHOWCASE/DEMO-GUIDE.md
+scenarios/07-AuthZ-SHOWCASE/DEMO-SCRIPT.md
+scenarios/07-AuthZ-SHOWCASE/IMPLEMENTATION-PLAN.md
+scenarios/07-AuthZ-SHOWCASE/ONE-SHOT-PROMPT.md
