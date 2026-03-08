@@ -360,13 +360,13 @@ Incognito only helps if the Databricks workspace SSO session has truly expired. 
 
 ```mermaid
 flowchart TD
-    D["🗑️ App delete"] --> I["OAuth integration deleted\nAll existing refresh tokens invalidated"]
-    I --> C["✨ App create new\nNew OAuth integration + new client_id\nNew app SP UUID"]
-    C --> P["⚡ Patch scopes IMMEDIATELY\ndashboards.genie · genie · model-serving\nsql · all-apis · unity-catalog"]
-    P --> G["Re-run UC grants\nwith new SP UUID"]
+    D["🗑️ App delete"] --> I["OAuth integration deleted<br/>All existing refresh tokens invalidated"]
+    I --> C["✨ App create new<br/>New OAuth integration + new client_id<br/>New app SP UUID"]
+    C --> P["⚡ Patch scopes IMMEDIATELY<br/>dashboards.genie · genie · model-serving<br/>sql · all-apis · unity-catalog"]
+    P --> G["Re-run UC grants<br/>with new SP UUID"]
     G --> L["👤 User opens app"]
-    L --> A["New authorization code flow\nNew refresh token with current scopes"]
-    A --> T["✅ X-Forwarded-Access-Token\nnow includes unity-catalog"]
+    L --> A["New authorization code flow<br/>New refresh token with current scopes"]
+    A --> T["✅ X-Forwarded-Access-Token<br/>now includes unity-catalog"]
 
     style D fill:#3b1a1a,stroke:#ef4444,color:#fca5a5
     style I fill:#3b1a1a,stroke:#ef4444,color:#fca5a5

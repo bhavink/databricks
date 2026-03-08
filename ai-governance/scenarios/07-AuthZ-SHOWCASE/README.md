@@ -7,28 +7,28 @@ A 6-tab Streamlit app on Databricks Apps that demonstrates every major AI author
 ```mermaid
 flowchart TB
     subgraph APP["🖥️ Databricks App (Streamlit)"]
-        T1["💬 Tab 1\nAsk Genie\n─────\nOBO\nuser token"]
-        T2["🔍 Tab 2\nSearch Knowledge\n─────\nM2M\napp SP"]
-        T3["⚙️ Tab 3\nBusiness Logic\n─────\nM2M\napp SP"]
-        T4["🔧 Tab 4\nCustom MCP\n─────\nOBO\nuser token"]
-        T5["🤖 Tab 5\nAsk Agent\n─────\nOBO\nuser token"]
-        T6["🌐 Tab 6\nExternal Intel\n─────\nOBO\nuser token"]
+        T1["💬 Tab 1<br/>Ask Genie<br/>─────<br/>OBO<br/>user token"]
+        T2["🔍 Tab 2<br/>Search Knowledge<br/>─────<br/>M2M<br/>app SP"]
+        T3["⚙️ Tab 3<br/>Business Logic<br/>─────<br/>M2M<br/>app SP"]
+        T4["🔧 Tab 4<br/>Custom MCP<br/>─────<br/>OBO<br/>user token"]
+        T5["🤖 Tab 5<br/>Ask Agent<br/>─────<br/>OBO<br/>user token"]
+        T6["🌐 Tab 6<br/>External Intel<br/>─────<br/>OBO<br/>user token"]
     end
 
     T1 -->|OBO| GENIE["Genie API"]
-    T2 -->|M2M| VS["VS Index\n+ FM API"]
-    T3 -->|M2M| SQL["UC Functions\nvia SQL Warehouse"]
-    T4 -->|OBO + X-Forwarded-Email| MCP["Custom MCP App\n(Databricks App)"]
-    T5 -->|OBO| AGENT["Agent Bricks\nSupervisor"]
+    T2 -->|M2M| VS["VS Index<br/>+ FM API"]
+    T3 -->|M2M| SQL["UC Functions<br/>via SQL Warehouse"]
+    T4 -->|OBO + X-Forwarded-Email| MCP["Custom MCP App<br/>(Databricks App)"]
+    T5 -->|OBO| AGENT["Agent Bricks<br/>Supervisor"]
     T6 -->|OBO| UCHP["UC HTTP Proxy"]
 
     AGENT -->|OBO sub-agent| GENIE
     AGENT -->|OBO sub-agent| SQL
-    UCHP --> GH["GitHub MCP\nCustom MCP"]
+    UCHP --> GH["GitHub MCP<br/>Custom MCP"]
 
     GENIE & VS & SQL & MCP & AGENT & UCHP --> UC
 
-    UC["🛡️ Unity Catalog — single enforcement point\nRow filters · Column masks · current_user() · is_member() · USE CONNECTION"]
+    UC["🛡️ Unity Catalog — single enforcement point<br/>Row filters · Column masks · current_user() · is_member() · USE CONNECTION"]
 
     style APP fill:#1e293b,stroke:#475569,color:#f1f5f9
     style UC fill:#1e3a5f,stroke:#3b82f6,color:#93c5fd
