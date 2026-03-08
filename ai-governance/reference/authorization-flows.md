@@ -271,6 +271,57 @@ flowchart TB
 
 > **Recommendation:** Use [ABAC](https://docs.databricks.com/aws/en/data-governance/unity-catalog/abac) for centralized, scalable governance. Use row filters and column masks when per-table logic is required or ABAC hasn't been adopted yet.
 
+## 6) is_member() vs current_user() Under OBO — Critical Distinction
+
+> Verified on Azure Databricks, March 2026 (AI Auth Showcase build).
+
+When UC row filters or column masks are evaluated under OBO (e.g., Genie Conversation API called from a Databricks App), the two UC built-in functions behave differently:
+
+| Function | Evaluated as | Correct under OBO? |
+|---|---|---|
+| `current_user()` | The **calling user's email** (the OBO principal) | YES — use for identity-based row filters |
+| `is_member('group')` | The **SQL execution identity** (e.g., Genie's service account) | NO — evaluates the service account's group memberships, not the user's |
+
+**The trap:** A column mask using `is_member('sales-managers')` will always evaluate as if the Genie service account is (or is not) in `sales-managers`, regardless of which user called Genie via OBO. The result is the same for every user.
+
+**The fix for OBO-compatible access control:**
+
+Instead of `is_member()`, use `current_user()` with an allowlist table:
+
+```sql
+-- OBO-compatible: evaluates to the calling user's email
+CREATE FUNCTION catalog.schema.manager_filter(rep_email STRING)
+RETURNS BOOLEAN
+RETURN rep_email = current_user()
+    OR EXISTS (
+        SELECT 1 FROM catalog.schema.quota_viewers
+        WHERE user_email = current_user()
+    );
+
+ALTER TABLE catalog.schema.opportunities
+  SET ROW FILTER catalog.schema.manager_filter ON (rep_email);
+```
+
+This pattern works correctly whether the query arrives via Genie OBO, a Databricks App, or direct SQL — `current_user()` always resolves to the authenticated caller.
+
+> **Last verified:** 2026-03-08, Azure Databricks. Source: AI Auth Showcase build.
+
+## 7) Databricks Apps: app.yaml Resource Grants and SP Lifecycle
+
+When a Databricks App declares resources in `app.yaml`, the platform auto-grants the app service principal (SP) permissions on each deploy. However, several grants are NOT covered by `app.yaml` and must be applied manually:
+
+| Grant type | Auto via app.yaml? | Manual required? |
+|---|---|---|
+| SQL Warehouse CAN_USE | Yes (via `sql_warehouse` resource block) | No |
+| USE CATALOG | No | Yes |
+| USE SCHEMA | No | Yes |
+| SELECT on tables | No | Yes |
+| USE CONNECTION (for external MCP) | No | Yes — must be on the calling identity |
+
+**SP lifecycle gotcha:** When an app is deleted and recreated, a new SP UUID is generated. All manually applied grants (UC privileges, warehouse permissions, allowlist table rows) must be redone. The `app.yaml` resource grants are automatically reapplied on the next deploy.
+
+**Multi-app gotcha:** Each Databricks App (main app, MCP app, etc.) gets its own distinct SP. Grants on the main app's SP do not carry over to the MCP app's SP. Check both SPs separately.
+
 ## Related Documentation
 
 - [Authentication Flows](authentication-flows.md) — Visual reference for authentication patterns

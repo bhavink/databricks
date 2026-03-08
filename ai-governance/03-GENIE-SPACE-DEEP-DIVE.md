@@ -267,12 +267,16 @@ class MyAgent:
 
 ⚠️ **Declare API Scopes:**
 When logging the agent for deployment, declare the Databricks REST API scopes:
+
+> **Azure note (undocumented):** On Azure Databricks, Genie OBO requires BOTH `dashboards.genie` AND `genie` scopes. The `genie` scope is not shown in the UI when configuring a custom app OAuth integration, but the Genie Conversation API on Azure validates it. Add both when configuring `user_authorized_scopes` on any Databricks App OAuth integration. Verified: March 2026.
+
 ```python
 import mlflow
 from mlflow.models.auth_policy import AuthPolicy, UserAuthPolicy
 
 user_policy = UserAuthPolicy(api_scopes=[
-    "dashboards.genie",  # For Genie Space access
+    "dashboards.genie",  # For Genie Space access (all clouds)
+    "genie",             # Also required on Azure (undocumented)
     "sql.warehouses",     # If Genie uses SQL Warehouse
     "sql.statement-execution"
 ])
@@ -449,6 +453,23 @@ sequenceDiagram
 ```
 
 **Key Insight:** With OAuth U2M or OBO, Unity Catalog's `current_user()` function returns the **actual end user's identity**, enabling per-user row filters and column masks.
+
+> **Critical OBO distinction (verified March 2026):** `current_user()` in row filters correctly evaluates to the calling user's email under OBO. However, `is_member('group')` evaluates the **SQL execution identity** (Genie's service account), NOT the OBO caller. This means `is_member()` in row filters or column masks returns the same result for every user when called through Genie OBO.
+>
+> For OBO-compatible group-based access control, replace `is_member()` with an allowlist table lookup using `current_user()`:
+> ```sql
+> -- WRONG under Genie OBO: evaluates Genie's service account, not the user
+> RETURN CASE WHEN is_member('sales-managers') THEN value ELSE NULL END;
+>
+> -- CORRECT: current_user() resolves to the OBO caller's email
+> RETURN CASE
+>     WHEN EXISTS (
+>         SELECT 1 FROM catalog.schema.manager_allowlist
+>         WHERE user_email = current_user()
+>     ) THEN value
+>     ELSE NULL
+> END;
+> ```
 
 ---
 

@@ -201,9 +201,77 @@ flowchart LR
 - **[Foundation model (system.ai)](https://docs.databricks.com/aws/en/machine-learning/model-serving/foundation-model-overview.html)** → accessible as Databricks-managed resources with UC governance when workspace is configured.
 - **[Databricks Apps](https://docs.databricks.com/aws/en/dev-tools/databricks-apps/)** → app SP (fixed permissions) vs OBO (per-user UC with scopes).
 
+## 3) Databricks Apps: OAuth Scope Map
+
+> Verified on Azure Databricks, March 2026. Add ALL scopes upfront — missing scopes only surface at runtime, per feature.
+
+| Scope | Required for | Notes |
+|---|---|---|
+| `dashboards.genie` | Genie Conversation API (all clouds) | Must be in `user_authorized_scopes` |
+| `genie` | Genie Conversation API on **Azure** | **Undocumented Azure-specific requirement** — UI does not show this scope |
+| `model-serving` | Agent Bricks / Model Serving OBO | |
+| `sql` | Statement Execution API | Adding to `user_authorized_scopes` does NOT embed it in the JWT — use M2M for SQL |
+| `unity-catalog` | External MCP proxy `/api/2.0/mcp/external/...` | **Undocumented** — proxy checks USE CONNECTION privilege; missing = 403 |
+| `all-apis` | General Databricks REST APIs | Catch-all |
+| `offline_access`, `email`, `openid`, `profile`, `iam.*` | OIDC identity baseline | Always required |
+
+**Patch command (run once after any app create or delete+recreate):**
+```bash
+databricks account custom-app-integration update '<integration-id>' \
+  --profile <account-profile> \
+  --json '{
+    "scopes": ["offline_access","email","iam.current-user:read",
+               "openid","dashboards.genie","genie","iam.access-control:read",
+               "profile","model-serving","sql","all-apis","unity-catalog"],
+    "user_authorized_scopes": ["dashboards.genie","genie","model-serving",
+                                "sql","all-apis","unity-catalog"]
+  }'
+```
+
+**`sql` scope gotcha:** The platform issues a minimal OIDC identity token regardless of `user_authorized_scopes` configuration. Statement Execution API checks the JWT `scope` claim directly and rejects it. Use M2M (`WorkspaceClient()` with no args) for SQL queries; use OBO only for Genie and Agent Bricks.
+
+**OAuth integration reset (nuclear option):** If `unity-catalog` scope is added after users have existing sessions, existing refresh tokens retain original scopes — refreshed access tokens do NOT pick up new scopes. Sign-out or incognito is insufficient if the workspace SSO session is still valid. Only fix: delete and recreate the app (creates a new OAuth integration), then immediately patch the new integration with the full scope set.
+
+## 4) The Two-Proxy Problem (Databricks Apps + Custom MCP)
+
+When a Streamlit app calls a custom MCP server and both are Databricks Apps, each has its own Envoy proxy:
+
+```
+User browser
+    |  HTTPS + session cookie
+    v
+[main-app Envoy proxy]              <- Proxy 1
+    |  injects X-Forwarded-Access-Token (Token A = user OBO token)
+    |  injects X-Forwarded-Email (user email)
+    v
+app.py (Streamlit)
+    |  Authorization: Bearer {Token A}   <- app forwards Token A
+    v
+[mcp-app Envoy proxy]               <- Proxy 2
+    |  STRIPS the incoming Authorization header
+    |  injects X-Forwarded-Access-Token (Token B = MCP app SP token)
+    |  injects X-Forwarded-Email (user email, derived from Token A)
+    v
+server/main.py (FastMCP)
+    |  Token B sub = MCP SP UUID (NOT the user)
+    |  X-Forwarded-Email = correct user email
+```
+
+**The problem:** Proxy 2 substitutes its own SP token for the user's token. The MCP server code never sees the user's OBO token.
+
+**The solution:** Use `X-Forwarded-Email` (set by the proxy from the validated incoming token, cannot be forged by the calling app) for user identity. Use `WorkspaceClient()` (M2M, no args) for SQL queries, with explicit `WHERE user_email = '{caller}'` filter in each query.
+
+**What NOT to use in the MCP server:**
+- `ModelServingUserCredentials()` — silently falls back to M2M in Databricks Apps context
+- `WorkspaceClient(host=host, token=user_token)` — SDK raises conflict error if `DATABRICKS_CLIENT_ID/SECRET` env vars are also set
+- The `X-Forwarded-Access-Token` for SQL — the token lacks the `sql` scope claim
+
+> **Last verified:** 2026-03-08, Azure Databricks (adb-wx1). Source: AI Auth Showcase build, Phase 5–6.
+
 ## Related Documentation
 
 - [Unity Catalog Access Control](https://docs.databricks.com/aws/en/data-governance/unity-catalog/access-control) — Four layers of access control
 - [Authorization Flows](authorization-flows.md) — Visual reference for UC authorization
 - [Agent Bricks](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/) — Production AI agents
 - [Agent Framework Authentication](https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication) — Detailed auth setup
+- [AI Auth Showcase Patterns](../scenarios/07-AuthZ-SHOWCASE/AUTHZ-PATTERNS.md) — Hard-won findings from a working Azure deployment

@@ -625,6 +625,95 @@ databricks secrets put-acl \
 
 ---
 
+## 🏗️ Databricks Apps: Hard-Won Learnings (Verified March 2026)
+
+> These findings come from building the AI Auth Showcase on Azure Databricks and apply to any Databricks App using OBO, custom MCP servers, or external MCP proxies.
+
+### OAuth Scope Requirements — Complete Map
+
+Add **all** scopes when creating the OAuth integration. Missing scopes only surface at runtime, per feature, often with cryptic error messages.
+
+| Scope | Required for | Notes |
+|---|---|---|
+| `dashboards.genie` | Genie Conversation API OBO | Must be in `user_authorized_scopes` |
+| `genie` | Genie on **Azure** | **Undocumented, Azure-specific** — not shown in UI; missing = 401 |
+| `model-serving` | Agent Bricks / Model Serving OBO | |
+| `sql` | Statement Execution API | Adding to `user_authorized_scopes` does NOT embed in JWT — use M2M instead |
+| `unity-catalog` | External MCP proxy `/api/2.0/mcp/external/...` | **Undocumented** — proxy validates `USE CONNECTION`; missing = 403 |
+| `all-apis` | General Databricks REST APIs | Catch-all |
+
+**Patch command (run immediately after any app create or delete+recreate):**
+```bash
+databricks account custom-app-integration update '<integration-id>' \
+  --profile <account-profile> \
+  --json '{
+    "scopes": ["offline_access","email","iam.current-user:read",
+               "openid","dashboards.genie","genie","iam.access-control:read",
+               "profile","model-serving","sql","all-apis","unity-catalog"],
+    "user_authorized_scopes": ["dashboards.genie","genie","model-serving",
+                                "sql","all-apis","unity-catalog"]
+  }'
+```
+
+**OAuth integration reset (nuclear option):** If a scope is added after users already have active sessions, existing refresh tokens retain original scopes — refreshed tokens do NOT pick up new scopes. Sign-out and incognito are insufficient if the workspace SSO session remains valid. Only guaranteed fix: delete and recreate the app (forces a new OAuth integration and new authorization code flow for all users). Apply the scope patch immediately after recreating.
+
+### The Two-Proxy Problem (Apps + Custom MCP)
+
+When a Streamlit app calls a custom MCP server and both are Databricks Apps, each has its own Envoy proxy:
+
+```
+User browser
+    |  HTTPS + session cookie
+    v
+[main-app Envoy proxy]              <- Proxy 1
+    |  injects X-Forwarded-Access-Token (Token A = user OBO token)
+    |  injects X-Forwarded-Email (user email)
+    v
+app.py (Streamlit)
+    |  Authorization: Bearer {Token A}   <- app forwards Token A
+    v
+[mcp-app Envoy proxy]               <- Proxy 2
+    |  STRIPS the incoming Authorization header
+    |  injects X-Forwarded-Access-Token (Token B = MCP app SP token)
+    |  injects X-Forwarded-Email (derived from Token A — correct user email)
+    v
+server/main.py (FastMCP)
+    |  Token B sub = MCP SP UUID (NOT the user)
+    |  X-Forwarded-Email = correct user email  <- use this for identity
+```
+
+**Result:** MCP server code never sees the user's OBO token. Token B identifies the MCP app SP, not the user.
+
+**Solution:**
+- Use `X-Forwarded-Email` for user identity (proxy-injected, cannot be forged by calling apps)
+- Use `WorkspaceClient()` (M2M, no args) for SQL queries
+- Apply explicit `WHERE user_email = '{caller}'` filter in each query (mirrors row filter logic)
+
+**What NOT to use in MCP server code:**
+- `ModelServingUserCredentials()` — silently falls back to M2M in Apps context (not Model Serving)
+- `WorkspaceClient(host=host, token=user_token)` — raises "more than one authorization method" error when `DATABRICKS_CLIENT_ID/SECRET` env vars are present
+- The `X-Forwarded-Access-Token` for SQL — token lacks the `sql` scope claim
+
+### app.yaml Resource Grants and SP Lifecycle
+
+`app.yaml` resource declarations auto-grant the app SP permissions on each deploy, but several grants require manual application:
+
+| Grant | Auto via app.yaml? | Notes |
+|---|---|---|
+| SQL Warehouse CAN_USE | Yes | Declared via `sql_warehouse` resource block |
+| USE CATALOG | No | Must GRANT manually |
+| USE SCHEMA | No | Must GRANT manually |
+| SELECT on tables | No | Must GRANT manually |
+| USE CONNECTION | No | Must GRANT on the calling identity (user or SP) |
+
+**SP lifecycle:** When an app is deleted and recreated, a new SP UUID is generated. All manual grants must be redone. `app.yaml` resource grants are re-applied automatically on the next deploy.
+
+**Multi-app:** Each Databricks App gets its own distinct SP. Grants on the main app SP do not carry over to the MCP app SP — check and grant both separately.
+
+> **Last verified:** 2026-03-08, Azure Databricks (adb-wx1). Source: AI Auth Showcase build.
+
+---
+
 ## 🔄 Combining Patterns: Hybrid Authentication
 
 Real-world applications often use **multiple patterns simultaneously** within the same system.
