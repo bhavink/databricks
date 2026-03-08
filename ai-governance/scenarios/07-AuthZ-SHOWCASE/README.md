@@ -79,6 +79,117 @@ In OBO contexts through Genie or Agent Bricks, `is_member()` evaluates the servi
 
 **Design rule**: Use `current_user()` to anchor anything that must carry the calling user's identity through an OBO chain. Use `is_member()` in M2M contexts where you control the executing SP's group membership directly.
 
+## Getting Started
+
+### Prerequisites
+
+- Databricks workspace with Unity Catalog enabled (AWS, Azure, or GCP)
+- Account admin + workspace admin access (needed for group creation and OAuth integration)
+- Databricks CLI configured with a workspace profile and an account-level profile
+- A SQL warehouse (serverless recommended)
+- Feature flags enabled: **Agent Bricks Beta**, **Agent Framework OBO**, **MLflow Production Monitoring** (check via Workspace Settings → Feature Preview)
+
+### Setup Order
+
+Every step maps to a numbered script in `seed/`. Run them in order against your workspace.
+
+```
+Step  Script                        What it does
+────  ────────────────────────────  ──────────────────────────────────────────────────
+ 0    00_catalog_schema.sql         Create catalog + schemas (authz_showcase.*)
+ 1    01_create_groups.py           Create workspace groups: west, east, managers,
+                                    executives, finance, custmcp (+ add yourself)
+ 2    02_seed_data.py               Insert synthetic sales data (opportunities, quotas,
+                                    deals, knowledge docs)
+ 3    03_row_col_security.sql       Create row filters + column mask UC functions,
+                                    attach to tables
+ 4    04_grant_permissions.sql      Grant SELECT/EXECUTE to account users + groups
+ 5    05_verify_security.sql        Spot-check filters work (run as different users)
+ 6    06_create_vs_index.py         Create + sync Vector Search index for Tab 2
+ 7    07_create_uc_functions.sql    Create get_rep_quota, calculate_attainment,
+      07_grant_uc_functions.sql     recommend_next_action + grants
+ 8    08_create_external_mcp_conn.py  Create UC HTTP connections (GitHub OAuth +
+                                    custom MCP bearer token) for Tab 6
+ 9    09_create_approval_requests.sql  Seed deal approval records for Tab 4 MCP tools
+```
+
+### Deploy the Apps
+
+**1. Fill in your values** — search for `<YOUR_*>` placeholders in `app/app.yaml` and `mcp-server/app.yaml` and replace with your warehouse ID, Genie space ID, etc.
+
+**2. Upload and deploy the custom MCP server first** (Tab 4 depends on it):
+```bash
+databricks workspace import-dir mcp-server /Workspace/Users/<you>/authz-showcase-custom-mcp \
+  --overwrite --profile <your-profile>
+databricks apps deploy authz-showcase-custom-mcp \
+  --source-code-path /Workspace/Users/<you>/authz-showcase-custom-mcp \
+  --profile <your-profile>
+```
+
+**3. Upload and deploy the main app:**
+```bash
+databricks workspace import-dir app /Workspace/Users/<you>/authz-showcase \
+  --overwrite --profile <your-profile>
+databricks apps deploy authz-showcase \
+  --source-code-path /Workspace/Users/<you>/authz-showcase \
+  --profile <your-profile>
+```
+
+**4. Patch the OAuth integration** (critical — do this immediately after first deploy):
+```bash
+databricks account custom-app-integration update '<integration-id>' \
+  --profile <account-profile> \
+  --json '{
+    "scopes": ["offline_access","email","iam.current-user:read","openid",
+               "dashboards.genie","genie","iam.access-control:read","profile",
+               "model-serving","sql","all-apis","unity-catalog"],
+    "user_authorized_scopes": ["dashboards.genie","genie","model-serving",
+                                "sql","all-apis","unity-catalog"]
+  }'
+```
+> Missing scopes cause cryptic per-feature 401/403 errors. See [AUTHZ-PATTERNS.md](AUTHZ-PATTERNS.md) for why.
+
+**5. Re-run UC grants for the app SP** — the `resources:` block in `app.yaml` handles workspace-level permissions but not UC hierarchy grants. After deploy, get the app SP UUID and run:
+```bash
+# Get SP UUID
+SP=$(databricks apps get authz-showcase --profile <p> | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['service_principal_client_id'])")
+
+# Grant UC access
+databricks sql execute "
+  GRANT USE CATALOG ON CATALOG authz_showcase TO \`$SP\`;
+  GRANT USE SCHEMA ON SCHEMA authz_showcase.sales TO \`$SP\`;
+  GRANT SELECT ON TABLE authz_showcase.sales.opportunities TO \`$SP\`;
+  GRANT SELECT ON TABLE authz_showcase.sales.quotas TO \`$SP\`;
+  GRANT SELECT ON TABLE authz_showcase.sales.quota_viewers TO \`$SP\`;
+  GRANT USE SCHEMA ON SCHEMA authz_showcase.access TO \`$SP\`;
+  GRANT SELECT ON TABLE authz_showcase.access.quota_viewers TO \`$SP\`;
+" --warehouse <warehouse-id> --profile <p>
+```
+
+**6. Build the Agent Bricks supervisor** (Tab 5) — in the Databricks UI, go to **Agents → Supervisor Agent → Build**. Add the Genie space and UC functions as sub-agents. Copy the endpoint name into `app/app.yaml` as `SUPERVISOR_ENDPOINT`.
+
+### Verify
+
+Run `seed/test_harness.py` to headlessly test all 6 tab capabilities without the UI:
+```bash
+cd seed && python test_harness.py
+```
+
+### Personas
+
+The demo uses 5 workspace users assigned to different groups to show role-based access:
+
+| Persona | Groups | Sees |
+|---|---|---|
+| West Rep | `authz_showcase_west` | Own deals only |
+| East Rep | `authz_showcase_east` | Own deals only |
+| Manager | `authz_showcase_managers` | All deals in region |
+| Executive | `authz_showcase_executives` | All deals + quotas |
+| Finance | `authz_showcase_finance` | Quotas + financials |
+
+---
+
 ## Files
 
 | Path | Description |
