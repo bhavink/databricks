@@ -79,13 +79,6 @@ In OBO contexts through Genie or Agent Bricks, `is_member()` evaluates the servi
 
 **Design rule**: Use `current_user()` to anchor anything that must carry the calling user's identity through an OBO chain. Use `is_member()` in M2M contexts where you control the executing SP's group membership directly.
 
-## Pre-Demo Checklist
-
-- **App running**: `databricks apps get authz-showcase --profile adb-wx1 | grep state`
-- **Your persona**: West Rep only — in `authz_showcase_west`, no other authz_showcase groups
-- **Refresh custmcp token** (required for Tab 6B, expires ~1h): `cd seed && python refresh_custmcp_token.py`
-- **GitHub first-time auth**: visit `https://adb-<YOUR_WORKSPACE_ORG_ID>.3.azuredatabricks.net/explore/connections/authz_showcase_github_conn`
-
 ## Files
 
 | Path | Description |
