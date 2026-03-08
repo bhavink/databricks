@@ -1268,8 +1268,8 @@ See the terminal demo below.
             f"    return rows[0][0] if rows else 'null'\n"
             f"\n"
             f"email = '{user_email}'\n"
-            f"print('quota:      ', run(f\"SELECT {UC_FUNCTIONS_CATALOG}.functions.get_rep_quota('{{email}}')\" ))\n"
-            f"print('attainment: ', run(f\"SELECT {UC_FUNCTIONS_CATALOG}.functions.calculate_attainment('{{email}}')\" ))\n"
+            f"print('quota:      $', run(f\"SELECT {UC_FUNCTIONS_CATALOG}.functions.get_rep_quota('{{email}}')\" ))\n"
+            f"print('attainment:  ', str(run(f\"SELECT {UC_FUNCTIONS_CATALOG}.functions.calculate_attainment('{{email}}')\" )) + '%')\n"
             f"EOF",
             language="bash",
         )
@@ -1318,8 +1318,8 @@ See the terminal demo below.
             f"    return rows[0][0] if rows else 'null'\n"
             f"\n"
             f"peer = 'alice.chen@showcase.demo'\n"
-            f"print('OBO (West Rep):', run(obo, peer))  # → 0.00  (row filter blocks peer)\n"
-            f"print('M2M (SP exec): ', run(sp,  peer))  # → 76.67 (exec bypasses row filter)\n"
+            f"print('OBO (West Rep):', str(run(obo, peer)) + '%')  # → 0.00%  (row filter blocks peer)\n"
+            f"print('M2M (SP exec): ', str(run(sp,  peer)) + '%')  # → 76.67% (exec bypasses row filter)\n"
             f"EOF",
             language="bash",
         )
