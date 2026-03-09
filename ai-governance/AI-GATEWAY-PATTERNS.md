@@ -23,47 +23,49 @@ For **outbound calls to external services** (third-party APIs, external MCP serv
 
 ## The Four Traffic Patterns
 
+### 🟢 Pattern 1 — Internal Traffic (No Gateway)
+
 ```mermaid
-flowchart TB
-    subgraph P1["🟢 Pattern 1 — Internal\n(Agent ↔ Genie / FM API / Databricks Services)"]
-        direction LR
-        A1["Databricks App\nor Agent"]
-        B1["Genie · FM API\nServing Endpoints\nDatabricks Apps"]
-        C1["Unity Catalog\n(row filters, column masks,\ncurrent_user(), is_member())"]
-        A1 -->|"OBO / M2M\nno gateway"| B1
-        B1 --> C1
-    end
+flowchart LR
+    A["Databricks App / Agent"] -->|"OBO or M2M — no gateway"| B["Genie · FM API<br/>Agent Bricks · Knowledge Assistant<br/>Vector Search · UC Functions<br/>DBSQL · Custom MCP Server"]
+    B --> C["Unity Catalog<br/>row filters · column masks · ABAC"]
+    style A fill:#0f2d1f,stroke:#22c55e,color:#e2e8f0
+    style B fill:#0f2d1f,stroke:#22c55e,color:#e2e8f0
+    style C fill:#0f2d1f,stroke:#22c55e,color:#e2e8f0
+```
 
-    subgraph P2["🔵 Pattern 2 — LLM Endpoint Governance\n(Databricks AI Gateway)"]
-        direction LR
-        A2["Any Caller\n(internal or external)"]
-        B2["Databricks AI Gateway\n────────────────\n• Rate limits per user / group\n• Guardrails (input / output)\n• Usage tracking\n• Fallback routing"]
-        C2["LLM Serving\nEndpoint"]
-        A2 --> B2 --> C2
-    end
+### 🔵 Pattern 2 — LLM Endpoint Governance (Databricks AI Gateway)
 
-    subgraph P3["🟡 Pattern 3 — Outbound External\n(Agent → External Services)"]
-        direction LR
-        A3["Databricks App\nor Agent"]
-        B3["UC Connections Proxy\n────────────────\n• Credential store\n• USE CONNECTION gate\n• Per-app authorization"]
-        C3["External Services\n(MCP servers, APIs,\nexternal LLMs)"]
-        D3["SNP FQDN Allowlist\n(workspace-level)"]
-        A3 -->|"via proxy"| B3
-        B3 --> D3 --> C3
-    end
+```mermaid
+flowchart LR
+    A["Any Caller"] --> B["Databricks AI Gateway<br/>rate limits · guardrails<br/>usage tracking · fallback routing"]
+    B --> C["LLM Serving Endpoint"]
+    style A fill:#1a2e3b,stroke:#3b82f6,color:#e2e8f0
+    style B fill:#1a2e3b,stroke:#3b82f6,color:#bfdbfe
+    style C fill:#1a2e3b,stroke:#3b82f6,color:#e2e8f0
+```
 
-    subgraph P4["🔴 Pattern 4 — Inbound External\n(External Clients → Databricks)"]
-        direction LR
-        A4["External Clients\n(enterprise apps, partners,\ncustomer portals)"]
-        B4["External API Gateway\n────────────────\n• Auth translation\n• Rate limiting per tenant\n• API versioning\n• Developer portal"]
-        C4["Databricks\nServing Endpoint"]
-        A4 --> B4 --> C4
-    end
+### 🟡 Pattern 3 — Outbound External (UC Connections + SNP)
 
-    style P1 fill:#0f2d1f,stroke:#22c55e,color:#e2e8f0
-    style P2 fill:#1a2e3b,stroke:#3b82f6,color:#e2e8f0
-    style P3 fill:#2d2a1a,stroke:#fbbf24,color:#e2e8f0
-    style P4 fill:#2d1a1a,stroke:#ef4444,color:#e2e8f0
+```mermaid
+flowchart LR
+    A["Databricks App / Agent"] -->|"via proxy"| B["USE CONNECTION gate<br/>credential injection"]
+    B --> C["SNP FQDN Allowlist"] --> D["External Service<br/>API · MCP server · LLM"]
+    style A fill:#2d2a1a,stroke:#fbbf24,color:#e2e8f0
+    style B fill:#2d2a1a,stroke:#fbbf24,color:#fef3c7
+    style C fill:#2d2a1a,stroke:#fbbf24,color:#fef3c7
+    style D fill:#2d2a1a,stroke:#fbbf24,color:#e2e8f0
+```
+
+### 🔴 Pattern 4 — Inbound External (External API Gateway)
+
+```mermaid
+flowchart LR
+    A["External Clients<br/>enterprise apps · partners<br/>customer portals"] --> B["External API Gateway<br/>auth translation · rate limits<br/>API versioning · dev portal"]
+    B -->|"Databricks token"| C["Databricks<br/>Serving Endpoint"]
+    style A fill:#2d1a1a,stroke:#ef4444,color:#e2e8f0
+    style B fill:#2d1a1a,stroke:#ef4444,color:#fecaca
+    style C fill:#2d1a1a,stroke:#ef4444,color:#e2e8f0
 ```
 
 ---
@@ -138,15 +140,15 @@ flowchart LR
         SP["🤖 Agent / App SP"]
     end
 
-    subgraph AIGateway["Databricks AI Gateway\n(configured on the endpoint)"]
-        RL["Rate Limiting\n────────────────\n• Per user / group / endpoint\n• Tokens per minute\n• Requests per minute"]
-        GR["Guardrails\n────────────────\n• Input: safety, PII, topics\n• Output: safety, PII\n• Custom rules"]
-        UT["Usage Tracking\n────────────────\n• Token usage → system tables\n• Per user / group\n• MLflow integration"]
-        FB["Fallback Routing\n────────────────\n• Primary → backup model\n• On error or latency SLA"]
+    subgraph AIGateway["Databricks AI Gateway<br/>(configured on the endpoint)"]
+        RL["Rate Limiting<br/>────────────────<br/>• Per user / group / endpoint<br/>• Tokens per minute<br/>• Requests per minute"]
+        GR["Guardrails<br/>────────────────<br/>• Input: safety, PII, topics<br/>• Output: safety, PII<br/>• Custom rules"]
+        UT["Usage Tracking<br/>────────────────<br/>• Token usage → system tables<br/>• Per user / group<br/>• MLflow integration"]
+        FB["Fallback Routing<br/>────────────────<br/>• Primary → backup model<br/>• On error or latency SLA"]
     end
 
     subgraph ENDPOINT["Serving Endpoint"]
-        MODEL["LLM\n(FM API / custom model)"]
+        MODEL["LLM<br/>(FM API / custom model)"]
     end
 
     U1 & U2 & SP --> RL
@@ -222,18 +224,18 @@ sequenceDiagram
 flowchart TB
     subgraph WORKSPACE["Databricks Workspace"]
         subgraph APPS["Application Layer"]
-            AA["Appeals Agent\nSP: sp-appeals"]
-            BA["Billing Agent\nSP: sp-billing"]
+            AA["Appeals Agent<br/>SP: sp-appeals"]
+            BA["Billing Agent<br/>SP: sp-billing"]
         end
 
         subgraph UC_LAYER["Unity Catalog — Credential Authorization Layer"]
-            NPI_CONN["npi_registry_conn\n────────────\n✅ sp-appeals  ❌ sp-billing"]
-            CMS_CONN["cms_coverage_conn\n────────────\n✅ sp-appeals  ❌ sp-billing"]
-            PAY_CONN["payment_gateway_conn\n────────────\n❌ sp-appeals  ✅ sp-billing"]
+            NPI_CONN["npi_registry_conn<br/>────────────<br/>✅ sp-appeals  ❌ sp-billing"]
+            CMS_CONN["cms_coverage_conn<br/>────────────<br/>✅ sp-appeals  ❌ sp-billing"]
+            PAY_CONN["payment_gateway_conn<br/>────────────<br/>❌ sp-appeals  ✅ sp-billing"]
         end
 
         subgraph SNP_LAYER["Serverless Network Policy — Network Layer"]
-            SNP["Workspace FQDN Allowlist\n──────────────────────\n✅ npi.registry.example\n✅ coverage.policy.example\n✅ payment.service.example\n❌ Everything else"]
+            SNP["Workspace FQDN Allowlist<br/>──────────────────────<br/>✅ npi.registry.example<br/>✅ coverage.policy.example<br/>✅ payment.service.example<br/>❌ Everything else"]
         end
     end
 
@@ -277,24 +279,24 @@ An external API gateway belongs in the architecture when requests originate outs
 ```mermaid
 flowchart LR
     subgraph EXT["External Clients"]
-        WORKFLOW["Case Management\nSystem"]
-        PORTAL["Provider\nSelf-Service Portal"]
-        PARTNER["Partner\nIntegration"]
+        WORKFLOW["Case Management<br/>System"]
+        PORTAL["Provider<br/>Self-Service Portal"]
+        PARTNER["Partner<br/>Integration"]
     end
 
-    subgraph GW["External API Gateway\n(APIM / Kong / Apigee / AWS API GW)"]
-        AUTH["Auth Translation\n(API key / enterprise SSO\n→ Databricks token)"]
-        RATE["Rate Limiting\nper tenant / tier"]
-        CATALOG["API Catalog\n& Versioning"]
+    subgraph GW["External API Gateway<br/>(APIM / Kong / Apigee / AWS API GW)"]
+        AUTH["Auth Translation<br/>(API key / enterprise SSO<br/>→ Databricks token)"]
+        RATE["Rate Limiting<br/>per tenant / tier"]
+        CATALOG["API Catalog<br/>& Versioning"]
     end
 
     subgraph DBX["Databricks"]
-        ENDPOINT["Serving Endpoint\n(optionally with\nDatabricks AI Gateway)"]
-        UC["Unity Catalog\n(governs what the\nendpoint returns)"]
+        ENDPOINT["Serving Endpoint<br/>(optionally with<br/>Databricks AI Gateway)"]
+        UC["Unity Catalog<br/>(governs what the<br/>endpoint returns)"]
     end
 
     WORKFLOW & PORTAL & PARTNER --> GW
-    GW -->|"Private Link /\nDatabricks token"| ENDPOINT
+    GW -->|"Private Link /<br/>Databricks token"| ENDPOINT
     ENDPOINT --> UC
 
     style GW fill:#1e3a5f,stroke:#60a5fa,color:#bfdbfe
@@ -311,8 +313,8 @@ These two options address different problems and can be used together.
 ```mermaid
 flowchart LR
     EXT_CLIENT["External Client"]
-    EXT_GW["External API Gateway\n────────────────\n• Auth translation\n• Per-tenant rate limits\n• API catalog\n• Developer portal"]
-    DBX_GW["Databricks AI Gateway\n────────────────\n• Per-user / per-group limits\n• Content guardrails\n• Usage tracking\n• Fallback routing"]
+    EXT_GW["External API Gateway<br/>────────────────<br/>• Auth translation<br/>• Per-tenant rate limits<br/>• API catalog<br/>• Developer portal"]
+    DBX_GW["Databricks AI Gateway<br/>────────────────<br/>• Per-user / per-group limits<br/>• Content guardrails<br/>• Usage tracking<br/>• Fallback routing"]
     MODEL["LLM Endpoint"]
     UC["Unity Catalog"]
 
@@ -349,37 +351,37 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph INTAKE["Intake"]
-        FORM["Appeal Submission\n(Web Form / API)"]
+        FORM["Appeal Submission<br/>(Web Form / API)"]
         EMAIL["Email / Fax Pipeline"]
     end
 
-    subgraph CASEMGMT["Case Management System\n(External — routes appeals to Databricks)"]
+    subgraph CASEMGMT["Case Management System<br/>(External — routes appeals to Databricks)"]
         ROUTER["Case Router"]
     end
 
-    subgraph EXT_GW["External API Gateway — Pattern 4\n(auth translation, per-org rate limits)"]
+    subgraph EXT_GW["External API Gateway — Pattern 4<br/>(auth translation, per-org rate limits)"]
         GW_AUTH["Enterprise SSO → Databricks token"]
     end
 
     subgraph DBX["Databricks Platform"]
         subgraph ENDPOINT["Serving Endpoint"]
-            AIGW["Databricks AI Gateway — Pattern 2\n────────────────────────────\nRate limits per reviewer team\nUsage tracking by department\nContent guardrails"]
-            AGENT["🤖 Appeals Agent\n(Agent Bricks Supervisor)"]
+            AIGW["Databricks AI Gateway — Pattern 2<br/>────────────────────────────<br/>Rate limits per reviewer team<br/>Usage tracking by department<br/>Content guardrails"]
+            AGENT["🤖 Appeals Agent<br/>(Agent Bricks Supervisor)"]
         end
 
         subgraph INTERNAL["Internal Data — Pattern 1 (No Gateway)"]
-            GENIE["Genie Space\nMember eligibility · Claim history\n(OBO: row filters per reviewer)"]
-            VS["Vector Search\nClinical guidelines\n(M2M: shared knowledge)"]
+            GENIE["Genie Space<br/>Member eligibility · Claim history<br/>(OBO: row filters per reviewer)"]
+            VS["Vector Search<br/>Clinical guidelines<br/>(M2M: shared knowledge)"]
         end
 
         subgraph UC_LAYER["Unity Catalog — Pattern 3 (Outbound External)"]
-            GRANTS["USE CONNECTION Grants\nnpi_registry_conn → sp-appeals ✅\ncms_coverage_conn → sp-appeals ✅"]
+            GRANTS["USE CONNECTION Grants<br/>npi_registry_conn → sp-appeals ✅<br/>cms_coverage_conn → sp-appeals ✅"]
         end
     end
 
     subgraph EXTERNAL["External Services"]
-        NPI["National Provider Registry\n(provider credentials, specialty)"]
-        CMS["Coverage Policy Database\n(applicable coverage rules)"]
+        NPI["National Provider Registry<br/>(provider credentials, specialty)"]
+        CMS["Coverage Policy Database<br/>(applicable coverage rules)"]
     end
 
     FORM & EMAIL --> ROUTER
@@ -416,24 +418,24 @@ flowchart TB
 
 ```mermaid
 flowchart TD
-    START(["Where does the\nrequest originate?"])
+    START(["Where does the<br/>request originate?"])
 
-    START -->|"Outside Databricks\n(enterprise app, partner,\nexternal workflow)"| INBOUND
-    START -->|"Inside Databricks\n(agent, app, endpoint)"| WHERE_GOING
+    START -->|"Outside Databricks<br/>(enterprise app, partner,<br/>external workflow)"| INBOUND
+    START -->|"Inside Databricks<br/>(agent, app, endpoint)"| WHERE_GOING
 
     INBOUND["External client"]
-    INBOUND --> GW_YES["Pattern 4 — External API Gateway\nAuth translation · per-tenant rate limits\nAPI catalog · developer portal"]
+    INBOUND --> GW_YES["Pattern 4 — External API Gateway<br/>Auth translation · per-tenant rate limits<br/>API catalog · developer portal"]
 
     WHERE_GOING(["Where is it going?"])
-    WHERE_GOING -->|"Genie / FM API /\nDatabricks serving endpoint /\ncustom MCP (Databricks App)"| INTERNAL_CALL
-    WHERE_GOING -->|"External service\n(API, MCP server,\nexternal LLM)"| EXTERNAL_CALL
+    WHERE_GOING -->|"Genie / FM API /<br/>Databricks serving endpoint /<br/>custom MCP (Databricks App)"| INTERNAL_CALL
+    WHERE_GOING -->|"External service<br/>(API, MCP server,<br/>external LLM)"| EXTERNAL_CALL
 
     INTERNAL_CALL["Internal Databricks call"]
-    INTERNAL_CALL --> LLM_Q(["Do you need rate limits,\nguardrails, or usage\ntracking on LLM calls?"])
-    LLM_Q -->|"Yes"| AIGW["Pattern 2 — Databricks AI Gateway\nConfigure on the serving endpoint.\nRate limits · guardrails · usage tracking\nFallback routing · UC-aware."]
-    LLM_Q -->|"No"| NO_GW["Pattern 1 — No Gateway\nOBO for per-user data access.\nM2M for shared resources.\nUC enforces at data plane."]
+    INTERNAL_CALL --> LLM_Q(["Do you need rate limits,<br/>guardrails, or usage<br/>tracking on LLM calls?"])
+    LLM_Q -->|"Yes"| AIGW["Pattern 2 — Databricks AI Gateway<br/>Configure on the serving endpoint.<br/>Rate limits · guardrails · usage tracking<br/>Fallback routing · UC-aware."]
+    LLM_Q -->|"No"| NO_GW["Pattern 1 — No Gateway<br/>OBO for per-user data access.<br/>M2M for shared resources.<br/>UC enforces at data plane."]
 
-    EXTERNAL_CALL --> UC_CONN["Pattern 3 — UC Connections + SNP\nGrant USE CONNECTION to authorized SPs.\nAdd FQDNs to Serverless Network Policy.\nCredentials stored in UC, never in app code."]
+    EXTERNAL_CALL --> UC_CONN["Pattern 3 — UC Connections + SNP<br/>Grant USE CONNECTION to authorized SPs.<br/>Add FQDNs to Serverless Network Policy.<br/>Credentials stored in UC, never in app code."]
 
     style GW_YES fill:#1e3a5f,stroke:#60a5fa,color:#bfdbfe
     style AIGW fill:#1a2e3b,stroke:#3b82f6,color:#93c5fd

@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Gateway Patterns - Databricks</title>
+
+    <!-- Global Databricks Theme -->
+    <link rel="stylesheet" href="../styles/theme.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        /* Page-specific styles */
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(17, 24, 28, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        header h1 {
+            font-size: 1.1rem;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        header a { color: var(--accent-blue); text-decoration: none; font-size: 0.9rem; }
+        header a:hover { text-decoration: underline; }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            padding-top: 80px;
+        }
+
+        .hero h2 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 750px; margin-bottom: 1.5rem; }
+
+        .hero .subtitle { font-size: 1rem; color: var(--text-dim); margin-bottom: 2rem; }
+
+        .doc-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; }
+
+        .doc-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .doc-link:hover { background: rgba(59, 130, 246, 0.2); border-color: var(--accent-blue); }
+
+        .scroll-hint { animation: bounce 2s infinite; color: var(--accent-blue); font-size: 1.1rem; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        /* Scrollytelling Layout */
+        .scrolly-container {
+            display: flex;
+            position: relative;
+        }
+
+        .scroll-text {
+            flex: 0 0 45%;
+            padding: 0 2rem;
+        }
+
+        .visual-area {
+            flex: 0 0 55%;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .scroll-step {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+
+        .scroll-step.active {
+            opacity: 1;
+        }
+
+        .scroll-step h3 {
+            font-size: 1.9rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .scroll-step p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+        }
+
+        .scroll-step ul {
+            color: var(--text-muted);
+            font-size: 1rem;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .scroll-step ul li {
+            margin-bottom: 0.6rem;
+        }
+
+        .highlight-box {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid var(--accent-blue);
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+        }
+
+        /* Visual Styles */
+        .visual-container {
+            width: 100%;
+            max-width: 520px;
+            height: 600px;
+            position: relative;
+        }
+
+        /* Pattern Row Visuals */
+        .pattern-rows {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 1rem;
+        }
+
+        .pattern-row {
+            padding: 1.2rem;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            opacity: 0.2;
+            transition: opacity 0.4s ease;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .pattern-row.active {
+            opacity: 1;
+        }
+
+        .pattern-row.green {
+            background: linear-gradient(135deg, #22c38e, #00a870);
+        }
+
+        .pattern-row.blue {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .pattern-row.amber {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: var(--bg-primary);
+        }
+
+        .pattern-row.red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .pattern-row .left { flex: 1; }
+        .pattern-row .right { flex: 1; text-align: right; opacity: 0.8; font-size: 0.85rem; }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .flow-box {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            flex: 1;
+            transition: all 0.4s ease;
+            opacity: 0.3;
+        }
+
+        .flow-box.active {
+            opacity: 1;
+        }
+
+        .flow-arrow {
+            font-size: 1.5rem;
+            opacity: 0.3;
+            transition: opacity 0.4s ease;
+        }
+
+        .flow-arrow.active {
+            opacity: 1;
+        }
+
+        .flow-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .flow-box.red { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .flow-box.green { background: linear-gradient(135deg, #22c38e, #00a870); color: white; }
+        .flow-box.gray { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
+        .flow-box.yellow { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: var(--bg-primary); }
+
+        .flow-box.highlight-bad {
+            border: 2px solid #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+        }
+
+        .flow-box.highlight-good {
+            border: 2px solid #22c38e;
+            background: rgba(34, 195, 142, 0.1);
+            color: #6ee7b7;
+        }
+
+        /* UC Proxy Diagram */
+        .proxy-diagram {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .proxy-path {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .proxy-box {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            min-width: 100px;
+            transition: all 0.4s ease;
+        }
+
+        .proxy-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .proxy-box.green { background: linear-gradient(135deg, #22c38e, #00a870); color: white; }
+        .proxy-box.red { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .proxy-box.yellow { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: var(--bg-primary); }
+        .proxy-box.slate { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
+
+        .proxy-arrow {
+            font-size: 1.3rem;
+            opacity: 0.5;
+            transition: opacity 0.4s ease;
+        }
+
+        .proxy-arrow.active {
+            opacity: 1;
+            color: var(--accent-blue);
+        }
+
+        .proxy-status {
+            font-size: 0.75rem;
+            margin-top: 0.4rem;
+            opacity: 0.7;
+        }
+
+        .proxy-status.success {
+            color: #22c38e;
+        }
+
+        .proxy-status.blocked {
+            color: #ef4444;
+        }
+
+        /* Defense-in-Depth Diagram */
+        .defense-diagram {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .defense-layer {
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1.5px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.4s ease;
+            opacity: 0.3;
+        }
+
+        .defense-layer.active {
+            opacity: 1;
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .defense-layer.snp {
+            border-top: 3px solid #fbbf24;
+        }
+
+        .defense-layer.connections {
+            border-top: 3px solid var(--accent-blue);
+        }
+
+        .defense-layer.apps {
+            border-top: 3px solid #22c38e;
+        }
+
+        .defense-row {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .defense-item {
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .defense-item.allow { background: rgba(34, 195, 142, 0.3); color: #6ee7b7; }
+        .defense-item.deny { background: rgba(239, 68, 68, 0.3); color: #fca5a5; }
+
+        /* Inbound Diagram */
+        .inbound-diagram {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .inbound-column {
+            text-align: center;
+        }
+
+        .inbound-boxes {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .inbound-box {
+            padding: 0.6rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            color: white;
+            opacity: 0.5;
+            transition: opacity 0.4s ease;
+        }
+
+        .inbound-box.active {
+            opacity: 1;
+        }
+
+        .inbound-gateway {
+            padding: 1.2rem;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-radius: 10px;
+            font-weight: 600;
+            margin: 0 1rem;
+        }
+
+        .inbound-arrow {
+            font-size: 1.3rem;
+            margin: 0.3rem 0;
+            opacity: 0.5;
+            transition: opacity 0.4s ease;
+        }
+
+        .inbound-arrow.active {
+            opacity: 1;
+        }
+
+        .inbound-databricks {
+            padding: 1rem;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1.5px solid var(--accent-blue);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .inbound-databricks .label { font-size: 0.85rem; font-weight: 600; color: var(--accent-blue); }
+        .inbound-databricks .sublabel { font-size: 0.75rem; color: #94a3b8; margin-top: 0.3rem; }
+
+        /* Decision Flowchart */
+        .decision-flowchart {
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .decision-node {
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.05);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .decision-node:hover {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .decision-node.active {
+            border-color: var(--accent-blue);
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .decision-flow {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 0.5rem 0;
+        }
+
+        .decision-outcome {
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            opacity: 0;
+            transition: all 0.4s ease;
+            text-align: center;
+        }
+
+        .decision-outcome.show {
+            opacity: 1;
+        }
+
+        .decision-outcome.pattern1 { background: rgba(34, 195, 142, 0.2); color: #6ee7b7; }
+        .decision-outcome.pattern2 { background: rgba(59, 130, 246, 0.2); color: #7dd3fc; }
+        .decision-outcome.pattern3 { background: rgba(251, 191, 36, 0.2); color: #fcd34d; }
+        .decision-outcome.pattern4 { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+
+        /* Navigation Cards */
+        .nav-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-4px);
+        }
+
+        .nav-card .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .nav-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .nav-card p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .nav-card .topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .nav-card .topic {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            color: #94a3b8;
+        }
+
+        .nav-card.blue { border-left: 4px solid var(--accent-blue); }
+        .nav-card.blue h4 { color: var(--accent-blue); }
+
+        .nav-card.green { border-left: 4px solid var(--accent-green); }
+        .nav-card.green h4 { color: var(--accent-green); }
+
+        .nav-card.orange { border-left: 4px solid var(--accent-orange); }
+        .nav-card.orange h4 { color: var(--accent-orange); }
+
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        footer .links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 0.95rem;
+            padding: 0.7rem 1.3rem;
+            border: 2px solid var(--accent-blue);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .footer-link:hover { background: var(--accent-blue); color: var(--bg-primary); }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .scrolly-container {
+                flex-direction: column;
+            }
+            .scroll-text {
+                width: 100%;
+            }
+            .visual-area {
+                position: relative;
+                width: 100%;
+                height: 60vh;
+            }
+            .scroll-step {
+                min-height: 60vh;
+            }
+            .hero h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Gateway Patterns</h1>
+        <a href="index.html">← Orchestration Hub</a>
+    </header>
+
+    <section class="hero">
+        <h2>AI Gateway Patterns</h2>
+        <p>
+            Which gateway belongs in your architecture — and where?
+        </p>
+        <p class="subtitle">
+            Four patterns, four different governance layers. Understanding when to apply each one.
+        </p>
+        <div class="scroll-hint">↓ Explore the patterns</div>
+    </section>
+
+    <div class="scrolly-container">
+        <div class="scroll-text">
+            <!-- Step 1: The Four Patterns -->
+            <div class="scroll-step" data-step="1">
+                <h3>Four patterns, four different governance layers</h3>
+                <p>
+                    Every AI request falls into one of four categories. The wrong choice adds latency, breaks auth,
+                    or creates a governance blind spot.
+                </p>
+                <p>
+                    Watch the visual on the right as each pattern appears. Each row represents a different traffic flow
+                    and governance model.
+                </p>
+                <div class="highlight-box">
+                    <strong>Key insight:</strong> Not all traffic needs a gateway. Understanding which pattern applies
+                    to your use case is the first step to proper architecture.
+                </div>
+            </div>
+
+            <!-- Step 2: Pattern 1 - Why No Gateway -->
+            <div class="scroll-step" data-step="2">
+                <h3>Pattern 1: Internal Traffic — Why No Gateway</h3>
+                <p>
+                    The OBO token chain: the calling user's OAuth token flows end-to-end.
+                    Unity Catalog enforces row filters and column masks as that user at query time.
+                </p>
+                <p>
+                    A gateway in this path has two bad options:
+                </p>
+                <ul>
+                    <li><strong>Pass through:</strong> Adds latency, provides zero governance value</li>
+                    <li><strong>Re-issue its own token:</strong> User identity is lost; current_user() evaluates to gateway identity, breaking row filters silently</li>
+                </ul>
+                <div class="highlight-box">
+                    UC enforcement happens at the data plane. A gateway can observe HTTP traffic.
+                    It cannot see which rows were filtered.
+                </div>
+            </div>
+
+            <!-- Step 3: Direct OBO -->
+            <div class="scroll-step" data-step="3">
+                <h3>Direct OBO: Governance Enforced Correctly</h3>
+                <p>
+                    Without the gateway: the user token arrives at Genie unchanged.
+                    <code>current_user()</code> returns <code>reviewer@company.com</code>.
+                    The row filter returns only that reviewer's cases.
+                </p>
+                <p>
+                    This pattern works for:
+                </p>
+                <ul>
+                    <li>Genie and FM APIs</li>
+                    <li>Serving endpoints</li>
+                    <li>Custom MCP servers on Databricks Apps</li>
+                    <li>Any internal Databricks service call</li>
+                </ul>
+                <div class="highlight-box">
+                    <strong>Databricks Apps already has a platform-managed proxy</strong> that handles OAuth
+                    validation and identity injection. An external gateway creates a redundant, conflicting auth layer.
+                </div>
+            </div>
+
+            <!-- Step 4: Pattern 2 - Databricks AI Gateway -->
+            <div class="scroll-step" data-step="4">
+                <h3>Pattern 2: LLM Endpoint Governance</h3>
+                <p>
+                    <strong>Databricks AI Gateway</strong> is configured directly on serving endpoints.
+                    It governs LLM traffic at the point of consumption — before the model processes the request.
+                </p>
+                <p>
+                    <strong>Unity Catalog aware:</strong> Rate limit policies reference Databricks users and groups —
+                    the same identity model as row filters and column masks.
+                </p>
+                <p>
+                    <strong>Four key capabilities:</strong>
+                </p>
+                <ul>
+                    <li><strong>Rate Limiting</strong> — Control consumption per user / group / endpoint</li>
+                    <li><strong>Guardrails</strong> — Input + output content filtering</li>
+                    <li><strong>Usage Tracking</strong> — Token usage flows to system tables + MLflow</li>
+                    <li><strong>Fallback Routing</strong> — Primary → backup on error/latency</li>
+                </ul>
+            </div>
+
+            <!-- Step 5: Pattern 3 - UC Connections Proxy Model -->
+            <div class="scroll-step" data-step="5">
+                <h3>Pattern 3: Outbound External — UC Connections Proxy</h3>
+                <p>
+                    Application code never calls external services directly. It calls a Databricks-managed
+                    proxy endpoint, which checks <code>USE CONNECTION</code> authorization and injects credentials before forwarding.
+                </p>
+                <p>
+                    The credential is stored encrypted in Unity Catalog. Application code never receives the raw value.
+                </p>
+                <div class="highlight-box">
+                    <strong>Instant access control:</strong> REVOKE USE CONNECTION = immediate access removal.
+                    No redeploy, no code change required.
+                </div>
+            </div>
+
+            <!-- Step 6: Pattern 3 - Defense-in-Depth -->
+            <div class="scroll-step" data-step="6">
+                <h3>Two layers, two threat models</h3>
+                <p>
+                    <strong>Serverless Network Policies (SNP):</strong> Workspace-level FQDN allowlist.
+                    Defines the approved destination universe. Any destination not on the list is unreachable at the network layer.
+                </p>
+                <p>
+                    <strong>UC Connections:</strong> Per-app credential authorization. Which app SP can authenticate
+                    to which specific service — enforced before any network traffic.
+                </p>
+                <p>
+                    <strong>The objection answered:</strong> "Your network controls are workspace-level. We need per-app egress controls."
+                    Answer: SNP handles the destination universe; UC Connections handles per-app credential authorization.
+                </p>
+                <div class="highlight-box">
+                    <strong>Governance assumption:</strong> Credentials must live exclusively in UC Connections
+                    (not env vars or secrets) — enforced by CI/CD secret scanning + <code>system.access.audit</code>.
+                </div>
+            </div>
+
+            <!-- Step 7: Pattern 4 - External API Gateway -->
+            <div class="scroll-step" data-step="7">
+                <h3>Pattern 4: Inbound External — External API Gateway</h3>
+                <p>
+                    This is where an external gateway genuinely belongs: when requests originate outside Databricks
+                    and need a managed facade.
+                </p>
+                <p>
+                    <strong>Provides:</strong>
+                </p>
+                <ul>
+                    <li>Auth translation (API key / enterprise SSO → Databricks token)</li>
+                    <li>Per-tenant rate limiting</li>
+                    <li>API versioning</li>
+                    <li>Developer portal</li>
+                </ul>
+                <p>
+                    <strong>Important:</strong> Unity Catalog still governs what the endpoint returns.
+                    The gateway handles the boundary; UC handles the data.
+                </p>
+                <div class="highlight-box">
+                    <strong>Patterns 2 and 4 are additive:</strong> External gateway + Databricks AI Gateway
+                    can both be in the path — each governs its own layer.
+                </div>
+            </div>
+
+            <!-- Step 8: Decision Framework -->
+            <div class="scroll-step" data-step="8">
+                <h3>Databricks AI Gateway vs External API Gateway</h3>
+                <p>
+                    They're complementary, not competing. Each governs its own layer.
+                </p>
+                <ul>
+                    <li><strong>Databricks AI Gateway:</strong> Inside-out — governs LLM consumption from within, UC-aware</li>
+                    <li><strong>External API Gateway:</strong> Outside-in — manages external client access, identity-agnostic for Databricks internals</li>
+                </ul>
+                <p>
+                    Click on the decision nodes in the interactive flowchart on the right to explore which pattern fits your use case.
+                </p>
+                <div class="highlight-box">
+                    <strong>Remember:</strong> The key is understanding the direction of traffic flow and
+                    where identity enforcement must happen. Choose your pattern accordingly.
+                </div>
+            </div>
+        </div>
+
+        <div class="visual-area">
+            <!-- Step 1 Visual: The Four Patterns -->
+            <div class="visual-container step-1-vis" style="display: none;">
+                <div class="pattern-rows">
+                    <div class="pattern-row green" data-pattern="1">
+                        <div class="left">Agent → Genie / FM API / Databricks Services</div>
+                        <div class="right">UC governs at data plane</div>
+                    </div>
+                    <div class="pattern-row blue" data-pattern="2">
+                        <div class="left">Any Caller → LLM Endpoint</div>
+                        <div class="right">Databricks AI Gateway</div>
+                    </div>
+                    <div class="pattern-row amber" data-pattern="3">
+                        <div class="left">Agent → External Services</div>
+                        <div class="right">UC Connections + SNP</div>
+                    </div>
+                    <div class="pattern-row red" data-pattern="4">
+                        <div class="left">External Clients → Databricks</div>
+                        <div class="right">External API Gateway</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 Visual: Why No Gateway (Bad Path) -->
+            <div class="visual-container step-2-vis" style="display: none;">
+                <div class="flow-diagram">
+                    <div class="flow-row">
+                        <div class="flow-box blue">User</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box gray">App</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box highlight-bad">GATEWAY</div>
+                    </div>
+                    <div class="flow-row">
+                        <div style="flex: 1;"></div>
+                        <div style="flex: 1; text-align: center;">
+                            <div style="color: #fca5a5; font-size: 0.75rem; font-weight: 600;">Token Swapped</div>
+                        </div>
+                    </div>
+                    <div class="flow-row">
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box yellow">Genie</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box slate">UC</div>
+                    </div>
+                    <div class="flow-row">
+                        <div style="flex: 1;"></div>
+                        <div style="flex: 1; text-align: center; color: #fca5a5;">
+                            <div style="font-size: 0.8rem; font-weight: 600;">current_user() = gateway-svc</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 Visual: Direct OBO (Good Path) -->
+            <div class="visual-container step-3-vis" style="display: none;">
+                <div class="flow-diagram">
+                    <div class="flow-row">
+                        <div class="flow-box blue">User</div>
+                        <div class="flow-arrow active">→</div>
+                        <div class="flow-box gray">App</div>
+                    </div>
+                    <div class="flow-row">
+                        <div class="flow-arrow active">↓</div>
+                    </div>
+                    <div class="flow-row">
+                        <div class="flow-box yellow">Genie</div>
+                        <div class="flow-arrow active">→</div>
+                        <div class="flow-box slate">UC</div>
+                    </div>
+                    <div class="flow-row">
+                        <div style="flex: 1; text-align: center; color: #6ee7b7;">
+                            <div style="font-size: 0.8rem; font-weight: 600;">current_user() = reviewer@company.com</div>
+                        </div>
+                    </div>
+                    <div class="flow-row">
+                        <div style="flex: 1; text-align: center; color: #6ee7b7;">
+                            <div style="font-size: 0.75rem;">rep_email = current_user() → only assigned cases</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4 Visual: Databricks AI Gateway -->
+            <div class="visual-container step-4-vis" style="display: none;">
+                <div class="flow-diagram">
+                    <div class="flow-row">
+                        <div style="flex: 1; text-align: center; font-size: 0.85rem; color: #94a3b8;">
+                            <div>User A</div>
+                            <div style="margin-top: 0.5rem;">User B</div>
+                            <div style="margin-top: 0.5rem;">Agent SP</div>
+                        </div>
+                        <div class="flow-arrow active">→</div>
+                    </div>
+                    <div class="flow-row">
+                        <div class="flow-box blue" style="flex: 1;">
+                            <div style="font-weight: 700;">Databricks</div>
+                            <div>AI Gateway</div>
+                            <div style="margin-top: 0.4rem; font-size: 0.65rem; font-weight: 500;">Rate Limit</div>
+                            <div style="font-size: 0.65rem; font-weight: 500;">Guardrails</div>
+                            <div style="font-size: 0.65rem; font-weight: 500;">Usage Track</div>
+                            <div style="font-size: 0.65rem; font-weight: 500;">Fallback</div>
+                        </div>
+                        <div class="flow-arrow active">→</div>
+                    </div>
+                    <div class="flow-row">
+                        <div class="flow-box yellow">LLM Endpoint</div>
+                        <div class="flow-arrow active">→</div>
+                        <div class="flow-box slate">UC</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5 Visual: UC Connections Proxy -->
+            <div class="visual-container step-5-vis" style="display: none;">
+                <div class="proxy-diagram">
+                    <div class="proxy-path">
+                        <div class="proxy-box blue">sp-appeals</div>
+                        <div class="proxy-arrow active">→</div>
+                        <div class="proxy-box slate">Proxy</div>
+                        <div class="proxy-arrow active">→</div>
+                        <div style="text-align: center;">
+                            <div style="display: flex; align-items: center; gap: 0.3rem;">
+                                <span style="color: #6ee7b7; font-weight: 600;">✓ USE</span>
+                                <span style="color: #6ee7b7; font-weight: 600;">CONNECTION</span>
+                            </div>
+                            <div class="proxy-status success">Forwarded</div>
+                        </div>
+                        <div class="proxy-arrow active">→</div>
+                        <div class="proxy-box yellow">NPI Registry</div>
+                    </div>
+                    <div class="proxy-path">
+                        <div class="proxy-box blue">sp-billing</div>
+                        <div class="proxy-arrow active">→</div>
+                        <div class="proxy-box slate">Proxy</div>
+                        <div class="proxy-arrow active">→</div>
+                        <div style="text-align: center;">
+                            <div style="display: flex; align-items: center; gap: 0.3rem;">
+                                <span style="color: #fca5a5; font-weight: 600;">✗ NO</span>
+                                <span style="color: #fca5a5; font-weight: 600;">GRANT</span>
+                            </div>
+                            <div class="proxy-status blocked">403 Forbidden</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6 Visual: Defense-in-Depth -->
+            <div class="visual-container step-6-vis" style="display: none;">
+                <div class="defense-diagram">
+                    <div class="defense-layer snp">
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #fbbf24; margin-bottom: 0.5rem;">Workspace: SNP (Network Layer)</div>
+                        <div class="defense-row">
+                            <div class="defense-item allow">✓ npi.registry.example</div>
+                            <div class="defense-item allow">✓ coverage.policy.example</div>
+                            <div class="defense-item deny">✗ unknown-service.com</div>
+                        </div>
+                    </div>
+                    <div class="defense-layer connections">
+                        <div style="font-size: 0.85rem; font-weight: 600; color: var(--accent-blue); margin-bottom: 0.5rem;">UC Connections (Credential Layer)</div>
+                        <div class="defense-row">
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.75rem; margin-bottom: 0.3rem; color: #94a3b8;">npi_registry_conn</div>
+                                <div class="defense-item allow">✓ sp-appeals</div>
+                                <div class="defense-item deny">✗ sp-billing</div>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.75rem; margin-bottom: 0.3rem; color: #94a3b8;">cms_coverage_conn</div>
+                                <div class="defense-item allow">✓ sp-appeals</div>
+                                <div class="defense-item deny">✗ sp-billing</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="defense-layer apps">
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #6ee7b7; margin-bottom: 0.5rem;">Application Service Principals</div>
+                        <div class="defense-row">
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.75rem; color: #94a3b8;">sp-appeals</div>
+                                <div style="color: #6ee7b7; font-size: 0.8rem;">Can reach all services</div>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.75rem; color: #94a3b8;">sp-billing</div>
+                                <div style="color: #fca5a5; font-size: 0.8rem;">Blocked at all layers</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7 Visual: Inbound External -->
+            <div class="visual-container step-7-vis" style="display: none;">
+                <div class="inbound-diagram">
+                    <div class="inbound-column">
+                        <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem;">External Clients</div>
+                        <div class="inbound-boxes">
+                            <div class="inbound-box active">Case Mgmt System</div>
+                            <div class="inbound-box active">Provider Portal</div>
+                            <div class="inbound-box active">Partner Integration</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 1.5rem; margin: 0 1rem; color: #94a3b8;">→</div>
+                    <div class="inbound-column">
+                        <div class="inbound-gateway">External<br/>API Gateway</div>
+                        <div style="font-size: 0.65rem; color: #94a3b8; margin-top: 0.5rem; text-align: center;">
+                            Auth Translation<br/>Rate Limiting<br/>API Versioning
+                        </div>
+                    </div>
+                    <div style="font-size: 1.5rem; margin: 0 1rem; color: #94a3b8;">→</div>
+                    <div class="inbound-column">
+                        <div class="inbound-databricks">
+                            <div class="label">Databricks Endpoint</div>
+                            <div class="sublabel">(+ optional AI Gateway)</div>
+                        </div>
+                        <div class="inbound-databricks" style="margin-top: 0.5rem; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1);">
+                            <div class="sublabel">Unity Catalog</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 8 Visual: Decision Flowchart -->
+            <div class="visual-container step-8-vis" style="display: none;">
+                <div class="decision-flowchart">
+                    <div class="decision-node" data-choice="start">Where does the request originate?</div>
+                    <div class="decision-flow">
+                        <button class="decision-node" data-choice="external">Outside Databricks</button>
+                        <button class="decision-node" data-choice="inside">Inside Databricks</button>
+                    </div>
+                    <div class="decision-outcome decision-outcome-external" style="display: none;">
+                        <strong style="color: #fca5a5;">Pattern 4: External API Gateway</strong><br/>
+                        <span style="font-size: 0.75rem;">Auth translation, rate limiting, API versioning</span>
+                    </div>
+                    <div class="decision-outcome decision-outcome-inside" style="display: none;">
+                        <div style="margin-bottom: 0.5rem; font-size: 0.8rem;">Where is it going?</div>
+                        <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                            <button class="decision-node sub-node" data-choice="databricks" style="flex: 1; padding: 0.6rem;">Genie / FM / UC Service</button>
+                            <button class="decision-node sub-node" data-choice="external-svc" style="flex: 1; padding: 0.6rem;">External Service</button>
+                        </div>
+                    </div>
+                    <div class="decision-outcome decision-outcome-databricks" style="display: none;">
+                        <div style="margin-bottom: 0.5rem;">Need LLM governance?</div>
+                        <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                            <button class="decision-node sub-node" data-choice="gateway" style="flex: 1; padding: 0.6rem;">Yes</button>
+                            <button class="decision-node sub-node" data-choice="no-gateway" style="flex: 1; padding: 0.6rem;">No</button>
+                        </div>
+                    </div>
+                    <div class="decision-outcome decision-outcome-gateway" style="display: none;">
+                        <strong style="color: #7dd3fc;">Pattern 2: Databricks AI Gateway</strong><br/>
+                        <span style="font-size: 0.75rem;">Rate limits, guardrails, usage tracking</span>
+                    </div>
+                    <div class="decision-outcome decision-outcome-no-gateway" style="display: none;">
+                        <strong style="color: #6ee7b7;">Pattern 1: No Gateway</strong><br/>
+                        <span style="font-size: 0.75rem;">Direct OBO, UC enforces at data plane</span>
+                    </div>
+                    <div class="decision-outcome decision-outcome-external-svc" style="display: none;">
+                        <strong style="color: #fcd34d;">Pattern 3: UC Connections + SNP</strong><br/>
+                        <span style="font-size: 0.75rem;">Proxy model, credential authorization</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Cards -->
+    <section style="padding: 4rem 2rem; background: rgba(0, 0, 0, 0.2);">
+        <h2 style="text-align: center; font-size: 2rem; color: var(--accent-blue); margin-bottom: 1rem;">Related Topics</h2>
+        <p style="text-align: center; color: #94a3b8; max-width: 700px; margin: 0 auto 2rem;">
+            Deep dive into other aspects of the Databricks architecture.
+        </p>
+
+        <div class="nav-cards">
+            <a href="ai-gateway-governance.html" class="nav-card blue">
+                <div class="card-icon">🌉</div>
+                <h4>AI Gateway Governance</h4>
+                <p>Rate limiting, guardrails, payload logging, and traffic splitting.</p>
+                <div class="topics">
+                    <span class="topic">Rate Limits</span>
+                    <span class="topic">Guardrails</span>
+                    <span class="topic">Inference Tables</span>
+                </div>
+            </a>
+
+            <a href="agent-auth-methods.html" class="nav-card green">
+                <div class="card-icon">🔐</div>
+                <h4>Agent Authentication Methods</h4>
+                <p>Automatic Passthrough, OBO, and Manual authentication patterns.</p>
+                <div class="topics">
+                    <span class="topic">Automatic Auth</span>
+                    <span class="topic">OBO Flow</span>
+                    <span class="topic">Manual Auth</span>
+                </div>
+            </a>
+
+            <a href="mcp-integration.html" class="nav-card orange">
+                <div class="card-icon">🔗</div>
+                <h4>MCP Integration Patterns</h4>
+                <p>Managed, External, and Custom MCP servers for agent tools.</p>
+                <div class="topics">
+                    <span class="topic">Managed MCP</span>
+                    <span class="topic">External MCP</span>
+                    <span class="topic">Custom MCP</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="links">
+            <a href="index.html" class="footer-link">← Back to Orchestration Hub</a>
+            <a href="https://docs.databricks.com/aws/en/ai-gateway/" target="_blank" class="footer-link">AI Gateway Docs</a>
+        </div>
+    </footer>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Setup scrollytelling
+        const steps = gsap.utils.toArray('.scroll-step');
+        const visuals = gsap.utils.toArray('.visual-container');
+
+        // Hide all visuals initially
+        visuals.forEach(v => gsap.set(v, { display: 'none' }));
+
+        steps.forEach((step, index) => {
+            const stepNum = parseInt(step.dataset.step);
+            const visual = document.querySelector(`.step-${stepNum}-vis`);
+
+            // Activate step text
+            gsap.to(step, {
+                scrollTrigger: {
+                    trigger: step,
+                    start: "top center",
+                    end: "bottom center",
+                    onEnter: () => {
+                        steps.forEach((s, i) => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        // Show corresponding visual
+                        visuals.forEach(v => gsap.set(v, { display: 'none' }));
+                        if (visual) {
+                            gsap.set(visual, { display: 'flex' });
+                        }
+                    },
+                    onEnterBack: () => {
+                        steps.forEach((s, i) => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        visuals.forEach(v => gsap.set(v, { display: 'none' }));
+                        if (visual) {
+                            gsap.set(visual, { display: 'flex' });
+                        }
+                    }
+                }
+            });
+        });
+
+        // Animate pattern rows for Step 1
+        gsap.utils.toArray('.step-1-vis .pattern-row').forEach((row, i) => {
+            gsap.to(row, {
+                scrollTrigger: {
+                    trigger: '.scroll-step[data-step="1"]',
+                    start: "top center",
+                    end: "bottom center",
+                    scrub: 0.5,
+                    onUpdate: (self) => {
+                        // Activate rows in sequence as we scroll
+                        const progress = self.progress;
+                        gsap.utils.toArray('.step-1-vis .pattern-row').forEach((r, idx) => {
+                            const targetProgress = idx * 0.25;
+                            if (progress >= targetProgress) {
+                                r.classList.add('active');
+                            } else {
+                                r.classList.remove('active');
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+        // Animate flow boxes
+        gsap.utils.toArray('.flow-box, .flow-arrow').forEach((box, i) => {
+            gsap.from(box, {
+                scrollTrigger: {
+                    trigger: box.closest('.scroll-step'),
+                    start: "top center",
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 0,
+                y: 20,
+                duration: 0.4,
+                delay: i * 0.05
+            });
+        });
+
+        // Animate proxy boxes
+        gsap.utils.toArray('.proxy-box, .proxy-arrow').forEach((box, i) => {
+            gsap.from(box, {
+                scrollTrigger: {
+                    trigger: box.closest('.scroll-step'),
+                    start: "top center",
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 0,
+                x: -20,
+                duration: 0.4,
+                delay: i * 0.05
+            });
+        });
+
+        // Animate defense layers
+        gsap.utils.toArray('.defense-layer').forEach((layer, i) => {
+            gsap.from(layer, {
+                scrollTrigger: {
+                    trigger: '.scroll-step[data-step="6"]',
+                    start: "top center",
+                    end: "bottom center",
+                    scrub: 0.5,
+                    onUpdate: (self) => {
+                        const progress = self.progress;
+                        gsap.utils.toArray('.defense-layer').forEach((l, idx) => {
+                            const targetProgress = idx * 0.33;
+                            if (progress >= targetProgress) {
+                                l.classList.add('active');
+                            } else {
+                                l.classList.remove('active');
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+        // Decision flowchart interactivity
+        const decisionNodes = document.querySelectorAll('.decision-node[data-choice]');
+        decisionNodes.forEach(node => {
+            node.addEventListener('click', (e) => {
+                const choice = node.dataset.choice;
+
+                // Hide all outcomes
+                document.querySelectorAll('.decision-outcome').forEach(o => {
+                    o.style.display = 'none';
+                    o.classList.remove('show');
+                });
+
+                // Handle different choices
+                if (choice === 'external') {
+                    const outcome = document.querySelector('.decision-outcome-external');
+                    outcome.style.display = 'block';
+                    setTimeout(() => outcome.classList.add('show'), 10);
+                } else if (choice === 'inside') {
+                    const outcome = document.querySelector('.decision-outcome-inside');
+                    outcome.style.display = 'block';
+                    setTimeout(() => outcome.classList.add('show'), 10);
+                } else if (choice === 'databricks') {
+                    const outcome = document.querySelector('.decision-outcome-databricks');
+                    outcome.style.display = 'block';
+                    setTimeout(() => outcome.classList.add('show'), 10);
+                } else if (choice === 'external-svc') {
+                    const outcome = document.querySelector('.decision-outcome-external-svc');
+                    outcome.style.display = 'block';
+                    setTimeout(() => outcome.classList.add('show'), 10);
+                } else if (choice === 'gateway') {
+                    const outcome = document.querySelector('.decision-outcome-gateway');
+                    outcome.style.display = 'block';
+                    setTimeout(() => outcome.classList.add('show'), 10);
+                } else if (choice === 'no-gateway') {
+                    const outcome = document.querySelector('.decision-outcome-no-gateway');
+                    outcome.style.display = 'block';
+                    setTimeout(() => outcome.classList.add('show'), 10);
+                }
+            });
+        });
+
+        // Animate nav cards on scroll
+        gsap.utils.toArray('.nav-card').forEach((card, i) => {
+            gsap.from(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 0,
+                y: 40,
+                duration: 0.6,
+                delay: i * 0.1
+            });
+        });
+    </script>
+</body>
+</html>
