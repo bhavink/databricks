@@ -18,25 +18,31 @@ Teaching moment: USE CONNECTION privilege is the governance layer.
   REVOKE → tools vanish immediately, no code change needed
 
 Run:
-  DATABRICKS_PROFILE=adb-wx1 \
-  CUSTMCP_APP_HOST=authz-showcase-custom-mcp-<YOUR_WORKSPACE_ORG_ID>.3.azure.databricksapps.com \
-  SP_BEARER_TOKEN=<oauth-m2m-token-for-app-sp> \
+  DATABRICKS_CONFIG_PROFILE=<YOUR_CLI_PROFILE> \
+  CUSTMCP_APP_HOST=<YOUR_CUSTMCP_APP_HOST> \
+  SP_BEARER_TOKEN=$(databricks auth token --profile <YOUR_CLI_PROFILE> | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])") \
   python 08_create_external_mcp_conn.py
+
+⚠️  The bearer token is a short-lived Databricks OAuth token (~1 hour). The connection must be
+    recreated with a fresh token before each demo session. Add to your demo-prep checklist:
+
+    1. Run this script (or use 10_onboard_app_sp.py --refresh-conn) to refresh the token.
+    2. For production, replace with an SP M2M token from a dedicated client credentials flow.
 
 Credentials come exclusively from environment variables — nothing hardcoded.
 """
 
 import os
 import sys
+import requests
 
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.catalog import ConnectionType
 
 # ── Config from environment ────────────────────────────────────────────────────
 CUSTMCP_APP_HOST = os.environ.get("CUSTMCP_APP_HOST", "")
 SP_BEARER_TOKEN  = os.environ.get("SP_BEARER_TOKEN", "")   # M2M OAuth token for app SP
 
-APP_SP_NAME = "<YOUR_APP_SP_CLIENT_ID>"       # authz-showcase app SP UUID (updated 2026-03-08)
+APP_SP_NAME = "<YOUR_APP_SP_CLIENT_ID>"       # authz-showcase app SP UUID
 
 
 def create_github_conn(w: WorkspaceClient) -> None:
@@ -89,7 +95,7 @@ def create_custmcp_conn(w: WorkspaceClient) -> None:
         print(
             "⚠️  Skipping authz_showcase_custmcp_conn — set CUSTMCP_APP_HOST and SP_BEARER_TOKEN.\n"
             "   Generate SP bearer token:\n"
-            "     databricks auth token --profile adb-wx1\n"
+            "     databricks auth token --profile <YOUR_CLI_PROFILE>\n"
             "   Or via M2M client credentials:\n"
             "     curl -X POST https://<workspace>/oidc/v1/token \\\n"
             "       -d 'grant_type=client_credentials&scope=all-apis' \\\n"
@@ -106,26 +112,34 @@ def create_custmcp_conn(w: WorkspaceClient) -> None:
     except Exception:
         pass
 
-    try:
-        conn = w.connections.create(
-            name=conn_name,
-            connection_type=ConnectionType.HTTP,
-            comment=(
+    # Use REST API directly — SDK connections.create does not support HTTP connection type.
+    # host MUST include https:// scheme; SDK interprets bare hostname as a cloud storage path.
+    host_url = CUSTMCP_APP_HOST if CUSTMCP_APP_HOST.startswith("http") else f"https://{CUSTMCP_APP_HOST}"
+    r = requests.post(
+        f"{w.config.host}/api/2.1/unity-catalog/connections",
+        headers={**w.config.authenticate(), "Content-Type": "application/json"},
+        json={
+            "name": conn_name,
+            "connection_type": "HTTP",
+            "comment": (
                 "Custom HTTP Bearer connection to authz-showcase-custom-mcp Databricks App. "
                 "Stores bearer token — all callers operate as same identity through this connection. "
                 "USE CONNECTION privilege is the access control boundary."
             ),
-            options={
-                "host": CUSTMCP_APP_HOST,
+            "options": {
+                "host": host_url,
                 "base_path": "/mcp",
                 "bearer_token": SP_BEARER_TOKEN,   # stored encrypted in UC, never exposed
                 "is_mcp_connection": "true",
             },
-        )
-        print(f"✅ Created connection: {conn.name} → https://{CUSTMCP_APP_HOST}/mcp")
-    except Exception as e:
-        print(f"❌ Failed to create connection: {e}")
+        },
+        timeout=30,
+    )
+    if not r.ok:
+        print(f"❌ Failed to create connection: {r.text}")
         sys.exit(1)
+    conn = r.json()
+    print(f"✅ Created connection: {conn['name']} → {host_url}/mcp")
 
     # Grant USE CONNECTION to app SP
     try:
@@ -145,7 +159,7 @@ def verify_connections(w: WorkspaceClient) -> None:
     for name in ["authz_showcase_github_conn", "authz_showcase_custmcp_conn"]:
         try:
             conn = w.connections.get(name)
-            print(f"✅ {conn.name}: type={conn.connection_type}, comment={conn.comment or '—'}")
+            print(f"✅ {conn.name}: type={conn.connection_type}, comment={conn.comment or '-'}")
         except Exception as e:
             print(f"❌ {name}: {e}")
     print()
@@ -155,7 +169,7 @@ def verify_connections(w: WorkspaceClient) -> None:
     print(f"  Custom MCP: {host}/api/2.0/mcp/external/authz_showcase_custmcp_conn")
     print()
     print("Demo: revoke access and watch tools disappear:")
-    print("  REVOKE USE CONNECTION ON CONNECTION authz_showcase_github_conn FROM `authz-showcase-app`;")
+    print("  REVOKE USE CONNECTION ON CONNECTION authz_showcase_github_conn FROM `<app-sp>`;")
     print("  # → list_tools() returns empty — UC is the control plane, not the agent code")
 
 

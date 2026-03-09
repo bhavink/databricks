@@ -1,21 +1,20 @@
 # Auth Patterns — Databricks Apps + Custom MCP
 
-> Hard-won findings from building the AI Auth Showcase (Phase 5).
+> Reference patterns from building the AI Auth Showcase.
 > Applies to any Databricks App that hosts a custom MCP server or calls another App.
-> Last verified: 2026-03-08 on Azure Databricks.
 
 ---
 
 ## The Core Problem: Two-Proxy Architecture
 
-When a Streamlit app calls a custom MCP server, both are Databricks Apps. Each has its own Envoy proxy in front of it:
+When a Streamlit app calls a custom MCP server, both are Databricks Apps. Each has its own proxy in front of it:
 
 ```mermaid
 sequenceDiagram
     participant B as 🌐 User Browser
-    participant P1 as Proxy 1<br/>(main app Envoy)
+    participant P1 as Proxy 1<br/>(main app)
     participant A as app.py<br/>(Streamlit)
-    participant P2 as Proxy 2<br/>(MCP app Envoy)
+    participant P2 as Proxy 2<br/>(MCP app)
     participant M as server/main.py<br/>(FastMCP)
 
     B->>P1: HTTPS + session cookie
@@ -58,7 +57,7 @@ sequenceDiagram
 
 | Field | Value |
 |---|---|
-| Set by | Databricks Apps Envoy proxy (infrastructure layer) |
+| Set by | Databricks Apps proxy (infrastructure layer) |
 | Value | Authenticated user's email — always |
 | Forgeable by app.py? | **No** — proxy overwrites any client-supplied value |
 | Available in | Both the main app AND the custom MCP app |
@@ -88,12 +87,12 @@ databricks account custom-app-integration update '<integration-id>' \
 | `dashboards.genie` + `genie` | Genie OBO (Tab 1) — `genie` not shown in UI but required on Azure | Phase 1 |
 | `model-serving` | Agent Bricks / Model Serving endpoint OBO (Tab 5) | Phase 4 |
 | `sql` | Statement Execution API — but see gotcha below | Phase 4 |
-| `unity-catalog` | External MCP proxy `/api/2.0/mcp/external/...` — proxy checks USE CONNECTION; **undocumented requirement** | Phase 6 (hit 403) |
+| `unity-catalog` | External MCP proxy `/api/2.0/mcp/external/...` — proxy validates USE CONNECTION using this scope | Phase 6 |
 | `all-apis` | Catch-all for other Databricks REST APIs | Phase 1 |
 
 > **`sql` gotcha**: Adding `sql` to `user_authorized_scopes` does NOT embed it in the JWT `scope` claim — the platform issues a minimal OIDC token regardless. Use M2M (app SP) for SQL warehouse queries; OBO for Genie/Agent Bricks only.
 
-> **`unity-catalog` gotcha**: Completely undocumented. The external MCP proxy validates the calling token has this scope before checking USE CONNECTION. Error: `403: "Provided OAuth token does not have required scopes: unity-catalog"`.
+> **`unity-catalog` scope**: The external MCP proxy validates this scope on the calling token before checking USE CONNECTION. Error without it: `403: "Provided OAuth token does not have required scopes: unity-catalog"`. Add to both `scopes` and `user_authorized_scopes` upfront.
 
 ---
 
@@ -113,35 +112,40 @@ Adding `sql` to the OAuth integration's `user_authorized_scopes` does **not** fi
 
 ---
 
-## OBO Patterns: What Works Where
+## OBO Patterns: Choosing the Right Approach
 
-### ❌ ModelServingUserCredentials() — Model Serving only, NOT Databricks Apps
+### ModelServingUserCredentials() — for Model Serving endpoints
+
+`ModelServingUserCredentials()` is the correct credential provider when your code runs inside a **Model Serving** endpoint. It reads the token from Model Serving's internal request context.
 
 ```python
-# WRONG for Databricks Apps custom MCP servers
+# Correct usage: code running inside a Model Serving endpoint
 from databricks.sdk.credentials_provider import ModelServingUserCredentials
 w = WorkspaceClient(credentials_provider=ModelServingUserCredentials())
 ```
 
-`ModelServingUserCredentials()` reads the token from Model Serving's internal request context. In a Databricks App, this context does not exist — it falls back silently to M2M.
+In a **Databricks App**, this context does not exist — the App proxy injects identity differently via `X-Forwarded-Access-Token` and `X-Forwarded-Email`. Use M2M (`WorkspaceClient()` with no args) for SQL, and read `X-Forwarded-Email` for the caller's identity.
 
-### ❌ WorkspaceClient(host=host, token=user_token) — PAT conflict
+### WorkspaceClient with a user token — PAT vs OAuth conflict
+
+When `DATABRICKS_CLIENT_ID` / `DATABRICKS_CLIENT_SECRET` are present in the environment (standard App SP credentials), passing `token=` to `WorkspaceClient` creates a conflict because the SDK treats `token=` as a PAT:
 
 ```python
-# WRONG — SDK treats token= as a PAT, conflicts with DATABRICKS_CLIENT_ID/SECRET env vars
+# Causes: "validate: more than one authorization method configured: oauth and pat"
 w = WorkspaceClient(host=host, token=user_token)
-# Error: "validate: more than one authorization method configured: oauth and pat"
 ```
 
-### ❌ Reading X-Forwarded-Access-Token for SQL — missing scope
+Use `WorkspaceClient()` (no args) for M2M. Pass the user token via a custom credentials strategy only if you have no SP env vars set.
 
-```python
-# WRONG — token lacks 'sql' scope, Statement Execution will reject it
-token = headers.get(b"x-forwarded-access-token", b"").decode()
-w = WorkspaceClient(host=host, credentials_strategy=_BearerToken(token))
-rows = w.statement_execution.execute_statement(...)
-# Error: "Provided OAuth token does not have required scopes: sql"
+### X-Forwarded-Access-Token and Statement Execution — scope boundary
+
+The `X-Forwarded-Access-Token` is an **OIDC identity token**, not a full API bearer token. Statement Execution requires the `sql` scope in the token's `scope` claim. This scope is not present in the proxy-issued identity token, so using it directly for SQL warehouse queries results in:
+
 ```
+"Provided OAuth token does not have required scopes: sql"
+```
+
+This is by design — use M2M (the app SP) for all SQL warehouse queries. The identity token is for authentication (who is the user); the SP credentials are for authorization (what the app is allowed to do).
 
 ### ✅ Correct pattern: X-Forwarded-Email + M2M SQL
 
@@ -228,7 +232,7 @@ def main() -> None:
 
 ## Proxy-Injected Headers Reference
 
-All set by Databricks Apps Envoy proxy. Cannot be forged by calling apps when `user_authorization_enabled: true` (default).
+All set by the Databricks Apps proxy. Cannot be forged by calling apps when `user_authorization_enabled: true` (default).
 
 | Header | Content | Trust level |
 |---|---|---|
@@ -237,20 +241,7 @@ All set by Databricks Apps Envoy proxy. Cannot be forged by calling apps when `u
 | `X-Forwarded-Preferred-Username` | `Alice Example` (display name) | High |
 | `X-Forwarded-Access-Token` | Minimal OIDC JWT (iam.* scopes only) | Medium — identity only, not for API calls |
 | `X-Databricks-Org-Id` | Workspace ID | Informational |
-| `X-Databricks-Extauthz-Attrs` | mTLS policy metadata from Envoy | Informational — infrastructure plumbing |
-
-### What is `X-Databricks-Extauthz-Attrs`?
-
-```json
-{
-  "compare_client_cert": true,
-  "id": "<internal-policy-id>",
-  "require_client_cert": true,
-  "validate_client_cert": {"default": false, "exceptions": []}
-}
-```
-
-Set by Databricks' internal policy engine (OPA-based) for the Apps networking layer. `validate_client_cert.default: false` means mTLS is enforced at the transport layer but cert content is not cryptographically validated end-to-end. Informational only — your code does not need to read this.
+| `X-Databricks-Extauthz-Attrs` | Proxy-injected networking policy metadata | Informational — your code does not need to read this |
 
 ---
 
@@ -346,7 +337,7 @@ curl -s -X POST https://<mcp-app-url>/mcp \
 
 ---
 
-## OAuth Integration Reset — Nuclear Option
+## OAuth Integration Reset — Full App Rebuild
 
 > **When**: Tab 6 returns `403: "Provided OAuth token does not have required scopes: unity-catalog"` and opening the app in incognito/private browser still fails.
 
@@ -370,6 +361,7 @@ flowchart TD
 
     style D fill:#3b1a1a,stroke:#ef4444,color:#fca5a5
     style I fill:#3b1a1a,stroke:#ef4444,color:#fca5a5
+
     style C fill:#1a2e1a,stroke:#22c55e,color:#86efac
     style P fill:#1a2e1a,stroke:#22c55e,color:#86efac
     style G fill:#1a2e1a,stroke:#22c55e,color:#86efac
@@ -378,7 +370,7 @@ flowchart TD
     style T fill:#1a2e3b,stroke:#3b82f6,color:#93c5fd
 ```
 
-### Step-by-step (2026-03-08 verified)
+### Step-by-step
 
 ```bash
 # 1. Delete
@@ -417,7 +409,7 @@ databricks account custom-app-integration update '<new-integration-id>' \
 databricks account custom-app-integration delete '<old-integration-id>' --profile adb-account
 ```
 
-See `DEMO-GUIDE.md → Nuclear Option` for the complete grant commands.
+See `DEMO-GUIDE.md` for the complete grant commands after rebuild.
 
 ### What carries over after rebuild
 
@@ -435,9 +427,9 @@ See `DEMO-GUIDE.md → Nuclear Option` for the complete grant commands.
 
 - `mcp-server/server/main.py` — reference implementation of all patterns above
 - `IMPLEMENTATION-PLAN.md` — phase-by-phase build log
-- `DEMO-GUIDE.md` — full demo walkthrough + troubleshooting + nuclear option procedure
+- `DEMO-GUIDE.md` — full demo walkthrough + troubleshooting + full rebuild procedure
 - `seed/test_harness.py` — headless test of all 6 tab capabilities
-- `seed/reset_demo.py` — post-demo persona reset
-- Fieldkit: `auth/obo-passthrough.md` — OBO patterns across all app types (updated 2026-03-08)
+- `seed/demo.py --before` / `--after` — pre-demo setup and post-demo cleanup
+- Fieldkit: `auth/obo-passthrough.md` — OBO patterns across all app types
 - Fieldkit: `mcp/custom-mcp.md` — custom MCP server setup
-- Fieldkit: `mcp/external-mcp.md` — external MCP patterns (updated 2026-03-08)
+- Fieldkit: `mcp/external-mcp.md` — external MCP patterns
