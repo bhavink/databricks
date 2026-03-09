@@ -261,7 +261,7 @@ OpenAI, Anthropic, Cohere, Amazon Bedrock, Google Vertex AI, Azure OpenAI, Custo
 ### Best Practice
 Route **all** external LLM traffic through AI Gateway to unify governance, tracking, and cost management.
 
-📚 [AI Gateway Docs](https://docs.databricks.com/aws/en/ai-gateway/) | 📺 [Interactive: AI Gateway Governance](interactive/orchestration/ai-gateway-governance.html)
+📚 [AI Gateway Docs](https://docs.databricks.com/aws/en/ai-gateway/) | 📺 [Interactive: AI Gateway Governance](interactive/orchestration/ai-gateway-governance.html) | 📖 [Gateway Patterns: Databricks vs External](AI-GATEWAY-PATTERNS.md)
 
 ---
 
@@ -400,6 +400,7 @@ cred = w.database.generate_database_credential(
 - [Agent Authentication](https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication)
 - [Model Serving](https://docs.databricks.com/aws/en/machine-learning/model-serving/)
 - [AI Gateway](https://docs.databricks.com/aws/en/ai-gateway/)
+- [AI Gateway Patterns: Databricks vs External](AI-GATEWAY-PATTERNS.md)
 - [MCP External Services](https://docs.databricks.com/aws/en/generative-ai/mcp/connect-external-services)
 - [Unity Catalog Access Control](https://docs.databricks.com/aws/en/data-governance/unity-catalog/access-control)
 

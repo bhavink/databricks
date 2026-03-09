@@ -104,6 +104,7 @@ End-to-end working demonstration of every auth pattern: Genie OBO, Agent Bricks 
 
 - **[UC Policy Design Principles](UC-POLICY-DESIGN-PRINCIPLES.md)** - Cross-cutting reference: when to use `current_user()` vs `is_member()` across all products and execution contexts. Read this before writing any row filter or column mask.
 - **[Orchestration Architecture](ORCHESTRATION-ARCHITECTURE.md)** - Comprehensive guide to governed AI orchestration
+- **[AI Gateway Patterns](AI-GATEWAY-PATTERNS.md)** - When to use Databricks AI Gateway vs an external API gateway vs UC-native controls; four traffic patterns with decision framework and reference architecture
 - **[Authentication Flows](reference/authentication-flows.md)** - Visual Mermaid diagrams of auth patterns
 - **[Authorization Flows](reference/authorization-flows.md)** - Visual diagrams of UC four-layer access control
 - **[Interactive Visualizations](https://bhavink.github.io/databricks/ai-governance/interactive/)** - Scrollytelling explainers for core concepts
