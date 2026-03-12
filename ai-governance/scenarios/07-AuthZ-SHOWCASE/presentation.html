@@ -386,7 +386,7 @@ pre code {
 .badge.proxy { background: #d0ebff; color: #1864ab; }
 .badge.uc { background: #f3d9fa; color: #862e9c; }
 
-/* ── Gap Status ──────────────────────────────────────── */
+/* ── Consideration Status ────────────────────────────── */
 .status {
   display: inline-block;
   font-size: 0.7rem;
@@ -516,7 +516,7 @@ pre code {
       <ul>
         <li><strong>Genie</strong> uses on-behalf-of (OBO) tokens</li>
         <li><strong>Vector Search</strong> uses machine-to-machine (M2M)</li>
-        <li><strong>Custom MCP Servers</strong> use proxy identity</li>
+        <li><strong>Custom MCP Servers</strong> use gateway identity</li>
         <li><strong>External APIs</strong> use connections</li>
       </ul>
     </div>
@@ -557,9 +557,9 @@ pre code {
         <td>User-specific data access, row/column security</td>
       </tr>
       <tr>
-        <td><strong>Proxy + M2M</strong></td>
+        <td><strong>Gateway + M2M</strong></td>
         <td>Service principal</td>
-        <td>SP identity + proxy header</td>
+        <td>SP identity + gateway header</td>
         <td>SP (email in app log)</td>
         <td>Most Databricks Apps today</td>
       </tr>
@@ -574,25 +574,25 @@ pre code {
   </table>
 
   <div class="mt-2">
-    <p><strong>Key insight:</strong> Only True OBO preserves the full chain of custody from UI click to data access. The others require application-level logging to close the audit gap.</p>
+    <p><strong>Key insight:</strong> Only True OBO preserves the full chain of custody from UI click to data access. The others require application-level logging to complete the audit chain.</p>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════ SLIDE 4 ═══ -->
 <div class="slide" data-slide="4">
-  <h1>The Proxy Architecture</h1>
-  <h2>Every Databricks App gets an automatic reverse proxy — no configuration needed</h2>
+  <h1>The Auth Gateway Architecture</h1>
+  <h2>Every Databricks App gets an automatic Auth Gateway — no configuration needed</h2>
 
   <div class="diagram mt-2">
     <div class="box">Browser</div>
     <span class="arrow">&#8594;</span>
-    <div class="box filled-red">Databricks<br>Reverse Proxy</div>
+    <div class="box filled-red">Databricks<br>Auth Gateway</div>
     <span class="arrow">&#8594;</span>
     <div class="box accent">Your App<br><span class="small">(app.py)</span></div>
   </div>
 
   <div class="mt-2">
-    <h3>What the Proxy Does</h3>
+    <h3>What the Auth Gateway Does</h3>
     <div class="grid-3 mt-1">
       <div class="card">
         <h3>Authenticates</h3>
@@ -615,19 +615,53 @@ pre code {
 <span class="var">X-Forwarded-Access-Token</span>: eyJ...  <span class="cm"># SP token (or OBO if authorized)</span></code></pre>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════ SLIDE 4b ══ -->
+<div class="slide" data-slide="4b">
+  <h1>Databricks Auth Gateway</h1>
+  <h2>What goes in vs. what your app receives</h2>
+
+  <div class="two-col mt-2" style="align-items:start;">
+    <div>
+      <h3 style="color:#cc3311;">What goes in</h3>
+      <div class="diagram diagram-vertical mt-1">
+        <div class="box filled">User's Browser Request</div>
+        <div class="small mt-1" style="text-align:center;">Authorization: Bearer &lt;raw user token&gt;</div>
+        <span class="arrow-down" style="margin-top:0.3em;">&#8595;</span>
+        <div class="box filled-red" style="padding:0.8em 1.2em;">Databricks Auth Gateway</div>
+      </div>
+    </div>
+    <div>
+      <h3 style="color:#2b8a3e;">What comes out</h3>
+      <ul class="mt-1" style="font-size:clamp(0.82rem,1.1vw,1rem);">
+        <li><strong>Validates</strong> OAuth session cookie or Bearer token against Databricks IAM</li>
+        <li><strong>Strips</strong> the original <code>Authorization</code> header — your app never sees raw user credentials</li>
+        <li><strong>Injects</strong> trusted identity headers:<br>
+          <code>X-Forwarded-Email</code>, <code>X-Forwarded-User</code>, <code>X-Forwarded-Access-Token</code></li>
+        <li><strong>Issues</strong> a scoped OIDC identity token (not the user's original token)</li>
+        <li><strong>With User Authorization</strong> <em>(Preview)</em>: issues OBO tokens with service scopes (<code>sql</code>, <code>genie</code>, <code>serving</code>, etc.)</li>
+        <li><strong>Enforces</strong> the boundary between user identity and app identity</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mt-2 small" style="border-left:3px solid var(--red);padding-left:0.8em;">
+    <strong>Key principle:</strong> The Auth Gateway is the trust boundary. Everything downstream of it can rely on the injected headers being authentic — they are set by the platform, not the client.
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════════════════════ SLIDE 5 ═══ -->
 <div class="slide" data-slide="5">
-  <h1>Two-Proxy Architecture</h1>
-  <h2>Streamlit App calls a Custom MCP Server — both are Databricks Apps</h2>
+  <h1>Dual-Gateway Architecture</h1>
+  <h2>Frontend App calls a Custom MCP Server — both are Databricks Apps</h2>
 
   <div class="diagram mt-2">
     <div class="box">Browser</div>
     <span class="arrow">&#8594;</span>
-    <div class="box filled-red">Proxy 1</div>
+    <div class="box filled-red">Gateway 1</div>
     <span class="arrow">&#8594;</span>
-    <div class="box accent">Streamlit<br>App</div>
+    <div class="box accent">Frontend<br>App</div>
     <span class="arrow">&#8594;</span>
-    <div class="box filled-red">Proxy 2</div>
+    <div class="box filled-red">Gateway 2</div>
     <span class="arrow">&#8594;</span>
     <div class="box accent">MCP<br>Server</div>
   </div>
@@ -636,9 +670,9 @@ pre code {
     <div>
       <h3>How Identity Flows</h3>
       <ol>
-        <li>Proxy 1 authenticates user, injects <code>X-Forwarded-Email</code></li>
-        <li>Streamlit reads user identity, forwards token to MCP server</li>
-        <li>MCP server receives <code>X-Forwarded-Email</code> from Proxy 2</li>
+        <li>Gateway 1 authenticates user, injects <code>X-Forwarded-Email</code></li>
+        <li>Frontend App reads user identity, forwards token to MCP server</li>
+        <li>MCP server receives <code>X-Forwarded-Email</code> from Gateway 2</li>
         <li>Identity preserved across both hops</li>
       </ol>
     </div>
@@ -650,28 +684,28 @@ pre code {
   - <span class="str">"server:app"</span>
 <span class="var">authorization</span>: <span class="str">"disabled"</span>
 <span class="cm"># ↑ Allows the forwarded token
-#   to pass through Proxy 2</span></code></pre>
+#   to pass through Gateway 2</span></code></pre>
     </div>
   </div>
 
-  <p class="mt-1 small"><strong>Note:</strong> Setting <code>authorization: disabled</code> means Proxy 2 does not issue its own token — the Streamlit app's forwarded token is preserved.</p>
+  <p class="mt-1 small"><strong>Note:</strong> Setting <code>authorization: disabled</code> means Gateway 2 does not issue its own token — the Frontend App's forwarded token is preserved.</p>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════ SLIDE 6 ═══ -->
 <div class="slide" data-slide="6">
-  <h1>Three-Proxy Architecture</h1>
+  <h1>Three-Gateway Architecture</h1>
   <h2>Unity Catalog External MCP adds a governance layer between caller and server</h2>
 
   <div class="diagram mt-2">
     <div class="box">Browser</div>
     <span class="arrow">&#8594;</span>
-    <div class="box filled-red">Proxy 1</div>
+    <div class="box filled-red">Gateway 1</div>
     <span class="arrow">&#8594;</span>
-    <div class="box accent">Streamlit</div>
+    <div class="box accent">Frontend App</div>
     <span class="arrow">&#8594;</span>
-    <div class="box filled" style="background:#862e9c;border-color:#862e9c;">UC MCP<br>Proxy</div>
+    <div class="box filled" style="background:#862e9c;border-color:#862e9c;">UC External<br>MCP Proxy</div>
     <span class="arrow">&#8594;</span>
-    <div class="box filled-red">Proxy 3</div>
+    <div class="box filled-red">Gateway 3</div>
     <span class="arrow">&#8594;</span>
     <div class="box accent">MCP<br>Server</div>
   </div>
@@ -877,7 +911,7 @@ pre code {
       <h3>M2M Tools</h3>
       <ul>
         <li>Use SP credentials for system operations</li>
-        <li>Log caller identity from proxy headers</li>
+        <li>Log caller identity from gateway headers</li>
         <li>Appropriate for workspace-level operations</li>
         <li>Supplement with application audit logging</li>
       </ul>
@@ -991,7 +1025,7 @@ log_access(caller, action)</code></pre>
 <!-- ═══════════════════════════════════════════════════════ SLIDE 13 ═══ -->
 <div class="slide" data-slide="13">
   <h1>Audit Trail Architecture</h1>
-  <h2>Two layers of audit — platform and application — with a gap between them</h2>
+  <h2>Two layers of audit — platform and application — with a correlation layer between them</h2>
 
   <div class="grid-3">
     <div class="card">
@@ -1019,12 +1053,12 @@ log_access(caller, action)</code></pre>
     </div>
 
     <div class="card">
-      <h3>The Gap</h3>
+      <h3>Correlation Layer</h3>
       <p>Platform + Application join</p>
       <ul>
-        <li>No native join key between <code>system.access.audit</code> and MLflow traces</li>
-        <li>Workaround: embed <code>trace_id</code> in SQL comments</li>
-        <li>OBO SQL solves M2M audit gap directly</li>
+        <li>Trace-to-audit correlation via embedded <code>trace_id</code> in SQL comments</li>
+        <li>OBO SQL unifies M2M audit with human identity automatically</li>
+        <li>Custom join on timestamp + identity for end-to-end tracing</li>
       </ul>
       <div class="badge proxy mt-1">Manual Correlation</div>
     </div>
@@ -1070,8 +1104,8 @@ log_access(caller, action)</code></pre>
       </tr>
       <tr>
         <td><strong>Custom MCP</strong></td>
-        <td><span class="badge proxy">Proxy</span> <span class="badge m2m">M2M</span></td>
-        <td>SP + proxy header</td>
+        <td><span class="badge proxy">Gateway</span> <span class="badge m2m">M2M</span></td>
+        <td>SP + gateway header</td>
         <td>OBO possible with User Authorization</td>
       </tr>
       <tr>
@@ -1128,48 +1162,48 @@ log_access(caller, action)</code></pre>
 
 <!-- ═══════════════════════════════════════════════════════ SLIDE 16 ═══ -->
 <div class="slide" data-slide="16">
-  <h1>Known Gaps &amp; Workarounds</h1>
-  <h2>Honest assessment of current limitations and practical solutions</h2>
+  <h1>Platform Considerations &amp; Best Practices</h1>
+  <h2>Design patterns and recommendations for production deployments</h2>
 
   <table>
     <thead>
       <tr>
         <th>#</th>
-        <th>Gap</th>
+        <th>Consideration</th>
         <th>Status</th>
-        <th>Workaround</th>
+        <th>Recommended Approach</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>1</td>
-        <td><strong>M2M audit trail</strong> — SP operations don't record human identity in platform audit</td>
-        <td><span class="status solved">Solvable</span></td>
+        <td><strong>M2M audit trail</strong> — Preserving human identity through SP-executed operations</td>
+        <td><span class="status solved">Solved</span></td>
         <td>Use OBO SQL with <code>sql</code> scope; <code>current_user()</code> returns human email, platform audit records it</td>
       </tr>
       <tr>
         <td>2</td>
-        <td><strong>MLflow-UC join</strong> — No native correlation between MLflow traces and <code>system.access.audit</code></td>
-        <td><span class="status open">Open</span></td>
-        <td>Embed <code>trace_id</code> in SQL comments; manual join on timestamp + identity</td>
+        <td><strong>End-to-end tracing</strong> — Correlating MLflow traces with <code>system.access.audit</code></td>
+        <td><span class="status open">Pattern Available</span></td>
+        <td>Embed <code>trace_id</code> in SQL comments; join on timestamp + identity</td>
       </tr>
       <tr>
         <td>3</td>
-        <td><strong>sql scope via CLI</strong> — CLI sets <code>user_authorized_scopes</code> but doesn't produce effective scopes</td>
-        <td><span class="status resolved">Resolved</span></td>
-        <td>Use UI-based User Authorization; CLI behavior is documented</td>
+        <td><strong>Scope configuration</strong> — CLI vs UI paths for OAuth scope setup</td>
+        <td><span class="status resolved">Documented</span></td>
+        <td>Use UI-based User Authorization for effective scopes; CLI sets config only</td>
       </tr>
       <tr>
         <td>4</td>
-        <td><strong>is_member() in Genie OBO</strong> — Group membership function behaves differently in Genie context</td>
-        <td><span class="status open">Genie-specific</span></td>
-        <td>Use explicit <code>WHERE</code> clauses with <code>current_user()</code> instead of <code>is_member()</code></td>
+        <td><strong>is_member() context</strong> — Group membership evaluation varies by execution context</td>
+        <td><span class="status open">Context-Specific</span></td>
+        <td>Use explicit <code>WHERE</code> clauses with <code>current_user()</code> for consistent behavior</td>
       </tr>
       <tr>
         <td>5</td>
-        <td><strong>authorization:disabled dual use</strong> — Can't serve both proxied and direct traffic on same app</td>
-        <td><span class="status open">Open</span></td>
-        <td>Deploy two app instances, or implement fallback logic in middleware</td>
+        <td><strong>Dual-client serving</strong> — Supporting both app-to-app and external client traffic</td>
+        <td><span class="status open">Architecture Decision</span></td>
+        <td>Deploy two app instances, or implement token-parsing fallback in middleware</td>
       </tr>
     </tbody>
   </table>
@@ -1191,7 +1225,7 @@ log_access(caller, action)</code></pre>
 
     <!-- Row 2: Proxy layer -->
     <div class="diagram">
-      <div class="box filled-red">Databricks Reverse Proxy<br><span class="small" style="color:#fdd;">Authentication &middot; X-Forwarded-* injection &middot; Token issuance</span></div>
+      <div class="box filled-red">Databricks Auth Gateway<br><span class="small" style="color:#fdd;">Authentication &middot; X-Forwarded-* injection &middot; Token issuance</span></div>
     </div>
 
     <div style="font-size:0.7rem;color:#999;text-align:center;">&#8595; &nbsp; OBO or M2M token &nbsp; &#8595;</div>
@@ -1199,7 +1233,7 @@ log_access(caller, action)</code></pre>
     <!-- Row 3: Application layer -->
     <div class="diagram" style="gap:1em;">
       <div class="box accent" style="min-width:12em;">
-        <strong>Streamlit App</strong><br>
+        <strong>Frontend App</strong><br>
         <span class="small">Tab 1: Genie OBO</span><br>
         <span class="small">Tab 2: Vector Search M2M</span><br>
         <span class="small">Tab 3: UC Functions</span><br>
@@ -1236,7 +1270,7 @@ log_access(caller, action)</code></pre>
     <div style="display:flex;gap:1.5em;margin-top:0.5em;font-size:0.7rem;">
       <span><span class="badge obo">OBO</span> Full user identity</span>
       <span><span class="badge m2m">M2M</span> Service principal</span>
-      <span><span class="badge proxy">Proxy</span> Header-based identity</span>
+      <span><span class="badge proxy">Gateway</span> Header-based identity</span>
       <span><span class="badge uc">UC</span> Connection governance</span>
     </div>
   </div>
@@ -1267,8 +1301,8 @@ log_access(caller, action)</code></pre>
     <h3>Resources</h3>
     <ul>
       <li><a href="docs.html" style="color:var(--red);">Architecture Documentation</a></li>
-      <li>Demo: AuthZ Showcase Application (7-tab Streamlit app)</li>
-      <li>Evidence: Gap Prover MCP Server (automated gap validation)</li>
+      <li>Demo: AuthZ Showcase Application (7-tab Frontend App)</li>
+      <li>Validation: Platform Behavior Prover (automated testing)</li>
       <li>Explorer: Identity Explorer (16-service identity map)</li>
     </ul>
   </div>

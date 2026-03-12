@@ -7,6 +7,7 @@ dependencies = [
     "mcp[cli]>=1.9",
     "databricks-sdk>=0.40.0",
     "uvicorn>=0.27",
+    "mlflow-tracing>=3.1",
 ]
 
 [project.scripts]
