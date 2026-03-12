@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>MCP Integration Patterns - Governed Orchestration</title>
     
     <!-- Global Databricks Theme -->
@@ -19,20 +20,20 @@
             left: 0;
             right: 0;
             padding: 1rem 2rem;
-            background: rgba(17, 24, 28, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
             z-index: 100;
             border-bottom: 1px solid var(--border-subtle);
         }
         
-        header h1 { font-size: 1.2rem; font-weight: 600; color: var(--accent-cyan); }
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #0891b2; }
         
         .progress-bar {
             position: fixed;
             top: 60px;
             left: 0;
             height: 3px;
-            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-pink));
+            background: var(--dbx-primary);
             width: 0%;
             z-index: 101;
         }
@@ -51,13 +52,13 @@
         .hero h2 {
             font-size: 2.8rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--dbx-primary-bright), var(--dbx-warning), var(--dbx-success-bright));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background: none; color: var(--dbx-primary);
+            
+            -webkit-text-fill-color: inherit;
+            
         }
         
-        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 750px; margin-bottom: 1.5rem; }
+        .hero p { font-size: 1.2rem; color: #666666; max-width: 750px; margin-bottom: 1.5rem; }
         
         .doc-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.5rem; }
         
@@ -66,16 +67,16 @@
             padding: 0.5rem 1rem;
             background: rgba(34, 211, 238, 0.1);
             border: 1px solid rgba(34, 211, 238, 0.3);
-            border-radius: 6px;
-            color: #22d3ee;
+            border-radius: 4px;
+            color: #0891b2;
             text-decoration: none;
             font-size: 0.9rem;
             transition: all 0.3s ease;
         }
         
-        .doc-link:hover { background: rgba(34, 211, 238, 0.2); border-color: #22d3ee; }
+        .doc-link:hover { background: rgba(34, 211, 238, 0.2); border-color: #0891b2; }
         
-        .scroll-hint { animation: bounce 2s infinite; color: #22d3ee; }
+        .scroll-hint { animation: bounce 2s infinite; color: #0891b2; }
         
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
@@ -113,39 +114,39 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.3rem 0.8rem;
-            border-radius: 20px;
+            border-radius: 4px;
             font-size: 0.8rem;
             font-weight: 600;
             margin-bottom: 1rem;
             width: fit-content;
         }
         
-        .step-badge.cyan { background: rgba(34, 211, 238, 0.2); color: #22d3ee; }
+        .step-badge.cyan { background: rgba(34, 211, 238, 0.2); color: #0891b2; }
         .step-badge.blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-        .step-badge.pink { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
-        .step-badge.purple { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
-        .step-badge.teal { background: rgba(20, 184, 166, 0.2); color: #14b8a6; }
+        .step-badge.pink { background: rgba(236, 72, 153, 0.2); color: #be185d; }
+        .step-badge.purple { background: rgba(168, 85, 247, 0.2); color: #7c3aed; }
+        .step-badge.teal { background: rgba(20, 184, 166, 0.2); color: #cc3311; }
         
-        .step h3 { font-size: 1.9rem; margin-bottom: 1rem; color: #fff; }
-        .step p { color: #94a3b8; font-size: 1.05rem; margin-bottom: 1rem; }
+        .step h3 { font-size: 1.9rem; margin-bottom: 1rem; color: #1a1a1a; }
+        .step p { color: #666666; font-size: 1.05rem; margin-bottom: 1rem; }
         
-        .step .highlight-cyan { color: #22d3ee; font-weight: 600; }
+        .step .highlight-cyan { color: #0891b2; font-weight: 600; }
         .step .highlight-blue { color: #3b82f6; font-weight: 600; }
-        .step .highlight-pink { color: #ec4899; font-weight: 600; }
-        .step .highlight-purple { color: #a855f7; font-weight: 600; }
-        .step .highlight-green { color: #4ade80; font-weight: 600; }
+        .step .highlight-pink { color: #be185d; font-weight: 600; }
+        .step .highlight-purple { color: #7c3aed; font-weight: 600; }
+        .step .highlight-green { color: #16a34a; font-weight: 600; }
         
         .step code {
             background: rgba(34, 211, 238, 0.15);
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
-            color: #22d3ee;
+            color: #0891b2;
             font-family: 'SF Mono', Monaco, Consolas, monospace;
             font-size: 0.8rem;
         }
         
         .step ul {
-            color: #94a3b8;
+            color: #666666;
             font-size: 0.95rem;
             padding-left: 1.5rem;
             margin-top: 0.5rem;
@@ -154,8 +155,8 @@
         .step ul li { margin-bottom: 0.4rem; }
         
         .step .key-point {
-            background: rgba(255,255,255,0.05);
-            border-left: 3px solid #22d3ee;
+            background: var(--bg-secondary, #f8f8f6);
+            border-left: 3px solid #0891b2;
             padding: 0.8rem 1rem;
             margin-top: 1rem;
             border-radius: 0 8px 8px 0;
@@ -163,8 +164,8 @@
         }
         
         .step .key-point.blue { border-left-color: #3b82f6; }
-        .step .key-point.pink { border-left-color: #ec4899; }
-        .step .key-point.purple { border-left-color: #a855f7; }
+        .step .key-point.pink { border-left-color: #be185d; }
+        .step .key-point.purple { border-left-color: #7c3aed; }
         
         /* Diagram Container */
         .diagram-container {
@@ -172,9 +173,9 @@
             max-width: 520px;
             height: 650px;
             position: relative;
-            background: rgba(255,255,255,0.02);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: var(--bg-secondary, #f8f8f6);
+            border-radius: 4px;
+            border: 1px solid var(--bg-secondary, #f8f8f6);
             overflow: hidden;
         }
         
@@ -182,11 +183,11 @@
         .flow-box {
             position: absolute;
             padding: 0.7rem 1rem;
-            border-radius: 10px;
+            border-radius: 4px;
             text-align: center;
             opacity: 0;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(26, 26, 26, 0.06);
         }
         
         .flow-box.visible { opacity: 1; }
@@ -198,14 +199,14 @@
         .flow-box .desc { font-size: 0.6rem; opacity: 0.8; margin-top: 0.1rem; }
         
         /* Box colors */
-        .flow-box.cyan { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #1a1a2e; }
-        .flow-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-        .flow-box.pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
-        .flow-box.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
-        .flow-box.teal { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
-        .flow-box.green { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
-        .flow-box.orange { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
-        .flow-box.slate { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #e8e8e8; }
+        .flow-box.cyan { background: #ffffff; border-left: 3px solid #0891b2; color: #1a1a1a; }
+        .flow-box.blue { background: #ffffff; border-left: 3px solid #2563eb; color: var(--text-primary); }
+        .flow-box.pink { background: #ffffff; border-left: 3px solid #be185d; color: var(--text-primary); }
+        .flow-box.purple { background: #ffffff; border-left: 3px solid #7c3aed; color: #1a1a1a; }
+        .flow-box.teal { background: #ffffff; border-left: 3px solid #0d9488; color: var(--text-primary); }
+        .flow-box.green { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; }
+        .flow-box.orange { background: #ffffff; border-left: 3px solid #d97706; color: var(--text-primary); }
+        .flow-box.slate { background: rgba(26, 26, 26, 0.08); border: 1px solid rgba(26, 26, 26, 0.12); color: #1a1a1a; }
         
         /* Arrows */
         .flow-arrow {
@@ -216,16 +217,16 @@
         }
         
         .flow-arrow.visible { opacity: 1; }
-        .flow-arrow.cyan { color: #22d3ee; }
+        .flow-arrow.cyan { color: #0891b2; }
         .flow-arrow.blue { color: #3b82f6; }
-        .flow-arrow.pink { color: #ec4899; }
-        .flow-arrow.teal { color: #14b8a6; }
+        .flow-arrow.pink { color: #be185d; }
+        .flow-arrow.teal { color: #cc3311; }
         
         /* Flow labels */
         .flow-label {
             position: absolute;
             font-size: 0.55rem;
-            color: #94a3b8;
+            color: #666666;
             opacity: 0;
             transition: all 0.5s ease;
             max-width: 80px;
@@ -247,10 +248,10 @@
         
         .client-box {
             padding: 0.5rem 0.7rem;
-            border-radius: 8px;
+            border-radius: 4px;
             text-align: center;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
             font-size: 0.65rem;
         }
         
@@ -267,7 +268,7 @@
             text-align: center;
         }
         
-        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #22d3ee; }
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #0891b2; }
         
         .summary-grid {
             display: grid;
@@ -278,25 +279,25 @@
         }
         
         .summary-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.5rem;
             text-align: left;
         }
         
-        .summary-card.cyan { border-top: 4px solid #22d3ee; }
-        .summary-card.pink { border-top: 4px solid #ec4899; }
-        .summary-card.purple { border-top: 4px solid #a855f7; }
+        .summary-card.cyan { border-top: 4px solid #0891b2; }
+        .summary-card.pink { border-top: 4px solid #be185d; }
+        .summary-card.purple { border-top: 4px solid #7c3aed; }
         
         .summary-card h4 { margin-bottom: 0.5rem; font-size: 1rem; }
-        .summary-card.cyan h4 { color: #22d3ee; }
-        .summary-card.pink h4 { color: #ec4899; }
-        .summary-card.purple h4 { color: #a855f7; }
+        .summary-card.cyan h4 { color: #0891b2; }
+        .summary-card.pink h4 { color: #be185d; }
+        .summary-card.purple h4 { color: #7c3aed; }
         
-        .summary-card p { color: #94a3b8; font-size: 0.8rem; margin-bottom: 0.5rem; }
+        .summary-card p { color: #666666; font-size: 0.8rem; margin-bottom: 0.5rem; }
         .summary-card code { font-size: 0.65rem; }
-        .summary-card ul { color: #64748b; font-size: 0.75rem; padding-left: 1rem; }
+        .summary-card ul { color: #999999; font-size: 0.75rem; padding-left: 1rem; }
         .summary-card li { margin-bottom: 0.2rem; }
         
         .back-links {
@@ -307,16 +308,16 @@
         }
         
         .back-link {
-            color: #14b8a6;
+            color: #cc3311;
             text-decoration: none;
             font-size: 1rem;
             padding: 0.8rem 1.5rem;
-            border: 2px solid #14b8a6;
-            border-radius: 8px;
+            border: 2px solid #cc3311;
+            border-radius: 4px;
             transition: all 0.3s ease;
         }
         
-        .back-link:hover { background: #14b8a6; color: #1a1a2e; }
+        .back-link:hover { background: #cc3311; color: #1a1a1a; }
         
         @media (max-width: 900px) {
             .scrollytelling { flex-direction: column; }
@@ -545,7 +546,7 @@
                 <p>
                     To connect external clients via OAuth:
                 </p>
-                <ol style="color: #94a3b8; padding-left: 1.5rem; font-size: 0.95rem;">
+                <ol style="color: #666666; padding-left: 1.5rem; font-size: 0.95rem;">
                     <li>Create OAuth app in Account Console</li>
                     <li>Configure redirect URLs for your client</li>
                     <li>Set appropriate scopes</li>
@@ -608,7 +609,7 @@
                 
                 <!-- MCP Layer -->
                 <div class="flow-box slate" id="mcp-layer" style="left: 50%; transform: translateX(-50%); top: 100px; min-width: 300px; padding: 0.5rem;">
-                    <div class="title" style="font-size: 0.7rem; color: #94a3b8;">MCP Protocol Layer</div>
+                    <div class="title" style="font-size: 0.7rem; color: #666666;">MCP Protocol Layer</div>
                 </div>
                 
                 <!-- Managed MCP Servers -->
@@ -681,7 +682,7 @@
                 <div class="flow-arrow teal" id="arrow-to-uc" style="left: 50%; transform: translateX(-50%); top: 530px;">↓</div>
                 
                 <!-- Labels -->
-                <div class="flow-label" id="label-managed" style="left: 50%; transform: translateX(-50%); top: 235px; color: #22d3ee;">Managed MCP</div>
+                <div class="flow-label" id="label-managed" style="left: 50%; transform: translateX(-50%); top: 235px; color: #0891b2;">Managed MCP</div>
                 
                 <!-- External clients grid (shown for external client scenarios) -->
                 <div class="client-grid" id="client-grid" style="left: 50%; transform: translateX(-50%); top: 90px;">
@@ -726,7 +727,7 @@
                     <li>UC Functions: <code>/api/2.0/mcp/functions/{cat}/{sch}</code></li>
                     <li>DBSQL: <code>/api/2.0/mcp/sql</code></li>
                 </ul>
-                <p style="margin-top: 0.5rem; color: #22d3ee; font-size: 0.7rem;">Auth: Automatic, OBO, or PAT</p>
+                <p style="margin-top: 0.5rem; color: #0891b2; font-size: 0.7rem;">Auth: Automatic, OBO, or PAT</p>
             </div>
             
             <div class="summary-card pink">
@@ -738,7 +739,7 @@
                     <li>Credentials in UC secret scopes</li>
                     <li>UC governs access</li>
                 </ul>
-                <p style="margin-top: 0.5rem; color: #ec4899; font-size: 0.7rem;">Auth: Automatic, OBO, or PAT</p>
+                <p style="margin-top: 0.5rem; color: #be185d; font-size: 0.7rem;">Auth: Automatic, OBO, or PAT</p>
             </div>
             
             <div class="summary-card purple">
@@ -750,7 +751,7 @@
                     <li>OAuth authentication required</li>
                     <li>PAT not supported</li>
                 </ul>
-                <p style="margin-top: 0.5rem; color: #a855f7; font-size: 0.7rem;">Auth: OAuth only (Manual)</p>
+                <p style="margin-top: 0.5rem; color: #7c3aed; font-size: 0.7rem;">Auth: OAuth only (Manual)</p>
                 <p style="margin-top: 0.5rem; font-size: 0.7rem; color: #f59e0b;">⚠️ Two-proxy problem: when App A calls App B, App B's proxy strips the user token and substitutes its own SP token. Use <code>X-Forwarded-Email</code> for user identity; use M2M for SQL execution.</p>
             </div>
         </div>

@@ -1,134 +1,133 @@
 /**
- * Databricks AI Governance - Global Theme
- * 
- * Brand colors based on Databricks design system.
- * All interactive visualizations should import this file.
- * 
+ * Swiss Samurai Design System — Global Theme
+ *
+ * 60:30:10 ratio → White : Ink : Vermillion
+ * Font: Space Grotesk (via Google Fonts CDN)
+ * Radius: 4px — sharp, precise
+ * Feel: Minimal, Swiss Modern, disciplined
+ *
  * Usage: <link rel="stylesheet" href="../styles/theme.css">
  *   or:  <link rel="stylesheet" href="styles/theme.css">
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 :root {
     /* ========================================
-       DATABRICKS BRAND COLORS
+       PRIMARY BRAND — VERMILLION
        ======================================== */
-    
-    /* Primary - Databricks Red/Orange */
-    --dbx-primary: #CE4A2C;
-    --dbx-primary-light: #ED431D;
-    --dbx-primary-bright: #FF4C24;
-    
-    /* Success - Green */
-    --dbx-success: #008558;
-    --dbx-success-light: #00A870;
-    --dbx-success-bright: #22C38E;
-    
-    /* Warning - Yellow/Gold */
-    --dbx-warning: #FFAA00;
-    --dbx-warning-light: #F4AF25;
-    
-    /* Info - Cyan/Blue */
-    --dbx-info: #669ECC;
-    --dbx-info-light: #7AB8E0;
-    
-    /* Purple - Accent */
-    --dbx-purple: #AD5CD6;
-    --dbx-purple-light: #B34DB3;
-    
+
+    --dbx-primary: #cc3311;
+    --dbx-primary-light: #dd4422;
+    --dbx-primary-bright: #cc3311;
+
+    /* Semantic Colors (for data viz variety) */
+    --dbx-success: #16a34a;
+    --dbx-success-light: #22c55e;
+    --dbx-success-bright: #16a34a;
+
+    --dbx-warning: #d97706;
+    --dbx-warning-light: #f59e0b;
+
+    --dbx-info: #2563eb;
+    --dbx-info-light: #3b82f6;
+
+    --dbx-purple: #7c3aed;
+    --dbx-purple-light: #8b5cf6;
+
     /* ========================================
-       DARK THEME (Default for visualizations)
+       SWISS LIGHT THEME
        ======================================== */
-    
-    /* Backgrounds */
-    --bg-primary: #11181C;
-    --bg-secondary: #171F26;
-    --bg-tertiary: #1B252C;
-    --bg-elevated: #1F2A33;
-    --bg-card: #252F37;
-    --bg-hover: rgba(255, 255, 255, 0.05);
-    --bg-active: rgba(255, 255, 255, 0.08);
-    
-    /* Text */
-    --text-primary: #E9EDF1;
-    --text-secondary: #DAE0E7;
-    --text-muted: #A7B3BE;
-    --text-dim: #6B7A86;
-    
+
+    /* Backgrounds — 60% white */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f8f6;
+    --bg-tertiary: #f0efed;
+    --bg-elevated: #ffffff;
+    --bg-card: #f8f8f6;
+    --bg-hover: rgba(26, 26, 26, 0.03);
+    --bg-active: rgba(26, 26, 26, 0.06);
+
+    /* Text — 30% ink */
+    --text-primary: #1a1a1a;
+    --text-secondary: #333333;
+    --text-muted: #666666;
+    --text-dim: #999999;
+
     /* Borders */
-    --border-primary: #2D3943;
-    --border-secondary: #34414B;
-    --border-subtle: rgba(255, 255, 255, 0.1);
-    
+    --border-primary: #e5e5e5;
+    --border-secondary: #d5d5d5;
+    --border-subtle: rgba(26, 26, 26, 0.1);
+
     /* ========================================
        SEMANTIC COLORS (for components)
        ======================================== */
-    
-    /* Status colors */
-    --color-success: var(--dbx-success-bright);
+
+    --color-success: var(--dbx-success);
     --color-warning: var(--dbx-warning);
-    --color-error: #D92626;
+    --color-error: #dc2626;
     --color-info: var(--dbx-info);
-    
+
     /* Accent colors for visual variety */
-    --accent-red: var(--dbx-primary-bright);
-    --accent-orange: #f97316;
+    --accent-red: var(--dbx-primary);
+    --accent-orange: #d97706;
     --accent-yellow: var(--dbx-warning);
-    --accent-green: var(--dbx-success-bright);
-    --accent-teal: #14b8a6;
-    --accent-cyan: #22d3ee;
-    --accent-blue: #3b82f6;
+    --accent-green: var(--dbx-success);
+    --accent-teal: #0d9488;
+    --accent-cyan: #0891b2;
+    --accent-blue: #2563eb;
     --accent-purple: var(--dbx-purple);
-    --accent-pink: #ec4899;
-    
+    --accent-pink: #be185d;
+
     /* ========================================
        COMPONENT TOKENS
        ======================================== */
-    
+
     /* Cards */
     --card-bg: var(--bg-secondary);
     --card-border: var(--border-subtle);
     --card-hover-bg: var(--bg-tertiary);
-    --card-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    --card-shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.4);
-    
+    --card-shadow: 0 2px 8px rgba(26, 26, 26, 0.06);
+    --card-shadow-hover: 0 4px 16px rgba(26, 26, 26, 0.10);
+
     /* Buttons */
     --btn-primary-bg: var(--dbx-primary);
     --btn-primary-hover: var(--dbx-primary-light);
-    --btn-primary-text: var(--text-primary);
-    
+    --btn-primary-text: #ffffff;
+
     /* Links */
-    --link-color: var(--accent-cyan);
-    --link-hover: var(--dbx-primary-bright);
-    
-    /* Progress bar gradient */
-    --progress-gradient: linear-gradient(90deg, var(--dbx-primary-bright), var(--dbx-warning), var(--dbx-success-bright));
-    
-    /* Hero gradient */
-    --hero-gradient: linear-gradient(135deg, var(--dbx-primary-bright), var(--dbx-warning), var(--dbx-success-bright));
-    
+    --link-color: var(--dbx-primary);
+    --link-hover: var(--dbx-primary-light);
+
+    /* Progress bar — solid vermillion */
+    --progress-gradient: #cc3311;
+
+    /* Hero gradient — vermillion */
+    --hero-gradient: #cc3311;
+
     /* ========================================
        FLOW DIAGRAM COLORS
+       Swiss style: white cards with colored left borders
        ======================================== */
-    
-    /* Box backgrounds (gradients) */
-    --flow-red: linear-gradient(135deg, var(--dbx-primary), #a83820);
-    --flow-orange: linear-gradient(135deg, #f97316, #ea580c);
-    --flow-yellow: linear-gradient(135deg, #fbbf24, #f59e0b);
-    --flow-green: linear-gradient(135deg, var(--dbx-success-bright), var(--dbx-success));
-    --flow-teal: linear-gradient(135deg, #14b8a6, #0d9488);
-    --flow-cyan: linear-gradient(135deg, #22d3ee, #06b6d4);
-    --flow-blue: linear-gradient(135deg, #3b82f6, #2563eb);
-    --flow-purple: linear-gradient(135deg, var(--dbx-purple), #7c3aed);
-    --flow-pink: linear-gradient(135deg, #ec4899, #db2777);
-    --flow-slate: rgba(255, 255, 255, 0.1);
-    
+
+    --flow-red: #ffffff;
+    --flow-orange: #ffffff;
+    --flow-yellow: #ffffff;
+    --flow-green: #ffffff;
+    --flow-teal: #ffffff;
+    --flow-cyan: #ffffff;
+    --flow-blue: #ffffff;
+    --flow-purple: #ffffff;
+    --flow-pink: #ffffff;
+    --flow-slate: #f8f8f6;
+
     /* ========================================
        TYPOGRAPHY
        ======================================== */
-    
-    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    --font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --font-mono: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-    
+
     --font-size-xs: 0.65rem;
     --font-size-sm: 0.8rem;
     --font-size-base: 0.95rem;
@@ -136,29 +135,29 @@
     --font-size-xl: 1.5rem;
     --font-size-2xl: 2rem;
     --font-size-3xl: 2.8rem;
-    
+
     --line-height: 1.6;
-    
+
     /* ========================================
        SPACING & LAYOUT
        ======================================== */
-    
+
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
     --spacing-xl: 2rem;
     --spacing-2xl: 3rem;
-    
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 16px;
+
+    --radius-sm: 4px;
+    --radius-md: 4px;
+    --radius-lg: 4px;
     --radius-full: 9999px;
-    
+
     /* ========================================
        TRANSITIONS
        ======================================== */
-    
+
     --transition-fast: 0.2s ease;
     --transition-base: 0.3s ease;
     --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -176,7 +175,7 @@
 
 body {
     font-family: var(--font-family);
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    background: var(--bg-primary);
     color: var(--text-primary);
     line-height: var(--line-height);
 }
@@ -185,32 +184,32 @@ body {
    COMMON COMPONENTS
    ======================================== */
 
-/* Header */
+/* Header — white with bottom border */
 .dbx-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     padding: var(--spacing-md) var(--spacing-xl);
-    background: rgba(17, 24, 28, 0.95);
+    background: rgba(255, 255, 255, 0.97);
     backdrop-filter: blur(10px);
     z-index: 100;
-    border-bottom: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-primary);
 }
 
 .dbx-header h1 {
     font-size: var(--font-size-lg);
     font-weight: 600;
-    color: var(--dbx-primary-bright);
+    color: var(--dbx-primary);
 }
 
-/* Progress bar */
+/* Progress bar — solid vermillion */
 .dbx-progress {
     position: fixed;
     top: 60px;
     left: 0;
     height: 3px;
-    background: var(--progress-gradient);
+    background: var(--dbx-primary);
     width: 0%;
     z-index: 101;
 }
@@ -230,10 +229,11 @@ body {
 .dbx-hero h2 {
     font-size: var(--font-size-3xl);
     margin-bottom: var(--spacing-md);
-    background: var(--hero-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--dbx-primary);
+    -webkit-text-fill-color: var(--dbx-primary);
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
 }
 
 .dbx-hero p {
@@ -255,24 +255,24 @@ body {
 .dbx-doc-link {
     display: inline-block;
     padding: var(--spacing-sm) var(--spacing-md);
-    background: rgba(206, 74, 44, 0.1);
-    border: 1px solid rgba(206, 74, 44, 0.3);
+    background: rgba(204, 51, 17, 0.06);
+    border: 1px solid rgba(204, 51, 17, 0.2);
     border-radius: var(--radius-sm);
-    color: var(--dbx-primary-bright);
+    color: var(--dbx-primary);
     text-decoration: none;
     font-size: var(--font-size-base);
     transition: all var(--transition-base);
 }
 
 .dbx-doc-link:hover {
-    background: rgba(206, 74, 44, 0.2);
-    border-color: var(--dbx-primary-bright);
+    background: rgba(204, 51, 17, 0.12);
+    border-color: var(--dbx-primary);
 }
 
 /* Scroll hint */
 .dbx-scroll-hint {
     animation: dbx-bounce 2s infinite;
-    color: var(--dbx-primary-bright);
+    color: var(--dbx-primary);
 }
 
 @keyframes dbx-bounce {
@@ -332,15 +332,15 @@ body {
     width: fit-content;
 }
 
-.dbx-badge.red { background: rgba(206, 74, 44, 0.2); color: var(--dbx-primary-bright); }
-.dbx-badge.orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
-.dbx-badge.yellow { background: rgba(255, 170, 0, 0.2); color: var(--dbx-warning); }
-.dbx-badge.green { background: rgba(0, 133, 88, 0.2); color: var(--dbx-success-bright); }
-.dbx-badge.teal { background: rgba(20, 184, 166, 0.2); color: var(--accent-teal); }
-.dbx-badge.cyan { background: rgba(34, 211, 238, 0.2); color: var(--accent-cyan); }
-.dbx-badge.blue { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
-.dbx-badge.purple { background: rgba(173, 92, 214, 0.2); color: var(--dbx-purple); }
-.dbx-badge.pink { background: rgba(236, 72, 153, 0.2); color: var(--accent-pink); }
+.dbx-badge.red { background: rgba(204, 51, 17, 0.08); color: var(--dbx-primary); }
+.dbx-badge.orange { background: rgba(217, 119, 6, 0.08); color: var(--accent-orange); }
+.dbx-badge.yellow { background: rgba(217, 119, 6, 0.08); color: var(--dbx-warning); }
+.dbx-badge.green { background: rgba(22, 163, 74, 0.08); color: var(--dbx-success); }
+.dbx-badge.teal { background: rgba(13, 148, 136, 0.08); color: var(--accent-teal); }
+.dbx-badge.cyan { background: rgba(8, 145, 178, 0.08); color: var(--accent-cyan); }
+.dbx-badge.blue { background: rgba(37, 99, 235, 0.08); color: var(--accent-blue); }
+.dbx-badge.purple { background: rgba(124, 58, 237, 0.08); color: var(--dbx-purple); }
+.dbx-badge.pink { background: rgba(190, 24, 93, 0.08); color: var(--accent-pink); }
 
 /* Step content */
 .dbx-step h3 {
@@ -367,19 +367,19 @@ body {
 }
 
 .dbx-step code {
-    background: rgba(206, 74, 44, 0.15);
+    background: rgba(204, 51, 17, 0.06);
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
-    color: var(--dbx-primary-bright);
+    color: var(--dbx-primary);
     font-family: var(--font-mono);
     font-size: 0.85rem;
 }
 
 /* Highlight classes */
-.highlight-red { color: var(--dbx-primary-bright); font-weight: 600; }
+.highlight-red { color: var(--dbx-primary); font-weight: 600; }
 .highlight-orange { color: var(--accent-orange); font-weight: 600; }
 .highlight-yellow { color: var(--dbx-warning); font-weight: 600; }
-.highlight-green { color: var(--dbx-success-bright); font-weight: 600; }
+.highlight-green { color: var(--dbx-success); font-weight: 600; }
 .highlight-teal { color: var(--accent-teal); font-weight: 600; }
 .highlight-cyan { color: var(--accent-cyan); font-weight: 600; }
 .highlight-blue { color: var(--accent-blue); font-weight: 600; }
@@ -388,15 +388,15 @@ body {
 
 /* Key point callouts */
 .dbx-key-point {
-    background: var(--bg-hover);
-    border-left: 3px solid var(--dbx-primary-bright);
+    background: var(--bg-secondary);
+    border-left: 3px solid var(--dbx-primary);
     padding: 0.8rem 1rem;
     margin-top: var(--spacing-md);
     border-radius: 0 var(--radius-md) var(--radius-md) 0;
     font-size: var(--font-size-base);
 }
 
-.dbx-key-point.green { border-left-color: var(--dbx-success-bright); }
+.dbx-key-point.green { border-left-color: var(--dbx-success); }
 .dbx-key-point.cyan { border-left-color: var(--accent-cyan); }
 .dbx-key-point.purple { border-left-color: var(--dbx-purple); }
 .dbx-key-point.orange { border-left-color: var(--accent-orange); }
@@ -410,9 +410,9 @@ body {
     max-width: 520px;
     height: 600px;
     position: relative;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-secondary);
     border-radius: var(--radius-lg);
-    border: 1px solid var(--border-subtle);
+    border: 1px solid var(--border-primary);
     overflow: hidden;
 }
 
@@ -432,19 +432,19 @@ body {
 
 .dbx-flow-box .icon { font-size: 1.3rem; margin-bottom: 0.2rem; }
 .dbx-flow-box .title { font-weight: 600; font-size: 0.85rem; }
-.dbx-flow-box .desc { font-size: 0.65rem; opacity: 0.8; margin-top: 0.1rem; }
+.dbx-flow-box .desc { font-size: 0.65rem; opacity: 0.7; margin-top: 0.1rem; }
 
-/* Flow box color variants */
-.dbx-flow-box.red { background: var(--flow-red); color: white; }
-.dbx-flow-box.orange { background: var(--flow-orange); color: white; }
-.dbx-flow-box.yellow { background: var(--flow-yellow); color: var(--bg-primary); }
-.dbx-flow-box.green { background: var(--flow-green); color: var(--bg-primary); }
-.dbx-flow-box.teal { background: var(--flow-teal); color: white; }
-.dbx-flow-box.cyan { background: var(--flow-cyan); color: var(--bg-primary); }
-.dbx-flow-box.blue { background: var(--flow-blue); color: white; }
-.dbx-flow-box.purple { background: var(--flow-purple); color: white; }
-.dbx-flow-box.pink { background: var(--flow-pink); color: white; }
-.dbx-flow-box.slate { background: var(--flow-slate); border: 1px solid var(--border-secondary); color: var(--text-primary); }
+/* Flow box color variants — Swiss style: white cards with colored left border */
+.dbx-flow-box.red { background: #ffffff; border-left: 3px solid var(--dbx-primary); color: var(--text-primary); }
+.dbx-flow-box.orange { background: #ffffff; border-left: 3px solid var(--accent-orange); color: var(--text-primary); }
+.dbx-flow-box.yellow { background: #ffffff; border-left: 3px solid var(--dbx-warning); color: var(--text-primary); }
+.dbx-flow-box.green { background: #ffffff; border-left: 3px solid var(--dbx-success); color: var(--text-primary); }
+.dbx-flow-box.teal { background: #ffffff; border-left: 3px solid var(--accent-teal); color: var(--text-primary); }
+.dbx-flow-box.cyan { background: #ffffff; border-left: 3px solid var(--accent-cyan); color: var(--text-primary); }
+.dbx-flow-box.blue { background: #ffffff; border-left: 3px solid var(--accent-blue); color: var(--text-primary); }
+.dbx-flow-box.purple { background: #ffffff; border-left: 3px solid var(--dbx-purple); color: var(--text-primary); }
+.dbx-flow-box.pink { background: #ffffff; border-left: 3px solid var(--accent-pink); color: var(--text-primary); }
+.dbx-flow-box.slate { background: var(--bg-secondary); border: 1px solid var(--border-primary); color: var(--text-primary); }
 
 /* Flow arrows */
 .dbx-flow-arrow {
@@ -456,8 +456,8 @@ body {
 }
 
 .dbx-flow-arrow.visible { opacity: 1; }
-.dbx-flow-arrow.red { color: var(--dbx-primary-bright); }
-.dbx-flow-arrow.green { color: var(--dbx-success-bright); }
+.dbx-flow-arrow.red { color: var(--dbx-primary); }
+.dbx-flow-arrow.green { color: var(--dbx-success); }
 .dbx-flow-arrow.cyan { color: var(--accent-cyan); }
 
 /* Flow labels */
@@ -480,13 +480,13 @@ body {
 .dbx-footer {
     padding: var(--spacing-2xl) var(--spacing-xl);
     text-align: center;
-    border-top: 1px solid var(--border-subtle);
+    border-top: 1px solid var(--border-primary);
 }
 
 .dbx-footer h3 {
     font-size: var(--font-size-xl);
     margin-bottom: var(--spacing-md);
-    color: var(--dbx-primary-bright);
+    color: var(--dbx-primary);
 }
 
 .dbx-footer p {
@@ -520,12 +520,12 @@ body {
 }
 
 .dbx-footer-link.secondary {
-    border: 1px solid rgba(206, 74, 44, 0.3);
-    color: var(--dbx-primary-bright);
+    border: 1px solid rgba(204, 51, 17, 0.3);
+    color: var(--dbx-primary);
 }
 
 .dbx-footer-link.secondary:hover {
-    background: rgba(206, 74, 44, 0.1);
+    background: rgba(204, 51, 17, 0.06);
 }
 
 /* ========================================
@@ -536,22 +536,22 @@ body {
     .dbx-scrollytelling {
         flex-direction: column;
     }
-    
+
     .dbx-scroll-text {
         flex: none;
         padding: 0 var(--spacing-lg);
     }
-    
+
     .dbx-sticky-visual {
         position: relative;
         height: 50vh;
         flex: none;
     }
-    
+
     .dbx-step {
         min-height: 60vh;
     }
-    
+
     .dbx-hero h2 {
         font-size: var(--font-size-2xl);
     }

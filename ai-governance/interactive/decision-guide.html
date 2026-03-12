@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Quick Decision Guide - Authentication Patterns</title>
     
     <!-- Global Databricks Theme -->
@@ -19,13 +20,13 @@
             left: 0;
             right: 0;
             padding: 1rem 2rem;
-            background: rgba(17, 24, 28, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
             z-index: 100;
             border-bottom: 1px solid var(--border-subtle);
         }
         
-        header h1 { font-size: 1.2rem; font-weight: 600; color: var(--accent-cyan); }
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #0891b2; }
         
         .progress-bar {
             position: fixed;
@@ -51,14 +52,14 @@
         .hero h2 {
             font-size: 3rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #22d3ee, #06b6d4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background: none; color: #cc3311;
+            
+            -webkit-text-fill-color: inherit;
+            
         }
         
-        .hero p { font-size: 1.3rem; color: #94a3b8; max-width: 600px; margin-bottom: 2rem; }
-        .scroll-hint { animation: bounce 2s infinite; color: #22d3ee; }
+        .hero p { font-size: 1.3rem; color: #666666; max-width: 600px; margin-bottom: 2rem; }
+        .scroll-hint { animation: bounce 2s infinite; color: #cc3311; }
         
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
@@ -98,24 +99,24 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: #22d3ee;
-            color: #1a1a2e;
+            background: #cc3311;
+            color: #1a1a1a;
             font-weight: bold;
             font-size: 1.2rem;
             margin-bottom: 1.5rem;
         }
         
-        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #fff; }
-        .step p { color: #94a3b8; font-size: 1.15rem; margin-bottom: 1rem; }
-        .step .highlight { color: #22d3ee; font-weight: 600; }
-        .step .highlight-green { color: #4ade80; font-weight: 600; }
+        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #1a1a1a; }
+        .step p { color: #666666; font-size: 1.15rem; margin-bottom: 1rem; }
+        .step .highlight { color: #cc3311; font-weight: 600; }
+        .step .highlight-green { color: #16a34a; font-weight: 600; }
         .step .highlight-orange { color: #f59e0b; font-weight: 600; }
         
         .step code {
-            background: rgba(34, 211, 238, 0.15);
+            background: rgba(204, 51, 17, 0.06);
             padding: 0.2rem 0.6rem;
             border-radius: 4px;
-            color: #22d3ee;
+            color: #cc3311;
             font-family: 'SF Mono', Monaco, Consolas, monospace;
             font-size: 0.95rem;
         }
@@ -125,67 +126,67 @@
             max-width: 500px;
             height: 500px;
             position: relative;
-            background: rgba(255,255,255,0.02);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: var(--bg-secondary, #f8f8f6);
+            border-radius: 4px;
+            border: 1px solid var(--bg-secondary, #f8f8f6);
         }
         
         /* Decision nodes */
         .decision-node {
             position: absolute;
             padding: 0.8rem 1.2rem;
-            border-radius: 10px;
+            border-radius: 4px;
             text-align: center;
             opacity: 0;
             transform: scale(0.8);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(26, 26, 26, 0.06);
             font-size: 0.85rem;
         }
         
         .decision-node.visible { opacity: 1; transform: scale(1); }
-        .decision-node.active { transform: scale(1.08); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .decision-node.active { transform: scale(1.08); box-shadow: 0 4px 16px rgba(26, 26, 26, 0.10); }
         .decision-node.dimmed { opacity: 0.3; }
         .decision-node.path { border-width: 3px; }
         
         .question-node {
-            background: linear-gradient(135deg, #22d3ee, #06b6d4);
-            color: #1a1a2e;
+            background: none; color: #cc3311;
+            color: #1a1a1a;
             border: 2px solid transparent;
         }
         
         .answer-node {
-            background: rgba(255,255,255,0.05);
-            border: 2px solid rgba(255,255,255,0.2);
-            color: #e8e8e8;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 2px solid rgba(26, 26, 26, 0.12);
+            color: #1a1a1a;
         }
         
-        .answer-node.yes { border-color: #4ade80; }
+        .answer-node.yes { border-color: #16a34a; }
         .answer-node.no { border-color: #f59e0b; }
         
         .result-node {
-            background: linear-gradient(135deg, #4ade80, #22c55e);
-            color: #1a1a2e;
+            background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a;
+            color: #1a1a1a;
             border: 2px solid transparent;
             font-weight: 600;
         }
         
-        .result-node.pattern1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
-        .result-node.pattern2 { background: linear-gradient(135deg, #4ade80, #22c55e); }
-        .result-node.pattern3 { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+        .result-node.pattern1 { background: #ffffff; border-left: 3px solid #d97706; color: #1a1a1a; }
+        .result-node.pattern2 { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; }
+        .result-node.pattern3 { background: #ffffff; border-left: 3px solid #be185d; color: #1a1a1a; color: #1a1a1a; }
         
         /* Connectors */
         .connector {
             position: absolute;
             height: 2px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(26, 26, 26, 0.12);
             transform-origin: left center;
             opacity: 0;
             transition: all 0.5s ease;
         }
         
         .connector.visible { opacity: 1; }
-        .connector.path { background: #4ade80; height: 3px; }
+        .connector.path { background: #16a34a; height: 3px; }
         
         .summary {
             min-height: 100vh;
@@ -197,7 +198,7 @@
             text-align: center;
         }
         
-        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #22d3ee; }
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #cc3311; }
         
         .summary-grid {
             display: grid;
@@ -208,35 +209,35 @@
         }
         
         .summary-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.5rem;
             text-align: left;
         }
         
         .summary-card.orange { border-top: 4px solid #f59e0b; }
-        .summary-card.green { border-top: 4px solid #4ade80; }
-        .summary-card.pink { border-top: 4px solid #ec4899; }
+        .summary-card.green { border-top: 4px solid #16a34a; }
+        .summary-card.pink { border-top: 4px solid #be185d; }
         
         .summary-card h4 { margin-bottom: 0.5rem; font-size: 1rem; }
         .summary-card.orange h4 { color: #f59e0b; }
-        .summary-card.green h4 { color: #4ade80; }
-        .summary-card.pink h4 { color: #ec4899; }
-        .summary-card p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.5rem; }
-        .summary-card ul { color: #94a3b8; font-size: 0.8rem; padding-left: 1.2rem; }
+        .summary-card.green h4 { color: #16a34a; }
+        .summary-card.pink h4 { color: #be185d; }
+        .summary-card p { color: #666666; font-size: 0.85rem; margin-bottom: 0.5rem; }
+        .summary-card ul { color: #666666; font-size: 0.8rem; padding-left: 1.2rem; }
         
         .back-link {
-            color: #22d3ee;
+            color: #cc3311;
             text-decoration: none;
             font-size: 1.1rem;
             padding: 1rem 2rem;
-            border: 2px solid #22d3ee;
-            border-radius: 8px;
+            border: 2px solid #cc3311;
+            border-radius: 4px;
             transition: all 0.3s ease;
         }
         
-        .back-link:hover { background: #22d3ee; color: #1a1a2e; }
+        .back-link:hover { background: #cc3311; color: #1a1a1a; }
         
         @media (max-width: 900px) {
             .scrollytelling { flex-direction: column; }
@@ -326,7 +327,7 @@
                     If you need to call OpenAI, Salesforce, or other external APIs, you'll also need:
                 </p>
                 <p>
-                    → Add <span class="highlight" style="color: #ec4899;">Pattern 3: Manual Credentials</span> (via Databricks Secrets)
+                    → Add <span class="highlight" style="color: #be185d;">Pattern 3: Manual Credentials</span> (via Databricks Secrets)
                 </p>
             </div>
         </div>

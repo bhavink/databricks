@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Governed Orchestration Architecture - Databricks AI</title>
     
     <!-- Global Databricks Theme -->
@@ -23,7 +24,7 @@
             left: 0;
             right: 0;
             padding: 1rem 2rem;
-            background: rgba(17, 24, 28, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
             z-index: 100;
             border-bottom: 1px solid var(--border-subtle);
@@ -33,7 +34,7 @@
         }
         
         header h1 { font-size: 1.2rem; font-weight: 600; color: var(--dbx-primary-bright); }
-        header a { color: var(--accent-cyan); text-decoration: none; font-size: 0.9rem; }
+        header a { color: #0891b2; text-decoration: none; font-size: 0.9rem; }
         header a:hover { text-decoration: underline; }
         
         .hero {
@@ -50,13 +51,13 @@
         .hero h2 {
             font-size: 2.8rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--dbx-primary-bright), var(--dbx-warning), var(--dbx-success-bright));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background: none; color: var(--dbx-primary);
+            
+            -webkit-text-fill-color: inherit;
+            
         }
         
-        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 750px; margin-bottom: 1.5rem; }
+        .hero p { font-size: 1.2rem; color: #666666; max-width: 750px; margin-bottom: 1.5rem; }
         
         .hero .subtitle { font-size: 1rem; color: var(--text-dim); margin-bottom: 2rem; }
         
@@ -67,7 +68,7 @@
             padding: 0.5rem 1rem;
             background: rgba(206, 74, 44, 0.1);
             border: 1px solid rgba(206, 74, 44, 0.3);
-            border-radius: 6px;
+            border-radius: 4px;
             color: var(--dbx-primary-bright);
             text-decoration: none;
             font-size: 0.85rem;
@@ -99,16 +100,16 @@
         
         .arch-section .section-desc {
             text-align: center;
-            color: #94a3b8;
+            color: #666666;
             max-width: 700px;
             margin: 0 auto 3rem;
         }
         
         /* Architecture Diagram */
         .arch-diagram {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 2rem;
             margin-bottom: 3rem;
         }
@@ -126,40 +127,40 @@
         .arch-arrow {
             display: flex;
             justify-content: center;
-            color: #64748b;
+            color: #999999;
             font-size: 1.5rem;
             margin: 0.5rem 0;
         }
         
         .arch-box {
             padding: 1rem 1.5rem;
-            border-radius: 10px;
+            border-radius: 4px;
             text-align: center;
             min-width: 140px;
             transition: all 0.3s ease;
         }
         
-        .arch-box:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        .arch-box:hover { transform: translateY(-3px); box-shadow: 0 2px 8px rgba(26, 26, 26, 0.06); }
         
         .arch-box .icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
         .arch-box .title { font-weight: 600; font-size: 0.85rem; }
         .arch-box .desc { font-size: 0.7rem; opacity: 0.8; margin-top: 0.2rem; }
         
         /* Color variants */
-        .arch-box.red { background: linear-gradient(135deg, var(--dbx-primary), #a83820); color: white; }
-        .arch-box.cyan { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: var(--bg-primary); }
-        .arch-box.green { background: linear-gradient(135deg, var(--dbx-success-bright), var(--dbx-success)); color: var(--bg-primary); }
-        .arch-box.purple { background: linear-gradient(135deg, var(--dbx-purple), #7c3aed); color: white; }
-        .arch-box.orange { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
-        .arch-box.teal { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
-        .arch-box.pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
-        .arch-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-        .arch-box.slate { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: var(--text-primary); }
-        .arch-box.yellow { background: linear-gradient(135deg, var(--dbx-warning), #f59e0b); color: var(--bg-primary); }
+        .arch-box.red { background: #ffffff; border-left: 3px solid var(--dbx-primary); color: var(--text-primary); }
+        .arch-box.cyan { background: #ffffff; border-left: 3px solid #0891b2; color: var(--text-primary); }
+        .arch-box.green { background: #ffffff; border-left: 3px solid var(--dbx-success); color: var(--text-primary); }
+        .arch-box.purple { background: #ffffff; border-left: 3px solid var(--dbx-purple); color: var(--text-primary); }
+        .arch-box.orange { background: #ffffff; border-left: 3px solid #d97706; color: var(--text-primary); }
+        .arch-box.teal { background: #ffffff; border-left: 3px solid #0d9488; color: var(--text-primary); }
+        .arch-box.pink { background: #ffffff; border-left: 3px solid #be185d; color: var(--text-primary); }
+        .arch-box.blue { background: #ffffff; border-left: 3px solid #2563eb; color: var(--text-primary); }
+        .arch-box.slate { background: var(--bg-secondary); border: 1px solid var(--border-primary); color: var(--text-primary); }
+        .arch-box.yellow { background: #ffffff; border-left: 3px solid var(--dbx-warning); color: var(--text-primary); }
         
         .arch-label {
             text-align: center;
-            color: #64748b;
+            color: #999999;
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -167,7 +168,7 @@
         }
         
         .arch-divider {
-            border-top: 1px dashed rgba(255,255,255,0.1);
+            border-top: 1px dashed rgba(26, 26, 26, 0.08);
             margin: 2rem 0;
         }
         
@@ -180,9 +181,9 @@
         }
         
         .nav-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.5rem;
             text-decoration: none;
             color: inherit;
@@ -192,8 +193,8 @@
         }
         
         .nav-card:hover {
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(255,255,255,0.2);
+            background: rgba(26, 26, 26, 0.04);
+            border-color: rgba(26, 26, 26, 0.12);
             transform: translateY(-4px);
         }
         
@@ -205,12 +206,12 @@
         .nav-card h4 {
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
-            color: #fff;
+            color: #1a1a1a;
         }
         
         .nav-card p {
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: #666666;
             margin-bottom: 1rem;
         }
         
@@ -223,16 +224,16 @@
         .nav-card .topic {
             font-size: 0.7rem;
             padding: 0.2rem 0.5rem;
-            background: rgba(255,255,255,0.1);
+            background: rgba(26, 26, 26, 0.08);
             border-radius: 4px;
-            color: #94a3b8;
+            color: #666666;
         }
         
         .nav-card.red { border-left: 4px solid var(--dbx-primary-bright); }
         .nav-card.red h4 { color: var(--dbx-primary-bright); }
         
         .nav-card.cyan { border-left: 4px solid var(--accent-cyan); }
-        .nav-card.cyan h4 { color: var(--accent-cyan); }
+        .nav-card.cyan h4 { color: #0891b2; }
         
         .nav-card.green { border-left: 4px solid var(--dbx-success-bright); }
         .nav-card.green h4 { color: var(--dbx-success-bright); }
@@ -241,9 +242,9 @@
         .nav-card.purple h4 { color: var(--dbx-purple); }
         
         .nav-card.orange { border-left: 4px solid var(--accent-orange); }
-        .nav-card.orange h4 { color: var(--accent-orange); }
+        .nav-card.orange h4 { color: #d97706; }
         .nav-card.pink { border-left: 4px solid var(--accent-pink); }
-        .nav-card.pink h4 { color: var(--accent-pink); }
+        .nav-card.pink h4 { color: #be185d; }
         
         .nav-card .coming-soon {
             position: absolute;
@@ -251,16 +252,16 @@
             right: 1rem;
             font-size: 0.65rem;
             padding: 0.2rem 0.5rem;
-            background: rgba(251, 191, 36, 0.2);
-            border: 1px solid rgba(251, 191, 36, 0.4);
+            background: rgba(217, 119, 6, 0.08);
+            border: 1px solid rgba(217, 119, 6, 0.2);
             border-radius: 4px;
-            color: #fbbf24;
+            color: #d97706;
         }
         
         /* Two Auth Scenarios Section */
         .scenarios-section {
             padding: 4rem 2rem;
-            background: rgba(0,0,0,0.2);
+            background: var(--bg-secondary, #f8f8f6);
         }
         
         .scenarios-container {
@@ -286,9 +287,9 @@
         }
         
         .scenario-box {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.5rem;
         }
         
@@ -306,16 +307,16 @@
         .scenario-box.dbxapp { border-top: 3px solid var(--dbx-primary-bright); }
         .scenario-box.dbxapp h4 { color: var(--dbx-primary-bright); }
         
-        .scenario-box p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem; }
+        .scenario-box p { color: #666666; font-size: 0.9rem; margin-bottom: 1rem; }
         
-        .scenario-box ul { padding-left: 1.2rem; color: #64748b; font-size: 0.85rem; }
+        .scenario-box ul { padding-left: 1.2rem; color: #999999; font-size: 0.85rem; }
         .scenario-box li { margin-bottom: 0.3rem; }
         
         /* Footer */
         footer {
             padding: 3rem 2rem;
             text-align: center;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(26, 26, 26, 0.08);
         }
         
         footer .links {
@@ -331,7 +332,7 @@
             font-size: 0.95rem;
             padding: 0.7rem 1.3rem;
             border: 2px solid var(--dbx-primary-bright);
-            border-radius: 8px;
+            border-radius: 4px;
             transition: all 0.3s ease;
         }
         
@@ -529,8 +530,8 @@
                     </ul>
                 </div>
                 
-                <div class="scenario-box dbxapp" style="border-top: 3px solid #22d3ee;">
-                    <h4 style="color: #22d3ee;">Scenario C: Databricks App → Resources</h4>
+                <div class="scenario-box dbxapp" style="border-top: 3px solid #0891b2;">
+                    <h4 style="color: #0891b2;">Scenario C: Databricks App → Resources</h4>
                     <p>Your web app runs ON Databricks (Apps platform) and needs to access resources.</p>
                     <ul>
                         <li>Native OAuth (automatic)</li>
@@ -538,49 +539,49 @@
                         <li>Databricks SQL access</li>
                         <li>Streamlit, Dash, Gradio, React</li>
                     </ul>
-                    <a href="https://docs.databricks.com/aws/en/dev-tools/databricks-apps" target="_blank" style="font-size: 0.75rem; color: #22d3ee; text-decoration: none; margin-top: 0.5rem; display: inline-block;">📚 Databricks Apps Docs →</a>
+                    <a href="https://docs.databricks.com/aws/en/dev-tools/databricks-apps" target="_blank" style="font-size: 0.75rem; color: #0891b2; text-decoration: none; margin-top: 0.5rem; display: inline-block;">📚 Databricks Apps Docs →</a>
                 </div>
             </div>
             
             <!-- Lakebase Highlight -->
-            <div style="margin-top: 2rem; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05)); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 1.5rem;">
-                <h4 style="color: #fbbf24; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="margin-top: 2rem; background: linear-gradient(135deg, rgba(217, 119, 6, 0.06), rgba(217, 119, 6, 0.03)); border: 1px solid rgba(217, 119, 6, 0.2); border-radius: 4px; padding: 1.5rem;">
+                <h4 style="color: #d97706; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
                     <span>🗃️</span> Lakebase: Managed Postgres for AI Applications
                 </h4>
-                <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem;">
+                <p style="color: #666666; font-size: 0.9rem; margin-bottom: 1rem;">
                     <strong>Lakebase</strong> is a fully-managed Postgres OLTP database. Register in <strong>Unity Catalog</strong> for 
                     unified governance, permissions, lineage, and cross-source analytics alongside your lakehouse data.
                 </p>
                 
                 <!-- Use Cases -->
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
-                    <div style="flex: 1; min-width: 180px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.8rem;">
-                        <div style="font-weight: 600; font-size: 0.8rem; color: #a855f7; margin-bottom: 0.4rem;">🧠 Agent Memory</div>
-                        <div style="font-size: 0.75rem; color: #94a3b8;">Short-term (session) & long-term (cross-session) memory with checkpointing</div>
+                    <div style="flex: 1; min-width: 180px; background: var(--bg-secondary, #f8f8f6); border-radius: 4px; padding: 0.8rem;">
+                        <div style="font-weight: 600; font-size: 0.8rem; color: #7c3aed; margin-bottom: 0.4rem;">🧠 Agent Memory</div>
+                        <div style="font-size: 0.75rem; color: #666666;">Short-term (session) & long-term (cross-session) memory with checkpointing</div>
                     </div>
-                    <div style="flex: 1; min-width: 180px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.8rem;">
-                        <div style="font-weight: 600; font-size: 0.8rem; color: #ec4899; margin-bottom: 0.4rem;">⚡ Online Feature Store</div>
-                        <div style="font-size: 0.75rem; color: #94a3b8;">Low-latency feature serving for real-time ML models</div>
+                    <div style="flex: 1; min-width: 180px; background: var(--bg-secondary, #f8f8f6); border-radius: 4px; padding: 0.8rem;">
+                        <div style="font-weight: 600; font-size: 0.8rem; color: #be185d; margin-bottom: 0.4rem;">⚡ Online Feature Store</div>
+                        <div style="font-size: 0.75rem; color: #666666;">Low-latency feature serving for real-time ML models</div>
                     </div>
-                    <div style="flex: 1; min-width: 180px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.8rem;">
-                        <div style="font-weight: 600; font-size: 0.8rem; color: #14b8a6; margin-bottom: 0.4rem;">💾 OLTP State</div>
-                        <div style="font-size: 0.75rem; color: #94a3b8;">Fast transactional data access for apps and agents</div>
+                    <div style="flex: 1; min-width: 180px; background: var(--bg-secondary, #f8f8f6); border-radius: 4px; padding: 0.8rem;">
+                        <div style="font-weight: 600; font-size: 0.8rem; color: #cc3311; margin-bottom: 0.4rem;">💾 OLTP State</div>
+                        <div style="font-size: 0.75rem; color: #666666;">Fast transactional data access for apps and agents</div>
                     </div>
                 </div>
                 
                 <!-- Auth Options -->
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.8rem;">
-                        <div style="font-weight: 600; font-size: 0.8rem; color: #4ade80; margin-bottom: 0.4rem;">OAuth (U2M / M2M)</div>
-                        <ul style="font-size: 0.75rem; color: #94a3b8; padding-left: 1rem; margin: 0;">
+                    <div style="flex: 1; min-width: 200px; background: var(--bg-secondary, #f8f8f6); border-radius: 4px; padding: 0.8rem;">
+                        <div style="font-weight: 600; font-size: 0.8rem; color: #16a34a; margin-bottom: 0.4rem;">OAuth (U2M / M2M)</div>
+                        <ul style="font-size: 0.75rem; color: #666666; padding-left: 1rem; margin: 0;">
                             <li>1-hour tokens as DB password</li>
                             <li>User, Group, or Service Principal</li>
                             <li>Requires SSL connection</li>
                         </ul>
                     </div>
-                    <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.8rem;">
-                        <div style="font-weight: 600; font-size: 0.8rem; color: #22d3ee; margin-bottom: 0.4rem;">Native Postgres Password</div>
-                        <ul style="font-size: 0.75rem; color: #94a3b8; padding-left: 1rem; margin: 0;">
+                    <div style="flex: 1; min-width: 200px; background: var(--bg-secondary, #f8f8f6); border-radius: 4px; padding: 0.8rem;">
+                        <div style="font-weight: 600; font-size: 0.8rem; color: #0891b2; margin-bottom: 0.4rem;">Native Postgres Password</div>
+                        <ul style="font-size: 0.75rem; color: #666666; padding-left: 1rem; margin: 0;">
                             <li>For apps that can't rotate tokens</li>
                             <li>Standard CREATE ROLE</li>
                             <li>Enable via instance settings</li>
@@ -589,10 +590,10 @@
                 </div>
                 
                 <div style="margin-top: 1rem; display: flex; gap: 0.6rem; flex-wrap: wrap;">
-                    <a href="https://docs.databricks.com/aws/en/oltp/projects/register-uc" target="_blank" style="font-size: 0.75rem; color: #fbbf24; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">🛡️ UC Registration</a>
-                    <a href="https://docs.databricks.com/aws/en/generative-ai/agent-framework/stateful-agents" target="_blank" style="font-size: 0.75rem; color: #fbbf24; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">🧠 Agent Memory</a>
-                    <a href="https://docs.databricks.com/aws/en/machine-learning/feature-store/online-feature-store" target="_blank" style="font-size: 0.75rem; color: #fbbf24; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">⚡ Online Features</a>
-                    <a href="https://docs.databricks.com/aws/en/oltp/instances/authentication" target="_blank" style="font-size: 0.75rem; color: #fbbf24; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px;">🔐 Auth Docs</a>
+                    <a href="https://docs.databricks.com/aws/en/oltp/projects/register-uc" target="_blank" style="font-size: 0.75rem; color: #d97706; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(217, 119, 6, 0.2); border-radius: 4px;">🛡️ UC Registration</a>
+                    <a href="https://docs.databricks.com/aws/en/generative-ai/agent-framework/stateful-agents" target="_blank" style="font-size: 0.75rem; color: #d97706; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(217, 119, 6, 0.2); border-radius: 4px;">🧠 Agent Memory</a>
+                    <a href="https://docs.databricks.com/aws/en/machine-learning/feature-store/online-feature-store" target="_blank" style="font-size: 0.75rem; color: #d97706; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(217, 119, 6, 0.2); border-radius: 4px;">⚡ Online Features</a>
+                    <a href="https://docs.databricks.com/aws/en/oltp/instances/authentication" target="_blank" style="font-size: 0.75rem; color: #d97706; text-decoration: none; padding: 0.3rem 0.6rem; border: 1px solid rgba(217, 119, 6, 0.2); border-radius: 4px;">🔐 Auth Docs</a>
                 </div>
             </div>
         </div>

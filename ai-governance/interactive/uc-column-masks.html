@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Unity Catalog Column Masks</title>
     
     <!-- Global Databricks Theme -->
@@ -19,13 +20,13 @@
             left: 0;
             right: 0;
             padding: 1rem 2rem;
-            background: rgba(17, 24, 28, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
             z-index: 100;
             border-bottom: 1px solid var(--border-subtle);
         }
         
-        header h1 { font-size: 1.2rem; font-weight: 600; color: var(--accent-pink); }
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #be185d; }
         
         .progress-bar {
             position: fixed;
@@ -51,30 +52,30 @@
         .hero h2 {
             font-size: 3rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #ec4899, #f472b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background: none; color: #7c3aed;
+            
+            -webkit-text-fill-color: inherit;
+            
         }
         
-        .hero p { font-size: 1.3rem; color: #94a3b8; max-width: 600px; margin-bottom: 1.5rem; }
+        .hero p { font-size: 1.3rem; color: #666666; max-width: 600px; margin-bottom: 1.5rem; }
         
         .hero .doc-link {
             display: inline-block;
             padding: 0.5rem 1rem;
-            background: rgba(236, 72, 153, 0.1);
-            border: 1px solid rgba(236, 72, 153, 0.3);
-            border-radius: 6px;
-            color: #ec4899;
+            background: rgba(124, 58, 237, 0.06);
+            border: 1px solid rgba(124, 58, 237, 0.15);
+            border-radius: 4px;
+            color: #7c3aed;
             text-decoration: none;
             font-size: 0.9rem;
             margin-bottom: 1.5rem;
             transition: all 0.3s ease;
         }
         
-        .hero .doc-link:hover { background: rgba(236, 72, 153, 0.2); border-color: #ec4899; }
+        .hero .doc-link:hover { background: rgba(124, 58, 237, 0.08); border-color: #7c3aed; }
         
-        .scroll-hint { animation: bounce 2s infinite; color: #ec4899; }
+        .scroll-hint { animation: bounce 2s infinite; color: #7c3aed; }
         
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
@@ -114,22 +115,22 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: #ec4899;
-            color: #1a1a2e;
+            background: #7c3aed;
+            color: #1a1a1a;
             font-weight: bold;
             font-size: 1.2rem;
             margin-bottom: 1.5rem;
         }
         
-        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #fff; }
-        .step p { color: #94a3b8; font-size: 1.15rem; margin-bottom: 1rem; }
-        .step .highlight { color: #ec4899; font-weight: 600; }
+        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #1a1a1a; }
+        .step p { color: #666666; font-size: 1.15rem; margin-bottom: 1rem; }
+        .step .highlight { color: #7c3aed; font-weight: 600; }
         
         .step code {
-            background: rgba(236, 72, 153, 0.15);
+            background: rgba(124, 58, 237, 0.06);
             padding: 0.2rem 0.6rem;
             border-radius: 4px;
-            color: #ec4899;
+            color: #7c3aed;
             font-family: 'SF Mono', Monaco, Consolas, monospace;
             font-size: 0.95rem;
         }
@@ -139,20 +140,20 @@
             max-width: 520px;
             height: 480px;
             position: relative;
-            background: rgba(255,255,255,0.02);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: var(--bg-secondary, #f8f8f6);
+            border-radius: 4px;
+            border: 1px solid var(--bg-secondary, #f8f8f6);
         }
         
         .diagram-box {
             position: absolute;
             padding: 1rem 1.5rem;
-            border-radius: 12px;
+            border-radius: 4px;
             text-align: center;
             opacity: 0;
             transform: scale(0.8);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(26, 26, 26, 0.06);
         }
         
         .diagram-box.visible { opacity: 1; transform: scale(1); }
@@ -161,10 +162,10 @@
         .box-label { font-weight: 600; font-size: 0.95rem; }
         .box-sublabel { font-size: 0.75rem; opacity: 0.8; margin-top: 0.2rem; }
         
-        .analyst-box { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: white; }
-        .admin-box { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
-        .mask-box { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
-        .table-box { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
+        .analyst-box { background: #ffffff; border-left: 3px solid #2563eb; color: #1a1a1a; color: #1a1a1a; }
+        .admin-box { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; color: #1a1a1a; }
+        .mask-box { background: #ffffff; border-left: 3px solid #7c3aed; color: #1a1a1a; }
+        .table-box { background: #ffffff; border-left: 3px solid #7c3aed; color: #1a1a1a; color: #1a1a1a; }
         
         /* Column visualization */
         .column-display {
@@ -181,9 +182,9 @@
         .column-header {
             font-weight: 600;
             font-size: 0.8rem;
-            color: #ec4899;
+            color: #7c3aed;
             padding-bottom: 4px;
-            border-bottom: 2px solid #ec4899;
+            border-bottom: 2px solid #7c3aed;
             margin-bottom: 4px;
         }
         
@@ -193,33 +194,33 @@
             justify-content: space-between;
             gap: 12px;
             padding: 8px 14px;
-            border-radius: 8px;
+            border-radius: 4px;
             font-size: 0.8rem;
             font-family: 'SF Mono', Monaco, Consolas, monospace;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
             transition: all 0.4s ease;
         }
         
-        .column-value .name { color: #94a3b8; }
-        .column-value .ssn { color: #fff; font-weight: 500; }
-        .column-value .ssn.masked { color: #ec4899; }
+        .column-value .name { color: #666666; }
+        .column-value .ssn { color: #1a1a1a; font-weight: 500; }
+        .column-value .ssn.masked { color: #7c3aed; }
         
         .arrow {
             position: absolute;
             opacity: 0;
             transition: all 0.5s ease;
             font-size: 1.5rem;
-            color: #ec4899;
+            color: #7c3aed;
         }
         
         .arrow.visible { opacity: 1; }
         
         .comparison-box {
             position: absolute;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1rem;
             opacity: 0;
             transition: all 0.5s ease;
@@ -229,7 +230,7 @@
         
         .comparison-title {
             font-size: 0.75rem;
-            color: #94a3b8;
+            color: #666666;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -250,7 +251,7 @@
             text-align: center;
         }
         
-        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #ec4899; }
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #7c3aed; }
         
         .summary-grid {
             display: grid;
@@ -261,27 +262,27 @@
         }
         
         .summary-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.5rem;
             text-align: left;
         }
         
-        .summary-card h4 { color: #ec4899; margin-bottom: 0.5rem; font-size: 1.1rem; }
-        .summary-card p { color: #94a3b8; font-size: 0.95rem; }
+        .summary-card h4 { color: #7c3aed; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .summary-card p { color: #666666; font-size: 0.95rem; }
         
         .back-link {
-            color: #ec4899;
+            color: #7c3aed;
             text-decoration: none;
             font-size: 1.1rem;
             padding: 1rem 2rem;
-            border: 2px solid #ec4899;
-            border-radius: 8px;
+            border: 2px solid #7c3aed;
+            border-radius: 4px;
             transition: all 0.3s ease;
         }
         
-        .back-link:hover { background: #ec4899; color: #1a1a2e; }
+        .back-link:hover { background: #7c3aed; color: #1a1a1a; }
         
         @media (max-width: 900px) {
             .scrollytelling { flex-direction: column; }
@@ -428,12 +429,12 @@
                 <!-- Comparison boxes -->
                 <div class="comparison-box" id="compare-analyst" style="left: 30px; bottom: 30px;">
                     <div class="comparison-title">Sarah sees:</div>
-                    <div class="comparison-value" style="color: #ec4899;">***-**-6789</div>
+                    <div class="comparison-value" style="color: #7c3aed;">***-**-6789</div>
                 </div>
                 
                 <div class="comparison-box" id="compare-admin" style="right: 30px; bottom: 30px;">
                     <div class="comparison-title">Dave sees:</div>
-                    <div class="comparison-value" style="color: #4ade80;">123-45-6789</div>
+                    <div class="comparison-value" style="color: #16a34a;">123-45-6789</div>
                 </div>
                 
                 <div class="arrow" id="arrow-1" style="left: 160px; top: 55px;">→</div>

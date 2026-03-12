@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>UC ABAC with Governed Tags</title>
     
     <!-- Global Databricks Theme -->
@@ -19,7 +20,7 @@
             left: 0;
             right: 0;
             padding: 1rem 2rem;
-            background: rgba(17, 24, 28, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
             z-index: 100;
             border-bottom: 1px solid var(--border-subtle);
@@ -32,7 +33,7 @@
             top: 60px;
             left: 0;
             height: 3px;
-            background: linear-gradient(90deg, var(--dbx-purple), var(--accent-blue));
+            background: var(--dbx-primary);
             width: 0%;
             z-index: 101;
         }
@@ -51,13 +52,12 @@
         .hero h2 {
             font-size: 3rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #a855f7, #6366f1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+                        
+            -webkit-text-fill-color: inherit;
+            
         }
         
-        .hero p { font-size: 1.3rem; color: #94a3b8; max-width: 650px; margin-bottom: 1.5rem; }
+        .hero p { font-size: 1.3rem; color: #666666; max-width: 650px; margin-bottom: 1.5rem; }
         
         .hero .doc-links {
             display: flex;
@@ -67,21 +67,21 @@
         
         .hero .doc-link {
             padding: 0.5rem 1rem;
-            background: rgba(168, 85, 247, 0.1);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            border-radius: 6px;
-            color: #a855f7;
+            background: rgba(37, 99, 235, 0.06);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            border-radius: 4px;
+            color: #2563eb;
             text-decoration: none;
             font-size: 0.9rem;
             transition: all 0.3s ease;
         }
         
         .hero .doc-link:hover {
-            background: rgba(168, 85, 247, 0.2);
-            border-color: #a855f7;
+            background: rgba(37, 99, 235, 0.08);
+            border-color: #2563eb;
         }
         
-        .scroll-hint { animation: bounce 2s infinite; color: #a855f7; }
+        .scroll-hint { animation: bounce 2s infinite; color: #2563eb; }
         
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
@@ -121,24 +121,24 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: #a855f7;
-            color: #1a1a2e;
+            background: #2563eb;
+            color: #1a1a1a;
             font-weight: bold;
             font-size: 1.2rem;
             margin-bottom: 1.5rem;
         }
         
-        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #fff; }
-        .step p { color: #94a3b8; font-size: 1.1rem; margin-bottom: 1rem; }
-        .step .highlight { color: #a855f7; font-weight: 600; }
-        .step .highlight-blue { color: #6366f1; font-weight: 600; }
-        .step .highlight-green { color: #4ade80; font-weight: 600; }
+        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #1a1a1a; }
+        .step p { color: #666666; font-size: 1.1rem; margin-bottom: 1rem; }
+        .step .highlight { color: #2563eb; font-weight: 600; }
+        .step .highlight-blue { color: #1d4ed8; font-weight: 600; }
+        .step .highlight-green { color: #16a34a; font-weight: 600; }
         
         .step code {
-            background: rgba(168, 85, 247, 0.15);
+            background: rgba(37, 99, 235, 0.06);
             padding: 0.2rem 0.6rem;
             border-radius: 4px;
-            color: #a855f7;
+            color: #2563eb;
             font-family: 'SF Mono', Monaco, Consolas, monospace;
             font-size: 0.9rem;
         }
@@ -148,42 +148,42 @@
             max-width: 500px;
             height: 520px;
             position: relative;
-            background: rgba(255,255,255,0.02);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: var(--bg-secondary, #f8f8f6);
+            border-radius: 4px;
+            border: 1px solid var(--bg-secondary, #f8f8f6);
         }
         
         /* Component boxes */
         .component-box {
             position: absolute;
             padding: 1rem 1.2rem;
-            border-radius: 12px;
+            border-radius: 4px;
             text-align: center;
             opacity: 0;
             transform: scale(0.8);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(26, 26, 26, 0.06);
         }
         
         .component-box.visible { opacity: 1; transform: scale(1); }
-        .component-box.active { transform: scale(1.05); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .component-box.active { transform: scale(1.05); box-shadow: 0 4px 16px rgba(26, 26, 26, 0.10); }
         .component-box.dimmed { opacity: 0.35; }
         
         .box-icon { font-size: 1.6rem; margin-bottom: 0.3rem; }
         .box-title { font-weight: 600; font-size: 0.9rem; }
         .box-desc { font-size: 0.7rem; opacity: 0.8; margin-top: 0.2rem; }
         
-        .tag-box { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
-        .policy-box { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
-        .table-box { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
-        .user-box { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
-        .result-box { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+        .tag-box { background: #ffffff; border-left: 3px solid #2563eb; color: #1a1a1a; }
+        .policy-box { background: #ffffff; border-left: 3px solid #2563eb; color: #1a1a1a; }
+        .table-box { background: #ffffff; border-left: 3px solid #2563eb; color: #1a1a1a; color: #1a1a1a; }
+        .user-box { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; color: #1a1a1a; }
+        .result-box { background: #ffffff; border-left: 3px solid #0d9488; color: #1a1a1a; color: #1a1a1a; }
         
         /* Tag badges */
         .tag-badge {
             display: inline-block;
             padding: 0.3rem 0.7rem;
-            border-radius: 20px;
+            border-radius: 4px;
             font-size: 0.7rem;
             font-weight: 600;
             margin: 0.2rem;
@@ -193,9 +193,9 @@
         
         .tag-badge.visible { opacity: 1; }
         
-        .tag-sensitivity { background: rgba(236, 72, 153, 0.2); border: 1px solid #ec4899; color: #ec4899; }
-        .tag-region { background: rgba(34, 211, 238, 0.2); border: 1px solid #22d3ee; color: #22d3ee; }
-        .tag-domain { background: rgba(251, 146, 60, 0.2); border: 1px solid #fb923c; color: #fb923c; }
+        .tag-sensitivity { background: rgba(236, 72, 153, 0.2); border: 1px solid #be185d; color: #be185d; }
+        .tag-region { background: rgba(34, 211, 238, 0.2); border: 1px solid #0891b2; color: #0891b2; }
+        .tag-domain { background: rgba(251, 146, 60, 0.2); border: 1px solid #d97706; color: #d97706; }
         
         /* Tag container */
         .tags-container {
@@ -216,7 +216,7 @@
             font-size: 1.5rem;
             opacity: 0;
             transition: all 0.5s ease;
-            color: #a855f7;
+            color: #2563eb;
         }
         
         .connector.visible { opacity: 1; }
@@ -224,13 +224,13 @@
         /* Policy evaluation box */
         .eval-box {
             position: absolute;
-            background: rgba(168, 85, 247, 0.1);
-            border: 2px solid rgba(168, 85, 247, 0.3);
-            border-radius: 10px;
+            background: rgba(37, 99, 235, 0.06);
+            border: 2px solid rgba(37, 99, 235, 0.15);
+            border-radius: 4px;
             padding: 0.8rem 1rem;
             font-size: 0.75rem;
             font-family: 'SF Mono', Monaco, Consolas, monospace;
-            color: #c4b5fd;
+            color: #2563eb;
             opacity: 0;
             transition: all 0.5s ease;
             white-space: nowrap;
@@ -248,7 +248,7 @@
             text-align: center;
         }
         
-        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #a855f7; }
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #2563eb; }
         
         .summary-grid {
             display: grid;
@@ -259,21 +259,21 @@
         }
         
         .summary-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.5rem;
             text-align: left;
         }
         
-        .summary-card.purple { border-left: 4px solid #a855f7; }
-        .summary-card.blue { border-left: 4px solid #6366f1; }
+        .summary-card.purple { border-left: 4px solid #2563eb; }
+        .summary-card.blue { border-left: 4px solid #1d4ed8; }
         
         .summary-card h4 { margin-bottom: 0.5rem; font-size: 1.1rem; }
-        .summary-card.purple h4 { color: #a855f7; }
-        .summary-card.blue h4 { color: #6366f1; }
-        .summary-card p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem; }
-        .summary-card ul { color: #94a3b8; font-size: 0.85rem; padding-left: 1.2rem; }
+        .summary-card.purple h4 { color: #2563eb; }
+        .summary-card.blue h4 { color: #1d4ed8; }
+        .summary-card p { color: #666666; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .summary-card ul { color: #666666; font-size: 0.85rem; padding-left: 1.2rem; }
         
         .doc-links-footer {
             display: flex;
@@ -283,31 +283,31 @@
         
         .doc-link-footer {
             padding: 0.8rem 1.5rem;
-            background: rgba(168, 85, 247, 0.1);
-            border: 2px solid rgba(168, 85, 247, 0.3);
-            border-radius: 8px;
-            color: #a855f7;
+            background: rgba(37, 99, 235, 0.06);
+            border: 2px solid rgba(37, 99, 235, 0.15);
+            border-radius: 4px;
+            color: #2563eb;
             text-decoration: none;
             font-size: 0.95rem;
             transition: all 0.3s ease;
         }
         
         .doc-link-footer:hover {
-            background: #a855f7;
-            color: #1a1a2e;
+            background: #2563eb;
+            color: #1a1a1a;
         }
         
         .back-link {
-            color: #a855f7;
+            color: #2563eb;
             text-decoration: none;
             font-size: 1rem;
             padding: 0.8rem 1.5rem;
-            border: 2px solid #a855f7;
-            border-radius: 8px;
+            border: 2px solid #2563eb;
+            border-radius: 4px;
             transition: all 0.3s ease;
         }
         
-        .back-link:hover { background: #a855f7; color: #1a1a2e; }
+        .back-link:hover { background: #2563eb; color: #1a1a1a; }
         
         @media (max-width: 900px) {
             .scrollytelling { flex-direction: column; }

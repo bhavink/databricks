@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>AI Gateway Governance - Databricks</title>
     
     <!-- Global Databricks Theme -->
@@ -21,24 +22,24 @@
             left: 0;
             right: 0;
             padding: 1rem 2rem;
-            background: rgba(17, 24, 28, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
             z-index: 100;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(249, 115, 22, 0.3);
+            border-bottom: 1px solid var(--border-primary);
         }
         
         header h1 {
             font-size: 1.1rem;
-            color: var(--accent-orange);
+            color: #d97706;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
         
-        header a { color: var(--accent-orange); text-decoration: none; font-size: 0.9rem; }
+        header a { color: #d97706; text-decoration: none; font-size: 0.9rem; }
         header a:hover { text-decoration: underline; }
         
         /* Hero Section */
@@ -57,14 +58,14 @@
         .hero h2 {
             font-size: 2.8rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--dbx-primary-bright), var(--dbx-warning), var(--dbx-success-bright));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background: none; color: var(--dbx-primary);
+            
+            -webkit-text-fill-color: inherit;
+            
         }
         
-        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 700px; margin-bottom: 1rem; }
-        .hero .subtitle { font-size: 1rem; color: #64748b; margin-bottom: 2rem; }
+        .hero p { font-size: 1.2rem; color: #666666; max-width: 700px; margin-bottom: 1rem; }
+        .hero .subtitle { font-size: 1rem; color: #999999; margin-bottom: 2rem; }
         
         .doc-links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; }
         
@@ -73,16 +74,16 @@
             padding: 0.5rem 1rem;
             background: rgba(249, 115, 22, 0.1);
             border: 1px solid rgba(249, 115, 22, 0.3);
-            border-radius: 6px;
-            color: #f97316;
+            border-radius: 4px;
+            color: #d97706;
             text-decoration: none;
             font-size: 0.85rem;
             transition: all 0.3s ease;
         }
         
-        .doc-link:hover { background: rgba(249, 115, 22, 0.2); border-color: #f97316; }
+        .doc-link:hover { background: rgba(249, 115, 22, 0.2); border-color: #d97706; }
         
-        .scroll-hint { animation: bounce 2s infinite; color: #f97316; }
+        .scroll-hint { animation: bounce 2s infinite; color: #d97706; }
         
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
@@ -115,17 +116,17 @@
         .scroll-step h3 {
             font-size: 1.6rem;
             margin-bottom: 1rem;
-            color: #f97316;
+            color: #d97706;
         }
         
         .scroll-step p { color: #cbd5e1; margin-bottom: 1rem; font-size: 1.05rem; }
         
-        .scroll-step ul { padding-left: 1.5rem; color: #94a3b8; }
+        .scroll-step ul { padding-left: 1.5rem; color: #666666; }
         .scroll-step li { margin-bottom: 0.5rem; }
         
         .scroll-step .highlight {
             background: rgba(249, 115, 22, 0.15);
-            border-left: 3px solid #f97316;
+            border-left: 3px solid #d97706;
             padding: 1rem;
             border-radius: 0 8px 8px 0;
             margin: 1rem 0;
@@ -135,9 +136,9 @@
             background: rgba(34, 211, 238, 0.1);
             border: 1px solid rgba(34, 211, 238, 0.3);
             padding: 0.8rem;
-            border-radius: 6px;
+            border-radius: 4px;
             font-size: 0.9rem;
-            color: #22d3ee;
+            color: #0891b2;
             margin-top: 1rem;
         }
         
@@ -147,7 +148,7 @@
             border-radius: 4px;
             font-family: 'SF Mono', Monaco, monospace;
             font-size: 0.9rem;
-            color: #fbbf24;
+            color: #d97706;
         }
         
         /* Visual Area */
@@ -166,7 +167,7 @@
             width: 100%;
             height: 80%;
             background: rgba(0,0,0,0.3);
-            border-radius: 16px;
+            border-radius: 4px;
             border: 1px solid rgba(249, 115, 22, 0.2);
             position: relative;
             overflow: hidden;
@@ -196,7 +197,7 @@
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: #64748b;
+            color: #999999;
             margin-bottom: 0.5rem;
         }
         
@@ -209,7 +210,7 @@
         
         .arch-box {
             padding: 0.8rem 1.2rem;
-            border-radius: 10px;
+            border-radius: 4px;
             text-align: center;
             min-width: 100px;
             transition: all 0.4s ease;
@@ -219,14 +220,14 @@
         .arch-box .title { font-weight: 600; font-size: 0.8rem; }
         .arch-box .desc { font-size: 0.65rem; opacity: 0.8; }
         
-        .arch-box.orange { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
-        .arch-box.cyan { background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #1a1a2e; }
-        .arch-box.green { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
-        .arch-box.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
-        .arch-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-        .arch-box.pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
-        .arch-box.slate { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
-        .arch-box.yellow { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1a1a2e; }
+        .arch-box.orange { background: #ffffff; border-left: 3px solid #d97706; color: var(--text-primary); }
+        .arch-box.cyan { background: #ffffff; border-left: 3px solid #0891b2; color: #1a1a1a; }
+        .arch-box.green { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; }
+        .arch-box.purple { background: #ffffff; border-left: 3px solid #7c3aed; color: #1a1a1a; }
+        .arch-box.blue { background: #ffffff; border-left: 3px solid #2563eb; color: var(--text-primary); }
+        .arch-box.pink { background: #ffffff; border-left: 3px solid #be185d; color: var(--text-primary); }
+        .arch-box.slate { background: rgba(26, 26, 26, 0.08); border: 1px solid rgba(26, 26, 26, 0.12); }
+        .arch-box.yellow { background: #ffffff; border-left: 3px solid #d97706; color: #1a1a1a; }
         
         .arch-box.highlight-active {
             box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
@@ -237,13 +238,13 @@
         
         .arch-arrow {
             text-align: center;
-            color: #64748b;
+            color: #999999;
             font-size: 1.2rem;
             margin: 0.3rem 0;
         }
         
         .arch-divider {
-            border-top: 1px dashed rgba(255,255,255,0.1);
+            border-top: 1px dashed rgba(26, 26, 26, 0.08);
             margin: 0.8rem 0;
         }
         
@@ -259,9 +260,9 @@
         }
         
         .feature-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1rem;
             display: flex;
             flex-direction: column;
@@ -273,15 +274,15 @@
         
         .feature-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
         .feature-card .title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
-        .feature-card .desc { font-size: 0.7rem; color: #94a3b8; }
+        .feature-card .desc { font-size: 0.7rem; color: #666666; }
         
         .feature-card.highlight-active {
-            border-color: #f97316;
+            border-color: #d97706;
             background: rgba(249, 115, 22, 0.1);
             transform: scale(1.05);
         }
         
-        .feature-card.paid { border-color: #fbbf24; }
+        .feature-card.paid { border-color: #d97706; }
         .feature-card.paid::after {
             content: '💰';
             position: absolute;
@@ -301,16 +302,16 @@
         }
         
         .rate-level {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.2rem;
             margin-bottom: 1rem;
             transition: all 0.4s ease;
         }
         
         .rate-level.active {
-            border-color: #f97316;
+            border-color: #d97706;
             background: rgba(249, 115, 22, 0.1);
         }
         
@@ -323,11 +324,11 @@
             gap: 0.5rem;
         }
         
-        .rate-level .level-desc { font-size: 0.8rem; color: #94a3b8; }
+        .rate-level .level-desc { font-size: 0.8rem; color: #666666; }
         
         .rate-meter {
             height: 8px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(26, 26, 26, 0.08);
             border-radius: 4px;
             margin-top: 0.8rem;
             overflow: hidden;
@@ -339,9 +340,9 @@
             transition: width 0.5s ease;
         }
         
-        .rate-fill.green { background: linear-gradient(90deg, #4ade80, #22c55e); }
-        .rate-fill.yellow { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
-        .rate-fill.red { background: linear-gradient(90deg, #f87171, #ef4444); }
+        .rate-fill.green { background: #16a34a; }
+        .rate-fill.yellow { background: #d97706; }
+        .rate-fill.red { background: #dc2626; }
         
         /* Guardrails Visual */
         .guardrails-vis {
@@ -363,7 +364,7 @@
         
         .flow-box {
             padding: 1rem 1.5rem;
-            border-radius: 10px;
+            border-radius: 4px;
             text-align: center;
             min-width: 120px;
             transition: all 0.4s ease;
@@ -374,7 +375,7 @@
         
         .flow-arrow {
             font-size: 1.5rem;
-            color: #64748b;
+            color: #999999;
         }
         
         .guardrail-types {
@@ -384,9 +385,9 @@
         }
         
         .guardrail-type {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.2rem;
             text-align: center;
             min-width: 140px;
@@ -394,13 +395,13 @@
         }
         
         .guardrail-type.active {
-            border-color: #ec4899;
+            border-color: #be185d;
             background: rgba(236, 72, 153, 0.1);
         }
         
         .guardrail-type .icon { font-size: 2rem; margin-bottom: 0.5rem; }
         .guardrail-type .title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
-        .guardrail-type .desc { font-size: 0.75rem; color: #94a3b8; }
+        .guardrail-type .desc { font-size: 0.75rem; color: #666666; }
         
         /* Inference Table Visual */
         .inference-vis {
@@ -414,13 +415,13 @@
         
         .table-schema {
             background: rgba(0,0,0,0.4);
-            border-radius: 12px;
+            border-radius: 4px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(26, 26, 26, 0.08);
         }
         
         .table-header {
-            background: linear-gradient(135deg, #f97316, #ea580c);
+            background: #ffffff; border-left: 3px solid #d97706;
             padding: 0.8rem 1rem;
             font-weight: 600;
             font-size: 0.9rem;
@@ -431,20 +432,20 @@
         
         .table-row {
             display: flex;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid var(--bg-secondary, #f8f8f6);
             transition: all 0.3s ease;
         }
         
-        .table-row:hover { background: rgba(255,255,255,0.03); }
+        .table-row:hover { background: var(--bg-secondary, #f8f8f6); }
         
         .table-cell {
             padding: 0.6rem 1rem;
             font-size: 0.8rem;
         }
         
-        .table-cell.col { width: 40%; color: #22d3ee; font-family: monospace; }
-        .table-cell.type { width: 25%; color: #a855f7; }
-        .table-cell.desc { width: 35%; color: #94a3b8; }
+        .table-cell.col { width: 40%; color: #0891b2; font-family: monospace; }
+        .table-cell.type { width: 25%; color: #7c3aed; }
+        .table-cell.desc { width: 35%; color: #666666; }
         
         /* Endpoint Support Visual */
         .endpoint-support {
@@ -466,7 +467,7 @@
             gap: 0.3rem;
             padding: 0.8rem;
             background: rgba(249, 115, 22, 0.2);
-            border-radius: 8px 8px 0 0;
+            border-radius: 4px 4px 0 0;
             font-weight: 600;
             text-align: center;
         }
@@ -476,14 +477,14 @@
             grid-template-columns: 2fr repeat(5, 1fr);
             gap: 0.3rem;
             padding: 0.6rem 0.8rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid var(--bg-secondary, #f8f8f6);
             align-items: center;
         }
         
         .support-row .feature { text-align: left; font-weight: 500; }
         .support-row .check { text-align: center; }
-        .check.yes { color: #4ade80; }
-        .check.no { color: #64748b; }
+        .check.yes { color: #16a34a; }
+        .check.no { color: #999999; }
         
         /* API Query Methods Visual */
         .api-methods-vis {
@@ -496,9 +497,9 @@
         }
         
         .api-method {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1rem;
             margin-bottom: 0.8rem;
             display: flex;
@@ -508,21 +509,21 @@
         }
         
         .api-method.highlight-active {
-            border-color: #4ade80;
+            border-color: #16a34a;
             background: rgba(74, 222, 128, 0.1);
         }
         
         .api-method .icon { font-size: 1.5rem; }
         .api-method .content { flex: 1; }
         .api-method .title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.2rem; }
-        .api-method .desc { font-size: 0.75rem; color: #94a3b8; }
+        .api-method .desc { font-size: 0.75rem; color: #666666; }
         .api-method .badge {
             padding: 0.2rem 0.6rem;
             background: rgba(74, 222, 128, 0.2);
             border: 1px solid rgba(74, 222, 128, 0.4);
             border-radius: 4px;
             font-size: 0.65rem;
-            color: #4ade80;
+            color: #16a34a;
         }
         
         /* Traffic Split Visual */
@@ -542,9 +543,9 @@
         }
         
         .traffic-source {
-            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            background: #ffffff; border-left: 3px solid #7c3aed;
             padding: 1rem;
-            border-radius: 10px;
+            border-radius: 4px;
             text-align: center;
             margin-bottom: 1rem;
         }
@@ -558,7 +559,7 @@
         
         .split-bar {
             height: 40px;
-            border-radius: 6px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -576,7 +577,7 @@
         .traffic-target {
             flex: 1;
             padding: 0.8rem;
-            border-radius: 8px;
+            border-radius: 4px;
             text-align: center;
             font-size: 0.75rem;
             transition: all 0.4s ease;
@@ -587,9 +588,9 @@
         .fallback-indicator {
             margin-top: 1rem;
             padding: 0.8rem;
-            background: rgba(251, 191, 36, 0.1);
-            border: 1px solid rgba(251, 191, 36, 0.3);
-            border-radius: 8px;
+            background: rgba(217, 119, 6, 0.06);
+            border: 1px solid rgba(217, 119, 6, 0.2);
+            border-radius: 4px;
             text-align: center;
             font-size: 0.8rem;
         }
@@ -605,7 +606,7 @@
         .summary-section h3 {
             text-align: center;
             font-size: 2rem;
-            color: #f97316;
+            color: #d97706;
             margin-bottom: 2rem;
         }
         
@@ -616,9 +617,9 @@
         }
         
         .summary-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.5rem;
         }
         
@@ -630,29 +631,29 @@
             gap: 0.5rem;
         }
         
-        .summary-card ul { padding-left: 1.2rem; color: #94a3b8; font-size: 0.9rem; }
+        .summary-card ul { padding-left: 1.2rem; color: #666666; font-size: 0.9rem; }
         .summary-card li { margin-bottom: 0.5rem; }
         
         /* Footer */
         footer {
             padding: 3rem 2rem;
             text-align: center;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(26, 26, 26, 0.08);
         }
         
         footer .links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
         
         .footer-link {
-            color: #f97316;
+            color: #d97706;
             text-decoration: none;
             font-size: 0.95rem;
             padding: 0.7rem 1.3rem;
-            border: 2px solid #f97316;
-            border-radius: 8px;
+            border: 2px solid #cc3311;
+            border-radius: 4px;
             transition: all 0.3s ease;
         }
         
-        .footer-link:hover { background: #f97316; color: #1a1a2e; }
+        .footer-link:hover { background: #d97706; color: #1a1a1a; }
         
         @media (max-width: 900px) {
             .scrolly-container { flex-direction: column; }
@@ -1013,8 +1014,8 @@
                     
                     <div class="arch-arrow">↓</div>
                     
-                    <div style="padding: 1rem; background: rgba(249, 115, 22, 0.1); border-radius: 12px; border: 2px solid #f97316;">
-                        <div class="arch-label" style="color: #f97316;">Mosaic AI Gateway</div>
+                    <div style="padding: 1rem; background: rgba(249, 115, 22, 0.1); border-radius: 4px; border: 2px solid #cc3311;">
+                        <div class="arch-label" style="color: #d97706;">Mosaic AI Gateway</div>
                         <div class="arch-row">
                             <div class="arch-box orange highlight-active">
                                 <div class="icon">🌉</div>
@@ -1023,10 +1024,10 @@
                             </div>
                         </div>
                         <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">Rate Limits</span>
-                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">Guardrails</span>
-                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">Logging</span>
-                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">Tracking</span>
+                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(26, 26, 26, 0.08); border-radius: 4px;">Rate Limits</span>
+                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(26, 26, 26, 0.08); border-radius: 4px;">Guardrails</span>
+                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(26, 26, 26, 0.08); border-radius: 4px;">Logging</span>
+                            <span style="font-size: 0.65rem; padding: 0.2rem 0.5rem; background: rgba(26, 26, 26, 0.08); border-radius: 4px;">Tracking</span>
                         </div>
                     </div>
                     
@@ -1160,7 +1161,7 @@
                 <!-- Step 4: External Providers -->
                 <div class="vis-element" id="vis-external-providers" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
                     <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem;">Supported External Model Providers</div>
+                        <div style="font-size: 0.75rem; color: #999999; text-transform: uppercase; margin-bottom: 0.5rem;">Supported External Model Providers</div>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
                         <div class="arch-box cyan" style="text-align: center;">
@@ -1230,17 +1231,17 @@
                 <!-- Step 6: Guardrails -->
                 <div class="vis-element guardrails-vis" id="vis-guardrails">
                     <div class="guardrail-flow">
-                        <div class="flow-box" style="background: linear-gradient(135deg, #a855f7, #7c3aed); color: white;">
+                        <div class="flow-box" style="background: #ffffff; border-left: 3px solid #7c3aed; color: #1a1a1a;">
                             <div class="icon">📨</div>
                             <div class="title">Request</div>
                         </div>
                         <div class="flow-arrow">→</div>
-                        <div class="flow-box" style="background: linear-gradient(135deg, #ec4899, #db2777); color: white;">
+                        <div class="flow-box" style="background: #ffffff; border-left: 3px solid #be185d; color: var(--text-primary);">
                             <div class="icon">🛡️</div>
                             <div class="title">Guardrails</div>
                         </div>
                         <div class="flow-arrow">→</div>
-                        <div class="flow-box" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white;">
+                        <div class="flow-box" style="background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a;">
                             <div class="icon">🤖</div>
                             <div class="title">Model</div>
                         </div>
@@ -1262,9 +1263,9 @@
                     <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
                         <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 4px; color: #ef4444;">Violence</span>
                         <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 4px; color: #ef4444;">Hate Speech</span>
-                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 4px; color: #fbbf24;">Credit Cards</span>
-                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 4px; color: #fbbf24;">SSN</span>
-                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 4px; color: #fbbf24;">Emails</span>
+                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(217, 119, 6, 0.08); border: 1px solid rgba(217, 119, 6, 0.2); border-radius: 4px; color: #d97706;">Credit Cards</span>
+                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(217, 119, 6, 0.08); border: 1px solid rgba(217, 119, 6, 0.2); border-radius: 4px; color: #d97706;">SSN</span>
+                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: rgba(217, 119, 6, 0.08); border: 1px solid rgba(217, 119, 6, 0.2); border-radius: 4px; color: #d97706;">Emails</span>
                     </div>
                 </div>
                 
@@ -1276,29 +1277,29 @@
                             <div style="font-weight: 600;">Incoming Requests</div>
                         </div>
                         
-                        <div style="text-align: center; color: #64748b; font-size: 0.8rem; margin-bottom: 0.5rem;">Traffic Split</div>
+                        <div style="text-align: center; color: #999999; font-size: 0.8rem; margin-bottom: 0.5rem;">Traffic Split</div>
                         
                         <div class="traffic-split">
-                            <div class="split-bar" style="width: 60%; background: linear-gradient(135deg, #22d3ee, #06b6d4);">60%</div>
-                            <div class="split-bar" style="width: 30%; background: linear-gradient(135deg, #a855f7, #7c3aed);">30%</div>
-                            <div class="split-bar" style="width: 10%; background: rgba(255,255,255,0.1); color: #64748b;">10%</div>
+                            <div class="split-bar" style="width: 60%; background: #0891b2;">60%</div>
+                            <div class="split-bar" style="width: 30%; background: #ffffff; border-left: 3px solid #7c3aed;">30%</div>
+                            <div class="split-bar" style="width: 10%; background: rgba(26, 26, 26, 0.08); color: #999999;">10%</div>
                         </div>
                         
                         <div class="traffic-targets">
                             <div class="traffic-target" style="background: rgba(34, 211, 238, 0.2); border: 1px solid rgba(34, 211, 238, 0.4);">
                                 <div class="icon">🤖</div>
                                 <div>GPT-4o</div>
-                                <div style="color: #22d3ee;">Primary</div>
+                                <div style="color: #0891b2;">Primary</div>
                             </div>
                             <div class="traffic-target" style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4);">
                                 <div class="icon">🧠</div>
                                 <div>Claude</div>
-                                <div style="color: #a855f7;">Secondary</div>
+                                <div style="color: #7c3aed;">Secondary</div>
                             </div>
-                            <div class="traffic-target" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="traffic-target" style="background: var(--bg-secondary, #f8f8f6); border: 1px solid rgba(26, 26, 26, 0.12);">
                                 <div class="icon">🔄</div>
                                 <div>Backup</div>
-                                <div style="color: #64748b;">Fallback Only</div>
+                                <div style="color: #999999;">Fallback Only</div>
                             </div>
                         </div>
                         
@@ -1355,9 +1356,9 @@
                 <!-- Step 9: Usage Tracking -->
                 <div class="vis-element" id="vis-usage-tracking" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
                     <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-                        <div style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 12px; padding: 1rem;">
-                            <div style="color: #22d3ee; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.85rem;">📊 endpoint_usage</div>
-                            <div style="font-size: 0.75rem; color: #94a3b8;">
+                        <div style="flex: 1; background: var(--bg-secondary, #f8f8f6); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 4px; padding: 1rem;">
+                            <div style="color: #0891b2; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.85rem;">📊 endpoint_usage</div>
+                            <div style="font-size: 0.75rem; color: #666666;">
                                 • input_token_count<br>
                                 • output_token_count<br>
                                 • request_time<br>
@@ -1365,9 +1366,9 @@
                                 • usage_context
                             </div>
                         </div>
-                        <div style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 1rem;">
-                            <div style="color: #a855f7; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.85rem;">🔧 served_entities</div>
-                            <div style="font-size: 0.75rem; color: #94a3b8;">
+                        <div style="flex: 1; background: var(--bg-secondary, #f8f8f6); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 4px; padding: 1rem;">
+                            <div style="color: #7c3aed; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.85rem;">🔧 served_entities</div>
+                            <div style="font-size: 0.75rem; color: #666666;">
                                 • endpoint_name<br>
                                 • entity_type<br>
                                 • model config<br>
@@ -1376,9 +1377,9 @@
                             </div>
                         </div>
                     </div>
-                    <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
-                        <div style="font-weight: 600; color: #f97316; margin-bottom: 0.5rem;">Cost Attribution with usage_context</div>
-                        <div style="font-size: 0.8rem; color: #94a3b8;">
+                    <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 4px; padding: 1rem; text-align: center;">
+                        <div style="font-weight: 600; color: #d97706; margin-bottom: 0.5rem;">Cost Attribution with usage_context</div>
+                        <div style="font-size: 0.8rem; color: #666666;">
                             <code style="background: rgba(0,0,0,0.3); padding: 0.2rem 0.4rem; border-radius: 4px;">{"project": "proj1", "end_user": "abc123"}</code>
                         </div>
                     </div>
@@ -1386,7 +1387,7 @@
                 
                 <!-- Step 10: API Methods -->
                 <div class="vis-element api-methods-vis" id="vis-api-methods">
-                    <div style="text-align: center; margin-bottom: 1rem; color: #64748b; font-size: 0.8rem;">
+                    <div style="text-align: center; margin-bottom: 1rem; color: #999999; font-size: 0.8rem;">
                         Query Deployed Agents via API
                     </div>
                     <div class="api-method highlight-active">
@@ -1422,124 +1423,124 @@
                 
                 <!-- Step 11: Databricks OpenAI Client Code -->
                 <div class="vis-element" id="vis-code-openai" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
-                    <div style="background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(74, 222, 128, 0.3);">
-                        <div style="background: rgba(74, 222, 128, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #4ade80; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; border: 1px solid rgba(74, 222, 128, 0.3);">
+                        <div style="background: rgba(74, 222, 128, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #16a34a; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
                             <span>🐍</span> Databricks OpenAI Client <span style="background: rgba(74, 222, 128, 0.3); padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.65rem;">Recommended</span>
                         </div>
                         <div style="padding: 1rem; font-family: 'SF Mono', Monaco, monospace; font-size: 0.75rem; line-height: 1.6;">
-                            <span style="color: #a855f7;">from</span> <span style="color: #22d3ee;">databricks.sdk</span> <span style="color: #a855f7;">import</span> <span style="color: #4ade80;">WorkspaceClient</span>
+                            <span style="color: #7c3aed;">from</span> <span style="color: #0891b2;">databricks.sdk</span> <span style="color: #7c3aed;">import</span> <span style="color: #16a34a;">WorkspaceClient</span>
                             <br><br>
-                            <span style="color: #e8e8e8;">w = WorkspaceClient()</span>
+                            <span style="color: #1a1a1a;">w = WorkspaceClient()</span>
                             <br>
-                            <span style="color: #e8e8e8;">client = w.serving_endpoints.get_open_ai_client()</span>
+                            <span style="color: #1a1a1a;">client = w.serving_endpoints.get_open_ai_client()</span>
                             <br><br>
-                            <span style="color: #64748b;"># ResponsesAgent (recommended)</span>
+                            <span style="color: #999999;"># ResponsesAgent (recommended)</span>
                             <br>
-                            <span style="color: #e8e8e8;">response = client.<span style="color: #f97316;">responses.create</span>(</span>
+                            <span style="color: #1a1a1a;">response = client.<span style="color: #d97706;">responses.create</span>(</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;model=<span style="color: #fbbf24;">"my-agent"</span>,</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;model=<span style="color: #d97706;">"my-agent"</span>,</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;input=[{<span style="color: #fbbf24;">"role"</span>: <span style="color: #fbbf24;">"user"</span>, ...}],</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;input=[{<span style="color: #d97706;">"role"</span>: <span style="color: #d97706;">"user"</span>, ...}],</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;stream=<span style="color: #22d3ee;">True</span>,</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;stream=<span style="color: #0891b2;">True</span>,</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;extra_body={<span style="color: #fbbf24;">"databricks_options"</span>: ...}</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;extra_body={<span style="color: #d97706;">"databricks_options"</span>: ...}</span>
                             <br>
-                            <span style="color: #e8e8e8;">)</span>
+                            <span style="color: #1a1a1a;">)</span>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Step 12: MLflow Deployments Client Code -->
                 <div class="vis-element" id="vis-code-mlflow" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
-                    <div style="background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(168, 85, 247, 0.3);">
-                        <div style="background: rgba(168, 85, 247, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #a855f7; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; border: 1px solid rgba(168, 85, 247, 0.3);">
+                        <div style="background: rgba(168, 85, 247, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #7c3aed; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
                             <span>🔄</span> MLflow Deployments Client
                         </div>
                         <div style="padding: 1rem; font-family: 'SF Mono', Monaco, monospace; font-size: 0.75rem; line-height: 1.6;">
-                            <span style="color: #a855f7;">from</span> <span style="color: #22d3ee;">mlflow.deployments</span> <span style="color: #a855f7;">import</span> <span style="color: #4ade80;">get_deploy_client</span>
+                            <span style="color: #7c3aed;">from</span> <span style="color: #0891b2;">mlflow.deployments</span> <span style="color: #7c3aed;">import</span> <span style="color: #16a34a;">get_deploy_client</span>
                             <br><br>
-                            <span style="color: #64748b;"># Connect to Databricks</span>
+                            <span style="color: #999999;"># Connect to Databricks</span>
                             <br>
-                            <span style="color: #e8e8e8;">client = get_deploy_client(<span style="color: #fbbf24;">"databricks"</span>)</span>
+                            <span style="color: #1a1a1a;">client = get_deploy_client(<span style="color: #d97706;">"databricks"</span>)</span>
                             <br><br>
-                            <span style="color: #64748b;"># Query the agent endpoint</span>
+                            <span style="color: #999999;"># Query the agent endpoint</span>
                             <br>
-                            <span style="color: #e8e8e8;">response = client.<span style="color: #f97316;">predict</span>(</span>
+                            <span style="color: #1a1a1a;">response = client.<span style="color: #d97706;">predict</span>(</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;endpoint=<span style="color: #fbbf24;">"my-agent-endpoint"</span>,</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;endpoint=<span style="color: #d97706;">"my-agent-endpoint"</span>,</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;inputs={</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;inputs={</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #fbbf24;">"messages"</span>: [</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #d97706;">"messages"</span>: [</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span style="color: #fbbf24;">"role"</span>: <span style="color: #fbbf24;">"user"</span>, <span style="color: #fbbf24;">"content"</span>: <span style="color: #fbbf24;">"..."</span>}</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span style="color: #d97706;">"role"</span>: <span style="color: #d97706;">"user"</span>, <span style="color: #d97706;">"content"</span>: <span style="color: #d97706;">"..."</span>}</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;&nbsp;&nbsp;]</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;&nbsp;&nbsp;]</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;}</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;}</span>
                             <br>
-                            <span style="color: #e8e8e8;">)</span>
+                            <span style="color: #1a1a1a;">)</span>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Step 13: REST API Code -->
                 <div class="vis-element" id="vis-code-rest" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
-                    <div style="background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(34, 211, 238, 0.3);">
-                        <div style="background: rgba(34, 211, 238, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #22d3ee; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; border: 1px solid rgba(34, 211, 238, 0.3);">
+                        <div style="background: rgba(34, 211, 238, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #0891b2; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
                             <span>🌐</span> REST API (OpenAI-compatible)
                         </div>
                         <div style="padding: 1rem; font-family: 'SF Mono', Monaco, monospace; font-size: 0.72rem; line-height: 1.6;">
-                            <span style="color: #64748b;"># Using curl</span>
+                            <span style="color: #999999;"># Using curl</span>
                             <br>
-                            <span style="color: #4ade80;">curl</span> <span style="color: #e8e8e8;">-X POST \</span>
+                            <span style="color: #16a34a;">curl</span> <span style="color: #1a1a1a;">-X POST \</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;-H <span style="color: #fbbf24;">"Authorization: Bearer $TOKEN"</span> \</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;-H <span style="color: #d97706;">"Authorization: Bearer $TOKEN"</span> \</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;-H <span style="color: #fbbf24;">"Content-Type: application/json"</span> \</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;-H <span style="color: #d97706;">"Content-Type: application/json"</span> \</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;-d <span style="color: #fbbf24;">'{"messages": [{"role": "user", "content": "..."}]}'</span> \</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;-d <span style="color: #d97706;">'{"messages": [{"role": "user", "content": "..."}]}'</span> \</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;<span style="color: #22d3ee;">https://&lt;workspace&gt;/serving-endpoints/my-agent/invocations</span></span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;<span style="color: #0891b2;">https://&lt;workspace&gt;/serving-endpoints/my-agent/invocations</span></span>
                             <br><br>
-                            <span style="color: #64748b;"># Using Python requests</span>
+                            <span style="color: #999999;"># Using Python requests</span>
                             <br>
-                            <span style="color: #e8e8e8;">response = requests.<span style="color: #f97316;">post</span>(</span>
+                            <span style="color: #1a1a1a;">response = requests.<span style="color: #d97706;">post</span>(</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;url, headers=headers, json=payload</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;url, headers=headers, json=payload</span>
                             <br>
-                            <span style="color: #e8e8e8;">)</span>
+                            <span style="color: #1a1a1a;">)</span>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Step 14: AI Functions Code -->
                 <div class="vis-element" id="vis-code-sql" style="width: 100%; height: 100%; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center;">
-                    <div style="background: rgba(0,0,0,0.5); border-radius: 12px; overflow: hidden; border: 1px solid rgba(251, 191, 36, 0.3);">
-                        <div style="background: rgba(251, 191, 36, 0.2); padding: 0.5rem 1rem; font-size: 0.75rem; color: #fbbf24; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; border: 1px solid rgba(217, 119, 6, 0.2);">
+                        <div style="background: rgba(217, 119, 6, 0.08); padding: 0.5rem 1rem; font-size: 0.75rem; color: #d97706; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
                             <span>📊</span> AI Functions (ai_query) — SQL
                         </div>
                         <div style="padding: 1rem; font-family: 'SF Mono', Monaco, monospace; font-size: 0.72rem; line-height: 1.6;">
-                            <span style="color: #64748b;">-- Simple query</span>
+                            <span style="color: #999999;">-- Simple query</span>
                             <br>
-                            <span style="color: #a855f7;">SELECT</span> <span style="color: #f97316;">ai_query</span><span style="color: #e8e8e8;">(</span>
+                            <span style="color: #7c3aed;">SELECT</span> <span style="color: #d97706;">ai_query</span><span style="color: #1a1a1a;">(</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;<span style="color: #fbbf24;">'my-agent-endpoint'</span>,</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;<span style="color: #d97706;">'my-agent-endpoint'</span>,</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;<span style="color: #fbbf24;">'Summarize this document...'</span></span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;<span style="color: #d97706;">'Summarize this document...'</span></span>
                             <br>
-                            <span style="color: #e8e8e8;">) <span style="color: #a855f7;">AS</span> response;</span>
+                            <span style="color: #1a1a1a;">) <span style="color: #7c3aed;">AS</span> response;</span>
                             <br><br>
-                            <span style="color: #64748b;">-- Process entire table with AI</span>
+                            <span style="color: #999999;">-- Process entire table with AI</span>
                             <br>
-                            <span style="color: #a855f7;">SELECT</span>
+                            <span style="color: #7c3aed;">SELECT</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;id,</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;id,</span>
                             <br>
-                            <span style="color: #e8e8e8;">&nbsp;&nbsp;<span style="color: #f97316;">ai_query</span>(<span style="color: #fbbf24;">'my-agent'</span>, content_col) <span style="color: #a855f7;">AS</span> ai_summary</span>
+                            <span style="color: #1a1a1a;">&nbsp;&nbsp;<span style="color: #d97706;">ai_query</span>(<span style="color: #d97706;">'my-agent'</span>, content_col) <span style="color: #7c3aed;">AS</span> ai_summary</span>
                             <br>
-                            <span style="color: #a855f7;">FROM</span> <span style="color: #22d3ee;">my_table</span>;
+                            <span style="color: #7c3aed;">FROM</span> <span style="color: #0891b2;">my_table</span>;
                         </div>
                     </div>
                 </div>
@@ -1566,22 +1567,22 @@
                     
                     <div class="arch-arrow">↓</div>
                     
-                    <div style="padding: 1.2rem; background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(251, 191, 36, 0.1)); border-radius: 12px; border: 2px solid #f97316;">
-                        <div style="text-align: center; font-weight: 600; color: #f97316; margin-bottom: 0.8rem;">🌉 Mosaic AI Gateway</div>
+                    <div style="padding: 1.2rem; background: rgba(204, 51, 17, 0.06); border-radius: 4px; border: 2px solid #cc3311;">
+                        <div style="text-align: center; font-weight: 600; color: #d97706; margin-bottom: 0.8rem;">🌉 Mosaic AI Gateway</div>
                         <div style="display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap;">
-                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px; min-width: 70px;">
+                            <div style="text-align: center; padding: 0.5rem; background: var(--bg-secondary, #f8f8f6); border-radius: 4px; min-width: 70px;">
                                 <div style="font-size: 1rem;">⚡</div>
                                 <div style="font-size: 0.6rem;">Rate Limits</div>
                             </div>
-                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px; min-width: 70px;">
+                            <div style="text-align: center; padding: 0.5rem; background: var(--bg-secondary, #f8f8f6); border-radius: 4px; min-width: 70px;">
                                 <div style="font-size: 1rem;">🛡️</div>
                                 <div style="font-size: 0.6rem;">Guardrails</div>
                             </div>
-                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px; min-width: 70px;">
+                            <div style="text-align: center; padding: 0.5rem; background: var(--bg-secondary, #f8f8f6); border-radius: 4px; min-width: 70px;">
                                 <div style="font-size: 1rem;">📝</div>
                                 <div style="font-size: 0.6rem;">Logging</div>
                             </div>
-                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px; min-width: 70px;">
+                            <div style="text-align: center; padding: 0.5rem; background: var(--bg-secondary, #f8f8f6); border-radius: 4px; min-width: 70px;">
                                 <div style="font-size: 1rem;">📊</div>
                                 <div style="font-size: 0.6rem;">Tracking</div>
                             </div>
@@ -1619,7 +1620,7 @@
             
             <div class="summary-grid">
                 <div class="summary-card">
-                    <h4 style="color: #f97316;">🌉 What is AI Gateway?</h4>
+                    <h4 style="color: #d97706;">🌉 What is AI Gateway?</h4>
                     <ul>
                         <li>Centralized governance for AI model endpoints</li>
                         <li>Rate limiting, guardrails, logging, tracking</li>
@@ -1629,7 +1630,7 @@
                 </div>
                 
                 <div class="summary-card">
-                    <h4 style="color: #22d3ee;">🔧 Supported Endpoints</h4>
+                    <h4 style="color: #0891b2;">🔧 Supported Endpoints</h4>
                     <ul>
                         <li><strong>External Models</strong> — Full feature support</li>
                         <li><strong>Foundation Models</strong> — PT and pay-per-token</li>
@@ -1639,7 +1640,7 @@
                 </div>
                 
                 <div class="summary-card">
-                    <h4 style="color: #ec4899;">🛡️ Governance Features</h4>
+                    <h4 style="color: #be185d;">🛡️ Governance Features</h4>
                     <ul>
                         <li><strong>Rate Limiting</strong> — QPM/TPM at multiple levels</li>
                         <li><strong>AI Guardrails</strong> — Safety + PII detection</li>
@@ -1649,7 +1650,7 @@
                 </div>
                 
                 <div class="summary-card">
-                    <h4 style="color: #4ade80;">📊 Observability</h4>
+                    <h4 style="color: #16a34a;">📊 Observability</h4>
                     <ul>
                         <li><strong>Inference Tables</strong> — Request/response logging</li>
                         <li><strong>System Tables</strong> — Usage and cost tracking</li>
@@ -1659,7 +1660,7 @@
                 </div>
                 
                 <div class="summary-card">
-                    <h4 style="color: #a855f7;">🔗 External Providers</h4>
+                    <h4 style="color: #7c3aed;">🔗 External Providers</h4>
                     <ul>
                         <li>OpenAI, Anthropic, Cohere</li>
                         <li>Amazon Bedrock, Google Vertex AI</li>
@@ -1669,7 +1670,7 @@
                 </div>
                 
                 <div class="summary-card">
-                    <h4 style="color: #fbbf24;">📡 Query Methods</h4>
+                    <h4 style="color: #d97706;">📡 Query Methods</h4>
                     <ul>
                         <li><strong>Databricks OpenAI Client</strong> — Recommended</li>
                         <li><strong>MLflow Deployments</strong> — MLflow workflows</li>

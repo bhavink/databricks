@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Automatic Authentication (Service Principal) Flow</title>
     
     <!-- Global Databricks Theme -->
@@ -19,7 +20,7 @@
             left: 0;
             right: 0;
             padding: 1rem 2rem;
-            background: rgba(17, 24, 28, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
             z-index: 100;
             border-bottom: 1px solid var(--border-subtle);
@@ -51,30 +52,30 @@
         .hero h2 {
             font-size: 3rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background: none; color: #1a1a1a;
+            
+            -webkit-text-fill-color: inherit;
+            
         }
         
-        .hero p { font-size: 1.3rem; color: #94a3b8; max-width: 600px; margin-bottom: 1.5rem; }
+        .hero p { font-size: 1.3rem; color: #666666; max-width: 600px; margin-bottom: 1.5rem; }
         
         .hero .doc-link {
             display: inline-block;
             padding: 0.5rem 1rem;
-            background: rgba(245, 158, 11, 0.1);
+            background: rgba(26, 26, 26, 0.04);
             border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 6px;
-            color: #f59e0b;
+            border-radius: 4px;
+            color: #1a1a1a;
             text-decoration: none;
             font-size: 0.9rem;
             margin-bottom: 1.5rem;
             transition: all 0.3s ease;
         }
         
-        .hero .doc-link:hover { background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; }
+        .hero .doc-link:hover { background: rgba(26, 26, 26, 0.08); border-color: #1a1a1a; }
         
-        .scroll-hint { animation: bounce 2s infinite; color: #f59e0b; }
+        .scroll-hint { animation: bounce 2s infinite; color: #1a1a1a; }
         
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
@@ -115,22 +116,22 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: #f59e0b;
-            color: #1a1a2e;
+            background: #1a1a1a;
+            color: #1a1a1a;
             font-weight: bold;
             font-size: 1.2rem;
             margin-bottom: 1.5rem;
         }
         
-        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #fff; }
-        .step p { color: #94a3b8; font-size: 1.15rem; margin-bottom: 1rem; }
-        .step .highlight { color: #f59e0b; font-weight: 600; }
+        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #1a1a1a; }
+        .step p { color: #666666; font-size: 1.15rem; margin-bottom: 1rem; }
+        .step .highlight { color: #1a1a1a; font-weight: 600; }
         
         .step code {
-            background: rgba(245, 158, 11, 0.15);
+            background: rgba(26, 26, 26, 0.06);
             padding: 0.2rem 0.6rem;
             border-radius: 4px;
-            color: #f59e0b;
+            color: #1a1a1a;
             font-family: 'SF Mono', Monaco, Consolas, monospace;
             font-size: 0.95rem;
         }
@@ -140,20 +141,20 @@
             max-width: 500px;
             height: 450px;
             position: relative;
-            background: rgba(255,255,255,0.02);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: var(--bg-secondary, #f8f8f6);
+            border-radius: 4px;
+            border: 1px solid var(--bg-secondary, #f8f8f6);
         }
         
         .diagram-box {
             position: absolute;
             padding: 1rem 1.5rem;
-            border-radius: 12px;
+            border-radius: 4px;
             text-align: center;
             opacity: 0;
             transform: scale(0.8);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(26, 26, 26, 0.06);
             pointer-events: none;
         }
         
@@ -163,18 +164,18 @@
         .box-label { font-weight: 600; font-size: 1rem; }
         .box-sublabel { font-size: 0.8rem; opacity: 0.8; margin-top: 0.2rem; }
         
-        .job-box { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
-        .sp-box { background: linear-gradient(135deg, #f59e0b, #d97706); color: #1a1a2e; }
-        .oauth-box { background: linear-gradient(135deg, #10b981, #059669); color: white; }
-        .uc-box { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
-        .data-box { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .job-box { background: #ffffff; border-left: 3px solid #2563eb; color: #1a1a1a; color: #1a1a1a; }
+        .sp-box { background: #ffffff; border-left: 3px solid #1a1a1a; color: #1a1a1a; }
+        .oauth-box { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; color: #1a1a1a; }
+        .uc-box { background: #ffffff; border-left: 3px solid #7c3aed; color: #1a1a1a; color: #1a1a1a; }
+        .data-box { background: #ffffff; border-left: 3px solid #2563eb; color: #1a1a1a; color: #1a1a1a; }
         
         .arrow {
             position: absolute;
             opacity: 0;
             transition: all 0.5s ease;
             font-size: 1.5rem;
-            color: #f59e0b;
+            color: #1a1a1a;
         }
         
         .arrow.visible { opacity: 1; }
@@ -182,11 +183,11 @@
         .token-badge {
             position: absolute;
             padding: 0.4rem 1rem;
-            background: rgba(245, 158, 11, 0.2);
-            border: 2px solid #f59e0b;
-            border-radius: 20px;
+            background: rgba(26, 26, 26, 0.08);
+            border: 2px solid #1a1a1a;
+            border-radius: 4px;
             font-size: 0.85rem;
-            color: #f59e0b;
+            color: #1a1a1a;
             white-space: nowrap;
             opacity: 0;
             transition: all 0.5s ease;
@@ -204,7 +205,7 @@
             text-align: center;
         }
         
-        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #f59e0b; }
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #1a1a1a; }
         
         .summary-grid {
             display: grid;
@@ -215,27 +216,27 @@
         }
         
         .summary-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.5rem;
             text-align: left;
         }
         
-        .summary-card h4 { color: #f59e0b; margin-bottom: 0.5rem; font-size: 1.1rem; }
-        .summary-card p { color: #94a3b8; font-size: 0.95rem; }
+        .summary-card h4 { color: #1a1a1a; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .summary-card p { color: #666666; font-size: 0.95rem; }
         
         .back-link {
-            color: #f59e0b;
+            color: #1a1a1a;
             text-decoration: none;
             font-size: 1.1rem;
             padding: 1rem 2rem;
-            border: 2px solid #f59e0b;
-            border-radius: 8px;
+            border: 2px solid #1a1a1a;
+            border-radius: 4px;
             transition: all 0.3s ease;
         }
         
-        .back-link:hover { background: #f59e0b; color: #1a1a2e; }
+        .back-link:hover { background: #1a1a1a; color: #1a1a1a; }
         
         @media (max-width: 900px) {
             .scrollytelling { flex-direction: column; }

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Unity Catalog Row Filters</title>
     
     <!-- Global Databricks Theme -->
@@ -19,13 +20,13 @@
             left: 0;
             right: 0;
             padding: 1rem 2rem;
-            background: rgba(17, 24, 28, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
             z-index: 100;
             border-bottom: 1px solid var(--border-subtle);
         }
         
-        header h1 { font-size: 1.2rem; font-weight: 600; color: var(--accent-orange); }
+        header h1 { font-size: 1.2rem; font-weight: 600; color: #d97706; }
         
         .progress-bar {
             position: fixed;
@@ -51,30 +52,30 @@
         .hero h2 {
             font-size: 3rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #f97316, #fb923c);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background: none; color: #d97706;
+            
+            -webkit-text-fill-color: inherit;
+            
         }
         
-        .hero p { font-size: 1.3rem; color: #94a3b8; max-width: 600px; margin-bottom: 1.5rem; }
+        .hero p { font-size: 1.3rem; color: #666666; max-width: 600px; margin-bottom: 1.5rem; }
         
         .hero .doc-link {
             display: inline-block;
             padding: 0.5rem 1rem;
-            background: rgba(249, 115, 22, 0.1);
-            border: 1px solid rgba(249, 115, 22, 0.3);
-            border-radius: 6px;
-            color: #f97316;
+            background: rgba(217, 119, 6, 0.06);
+            border: 1px solid rgba(217, 119, 6, 0.15);
+            border-radius: 4px;
+            color: #d97706;
             text-decoration: none;
             font-size: 0.9rem;
             margin-bottom: 1.5rem;
             transition: all 0.3s ease;
         }
         
-        .hero .doc-link:hover { background: rgba(249, 115, 22, 0.2); border-color: #f97316; }
+        .hero .doc-link:hover { background: rgba(217, 119, 6, 0.08); border-color: #d97706; }
         
-        .scroll-hint { animation: bounce 2s infinite; color: #f97316; }
+        .scroll-hint { animation: bounce 2s infinite; color: #d97706; }
         
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
@@ -114,22 +115,22 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: #f97316;
-            color: #1a1a2e;
+            background: #d97706;
+            color: #1a1a1a;
             font-weight: bold;
             font-size: 1.2rem;
             margin-bottom: 1.5rem;
         }
         
-        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #fff; }
-        .step p { color: #94a3b8; font-size: 1.15rem; margin-bottom: 1rem; }
-        .step .highlight { color: #f97316; font-weight: 600; }
+        .step h3 { font-size: 2rem; margin-bottom: 1rem; color: #1a1a1a; }
+        .step p { color: #666666; font-size: 1.15rem; margin-bottom: 1rem; }
+        .step .highlight { color: #d97706; font-weight: 600; }
         
         .step code {
-            background: rgba(249, 115, 22, 0.15);
+            background: rgba(217, 119, 6, 0.06);
             padding: 0.2rem 0.6rem;
             border-radius: 4px;
-            color: #f97316;
+            color: #d97706;
             font-family: 'SF Mono', Monaco, Consolas, monospace;
             font-size: 0.95rem;
         }
@@ -139,20 +140,20 @@
             max-width: 520px;
             height: 480px;
             position: relative;
-            background: rgba(255,255,255,0.02);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: var(--bg-secondary, #f8f8f6);
+            border-radius: 4px;
+            border: 1px solid var(--bg-secondary, #f8f8f6);
         }
         
         .diagram-box {
             position: absolute;
             padding: 1rem 1.5rem;
-            border-radius: 12px;
+            border-radius: 4px;
             text-align: center;
             opacity: 0;
             transform: scale(0.8);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(26, 26, 26, 0.06);
         }
         
         .diagram-box.visible { opacity: 1; transform: scale(1); }
@@ -161,11 +162,11 @@
         .box-label { font-weight: 600; font-size: 0.95rem; }
         .box-sublabel { font-size: 0.75rem; opacity: 0.8; margin-top: 0.2rem; }
         
-        .user-box { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
-        .query-box { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
-        .filter-box { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
-        .table-box { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
-        .result-box { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+        .user-box { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; color: #1a1a1a; }
+        .query-box { background: #ffffff; border-left: 3px solid #2563eb; color: #1a1a1a; color: #1a1a1a; }
+        .filter-box { background: #ffffff; border-left: 3px solid #d97706; color: #1a1a1a; }
+        .table-box { background: #ffffff; border-left: 3px solid #7c3aed; color: #1a1a1a; color: #1a1a1a; }
+        .result-box { background: #ffffff; border-left: 3px solid #0d9488; color: #1a1a1a; color: #1a1a1a; }
         
         /* Data rows visualization */
         .data-rows {
@@ -184,15 +185,15 @@
             align-items: center;
             gap: 8px;
             padding: 6px 12px;
-            border-radius: 6px;
+            border-radius: 4px;
             font-size: 0.75rem;
             font-family: 'SF Mono', Monaco, Consolas, monospace;
             transition: all 0.4s ease;
         }
         
-        .data-row.alice { background: rgba(74, 222, 128, 0.3); border: 1px solid #4ade80; }
-        .data-row.bob { background: rgba(96, 165, 250, 0.3); border: 1px solid #60a5fa; }
-        .data-row.carol { background: rgba(251, 146, 60, 0.3); border: 1px solid #fb923c; }
+        .data-row.alice { background: rgba(22, 163, 74, 0.15); border: 1px solid #16a34a; }
+        .data-row.bob { background: rgba(37, 99, 235, 0.15); border: 1px solid #2563eb; }
+        .data-row.carol { background: rgba(217, 119, 6, 0.15); border: 1px solid #d97706; }
         .data-row.filtered { opacity: 0.2; transform: scale(0.9); }
         .data-row.hidden { opacity: 0; height: 0; padding: 0; margin: 0; overflow: hidden; }
         
@@ -201,7 +202,7 @@
             opacity: 0;
             transition: all 0.5s ease;
             font-size: 1.5rem;
-            color: #f97316;
+            color: #d97706;
         }
         
         .arrow.visible { opacity: 1; }
@@ -216,7 +217,7 @@
             text-align: center;
         }
         
-        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #f97316; }
+        .summary h2 { font-size: 2.5rem; margin-bottom: 2rem; color: #d97706; }
         
         .summary-grid {
             display: grid;
@@ -227,27 +228,27 @@
         }
         
         .summary-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.5rem;
             text-align: left;
         }
         
-        .summary-card h4 { color: #f97316; margin-bottom: 0.5rem; font-size: 1.1rem; }
-        .summary-card p { color: #94a3b8; font-size: 0.95rem; }
+        .summary-card h4 { color: #d97706; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .summary-card p { color: #666666; font-size: 0.95rem; }
         
         .back-link {
-            color: #f97316;
+            color: #d97706;
             text-decoration: none;
             font-size: 1.1rem;
             padding: 1rem 2rem;
-            border: 2px solid #f97316;
-            border-radius: 8px;
+            border: 2px solid #d97706;
+            border-radius: 4px;
             transition: all 0.3s ease;
         }
         
-        .back-link:hover { background: #f97316; color: #1a1a2e; }
+        .back-link:hover { background: #d97706; color: #1a1a1a; }
         
         @media (max-width: 900px) {
             .scrollytelling { flex-direction: column; }

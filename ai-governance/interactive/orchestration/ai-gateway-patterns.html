@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>AI Gateway Patterns - Databricks</title>
 
     <!-- Global Databricks Theme -->
@@ -21,24 +22,24 @@
             left: 0;
             right: 0;
             padding: 1rem 2rem;
-            background: rgba(17, 24, 28, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
             z-index: 100;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            border-bottom: 1px solid var(--border-primary);
         }
 
         header h1 {
             font-size: 1.1rem;
-            color: var(--accent-blue);
+            color: #2563eb;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        header a { color: var(--accent-blue); text-decoration: none; font-size: 0.9rem; }
+        header a { color: #2563eb; text-decoration: none; font-size: 0.9rem; }
         header a:hover { text-decoration: underline; }
 
         /* Hero Section */
@@ -56,13 +57,12 @@
         .hero h2 {
             font-size: 2.8rem;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+                        
+            -webkit-text-fill-color: inherit;
+            
         }
 
-        .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 750px; margin-bottom: 1.5rem; }
+        .hero p { font-size: 1.2rem; color: #666666; max-width: 750px; margin-bottom: 1.5rem; }
 
         .hero .subtitle { font-size: 1rem; color: var(--text-dim); margin-bottom: 2rem; }
 
@@ -73,16 +73,16 @@
             padding: 0.5rem 1rem;
             background: rgba(59, 130, 246, 0.1);
             border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 6px;
-            color: var(--accent-blue);
+            border-radius: 4px;
+            color: #2563eb;
             text-decoration: none;
             font-size: 0.85rem;
             transition: all 0.3s ease;
         }
 
-        .doc-link:hover { background: rgba(59, 130, 246, 0.2); border-color: var(--accent-blue); }
+        .doc-link:hover { background: rgba(59, 130, 246, 0.2); border-color: #2563eb; }
 
-        .scroll-hint { animation: bounce 2s infinite; color: var(--accent-blue); font-size: 1.1rem; }
+        .scroll-hint { animation: bounce 2s infinite; color: #2563eb; font-size: 1.1rem; }
 
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
@@ -177,13 +177,13 @@
 
         .pattern-row {
             padding: 1.2rem;
-            border-radius: 10px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             opacity: 0.2;
             transition: opacity 0.4s ease;
-            color: white;
+            color: #1a1a1a;
             font-weight: 600;
             font-size: 0.9rem;
         }
@@ -193,20 +193,19 @@
         }
 
         .pattern-row.green {
-            background: linear-gradient(135deg, #22c38e, #00a870);
+            background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a;
         }
 
         .pattern-row.blue {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-        }
+                    }
 
         .pattern-row.amber {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            background: #ffffff; border-left: 3px solid #d97706; color: #1a1a1a;
             color: var(--bg-primary);
         }
 
         .pattern-row.red {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+            background: #ffffff; border-left: 3px solid #dc2626; color: #1a1a1a;
         }
 
         .pattern-row .left { flex: 1; }
@@ -231,7 +230,7 @@
 
         .flow-box {
             padding: 0.8rem 1rem;
-            border-radius: 8px;
+            border-radius: 4px;
             text-align: center;
             font-size: 0.8rem;
             font-weight: 600;
@@ -254,11 +253,11 @@
             opacity: 1;
         }
 
-        .flow-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-        .flow-box.red { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-        .flow-box.green { background: linear-gradient(135deg, #22c38e, #00a870); color: white; }
-        .flow-box.gray { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
-        .flow-box.yellow { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: var(--bg-primary); }
+        .flow-box.blue { background: #ffffff; border-left: 3px solid #2563eb; color: var(--text-primary); }
+        .flow-box.red { background: #ffffff; border-left: 3px solid #dc2626; color: #1a1a1a; color: #1a1a1a; }
+        .flow-box.green { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; color: #1a1a1a; }
+        .flow-box.gray { background: rgba(26, 26, 26, 0.08); color: var(--text-muted); }
+        .flow-box.yellow { background: #ffffff; border-left: 3px solid #d97706; color: #1a1a1a; color: var(--bg-primary); }
 
         .flow-box.highlight-bad {
             border: 2px solid #ef4444;
@@ -290,7 +289,7 @@
 
         .proxy-box {
             padding: 0.8rem 1rem;
-            border-radius: 8px;
+            border-radius: 4px;
             text-align: center;
             font-size: 0.8rem;
             font-weight: 600;
@@ -298,11 +297,11 @@
             transition: all 0.4s ease;
         }
 
-        .proxy-box.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-        .proxy-box.green { background: linear-gradient(135deg, #22c38e, #00a870); color: white; }
-        .proxy-box.red { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-        .proxy-box.yellow { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: var(--bg-primary); }
-        .proxy-box.slate { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
+        .proxy-box.blue { background: #ffffff; border-left: 3px solid #2563eb; color: var(--text-primary); }
+        .proxy-box.green { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; color: #1a1a1a; }
+        .proxy-box.red { background: #ffffff; border-left: 3px solid #dc2626; color: #1a1a1a; color: #1a1a1a; }
+        .proxy-box.yellow { background: #ffffff; border-left: 3px solid #d97706; color: #1a1a1a; color: var(--bg-primary); }
+        .proxy-box.slate { background: rgba(26, 26, 26, 0.08); color: var(--text-muted); }
 
         .proxy-arrow {
             font-size: 1.3rem;
@@ -312,7 +311,7 @@
 
         .proxy-arrow.active {
             opacity: 1;
-            color: var(--accent-blue);
+            color: #2563eb;
         }
 
         .proxy-status {
@@ -340,7 +339,7 @@
 
         .defense-layer {
             padding: 1rem;
-            border-radius: 10px;
+            border-radius: 4px;
             border: 1.5px solid rgba(59, 130, 246, 0.3);
             transition: all 0.4s ease;
             opacity: 0.3;
@@ -348,12 +347,12 @@
 
         .defense-layer.active {
             opacity: 1;
-            border-color: var(--accent-blue);
+            border-color: #2563eb;
             background: rgba(59, 130, 246, 0.05);
         }
 
         .defense-layer.snp {
-            border-top: 3px solid #fbbf24;
+            border-top: 3px solid #d97706;
         }
 
         .defense-layer.connections {
@@ -373,7 +372,7 @@
 
         .defense-item {
             padding: 0.5rem 0.8rem;
-            border-radius: 6px;
+            border-radius: 4px;
             font-size: 0.75rem;
             font-weight: 600;
         }
@@ -403,11 +402,11 @@
 
         .inbound-box {
             padding: 0.6rem 0.9rem;
-            border-radius: 8px;
+            border-radius: 4px;
             font-size: 0.8rem;
             font-weight: 600;
-            background: linear-gradient(135deg, #a855f7, #7c3aed);
-            color: white;
+            background: #ffffff; border-left: 3px solid #7c3aed;
+            color: #1a1a1a;
             opacity: 0.5;
             transition: opacity 0.4s ease;
         }
@@ -418,9 +417,9 @@
 
         .inbound-gateway {
             padding: 1.2rem;
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-            border-radius: 10px;
+            background: #ffffff; border-left: 3px solid #dc2626; color: #1a1a1a;
+            color: #1a1a1a;
+            border-radius: 4px;
             font-weight: 600;
             margin: 0 1rem;
         }
@@ -440,12 +439,12 @@
             padding: 1rem;
             background: rgba(59, 130, 246, 0.2);
             border: 1.5px solid var(--accent-blue);
-            border-radius: 10px;
+            border-radius: 4px;
             text-align: center;
         }
 
-        .inbound-databricks .label { font-size: 0.85rem; font-weight: 600; color: var(--accent-blue); }
-        .inbound-databricks .sublabel { font-size: 0.75rem; color: #94a3b8; margin-top: 0.3rem; }
+        .inbound-databricks .label { font-size: 0.85rem; font-weight: 600; color: #2563eb; }
+        .inbound-databricks .sublabel { font-size: 0.75rem; color: #666666; margin-top: 0.3rem; }
 
         /* Decision Flowchart */
         .decision-flowchart {
@@ -460,7 +459,7 @@
 
         .decision-node {
             padding: 1rem;
-            border-radius: 10px;
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.3s ease;
             border: 2px solid rgba(59, 130, 246, 0.3);
@@ -471,15 +470,14 @@
         }
 
         .decision-node:hover {
-            border-color: var(--accent-blue);
+            border-color: #2563eb;
             background: rgba(59, 130, 246, 0.1);
             transform: translateY(-2px);
         }
 
         .decision-node.active {
-            border-color: var(--accent-blue);
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
+            border-color: #2563eb;
+                        color: #1a1a1a;
         }
 
         .decision-flow {
@@ -492,7 +490,7 @@
 
         .decision-outcome {
             padding: 0.8rem;
-            border-radius: 8px;
+            border-radius: 4px;
             font-size: 0.85rem;
             margin-top: 0.5rem;
             opacity: 0;
@@ -506,7 +504,7 @@
 
         .decision-outcome.pattern1 { background: rgba(34, 195, 142, 0.2); color: #6ee7b7; }
         .decision-outcome.pattern2 { background: rgba(59, 130, 246, 0.2); color: #7dd3fc; }
-        .decision-outcome.pattern3 { background: rgba(251, 191, 36, 0.2); color: #fcd34d; }
+        .decision-outcome.pattern3 { background: rgba(217, 119, 6, 0.08); color: #fcd34d; }
         .decision-outcome.pattern4 { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
 
         /* Navigation Cards */
@@ -520,9 +518,9 @@
         }
 
         .nav-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: var(--bg-secondary, #f8f8f6);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 4px;
             padding: 1.5rem;
             text-decoration: none;
             color: inherit;
@@ -532,8 +530,8 @@
         }
 
         .nav-card:hover {
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(255,255,255,0.2);
+            background: rgba(26, 26, 26, 0.04);
+            border-color: rgba(26, 26, 26, 0.12);
             transform: translateY(-4px);
         }
 
@@ -545,12 +543,12 @@
         .nav-card h4 {
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
-            color: #fff;
+            color: #1a1a1a;
         }
 
         .nav-card p {
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: #666666;
             margin-bottom: 1rem;
         }
 
@@ -563,25 +561,25 @@
         .nav-card .topic {
             font-size: 0.7rem;
             padding: 0.2rem 0.5rem;
-            background: rgba(255,255,255,0.1);
+            background: rgba(26, 26, 26, 0.08);
             border-radius: 4px;
-            color: #94a3b8;
+            color: #666666;
         }
 
         .nav-card.blue { border-left: 4px solid var(--accent-blue); }
-        .nav-card.blue h4 { color: var(--accent-blue); }
+        .nav-card.blue h4 { color: #2563eb; }
 
         .nav-card.green { border-left: 4px solid var(--accent-green); }
         .nav-card.green h4 { color: var(--accent-green); }
 
         .nav-card.orange { border-left: 4px solid var(--accent-orange); }
-        .nav-card.orange h4 { color: var(--accent-orange); }
+        .nav-card.orange h4 { color: #d97706; }
 
         /* Footer */
         footer {
             padding: 3rem 2rem;
             text-align: center;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(26, 26, 26, 0.08);
         }
 
         footer .links {
@@ -592,12 +590,12 @@
         }
 
         .footer-link {
-            color: var(--accent-blue);
+            color: #2563eb;
             text-decoration: none;
             font-size: 0.95rem;
             padding: 0.7rem 1.3rem;
             border: 2px solid var(--accent-blue);
-            border-radius: 8px;
+            border-radius: 4px;
             transition: all 0.3s ease;
         }
 
@@ -894,7 +892,7 @@
             <div class="visual-container step-4-vis" style="display: none;">
                 <div class="flow-diagram">
                     <div class="flow-row">
-                        <div style="flex: 1; text-align: center; font-size: 0.85rem; color: #94a3b8;">
+                        <div style="flex: 1; text-align: center; font-size: 0.85rem; color: #666666;">
                             <div>User A</div>
                             <div style="margin-top: 0.5rem;">User B</div>
                             <div style="margin-top: 0.5rem;">Agent SP</div>
@@ -958,7 +956,7 @@
             <div class="visual-container step-6-vis" style="display: none;">
                 <div class="defense-diagram">
                     <div class="defense-layer snp">
-                        <div style="font-size: 0.85rem; font-weight: 600; color: #fbbf24; margin-bottom: 0.5rem;">Workspace: SNP (Network Layer)</div>
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #d97706; margin-bottom: 0.5rem;">Workspace: SNP (Network Layer)</div>
                         <div class="defense-row">
                             <div class="defense-item allow">✓ npi.registry.example</div>
                             <div class="defense-item allow">✓ coverage.policy.example</div>
@@ -966,15 +964,15 @@
                         </div>
                     </div>
                     <div class="defense-layer connections">
-                        <div style="font-size: 0.85rem; font-weight: 600; color: var(--accent-blue); margin-bottom: 0.5rem;">UC Connections (Credential Layer)</div>
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #2563eb; margin-bottom: 0.5rem;">UC Connections (Credential Layer)</div>
                         <div class="defense-row">
                             <div style="flex: 1;">
-                                <div style="font-size: 0.75rem; margin-bottom: 0.3rem; color: #94a3b8;">npi_registry_conn</div>
+                                <div style="font-size: 0.75rem; margin-bottom: 0.3rem; color: #666666;">npi_registry_conn</div>
                                 <div class="defense-item allow">✓ sp-appeals</div>
                                 <div class="defense-item deny">✗ sp-billing</div>
                             </div>
                             <div style="flex: 1;">
-                                <div style="font-size: 0.75rem; margin-bottom: 0.3rem; color: #94a3b8;">cms_coverage_conn</div>
+                                <div style="font-size: 0.75rem; margin-bottom: 0.3rem; color: #666666;">cms_coverage_conn</div>
                                 <div class="defense-item allow">✓ sp-appeals</div>
                                 <div class="defense-item deny">✗ sp-billing</div>
                             </div>
@@ -984,11 +982,11 @@
                         <div style="font-size: 0.85rem; font-weight: 600; color: #6ee7b7; margin-bottom: 0.5rem;">Application Service Principals</div>
                         <div class="defense-row">
                             <div style="flex: 1;">
-                                <div style="font-size: 0.75rem; color: #94a3b8;">sp-appeals</div>
+                                <div style="font-size: 0.75rem; color: #666666;">sp-appeals</div>
                                 <div style="color: #6ee7b7; font-size: 0.8rem;">Can reach all services</div>
                             </div>
                             <div style="flex: 1;">
-                                <div style="font-size: 0.75rem; color: #94a3b8;">sp-billing</div>
+                                <div style="font-size: 0.75rem; color: #666666;">sp-billing</div>
                                 <div style="color: #fca5a5; font-size: 0.8rem;">Blocked at all layers</div>
                             </div>
                         </div>
@@ -1000,27 +998,27 @@
             <div class="visual-container step-7-vis" style="display: none;">
                 <div class="inbound-diagram">
                     <div class="inbound-column">
-                        <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.5rem;">External Clients</div>
+                        <div style="font-size: 0.8rem; color: #666666; margin-bottom: 0.5rem;">External Clients</div>
                         <div class="inbound-boxes">
                             <div class="inbound-box active">Case Mgmt System</div>
                             <div class="inbound-box active">Provider Portal</div>
                             <div class="inbound-box active">Partner Integration</div>
                         </div>
                     </div>
-                    <div style="font-size: 1.5rem; margin: 0 1rem; color: #94a3b8;">→</div>
+                    <div style="font-size: 1.5rem; margin: 0 1rem; color: #666666;">→</div>
                     <div class="inbound-column">
                         <div class="inbound-gateway">External<br/>API Gateway</div>
-                        <div style="font-size: 0.65rem; color: #94a3b8; margin-top: 0.5rem; text-align: center;">
+                        <div style="font-size: 0.65rem; color: #666666; margin-top: 0.5rem; text-align: center;">
                             Auth Translation<br/>Rate Limiting<br/>API Versioning
                         </div>
                     </div>
-                    <div style="font-size: 1.5rem; margin: 0 1rem; color: #94a3b8;">→</div>
+                    <div style="font-size: 1.5rem; margin: 0 1rem; color: #666666;">→</div>
                     <div class="inbound-column">
                         <div class="inbound-databricks">
                             <div class="label">Databricks Endpoint</div>
                             <div class="sublabel">(+ optional AI Gateway)</div>
                         </div>
-                        <div class="inbound-databricks" style="margin-top: 0.5rem; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1);">
+                        <div class="inbound-databricks" style="margin-top: 0.5rem; background: var(--bg-secondary, #f8f8f6); border-color: rgba(26, 26, 26, 0.08);">
                             <div class="sublabel">Unity Catalog</div>
                         </div>
                     </div>
@@ -1071,9 +1069,9 @@
     </div>
 
     <!-- Navigation Cards -->
-    <section style="padding: 4rem 2rem; background: rgba(0, 0, 0, 0.2);">
-        <h2 style="text-align: center; font-size: 2rem; color: var(--accent-blue); margin-bottom: 1rem;">Related Topics</h2>
-        <p style="text-align: center; color: #94a3b8; max-width: 700px; margin: 0 auto 2rem;">
+    <section style="padding: 4rem 2rem; background: var(--bg-secondary, #f8f8f6);">
+        <h2 style="text-align: center; font-size: 2rem; color: #2563eb; margin-bottom: 1rem;">Related Topics</h2>
+        <p style="text-align: center; color: #666666; max-width: 700px; margin: 0 auto 2rem;">
             Deep dive into other aspects of the Databricks architecture.
         </p>
 
