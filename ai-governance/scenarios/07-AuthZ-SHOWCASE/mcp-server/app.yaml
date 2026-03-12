@@ -1,34 +1,59 @@
-# app.yaml — authz-showcase-custom-mcp (Phase 5)
+# app.yaml — authz-showcase-custom-mcp
 #
-# Custom MCP server exposing three tools:
-#   get_deal_approval_status  — OBO (user identity via ModelServingUserCredentials)
-#   submit_deal_for_approval  — OBO (approval record stamped with caller identity)
-#   get_crm_sync_status       — M2M (app SP credentials, WorkspaceClient() no-args)
+# Custom MCP server exposing three tools with two auth patterns:
 #
-# Auth notes:
-#   OBO tools: use ModelServingUserCredentials() — SDK extracts caller's OAuth token
-#     from the Authorization: Bearer header. UC row filters fire as that user.
-#   M2M tools: WorkspaceClient() auto-discovers DATABRICKS_CLIENT_ID/SECRET from env.
-#   PATs: NOT supported for custom MCP servers on Databricks Apps (OAuth only).
+#   OBO User (get_deal_approval_status, submit_deal_for_approval):
+#     Best practice: "Use on behalf of user to ensure the user only sees
+#     data they have access to." The user's OAuth token (forwarded by the
+#     Streamlit app) executes SQL directly → UC row filters fire as the
+#     human → audit trail records the human email, not the SP.
 #
-# Docs:
-#   Custom MCP: https://learn.microsoft.com/en-us/azure/databricks/generative-ai/mcp/custom-mcp
-#   Connect external clients: https://learn.microsoft.com/en-us/azure/databricks/generative-ai/mcp/connect-external-services
+#   OBO SP / M2M (get_crm_sync_status):
+#     Best practice: "Use on behalf of service principal to ensure the app
+#     can access data regardless of user permissions." CRM sync is a
+#     system-level query — individual user identity is not required.
+#
+# OAuth integration notes:
+#   This app has authorization: disabled → the OAuth integration is dormant.
+#   No user ever authenticates directly against this app's integration.
+#   The user_authorized_scopes on this integration are irrelevant.
+#   The App SP (DATABRICKS_CLIENT_ID/SECRET) is used only for M2M queries.
+#   The user's token comes from the Streamlit app via two-proxy passthrough.
 
-command: ["uv", "run", "python", "server/main.py"]
+# startup.sh removes conflicting mlflow-skinny (pre-installed in Apps runtime)
+# and force-reinstalls mlflow-tracing to restore shared namespace files.
+command: ["bash", "startup.sh"]
 
 # authorization: disabled so the Apps proxy does NOT strip/replace the
-# Authorization header.  app.py forwards the user's OAuth token as
-# "Authorization: Bearer <token>" and our ExtractTokenMiddleware reads it
-# directly.  Token authenticity is enforced by current_user.me() — invalid
-# tokens are rejected by the Databricks IAM API.
+# Authorization header. The Streamlit app forwards the user's OAuth token
+# as "Authorization: Bearer <token>" and this passes through unchanged.
+# The user's X-Forwarded-Access-Token (with sql scope via User Auth)
+# is used by OBO tools for direct SQL execution as the human user.
 authorization: disabled
 
 env:
   - name: SQL_WAREHOUSE_ID
-    value: "<YOUR_WAREHOUSE_ID>"
+    value: "093d4ec27ed4bdee"
+  # ── Tracing (Module B) — same experiment as AppA ──────────────────────────
+  - name: MLFLOW_TRACKING_URI
+    value: "databricks"
+  - name: MLFLOW_EXPERIMENT_NAME
+    value: "/Users/bhavin.kukadia@databricks.com/mas-155f64f7-dev-experiment"
+  - name: MLFLOW_ENABLE_ASYNC_TRACE_LOGGING
+    value: "true"
+  - name: MLFLOW_ASYNC_TRACE_LOGGING_MAX_WORKERS
+    value: "10"
+  - name: MLFLOW_ASYNC_TRACE_LOGGING_MAX_QUEUE_SIZE
+    value: "1000"
+  - name: MLFLOW_TRACE_SAMPLING_RATIO
+    value: "1.0"
+  - name: SERVICE_NAME
+    value: "app-b-mcp-server"
+  - name: APP_VERSION
+    value: "1.0.0"
 
 resources:
+  # SP needs warehouse access for M2M queries (get_crm_sync_status)
   - sql_warehouse:
-      id: "<YOUR_WAREHOUSE_ID>"
+      id: "093d4ec27ed4bdee"
       permission: CAN_USE
