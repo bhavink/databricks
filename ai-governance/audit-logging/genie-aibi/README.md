@@ -511,7 +511,7 @@ LEFT JOIN main.genie_analytics.message_details md
 ### Documentation Standards
 
 Follow the repository's documentation standards (see `CLAUDE.md`):
-- Use Mermaid diagrams with accessibility (`accTitle`, `accDescr`)
+- Use Mermaid diagrams (note: `accTitle`/`accDescr` directives are not supported by GitHub's Mermaid renderer and should be omitted for GitHub compatibility)
 - C4 Model for architecture (Context, Container, Component)
 - Sequence diagrams for flows (with edge labels)
 - ASCII diagrams for simple structures (max 20 lines)

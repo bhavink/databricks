@@ -25,8 +25,6 @@ The Genie Observability Dashboard is a **tabbed, persona-driven analytics experi
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
-accTitle: Genie Observability Dashboard Architecture
-accDescr: High-level architecture showing data flow from Genie API through analytics tables to AI/BI dashboard
 
 flowchart TD
     subgraph External["External Systems"]
@@ -91,8 +89,6 @@ The dashboard uses a **star schema** with `message_details` as the fact table:
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
-accTitle: Data Model Star Schema
-accDescr: Star schema showing message_details as fact table with dimensional relationships
 
 flowchart LR
     subgraph Dimensions["Dimension Tables"]
@@ -144,16 +140,14 @@ Understanding what happens between user input and query execution:
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
-accTitle: Genie Message Processing Flow
-accDescr: Sequence diagram showing how user prompts are processed through Genie LLM to SQL execution
 
 sequenceDiagram
     actor User
-    participant Genie["Genie Space"]
-    participant LLM["Genie LLM"]
-    participant Warehouse["SQL Warehouse"]
-    participant MD["message_details"]
-    participant QH["system.query.history"]
+    participant Genie as Genie Space
+    participant LLM as Genie LLM
+    participant Warehouse as SQL Warehouse
+    participant MD as message_details
+    participant QH as system.query.history
 
     User->>+Genie: Natural language question
     Note over User,Genie: Stage 1: User Prompt<br/>(content)
@@ -214,8 +208,6 @@ sequenceDiagram
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
-accTitle: Dashboard Tab Structure
-accDescr: Component diagram showing 8 dashboard tabs organized by persona and function
 
 flowchart TD
     subgraph Global["Global Controls"]
