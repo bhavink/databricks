@@ -82,15 +82,22 @@ databricks account custom-app-integration update '<integration-id>' \
   }'
 ```
 
-| Scope | Required for | Discovered how |
+| Scope | Required for | Status |
 |---|---|---|
-| `dashboards.genie` + `genie` | Genie OBO (Tab 1) — `genie` not shown in UI but required on Azure | Phase 1 |
-| `model-serving` | Agent Bricks / Model Serving endpoint OBO (Tab 5) | Phase 4 |
-| `sql` | Statement Execution API — but see gotcha below | Phase 4 |
-| `unity-catalog` | External MCP proxy `/api/2.0/mcp/external/...` — proxy validates USE CONNECTION using this scope | Phase 6 |
-| `all-apis` | Catch-all for other Databricks REST APIs | Phase 1 |
+| `dashboards.genie` + `genie` | Genie OBO (Tab 1) — `genie` not shown in UI but required on Azure | Working |
+| `model-serving` | Agent Bricks / Model Serving endpoint OBO (Tab 5). UI name: `serving.serving-endpoints` | Working |
+| `sql` | Statement Execution API — OBO SQL with `current_user()` = human | Working (UI "User authorization" path only) |
+| `unity-catalog` | External MCP proxy `/api/2.0/mcp/external/...` — proxy validates this scope before checking USE CONNECTION | Working |
+| `all-apis` | Catch-all for other Databricks REST APIs | Working |
 
-> **`sql` gotcha**: Adding `sql` to `user_authorized_scopes` does NOT embed it in the JWT `scope` claim — the platform issues a minimal OIDC token regardless. Use M2M (app SP) for SQL warehouse queries; OBO for Genie/Agent Bricks only.
+> **UI "User authorization" scopes** (Account Console, Public Preview): `sql`, `dashboards.genie`, `files.files`, `serving.serving-endpoints`, `vectorsearch.vector-search-indexes`, `catalog.connections`, `catalog.catalogs:read`, `catalog.schemas:read`, `catalog.tables:read`. The UI name `serving.serving-endpoints` maps to the CLI scope `model-serving`.
+
+> **`sql` scope — two configuration paths**:
+>
+> - **CLI `custom-app-integration update`** sets `user_authorized_scopes` but does NOT set `effective_user_api_scopes`. The proxy-issued JWT still gets minimal OIDC scopes only. This was the original "gotcha."
+> - **UI "User authorization" (Public Preview)** sets both `user_authorized_scopes` AND `effective_user_api_scopes`. After a fresh auth flow, the proxy issues a real OBO JWT with the `sql` scope embedded. `current_user()` returns the human's email, and row filters fire as the user — true OBO SQL.
+>
+> When using OBO SQL via the UI-configured path, you must use `httpx` or `requests` directly with the `X-Forwarded-Access-Token` as the bearer. The Databricks SDK's `WorkspaceClient(token=...)` conflicts with the SP's `DATABRICKS_CLIENT_ID`/`DATABRICKS_CLIENT_SECRET` env vars (`"more than one authorization method configured: oauth and pat"`). M2M via `WorkspaceClient()` remains the simpler path when you don't need per-user row filter enforcement at the SQL layer.
 
 > **`unity-catalog` scope**: The external MCP proxy validates this scope on the calling token before checking USE CONNECTION. Error without it: `403: "Provided OAuth token does not have required scopes: unity-catalog"`. Add to both `scopes` and `user_authorized_scopes` upfront.
 
@@ -105,10 +112,10 @@ The `X-Forwarded-Access-Token` is an **OIDC identity token**, not a full API tok
 | `GET /api/2.0/preview/scim/v2/Me` | Server-side, `iam.current-user:read` ✅ in token | ✅ Yes |
 | Genie Conversation API | Server-side only | ✅ Yes |
 | Agent Bricks / Model Serving | Server-side only | ✅ Yes |
-| Statement Execution API | **JWT `scope` claim must contain `sql`** | ❌ No — `sql` not in token |
+| Statement Execution API | **JWT `scope` claim must contain `sql`** | ❌ No (CLI config) / ✅ Yes (UI "User authorization" config) |
 | External MCP proxy | **JWT `scope` claim must contain `unity-catalog`** | ✅ Yes — IF `unity-catalog` in `user_authorized_scopes` |
 
-Adding `sql` to the OAuth integration's `user_authorized_scopes` does **not** fix Statement Execution — the platform issues a minimal identity token regardless of the integration configuration.
+Adding `sql` via the **CLI** `custom-app-integration update` does **not** fix Statement Execution — the CLI sets `user_authorized_scopes` but not `effective_user_api_scopes`, so the platform still issues a minimal identity token. Configuring "User authorization" scopes via the **Account Console UI** (Public Preview) sets both fields and produces a real OBO JWT with the `sql` scope.
 
 ---
 
@@ -305,6 +312,69 @@ databricks permissions update warehouses <wh-id> --profile <p> \
 
 ---
 
+## UC External MCP Proxy Path
+
+When the MCP server is registered as a UC HTTP Connection, Databricks provides a managed proxy at `/api/2.0/mcp/external/{connection_name}`. This creates a **three-proxy** architecture:
+
+```mermaid
+sequenceDiagram
+    participant B as User Browser
+    participant P1 as Proxy 1<br/>(main app)
+    participant A as app.py<br/>(Streamlit)
+    participant UC as UC External MCP Proxy<br/>(/api/2.0/mcp/external/{conn})
+    participant P2 as Proxy 2<br/>(MCP app)
+    participant M as server/main.py<br/>(FastMCP)
+
+    B->>P1: HTTPS + session cookie
+    P1->>A: X-Forwarded-Access-Token: Token A (user JWT)<br/>X-Forwarded-Email: user@example.com
+    A->>UC: Authorization: Bearer Token A
+    Note over UC: Checks: unity-catalog scope in token<br/>Checks: USE CONNECTION on caller identity
+    UC->>P2: Forwards request + injects x-forwarded-email
+    P2->>M: X-Forwarded-Access-Token: Token B (MCP SP JWT)<br/>X-Forwarded-Email: user@example.com
+```
+
+### How the UC proxy governs access
+
+1. **Scope gate**: The calling token must contain the `unity-catalog` scope. Without it: `403: "Provided OAuth token does not have required scopes: unity-catalog"`.
+2. **USE CONNECTION gate**: The caller's identity must have `USE CONNECTION` on the UC HTTP Connection. This is the governance boundary — revoke it and the call never reaches the MCP server.
+3. **Identity forwarding**: The UC proxy injects `x-forwarded-email` from the caller's token so the MCP server knows who is calling.
+
+### Connection types
+
+| Connection type | Identity at external service | Use case |
+|---|---|---|
+| **Bearer Token** | Stored credential (shared) | MCP server uses a single SP or API key |
+| **OAuth U2M Per User** | Per-user identity at the external service | Each user authenticates as themselves at the external service |
+
+### Key behaviors
+
+- **Connection owner has implicit USE CONNECTION** — this grant cannot be revoked from the owner. Transfer ownership if you need to fully restrict access.
+- **MCP server needs zero scopes for proxied calls** — the UC proxy handles auth; the server just receives the forwarded request with identity headers.
+- **Revoking USE CONNECTION is immediate** — no token refresh needed, the proxy rejects the next call.
+
+---
+
+## Confused Deputy Prevention
+
+When an MCP server's SP has broad grants, it can become a confused deputy — executing queries on behalf of a user who shouldn't have access.
+
+### Principles
+
+1. **Minimum grants for M2M tools only.** The MCP server SP should hold SELECT/MODIFY only on tables it directly queries in its own M2M tools. Don't grant SELECT on tables the server doesn't need just because "it might be useful."
+2. **For UC-proxied external calls, the server is a stateless proxy.** It receives identity via `x-forwarded-email` and USE CONNECTION is the governance layer. The server SP doesn't need grants on the caller's resources.
+3. **USE CONNECTION is the access boundary for external MCP.** Grant or revoke it per user/group. The MCP server itself doesn't decide who gets access.
+4. **Prefer row filters + M2M over broad SELECT.** If the server must query tables with mixed-sensitivity data, use UC row filters keyed on the caller's email (from `X-Forwarded-Email`) rather than granting the SP unrestricted SELECT.
+
+### Anti-patterns
+
+| Anti-pattern | Why it's dangerous | Better approach |
+|---|---|---|
+| Granting SP `SELECT` on all catalog tables | Any MCP tool bug exposes all data | Grant only on tables the SP's tools actually query |
+| Using SP identity for user-facing queries | All queries run as SP, bypassing row filters | Use OBO SQL (UI "User authorization") or filter in WHERE clause using `X-Forwarded-Email` |
+| Hardcoding elevation checks in app code only | Code changes bypass governance | Combine with UC row filters or group-based USE CONNECTION grants |
+
+---
+
 ## Debugging Token Issues
 
 Add a debug tool to the MCP server (remove before production):
@@ -374,28 +444,28 @@ flowchart TD
 
 ```bash
 # 1. Delete
-databricks apps delete authz-showcase --profile adb-wx1
+databricks apps delete <app-name> --profile <workspace-profile>
 
 # 2. Wait for DELETING → gone (poll until 404)
 # 3. Recreate
-databricks apps create authz-showcase \
-  --description "AI Auth Showcase — OBO + M2M + UC Functions" --profile adb-wx1
+databricks apps create <app-name> \
+  --description "AI Auth Showcase — OBO + M2M + UC Functions" --profile <workspace-profile>
 # Record: service_principal_client_id (UUID) and service_principal_id (integer)
 
 # 4. Deploy
-databricks apps deploy authz-showcase \
-  --source-code-path /Workspace/Users/bhavin.kukadia@databricks.com/authz-showcase \
-  --profile adb-wx1
+databricks apps deploy <app-name> \
+  --source-code-path /Workspace/Users/<user>@<domain>/<app-name> \
+  --profile <workspace-profile>
 
 # 5. Get new integration ID
-databricks account custom-app-integration list --profile adb-account | \
+databricks account custom-app-integration list --profile <account-profile> | \
   python3 -c "import sys,json; [print(i['integration_id'],i['name']) \
     for i in json.load(sys.stdin) \
-    if 'authz-showcase' in i.get('name','') and 'mcp' not in i.get('name','')]"
+    if '<app-name>' in i.get('name','') and 'mcp' not in i.get('name','')]"
 
 # 6. Patch scopes on NEW integration (old one is now orphaned — delete it too)
 databricks account custom-app-integration update '<new-integration-id>' \
-  --profile adb-account \
+  --profile <account-profile> \
   --json '{"scopes":["offline_access","email","iam.current-user:read","openid",
     "dashboards.genie","genie","iam.access-control:read","profile",
     "model-serving","sql","all-apis","unity-catalog"],
@@ -406,7 +476,7 @@ databricks account custom-app-integration update '<new-integration-id>' \
 # 8. Add new SP integer ID to authz_showcase_executives group
 # 9. Refresh custmcp token (update APP_SP_NAME in refresh_custmcp_token.py first)
 # 10. Delete old orphaned integration
-databricks account custom-app-integration delete '<old-integration-id>' --profile adb-account
+databricks account custom-app-integration delete '<old-integration-id>' --profile <account-profile>
 ```
 
 See `DEMO-GUIDE.md` for the complete grant commands after rebuild.
@@ -425,11 +495,14 @@ See `DEMO-GUIDE.md` for the complete grant commands after rebuild.
 
 ## Related
 
-- `mcp-server/server/main.py` — reference implementation of all patterns above
+- `mcp-server/server/main.py` — reference implementation of two-proxy + M2M patterns
 - `IMPLEMENTATION-PLAN.md` — phase-by-phase build log
 - `DEMO-GUIDE.md` — full demo walkthrough + troubleshooting + full rebuild procedure
 - `seed/test_harness.py` — headless test of all 6 tab capabilities
 - `seed/demo.py --before` / `--after` — pre-demo setup and post-demo cleanup
+- `09-gap-prover/` — gap-proving MCP server with evidence of platform behavior
 - Fieldkit: `auth/obo-passthrough.md` — OBO patterns across all app types
 - Fieldkit: `mcp/custom-mcp.md` — custom MCP server setup
-- Fieldkit: `mcp/external-mcp.md` — external MCP patterns
+- Fieldkit: `mcp/external-mcp.md` — external MCP + UC proxy patterns
+- Databricks docs: [UC HTTP Connections](https://docs.databricks.com/en/integrations/connections/index.html) — connection types and USE CONNECTION grants
+- Databricks docs: [App OAuth scopes](https://docs.databricks.com/en/dev-tools/databricks-apps/configuration.html) — UI "User authorization" configuration

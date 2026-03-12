@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Authorization for AI Applications — Databricks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --white: #ffffff;
+  --charcoal: #111111;
+  --red: #cc3311;
+  --secondary: #f4f3f0;
+  --light-border: #e0dfdc;
+  --code-bg: #1a1a1a;
+  --code-fg: #e8e8e8;
+  --slide-width: 100vw;
+  --slide-height: 100vh;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  color: var(--charcoal);
+  background: var(--white);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Slide Engine ────────────────────────────────────── */
+.deck {
+  position: relative;
+  width: var(--slide-width);
+  height: var(--slide-height);
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 5vh 8vw;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(40px);
+  transition: opacity 0.45s ease, transform 0.45s ease, visibility 0s 0.45s;
+  overflow-y: auto;
+}
+
+.slide.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition: opacity 0.45s ease, transform 0.45s ease, visibility 0s 0s;
+}
+
+/* ── Typography ──────────────────────────────────────── */
+h1 {
+  font-size: clamp(2rem, 4.5vw, 3.6rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 0.4em;
+  border-bottom: 3px solid var(--red);
+  padding-bottom: 0.25em;
+  display: inline-block;
+}
+
+h1.no-rule { border-bottom: none; padding-bottom: 0; }
+
+h2 {
+  font-size: clamp(1.1rem, 2vw, 1.6rem);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  color: #555;
+  margin-bottom: 1.5em;
+}
+
+h3 {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  font-weight: 600;
+  margin-bottom: 0.6em;
+  color: var(--charcoal);
+}
+
+p, li {
+  font-size: clamp(0.9rem, 1.3vw, 1.15rem);
+  line-height: 1.65;
+  max-width: 52em;
+}
+
+ul, ol { padding-left: 1.4em; margin-bottom: 1em; }
+li { margin-bottom: 0.35em; }
+li::marker { color: var(--red); }
+
+strong { font-weight: 600; }
+em { font-style: italic; color: #555; }
+
+.subtitle {
+  font-size: clamp(0.85rem, 1.1vw, 1rem);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 0.6em;
+}
+
+.big-number {
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+/* ── Title Slide ─────────────────────────────────────── */
+.slide.title-slide {
+  justify-content: flex-end;
+  padding-bottom: 12vh;
+}
+
+.slide.title-slide h1 {
+  font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+  border-bottom: 4px solid var(--red);
+}
+
+.slide.title-slide h2 {
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  margin-bottom: 0.5em;
+}
+
+.tag-row {
+  display: flex;
+  gap: 0.6em;
+  flex-wrap: wrap;
+  margin-top: 1em;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.35em 0.9em;
+  border: 1.5px solid var(--charcoal);
+  color: var(--charcoal);
+}
+
+/* ── Tables ──────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: clamp(0.78rem, 1.1vw, 0.95rem);
+  margin: 1em 0;
+}
+
+th {
+  text-align: left;
+  font-weight: 600;
+  padding: 0.65em 0.8em;
+  border-bottom: 2px solid var(--charcoal);
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.55em 0.8em;
+  border-bottom: 1px solid var(--light-border);
+  vertical-align: top;
+}
+
+tr:last-child td { border-bottom: none; }
+
+th:first-child, td:first-child { padding-left: 0; }
+
+.highlight-row td { background: var(--secondary); }
+
+/* ── Code Blocks ─────────────────────────────────────── */
+code {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85em;
+  background: var(--secondary);
+  padding: 0.15em 0.4em;
+  border-radius: 2px;
+}
+
+pre {
+  background: var(--code-bg);
+  color: var(--code-fg);
+  padding: 1.2em 1.4em;
+  margin: 1em 0;
+  overflow-x: auto;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.7rem, 0.95vw, 0.85rem);
+  line-height: 1.55;
+  border-left: 3px solid var(--red);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* Syntax highlighting */
+.kw { color: #ff6b6b; }          /* keyword */
+.fn { color: #69db7c; }          /* function */
+.str { color: #ffd43b; }         /* string */
+.cm { color: #868e96; }          /* comment */
+.op { color: #da77f2; }          /* operator */
+.var { color: #74c0fc; }         /* variable */
+.num { color: #ff922b; }         /* number */
+
+/* ── Diagrams (CSS boxes + arrows) ───────────────────── */
+.diagram {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 1.5em 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.diagram-vertical {
+  flex-direction: column;
+}
+
+.box {
+  border: 1.5px solid var(--charcoal);
+  padding: 0.6em 1em;
+  font-size: clamp(0.72rem, 1vw, 0.85rem);
+  font-weight: 500;
+  text-align: center;
+  min-width: 8em;
+  background: var(--white);
+  position: relative;
+}
+
+.box.accent {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.box.filled {
+  background: var(--charcoal);
+  color: var(--white);
+}
+
+.box.filled-red {
+  background: var(--red);
+  color: var(--white);
+  border-color: var(--red);
+}
+
+.box.muted {
+  background: var(--secondary);
+  border-color: var(--light-border);
+}
+
+.arrow {
+  font-size: 1.2rem;
+  color: var(--charcoal);
+  padding: 0 0.3em;
+  flex-shrink: 0;
+}
+
+.arrow-down {
+  font-size: 1.2rem;
+  color: var(--charcoal);
+  padding: 0.2em 0;
+}
+
+.arrow-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  text-align: center;
+}
+
+/* ── Grid Layouts ────────────────────────────────────── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+  margin-top: 1em;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5em;
+  margin-top: 1em;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2em;
+  margin-top: 1em;
+}
+
+.card {
+  border: 1px solid var(--light-border);
+  padding: 1.2em;
+}
+
+.card h3 {
+  font-size: 0.9rem;
+  border-bottom: 2px solid var(--red);
+  padding-bottom: 0.3em;
+  margin-bottom: 0.6em;
+}
+
+/* ── Checklist ───────────────────────────────────────── */
+.checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.checklist li {
+  padding-left: 1.6em;
+  position: relative;
+  margin-bottom: 0.5em;
+}
+
+.checklist li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.35em;
+  width: 0.7em;
+  height: 0.7em;
+  border: 1.5px solid var(--red);
+}
+
+.checklist li.checked::before {
+  background: var(--red);
+}
+
+/* ── Decision Tree ───────────────────────────────────── */
+.decision {
+  display: flex;
+  align-items: flex-start;
+  gap: 1em;
+  margin: 0.6em 0;
+  padding: 0.7em 1em;
+  border-left: 3px solid var(--light-border);
+}
+
+.decision.yes { border-left-color: #2b8a3e; }
+.decision.no { border-left-color: var(--red); }
+
+.decision-label {
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  min-width: 3em;
+}
+
+.decision.yes .decision-label { color: #2b8a3e; }
+.decision.no .decision-label { color: var(--red); }
+
+/* ── Service Map Badges ──────────────────────────────── */
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2em 0.5em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge.obo { background: #d3f9d8; color: #2b8a3e; }
+.badge.m2m { background: #fff3bf; color: #e67700; }
+.badge.proxy { background: #d0ebff; color: #1864ab; }
+.badge.uc { background: #f3d9fa; color: #862e9c; }
+
+/* ── Gap Status ──────────────────────────────────────── */
+.status {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15em 0.5em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status.solved { background: #d3f9d8; color: #2b8a3e; }
+.status.open { background: #fff3bf; color: #e67700; }
+.status.resolved { background: #d0ebff; color: #1864ab; }
+
+/* ── Navigation / Counter ────────────────────────────── */
+.nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6em 2em;
+  background: var(--white);
+  border-top: 1px solid var(--light-border);
+  z-index: 100;
+  font-size: 0.75rem;
+}
+
+.slide-counter {
+  font-weight: 600;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.06em;
+}
+
+.progress-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--red);
+  transition: width 0.4s ease;
+  z-index: 101;
+}
+
+.nav-hint {
+  color: #999;
+  font-size: 0.7rem;
+}
+
+/* ── Print ───────────────────────────────────────────── */
+@media print {
+  body { overflow: visible; }
+  .deck { position: static; width: auto; height: auto; }
+  .slide {
+    position: static !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    page-break-after: always;
+    min-height: 100vh;
+    padding: 2cm;
+  }
+  .nav-bar, .progress-bar { display: none; }
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .slide { padding: 4vh 5vw; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .diagram { flex-direction: column; }
+  .arrow { transform: rotate(90deg); }
+  table { font-size: 0.75rem; }
+}
+
+/* ── Utility ─────────────────────────────────────────── */
+.mt-1 { margin-top: 0.5em; }
+.mt-2 { margin-top: 1em; }
+.mt-3 { margin-top: 1.5em; }
+.mb-1 { margin-bottom: 0.5em; }
+.small { font-size: 0.8em; color: #777; }
+.red { color: var(--red); }
+.mono { font-family: 'Space Mono', monospace; }
+.center { text-align: center; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+
+.separator {
+  width: 3em;
+  height: 3px;
+  background: var(--red);
+  margin: 1em 0;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5em;
+  margin-top: 1em;
+}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 1 ═══ -->
+<div class="slide title-slide active" data-slide="1">
+  <div class="subtitle">Databricks Field Engineering</div>
+  <h1>Authorization for<br>AI Applications</h1>
+  <h2>Patterns, Architecture &amp; Governance on Databricks</h2>
+  <div class="tag-row">
+    <span class="tag">Databricks Apps</span>
+    <span class="tag">Unity Catalog</span>
+    <span class="tag">MCP</span>
+    <span class="tag">OAuth</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 2 ═══ -->
+<div class="slide" data-slide="2">
+  <h1>The Problem</h1>
+  <h2>AI applications combine services that were never designed to share a single identity model</h2>
+
+  <div class="grid-2">
+    <div>
+      <h3>Multiple Services, Multiple Identities</h3>
+      <ul>
+        <li><strong>Genie</strong> uses on-behalf-of (OBO) tokens</li>
+        <li><strong>Vector Search</strong> uses machine-to-machine (M2M)</li>
+        <li><strong>Custom MCP Servers</strong> use proxy identity</li>
+        <li><strong>External APIs</strong> use connections</li>
+      </ul>
+    </div>
+    <div>
+      <h3>The Challenges</h3>
+      <ul>
+        <li><strong>Audit trail:</strong> Who accessed what data, and when?</li>
+        <li><strong>Confused deputy:</strong> A service principal with broad permissions acting on an unauthenticated request</li>
+        <li><strong>Least privilege:</strong> How do you scope access when each service has different mechanisms?</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mt-3 small">Each service was built independently. Your AI application stitches them together. Authorization must be intentional, not accidental.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 3 ═══ -->
+<div class="slide" data-slide="3">
+  <h1>Three Identity Models</h1>
+  <h2>Every Databricks AI application uses one or more of these patterns</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Who Executes</th>
+        <th>UC Sees</th>
+        <th>Audit As</th>
+        <th>Use When</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="highlight-row">
+        <td><strong>True OBO</strong></td>
+        <td>User's token</td>
+        <td>Human identity</td>
+        <td>Human email</td>
+        <td>User-specific data access, row/column security</td>
+      </tr>
+      <tr>
+        <td><strong>Proxy + M2M</strong></td>
+        <td>Service principal</td>
+        <td>SP identity + proxy header</td>
+        <td>SP (email in app log)</td>
+        <td>Most Databricks Apps today</td>
+      </tr>
+      <tr>
+        <td><strong>Pure M2M</strong></td>
+        <td>Service principal</td>
+        <td>SP identity only</td>
+        <td>SP</td>
+        <td>System operations, no user context</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="mt-2">
+    <p><strong>Key insight:</strong> Only True OBO preserves the full chain of custody from UI click to data access. The others require application-level logging to close the audit gap.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 4 ═══ -->
+<div class="slide" data-slide="4">
+  <h1>The Proxy Architecture</h1>
+  <h2>Every Databricks App gets an automatic reverse proxy — no configuration needed</h2>
+
+  <div class="diagram mt-2">
+    <div class="box">Browser</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box filled-red">Databricks<br>Reverse Proxy</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box accent">Your App<br><span class="small">(app.py)</span></div>
+  </div>
+
+  <div class="mt-2">
+    <h3>What the Proxy Does</h3>
+    <div class="grid-3 mt-1">
+      <div class="card">
+        <h3>Authenticates</h3>
+        <p>Validates the user's session against Databricks IAM</p>
+      </div>
+      <div class="card">
+        <h3>Strips &amp; Injects</h3>
+        <p>Removes original auth headers. Injects <code>X-Forwarded-Email</code> and <code>X-Forwarded-User</code></p>
+      </div>
+      <div class="card">
+        <h3>Issues Token</h3>
+        <p>Your app receives the SP's M2M token — or the user's OBO token if User Authorization is configured</p>
+      </div>
+    </div>
+  </div>
+
+  <pre><code><span class="cm"># Headers your app.py receives:</span>
+<span class="var">X-Forwarded-Email</span>: jane.doe@company.com
+<span class="var">X-Forwarded-User</span>: jane.doe
+<span class="var">X-Forwarded-Access-Token</span>: eyJ...  <span class="cm"># SP token (or OBO if authorized)</span></code></pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 5 ═══ -->
+<div class="slide" data-slide="5">
+  <h1>Two-Proxy Architecture</h1>
+  <h2>Streamlit App calls a Custom MCP Server — both are Databricks Apps</h2>
+
+  <div class="diagram mt-2">
+    <div class="box">Browser</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box filled-red">Proxy 1</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box accent">Streamlit<br>App</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box filled-red">Proxy 2</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box accent">MCP<br>Server</div>
+  </div>
+
+  <div class="two-col mt-2">
+    <div>
+      <h3>How Identity Flows</h3>
+      <ol>
+        <li>Proxy 1 authenticates user, injects <code>X-Forwarded-Email</code></li>
+        <li>Streamlit reads user identity, forwards token to MCP server</li>
+        <li>MCP server receives <code>X-Forwarded-Email</code> from Proxy 2</li>
+        <li>Identity preserved across both hops</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Critical Configuration</h3>
+      <pre><code><span class="cm"># MCP Server app.yaml</span>
+<span class="var">command</span>:
+  - <span class="str">"uvicorn"</span>
+  - <span class="str">"server:app"</span>
+<span class="var">authorization</span>: <span class="str">"disabled"</span>
+<span class="cm"># ↑ Allows the forwarded token
+#   to pass through Proxy 2</span></code></pre>
+    </div>
+  </div>
+
+  <p class="mt-1 small"><strong>Note:</strong> Setting <code>authorization: disabled</code> means Proxy 2 does not issue its own token — the Streamlit app's forwarded token is preserved.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 6 ═══ -->
+<div class="slide" data-slide="6">
+  <h1>Three-Proxy Architecture</h1>
+  <h2>Unity Catalog External MCP adds a governance layer between caller and server</h2>
+
+  <div class="diagram mt-2">
+    <div class="box">Browser</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box filled-red">Proxy 1</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box accent">Streamlit</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box filled" style="background:#862e9c;border-color:#862e9c;">UC MCP<br>Proxy</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box filled-red">Proxy 3</div>
+    <span class="arrow">&#8594;</span>
+    <div class="box accent">MCP<br>Server</div>
+  </div>
+
+  <div class="two-col mt-2">
+    <div>
+      <h3>What UC Adds</h3>
+      <ul>
+        <li>Checks <code>USE CONNECTION</code> permission before forwarding</li>
+        <li>Governance at the <strong>platform layer</strong>, not the app layer</li>
+        <li><code>GRANT</code> / <code>REVOKE</code> instantly controls access</li>
+        <li>Connection owner has implicit <code>USE CONNECTION</code></li>
+      </ul>
+    </div>
+    <div>
+      <h3>The Key Principle</h3>
+      <p>The MCP server itself needs <strong>zero data permissions</strong> for proxied calls. UC validates the caller's right to connect — the server's tools handle execution with their own credentials.</p>
+      <div class="separator"></div>
+      <p class="small">This is how you prevent the confused deputy: the platform gates access before the request ever reaches your code.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 7 ═══ -->
+<div class="slide" data-slide="7">
+  <h1>OBO vs M2M Decision Matrix</h1>
+  <h2>Choose the right identity model for each operation</h2>
+
+  <div class="mt-1">
+    <div class="decision yes">
+      <span class="decision-label">OBO</span>
+      <div>
+        <strong>User sees their own data</strong> — row-level security, column masking, personal dashboards<br>
+        <span class="small">Requires User Authorization with <code>sql</code> scope. <code>current_user()</code> returns human email.</span>
+      </div>
+    </div>
+
+    <div class="decision no">
+      <span class="decision-label">M2M</span>
+      <div>
+        <strong>Everyone sees the same data</strong> — shared dashboards, aggregated metrics, system catalogs<br>
+        <span class="small">Service principal executes. Supplement with application-level audit logging.</span>
+      </div>
+    </div>
+
+    <div class="decision yes">
+      <span class="decision-label">OBO</span>
+      <div>
+        <strong>Need SQL as the user</strong> — queries must fire row filters and column masks as the human identity<br>
+        <span class="small">Requires UI-based User Authorization (not CLI) to get the <code>sql</code> scope in the JWT.</span>
+      </div>
+    </div>
+
+    <div class="decision no">
+      <span class="decision-label">M2M</span>
+      <div>
+        <strong>System-level operations</strong> — workspace administration, job scheduling, infrastructure management<br>
+        <span class="small">No user context needed. SP credentials are appropriate.</span>
+      </div>
+    </div>
+
+    <div class="decision yes">
+      <span class="decision-label">Hybrid</span>
+      <div>
+        <strong>Mixed workloads</strong> — OBO for data queries, M2M for system calls, fallback when OBO scope is missing<br>
+        <span class="small">Separate your MCP tools into OBO and M2M categories. Fall back gracefully.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 8 ═══ -->
+<div class="slide" data-slide="8">
+  <h1>User Authorization</h1>
+  <h2>The mechanism that produces real OBO tokens for Databricks Apps</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>UI vs CLI — A Critical Distinction</h3>
+      <table>
+        <thead>
+          <tr><th></th><th>UI</th><th>CLI</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>user_authorized_scopes</code></td>
+            <td>&#10003;</td>
+            <td>&#10003;</td>
+          </tr>
+          <tr>
+            <td><code>effective_user_api_scopes</code></td>
+            <td>&#10003;</td>
+            <td>&#10007;</td>
+          </tr>
+          <tr>
+            <td>Real OBO JWT</td>
+            <td>&#10003;</td>
+            <td>&#10007;</td>
+          </tr>
+          <tr>
+            <td>OBO SQL works</td>
+            <td>&#10003;</td>
+            <td>&#10007;</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="mt-2 small"><strong>Takeaway:</strong> Always use the UI to configure User Authorization. CLI sets the field but does not produce effective scopes.</p>
+    </div>
+
+    <div>
+      <h3>What Happens with OBO SQL</h3>
+      <pre><code><span class="cm">-- With OBO + sql scope:</span>
+<span class="kw">SELECT</span> current_user()
+<span class="cm">-- → jane.doe@company.com</span>
+
+<span class="cm">-- Row filters fire as Jane</span>
+<span class="cm">-- Column masks apply to Jane</span>
+<span class="cm">-- Audit log records Jane</span></code></pre>
+
+      <div class="mt-2">
+        <h3>Available Scopes</h3>
+        <ul>
+          <li><code>sql</code> — Execute SQL as user</li>
+          <li><code>dashboards.genie</code> — Genie conversations</li>
+          <li><code>serving.serving-endpoints</code> — Model serving</li>
+          <li><code>unity-catalog</code> — UC API access</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 9 ═══ -->
+<div class="slide" data-slide="9">
+  <h1>OAuth Scopes Reference</h1>
+  <h2>Scopes control what actions an OBO token can perform</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Scope</th>
+        <th>Enables</th>
+        <th>Required For</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="highlight-row">
+        <td><code>sql</code></td>
+        <td>Execute SQL statements as the authenticated user</td>
+        <td>OBO queries, row filters, column masks, <code>current_user()</code></td>
+      </tr>
+      <tr>
+        <td><code>dashboards.genie</code></td>
+        <td>Interact with Genie conversations</td>
+        <td>Genie API calls on behalf of user</td>
+      </tr>
+      <tr>
+        <td><code>serving.serving-endpoints</code></td>
+        <td>Query model serving endpoints</td>
+        <td>Calling foundation models or custom endpoints as user</td>
+      </tr>
+      <tr>
+        <td><code>catalog.connections</code></td>
+        <td>Manage UC connections</td>
+        <td>Creating or modifying connections via user token</td>
+      </tr>
+      <tr>
+        <td><code>unity-catalog</code></td>
+        <td>Access Unity Catalog APIs</td>
+        <td>Browsing catalogs, schemas, tables as user</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="mt-2">
+    <p><strong>Principle of least privilege:</strong> Request only the scopes your application actually needs. Each scope is an additional surface area for the token.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 10 ═══ -->
+<div class="slide" data-slide="10">
+  <h1>Custom MCP Server Patterns</h1>
+  <h2>Organizing tools by identity model within a single server</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>OBO Tools</h3>
+      <ul>
+        <li>Use the forwarded user token for data queries</li>
+        <li>Read <code>X-Forwarded-Email</code> for identity</li>
+        <li><code>current_user()</code> returns human email</li>
+        <li>Row filters and column masks fire as user</li>
+      </ul>
+      <pre><code><span class="cm"># OBO tool pattern</span>
+<span class="var">token</span> = request.headers[
+  <span class="str">"X-Forwarded-Access-Token"</span>
+]
+<span class="var">result</span> = execute_sql(token, query)</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>M2M Tools</h3>
+      <ul>
+        <li>Use SP credentials for system operations</li>
+        <li>Log caller identity from proxy headers</li>
+        <li>Appropriate for workspace-level operations</li>
+        <li>Supplement with application audit logging</li>
+      </ul>
+      <pre><code><span class="cm"># M2M tool pattern</span>
+<span class="var">sp_client</span> = WorkspaceClient()
+<span class="var">caller</span> = request.headers[
+  <span class="str">"X-Forwarded-Email"</span>
+]
+log_access(caller, action)</code></pre>
+    </div>
+  </div>
+
+  <div class="mt-2">
+    <h3>Hybrid Pattern</h3>
+    <p>Try OBO first. If the token lacks the required scope, fall back to M2M with enhanced audit logging. Use <code>ContextVar</code> propagation in pure ASGI middleware to thread identity through async handlers.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 11 ═══ -->
+<div class="slide" data-slide="11">
+  <h1>UC Connection Governance</h1>
+  <h2><code>USE CONNECTION</code> is the on/off switch for external service access</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>How It Works</h3>
+      <div class="diagram diagram-vertical mt-1">
+        <div class="box">User calls MCP tool</div>
+        <span class="arrow-down">&#8595;</span>
+        <div class="box filled" style="background:#862e9c;border-color:#862e9c;">UC checks<br>USE CONNECTION</div>
+        <span class="arrow-down">&#8595;</span>
+        <div style="display:flex;gap:1em;justify-content:center;">
+          <div>
+            <div class="arrow-label">Granted</div>
+            <div class="arrow-down" style="color:#2b8a3e;">&#8595;</div>
+            <div class="box" style="border-color:#2b8a3e;">Request<br>Forwarded</div>
+          </div>
+          <div>
+            <div class="arrow-label">Denied</div>
+            <div class="arrow-down" style="color:var(--red);">&#8595;</div>
+            <div class="box" style="border-color:var(--red);">Request<br>Blocked</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3>Four Auth Methods, One Governance Model</h3>
+      <table>
+        <tbody>
+          <tr><td><strong>PAT</strong></td><td>Personal Access Token stored in connection</td></tr>
+          <tr><td><strong>OAuth App</strong></td><td>Client credentials flow</td></tr>
+          <tr><td><strong>Service Principal</strong></td><td>SP token for the target service</td></tr>
+          <tr><td><strong>Custom</strong></td><td>Bearer token or API key</td></tr>
+        </tbody>
+      </table>
+
+      <div class="mt-2">
+        <h3>Key Properties</h3>
+        <ul>
+          <li><code>GRANT USE CONNECTION</code> — instant access</li>
+          <li><code>REVOKE USE CONNECTION</code> — instant cutoff</li>
+          <li>Connection owner has implicit permission</li>
+          <li>MCP server needs <strong>zero data permissions</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 12 ═══ -->
+<div class="slide" data-slide="12">
+  <h1>Preventing the Confused Deputy</h1>
+  <h2>When a privileged service blindly executes requests from untrusted callers</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>The Risk</h3>
+      <div class="diagram diagram-vertical mt-1">
+        <div class="box filled-red">MCP Server SP<br><span class="small" style="color:#fdd;">has broad data access</span></div>
+        <span class="arrow-down">&#8595;</span>
+        <div class="box" style="border-color:var(--red);">Receives external call<br><span class="small">No identity verification</span></div>
+        <span class="arrow-down">&#8595;</span>
+        <div class="box" style="border-color:var(--red);">Executes with SP privileges<br><span class="small">Caller gets data they shouldn't</span></div>
+      </div>
+    </div>
+
+    <div>
+      <h3>The Defense</h3>
+      <div class="diagram diagram-vertical mt-1">
+        <div class="box">External Caller</div>
+        <span class="arrow-down">&#8595;</span>
+        <div class="box filled" style="background:#862e9c;border-color:#862e9c;">UC: USE CONNECTION<br><span class="small" style="color:#f0d0ff;">gates access before request</span></div>
+        <span class="arrow-down">&#8595;</span>
+        <div class="box" style="border-color:#2b8a3e;">MCP Server<br><span class="small">executes only for authorized callers</span></div>
+      </div>
+
+      <div class="mt-2">
+        <h3>Principles</h3>
+        <ul>
+          <li>Minimal SP grants — only what tools require</li>
+          <li>UC as the governance layer, not app code</li>
+          <li>Separate what tools need vs what callers access</li>
+          <li>Validate <code>X-Forwarded-Email</code> in every request</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 13 ═══ -->
+<div class="slide" data-slide="13">
+  <h1>Audit Trail Architecture</h1>
+  <h2>Two layers of audit — platform and application — with a gap between them</h2>
+
+  <div class="grid-3">
+    <div class="card">
+      <h3>Platform Audit</h3>
+      <p><code>system.access.audit</code></p>
+      <ul>
+        <li>Automatic for all OBO operations</li>
+        <li>Records human email, action, timestamp</li>
+        <li>UC-level granularity</li>
+        <li>No code changes needed</li>
+      </ul>
+      <div class="badge obo mt-1">OBO Native</div>
+    </div>
+
+    <div class="card">
+      <h3>Application Audit</h3>
+      <p>Custom logging in your app</p>
+      <ul>
+        <li>Required for M2M paths</li>
+        <li>Log <code>X-Forwarded-Email</code> + action</li>
+        <li>Write to a Delta table or external system</li>
+        <li>Correlate with MLflow trace IDs</li>
+      </ul>
+      <div class="badge m2m mt-1">M2M Required</div>
+    </div>
+
+    <div class="card">
+      <h3>The Gap</h3>
+      <p>Platform + Application join</p>
+      <ul>
+        <li>No native join key between <code>system.access.audit</code> and MLflow traces</li>
+        <li>Workaround: embed <code>trace_id</code> in SQL comments</li>
+        <li>OBO SQL solves M2M audit gap directly</li>
+      </ul>
+      <div class="badge proxy mt-1">Manual Correlation</div>
+    </div>
+  </div>
+
+  <div class="mt-2">
+    <p><strong>Strategy:</strong> Use OBO SQL where possible to get automatic platform audit. For M2M paths, build application-level logging and embed correlation IDs for manual joins.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 14 ═══ -->
+<div class="slide" data-slide="14">
+  <h1>Service Identity Map</h1>
+  <h2>Which identity model does each service use?</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Identity Model</th>
+        <th>UC Audit As</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Genie</strong></td>
+        <td><span class="badge obo">OBO</span></td>
+        <td>Human email</td>
+        <td>Native OBO — row filters fire as user</td>
+      </tr>
+      <tr>
+        <td><strong>Vector Search</strong></td>
+        <td><span class="badge m2m">M2M</span></td>
+        <td>Service principal</td>
+        <td>SP executes queries against the index</td>
+      </tr>
+      <tr>
+        <td><strong>UC Functions</strong></td>
+        <td><span class="badge m2m">M2M</span></td>
+        <td>Service principal</td>
+        <td>Can be OBO if called via Genie</td>
+      </tr>
+      <tr>
+        <td><strong>Custom MCP</strong></td>
+        <td><span class="badge proxy">Proxy</span> <span class="badge m2m">M2M</span></td>
+        <td>SP + proxy header</td>
+        <td>OBO possible with User Authorization</td>
+      </tr>
+      <tr>
+        <td><strong>AI Agent (Bricks)</strong></td>
+        <td><span class="badge obo">OBO</span></td>
+        <td>Human email</td>
+        <td>Agent framework preserves user identity</td>
+      </tr>
+      <tr>
+        <td><strong>External MCP</strong></td>
+        <td><span class="badge uc">UC Governed</span></td>
+        <td>Depends on auth method</td>
+        <td><code>USE CONNECTION</code> governs access</td>
+      </tr>
+      <tr>
+        <td><strong>Model Serving</strong></td>
+        <td><span class="badge m2m">M2M</span></td>
+        <td>Service principal</td>
+        <td>OBO possible with <code>serving</code> scope</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 15 ═══ -->
+<div class="slide" data-slide="15">
+  <h1>Best Practices</h1>
+  <h2>A checklist for building well-governed AI applications</h2>
+
+  <div class="two-col">
+    <div>
+      <h3>Identity &amp; Access</h3>
+      <ul class="checklist">
+        <li class="checked">Use OBO where possible — it preserves human identity through the full stack</li>
+        <li class="checked">Minimize SP grants — principle of least privilege for service principals</li>
+        <li class="checked">Use <strong>UI-based</strong> User Authorization for configuring OAuth scopes</li>
+        <li class="checked">Validate <code>X-Forwarded-Email</code> in every request handler</li>
+        <li class="checked">Separate OBO tools from M2M tools in your MCP server</li>
+      </ul>
+    </div>
+
+    <div>
+      <h3>Governance &amp; Audit</h3>
+      <ul class="checklist">
+        <li class="checked">Use <code>USE CONNECTION</code> for external service governance</li>
+        <li class="checked">Build application-level audit logging for M2M paths</li>
+        <li class="checked">Embed trace IDs in SQL comments for correlation</li>
+        <li class="checked">Use UC as the governance layer — not application code</li>
+        <li class="checked">Review <code>system.access.audit</code> regularly for anomalies</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 16 ═══ -->
+<div class="slide" data-slide="16">
+  <h1>Known Gaps &amp; Workarounds</h1>
+  <h2>Honest assessment of current limitations and practical solutions</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Gap</th>
+        <th>Status</th>
+        <th>Workaround</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><strong>M2M audit trail</strong> — SP operations don't record human identity in platform audit</td>
+        <td><span class="status solved">Solvable</span></td>
+        <td>Use OBO SQL with <code>sql</code> scope; <code>current_user()</code> returns human email, platform audit records it</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>MLflow-UC join</strong> — No native correlation between MLflow traces and <code>system.access.audit</code></td>
+        <td><span class="status open">Open</span></td>
+        <td>Embed <code>trace_id</code> in SQL comments; manual join on timestamp + identity</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>sql scope via CLI</strong> — CLI sets <code>user_authorized_scopes</code> but doesn't produce effective scopes</td>
+        <td><span class="status resolved">Resolved</span></td>
+        <td>Use UI-based User Authorization; CLI behavior is documented</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>is_member() in Genie OBO</strong> — Group membership function behaves differently in Genie context</td>
+        <td><span class="status open">Genie-specific</span></td>
+        <td>Use explicit <code>WHERE</code> clauses with <code>current_user()</code> instead of <code>is_member()</code></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><strong>authorization:disabled dual use</strong> — Can't serve both proxied and direct traffic on same app</td>
+        <td><span class="status open">Open</span></td>
+        <td>Deploy two app instances, or implement fallback logic in middleware</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 17 ═══ -->
+<div class="slide" data-slide="17">
+  <h1>Full Architecture</h1>
+  <h2>Authorization patterns across all application tiers</h2>
+
+  <div style="display:flex;flex-direction:column;gap:1em;align-items:center;margin-top:0.5em;">
+
+    <!-- Row 1: User entry -->
+    <div class="diagram">
+      <div class="box filled">User<br>(Browser)</div>
+    </div>
+
+    <div style="font-size:0.7rem;color:#999;text-align:center;">&#8595; &nbsp; HTTPS &nbsp; &#8595;</div>
+
+    <!-- Row 2: Proxy layer -->
+    <div class="diagram">
+      <div class="box filled-red">Databricks Reverse Proxy<br><span class="small" style="color:#fdd;">Authentication &middot; X-Forwarded-* injection &middot; Token issuance</span></div>
+    </div>
+
+    <div style="font-size:0.7rem;color:#999;text-align:center;">&#8595; &nbsp; OBO or M2M token &nbsp; &#8595;</div>
+
+    <!-- Row 3: Application layer -->
+    <div class="diagram" style="gap:1em;">
+      <div class="box accent" style="min-width:12em;">
+        <strong>Streamlit App</strong><br>
+        <span class="small">Tab 1: Genie OBO</span><br>
+        <span class="small">Tab 2: Vector Search M2M</span><br>
+        <span class="small">Tab 3: UC Functions</span><br>
+        <span class="small">Tab 4-7: MCP Tools</span>
+      </div>
+
+      <span class="arrow">&#8594;</span>
+
+      <div style="display:flex;flex-direction:column;gap:0.6em;">
+        <div class="box" style="border-color:#862e9c;">
+          <strong>UC External MCP</strong><br>
+          <span class="small">USE CONNECTION governance</span>
+        </div>
+        <div class="box accent">
+          <strong>Custom MCP Server</strong><br>
+          <span class="small">OBO + M2M tools</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:0.7rem;color:#999;text-align:center;">&#8595; &nbsp; Queries &amp; API calls &nbsp; &#8595;</div>
+
+    <!-- Row 4: Data layer -->
+    <div class="diagram" style="gap:0.8em;">
+      <div class="box muted">Unity<br>Catalog</div>
+      <div class="box muted">SQL<br>Warehouse</div>
+      <div class="box muted">Vector<br>Search</div>
+      <div class="box muted">Model<br>Serving</div>
+      <div class="box muted">Genie</div>
+      <div class="box muted">External<br>APIs</div>
+    </div>
+
+    <!-- Legend -->
+    <div style="display:flex;gap:1.5em;margin-top:0.5em;font-size:0.7rem;">
+      <span><span class="badge obo">OBO</span> Full user identity</span>
+      <span><span class="badge m2m">M2M</span> Service principal</span>
+      <span><span class="badge proxy">Proxy</span> Header-based identity</span>
+      <span><span class="badge uc">UC</span> Connection governance</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SLIDE 18 ═══ -->
+<div class="slide" data-slide="18">
+  <div class="subtitle">Summary</div>
+  <h1 class="no-rule">Unity Catalog holds the key<br>to the kingdom.</h1>
+  <div class="separator" style="width:5em;"></div>
+
+  <div class="grid-3 mt-2">
+    <div>
+      <h3>Identity</h3>
+      <p>Use OBO to preserve human identity. Use M2M only when user context is irrelevant. Never mix them accidentally.</p>
+    </div>
+    <div>
+      <h3>Governance</h3>
+      <p>UC connections, <code>USE CONNECTION</code> grants, and minimal SP privileges. Platform-level governance, not app-level.</p>
+    </div>
+    <div>
+      <h3>Audit</h3>
+      <p>OBO gives you free platform audit. M2M requires application logging. Correlate with trace IDs.</p>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <h3>Resources</h3>
+    <ul>
+      <li><a href="docs.html" style="color:var(--red);">Architecture Documentation</a></li>
+      <li>Demo: AuthZ Showcase Application (7-tab Streamlit app)</li>
+      <li>Evidence: Gap Prover MCP Server (automated gap validation)</li>
+      <li>Explorer: Identity Explorer (16-service identity map)</li>
+    </ul>
+  </div>
+
+  <div class="mt-3 small">
+    Databricks Field Engineering &middot; Authorization Patterns for AI Applications
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- ── Navigation Bar ────────────────────────────────── -->
+<div class="nav-bar">
+  <span class="nav-hint">&#8592; &#8594; or Space to navigate</span>
+  <span class="slide-counter" id="counter">01 / 18</span>
+</div>
+<div class="progress-bar" id="progress"></div>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const total = slides.length;
+  let current = 0;
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function go(index) {
+    if (index < 0 || index >= total) return;
+    slides[current].classList.remove('active');
+    current = index;
+    slides[current].classList.add('active');
+    counter.textContent = pad(current + 1) + ' / ' + pad(total);
+    progress.style.width = ((current + 1) / total * 100) + '%';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      go(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      go(current - 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      go(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      go(total - 1);
+    }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+  document.addEventListener('touchend', function(e) {
+    const diff = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(diff) > 50) {
+      if (diff < 0) go(current + 1);
+      else go(current - 1);
+    }
+  });
+
+  // Click navigation (left/right halves)
+  document.querySelector('.deck').addEventListener('click', function(e) {
+    if (e.target.closest('a, button, code, pre')) return;
+    const x = e.clientX / window.innerWidth;
+    if (x > 0.65) go(current + 1);
+    else if (x < 0.35) go(current - 1);
+  });
+
+  // Initialize
+  go(0);
+})();
+</script>
+</body>
+</html>

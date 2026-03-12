@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Gateway Patterns — Databricks</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           THEME — SWISS MODERN (v2)
+           White bg · charcoal text · Swiss red #cc3311
+           Space Grotesk · 13 slides
+           =========================================== */
+        :root {
+            --bg:           #ffffff;
+            --surface:      #f4f3f0;
+            --surface2:     #eae9e5;
+            --border:       #e0ddd8;
+            --text:         #111111;
+            --muted:        #787878;
+            --accent:       #cc3311;   /* Swiss red */
+            --accent-dim:   rgba(204,51,17,0.07);
+
+            /* Pattern palette */
+            --p1:     #16a34a; --p1-bg: #f0fdf4;
+            --p2:     #1d4ed8; --p2-bg: #eff6ff;
+            --p3:     #b45309; --p3-bg: #fffbeb;
+            --p4:     #dc2626; --p4-bg: #fef2f2;
+
+            /* Type scale */
+            --font:     'Space Grotesk', sans-serif;
+            --sz-title: clamp(2.8rem, 7.5vw, 7rem);
+            --sz-h2:    clamp(1.4rem, 3.5vw, 2.75rem);
+            --sz-h3:    clamp(1rem, 2.2vw, 1.5rem);
+            --sz-body:  clamp(0.72rem, 1.3vw, 0.95rem);
+            --sz-small: clamp(0.62rem, 1.05vw, 0.82rem);
+            --sz-label: clamp(0.52rem, 0.75vw, 0.68rem);
+
+            /* Spacing */
+            --pad:    clamp(1.5rem, 5vw, 5rem);
+            --gap:    clamp(0.75rem, 1.8vw, 1.75rem);
+            --gap-sm: clamp(0.4rem, 0.9vw, 0.9rem);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            height: 100%;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            height: 100%;
+        }
+
+        /* ===========================================
+           SLIDE BASE — exact 100vh, no overflow
+           =========================================== */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            padding: var(--pad);
+            position: relative;
+        }
+
+        .slide-inner {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+        }
+
+        /* Colored left strip on pattern slides */
+        .slide[data-pattern="1"] { border-left: 5px solid var(--p1); }
+        .slide[data-pattern="2"] { border-left: 5px solid var(--p2); }
+        .slide[data-pattern="3"] { border-left: 5px solid var(--p3); }
+        .slide[data-pattern="4"] { border-left: 5px solid var(--p4); }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        .eyebrow {
+            font-size: var(--sz-label);
+            font-weight: 600;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        h1 {
+            font-size: var(--sz-title);
+            font-weight: 700;
+            line-height: 0.93;
+            letter-spacing: -0.03em;
+        }
+
+        h2 {
+            font-size: var(--sz-h2);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        h3 {
+            font-size: var(--sz-h3);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        p, li {
+            font-size: var(--sz-body);
+            line-height: 1.55;
+            color: var(--muted);
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            background: var(--surface);
+            padding: 1px 5px;
+            border-radius: 2px;
+            color: var(--text);
+        }
+
+        /* ===========================================
+           PROGRESS BAR + NAV DOTS
+           =========================================== */
+        #progress {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            background: var(--accent);
+            transition: width 0.35s ease;
+            z-index: 100;
+        }
+
+        #navDots {
+            position: fixed;
+            right: clamp(0.75rem, 1.5vw, 1.5rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            z-index: 100;
+        }
+
+        .dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: var(--border);
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            padding: 0;
+        }
+        .dot.active { background: var(--accent); transform: scale(1.6); }
+
+        .slide-num {
+            position: absolute;
+            bottom: clamp(1rem, 2vw, 2rem);
+            right: var(--pad);
+            font-size: var(--sz-label);
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            color: var(--border);
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.5s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.5s cubic-bezier(0.16,1,0.3,1);
+        }
+        .slide.visible .reveal { opacity: 1; transform: translateY(0); }
+        .reveal:nth-child(1) { transition-delay: 0.04s; }
+        .reveal:nth-child(2) { transition-delay: 0.11s; }
+        .reveal:nth-child(3) { transition-delay: 0.18s; }
+        .reveal:nth-child(4) { transition-delay: 0.25s; }
+        .reveal:nth-child(5) { transition-delay: 0.32s; }
+        .reveal:nth-child(6) { transition-delay: 0.39s; }
+
+        /* ===========================================
+           LAYOUT HELPERS
+           =========================================== */
+        .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+        .cols-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--gap-sm); }
+
+        /* ===========================================
+           SHARED COMPONENTS
+           =========================================== */
+
+        .rule { height: 1px; background: var(--border); margin: var(--gap-sm) 0; }
+
+        /* Swiss accent bar */
+        .bar {
+            height: 4px;
+            width: clamp(2rem, 4vw, 3.5rem);
+            background: var(--accent);
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: clamp(0.7rem, 1.4vw, 1.25rem);
+            border-radius: 2px;
+        }
+        .card.p1 { border-left: 3px solid var(--p1); }
+        .card.p2 { border-left: 3px solid var(--p2); }
+        .card.p3 { border-left: 3px solid var(--p3); }
+        .card.p4 { border-left: 3px solid var(--p4); }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 9px;
+            border-radius: 2px;
+            font-size: var(--sz-label);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .badge.p1 { background: var(--p1-bg); color: var(--p1); }
+        .badge.p2 { background: var(--p2-bg); color: var(--p2); }
+        .badge.p3 { background: var(--p3-bg); color: var(--p3); }
+        .badge.p4 { background: var(--p4-bg); color: var(--p4); }
+
+        /* Callout */
+        .callout {
+            background: var(--surface);
+            border-left: 3px solid var(--accent);
+            padding: clamp(0.5rem,1vw,0.9rem) clamp(0.75rem,1.4vw,1.25rem);
+            font-size: var(--sz-body);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        /* Bullet list — Swiss em-dash style */
+        .blist { list-style: none; display: flex; flex-direction: column; gap: clamp(0.3rem,0.7vw,0.65rem); }
+        .blist li { display: flex; gap: 9px; align-items: flex-start; }
+        .blist li::before { content: '—'; color: var(--accent); font-weight: 700; flex-shrink: 0; margin-top: 0.05em; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            text-align: left;
+            font-size: var(--sz-label);
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom: 2px solid var(--border);
+            padding: clamp(0.35rem,0.7vw,0.7rem) clamp(0.5rem,0.9vw,0.9rem);
+        }
+        td {
+            font-size: var(--sz-small);
+            padding: clamp(0.35rem,0.65vw,0.65rem) clamp(0.5rem,0.9vw,0.9rem);
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+        td:first-child { font-weight: 600; color: var(--text); }
+        tbody tr:hover td { background: var(--surface); }
+
+        /* Pattern overview row */
+        .prow {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: var(--gap);
+            padding: clamp(0.55rem,1vw,0.9rem) 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .prow-icon {
+            width: clamp(2rem,3.5vw,3rem);
+            height: clamp(2rem,3.5vw,3rem);
+            border-radius: 2px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: clamp(0.9rem,1.8vw,1.3rem);
+            flex-shrink: 0;
+        }
+        .prow-title { font-weight: 600; font-size: var(--sz-body); }
+        .prow-desc  { font-size: var(--sz-small); color: var(--muted); margin-top: 2px; }
+
+        /* Step list */
+        .steps { display: flex; flex-direction: column; gap: clamp(0.4rem,0.8vw,0.75rem); }
+        .step  { display: flex; align-items: flex-start; gap: 10px; }
+        .step-n {
+            width: clamp(1.4rem,2.2vw,2rem);
+            height: clamp(1.4rem,2.2vw,2rem);
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: var(--sz-label);
+            font-weight: 700;
+            flex-shrink: 0;
+            color: var(--muted);
+        }
+        .step-n.ok  { background: var(--p1); border-color: var(--p1); color: #fff; }
+        .step-n.err { background: var(--p4-bg); border-color: var(--p4); color: var(--p4); }
+        .step-t { font-size: var(--sz-body); color: var(--text); line-height: 1.4; }
+
+        /* Scenario box */
+        .scenario {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: clamp(0.75rem,1.4vw,1.25rem);
+            border-radius: 2px;
+        }
+        .scenario.broken { border-top: 3px solid var(--p4); }
+        .scenario.ok     { border-top: 3px solid var(--p1); }
+
+        /* Result box */
+        .result {
+            margin-top: var(--gap-sm);
+            padding: clamp(0.4rem,0.8vw,0.75rem) clamp(0.6rem,1.1vw,1rem);
+            border-radius: 2px;
+            font-size: var(--sz-small);
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        .result.bad  { background: var(--p4-bg); color: var(--p4); }
+        .result.good { background: var(--p1-bg); color: var(--p1); }
+
+        /* Proxy flow box */
+        .flow-box {
+            border: 1px solid var(--border);
+            padding: clamp(0.6rem,1.2vw,1.1rem);
+            background: var(--bg);
+            border-radius: 2px;
+        }
+
+        /* Col label */
+        .col-label {
+            font-size: var(--sz-label);
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: var(--gap-sm);
+        }
+
+        /* Title slide dot grid */
+        .dot-grid {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 28px 28px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* ===========================================
+           RESPONSIVE BREAKPOINTS
+           =========================================== */
+        @media (max-height: 700px) {
+            :root { --pad: clamp(1rem,3vw,3rem); --gap: clamp(0.5rem,1.3vw,1.25rem); --gap-sm: clamp(0.3rem,0.7vw,0.7rem); }
+        }
+        @media (max-height: 600px) {
+            :root { --sz-h2: clamp(1.1rem,2.5vw,2rem); --pad: clamp(0.75rem,2.5vw,2rem); }
+            #navDots { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root { --pad: clamp(0.5rem,2vw,1.5rem); }
+            .slide-num { display: none; }
+        }
+        @media (max-width: 768px) { .cols-2, .cols-3 { grid-template-columns: 1fr; } }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal { transition: opacity 0.2s ease; transform: none; }
+            html { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="progress"></div>
+<nav id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- ─── SLIDE 01 — TITLE ─────────────────────────────────── -->
+<section class="slide" id="s1">
+    <div class="dot-grid"></div>
+
+    <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; padding:0; position:relative; z-index:1;">
+        <div class="reveal">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:var(--gap-sm);">
+                <div class="eyebrow">Databricks · AI Governance</div>
+            </div>
+            <div class="rule"></div>
+        </div>
+
+        <div>
+            <div class="bar reveal" style="margin-bottom: var(--gap-sm);"></div>
+            <h1 class="reveal">AI Gateway<br>Patterns</h1>
+            <p class="reveal" style="font-size: var(--sz-h3); color: var(--muted); max-width: 52ch; margin-top: var(--gap); line-height: 1.4;">
+                When to use Databricks AI Gateway, external API gateways,
+                UC Connections — and when to use no gateway at all.
+            </p>
+        </div>
+
+        <div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:var(--gap-sm);" class="reveal">
+                <span class="badge p1">Pattern 1 — No Gateway</span>
+                <span class="badge p2">Pattern 2 — AI Gateway</span>
+                <span class="badge p3">Pattern 3 — UC Connections</span>
+                <span class="badge p4">Pattern 4 — External Gateway</span>
+            </div>
+            <div class="reveal">
+                <span style="font-size: var(--sz-label); color: var(--border);">↑↓ arrow keys or Space to navigate</span>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num">01 / 13</div>
+</section>
+
+<!-- ─── SLIDE 02 — CORE PRINCIPLE ───────────────────────── -->
+<section class="slide" id="s2">
+    <div class="slide-inner">
+        <div class="eyebrow reveal">Core Principle</div>
+        <h2 class="reveal" style="margin: var(--gap-sm) 0;">Two options. Neither replaces the other.<br>Neither is mandatory.</h2>
+        <div class="rule reveal"></div>
+
+        <div class="cols-2 reveal" style="margin-top: var(--gap);">
+            <div class="card p2">
+                <div style="font-size:var(--sz-label); font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--p2); margin-bottom:6px;">Databricks AI Gateway</div>
+                <p>Governs LLM endpoint traffic — rate limits, guardrails, usage tracking, fallback routing. Configured per serving endpoint. UC-aware identity model.</p>
+            </div>
+            <div class="card p4">
+                <div style="font-size:var(--sz-label); font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--p4); margin-bottom:6px;">External API Gateway</div>
+                <p>Manages the boundary between outside callers and Databricks — auth translation, API catalog, per-tenant rate limiting. Customer-managed infrastructure.</p>
+            </div>
+        </div>
+
+        <div class="callout reveal" style="margin-top: var(--gap);">
+            <strong>What neither should govern:</strong> internal Databricks traffic between agents, Genie, custom MCP servers, and serving endpoints. That traffic is governed by Unity Catalog at the data plane — inserting a gateway into that path breaks the OBO token chain.
+        </div>
+    </div>
+    <div class="slide-num">02 / 13</div>
+</section>
+
+<!-- ─── SLIDE 03 — FOUR PATTERNS OVERVIEW ───────────────── -->
+<section class="slide" id="s3">
+    <div class="slide-inner">
+        <div class="eyebrow reveal">Overview</div>
+        <h2 class="reveal" style="margin-bottom: var(--gap);">The Four Traffic Patterns</h2>
+
+        <div class="reveal">
+            <div class="prow">
+                <div class="prow-icon" style="background:var(--p1-bg);">🟢</div>
+                <div>
+                    <div class="prow-title" style="color:var(--p1);">Pattern 1 — Internal Traffic</div>
+                    <div class="prow-desc">Agent ↔ Genie · FM API · Agent Bricks · Vector Search · UC Functions · Custom MCP</div>
+                </div>
+                <span class="badge p1">No Gateway</span>
+            </div>
+            <div class="prow">
+                <div class="prow-icon" style="background:var(--p2-bg);">🔵</div>
+                <div>
+                    <div class="prow-title" style="color:var(--p2);">Pattern 2 — LLM Endpoint Governance</div>
+                    <div class="prow-desc">Rate limits per user/group · Content guardrails · Usage tracking · Fallback routing</div>
+                </div>
+                <span class="badge p2">AI Gateway</span>
+            </div>
+            <div class="prow">
+                <div class="prow-icon" style="background:var(--p3-bg);">🟡</div>
+                <div>
+                    <div class="prow-title" style="color:var(--p3);">Pattern 3 — Outbound External</div>
+                    <div class="prow-desc">Agent calls external APIs · Third-party MCP servers · External LLMs not on FM API</div>
+                </div>
+                <span class="badge p3">UC Connections + SNP</span>
+            </div>
+            <div class="prow">
+                <div class="prow-icon" style="background:var(--p4-bg);">🔴</div>
+                <div>
+                    <div class="prow-title" style="color:var(--p4);">Pattern 4 — Inbound External</div>
+                    <div class="prow-desc">External clients calling Databricks · Enterprise apps · Partners · Customer portals</div>
+                </div>
+                <span class="badge p4">External Gateway</span>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num">03 / 13</div>
+</section>
+
+<!-- ─── SLIDE 04 — PATTERN 1: NO GATEWAY ────────────────── -->
+<section class="slide" id="s4" data-pattern="1">
+    <div class="slide-inner">
+        <div style="display:flex; align-items:center; gap:var(--gap-sm); margin-bottom:var(--gap-sm);" class="reveal">
+            <div class="eyebrow">Pattern 1</div>
+            <span class="badge p1">🟢 No Gateway</span>
+        </div>
+        <h2 class="reveal" style="margin-bottom: var(--gap);">Internal Traffic</h2>
+
+        <div class="cols-2 reveal">
+            <div>
+                <div class="col-label">All Databricks AI Services</div>
+                <ul class="blist">
+                    <li>Genie (NL-to-SQL, AI/BI chatbot)</li>
+                    <li>FM API (Foundation Model API)</li>
+                    <li>Agent Bricks · Knowledge Assistant</li>
+                    <li>Vector Search (RAG retrieval)</li>
+                    <li>UC Functions + DBSQL</li>
+                    <li>Custom MCP Server (on Databricks Apps)</li>
+                </ul>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:var(--gap-sm);">
+                <div class="col-label">Auth Methods</div>
+                <div class="card p2">
+                    <div style="font-weight:600; font-size:var(--sz-body); color:var(--p2); margin-bottom:5px;">OBO — On-Behalf-Of User</div>
+                    <p>User's token flows end-to-end. UC row filters evaluate <code>current_user()</code> — the actual requesting user, not the app SP.</p>
+                </div>
+                <div class="card" style="border-left:3px solid var(--border);">
+                    <div style="font-weight:600; font-size:var(--sz-body); color:var(--muted); margin-bottom:5px;">M2M — Service Principal</div>
+                    <p>App SP identity. For shared resources (vector indexes, knowledge bases) where user-level isolation is not needed.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num">04 / 13</div>
+</section>
+
+<!-- ─── SLIDE 05 — THE OBO TOKEN CHAIN ──────────────────── -->
+<section class="slide" id="s5" data-pattern="1">
+    <div class="slide-inner">
+        <div class="eyebrow reveal">Pattern 1 — Why No Gateway</div>
+        <h2 class="reveal" style="margin-bottom: var(--gap);">A gateway in the OBO path breaks governance</h2>
+
+        <div class="cols-2 reveal">
+            <div class="scenario broken">
+                <div style="font-size:var(--sz-label); font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--p4); margin-bottom:var(--gap-sm);">❌ Gateway intercepts</div>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-n">1</div>
+                        <span class="step-t">App sends user token to gateway</span>
+                    </div>
+                    <div class="step">
+                        <div class="step-n err">2</div>
+                        <span class="step-t"><strong>Gateway re-issues its own token.</strong><br>
+                        <span style="font-size:var(--sz-small); color:var(--muted);">Original user identity is lost.</span></span>
+                    </div>
+                    <div class="step">
+                        <div class="step-n">3</div>
+                        <span class="step-t">Genie calls UC with <em>gateway identity</em></span>
+                    </div>
+                </div>
+                <div class="result bad">current_user() = gateway service<br>Row filters evaluate wrong identity ⚠️</div>
+            </div>
+
+            <div class="scenario ok">
+                <div style="font-size:var(--sz-label); font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--p1); margin-bottom:var(--gap-sm);">✅ Direct OBO</div>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-n ok">1</div>
+                        <span class="step-t">User token flows: App → Genie (unchanged)</span>
+                    </div>
+                    <div class="step">
+                        <div class="step-n ok">2</div>
+                        <span class="step-t">Genie calls UC with <em>user's identity</em></span>
+                    </div>
+                    <div class="step">
+                        <div class="step-n ok">3</div>
+                        <span class="step-t">Row filter: <code>rep_email = current_user()</code></span>
+                    </div>
+                </div>
+                <div class="result good">current_user() = user@company.com<br>Per-user data access enforced ✅</div>
+            </div>
+        </div>
+
+        <div class="callout reveal" style="margin-top: var(--gap);">
+            <strong>Key principle:</strong> UC enforcement happens at query execution time, inside the compute layer. A gateway observes HTTP traffic — it cannot observe which rows were filtered or what <code>current_user()</code> returned.
+        </div>
+    </div>
+    <div class="slide-num">05 / 13</div>
+</section>
+
+<!-- ─── SLIDE 06 — PATTERN 2: AI GATEWAY ────────────────── -->
+<section class="slide" id="s6" data-pattern="2">
+    <div class="slide-inner">
+        <div style="display:flex; align-items:center; gap:var(--gap-sm); margin-bottom:var(--gap-sm);" class="reveal">
+            <div class="eyebrow">Pattern 2</div>
+            <span class="badge p2">🔵 LLM Governance</span>
+        </div>
+        <h2 class="reveal" style="margin-bottom: var(--gap);">Databricks AI Gateway</h2>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-sm);" class="reveal">
+            <div class="card p2">
+                <div style="font-weight:600; font-size:var(--sz-body); color:var(--p2); margin-bottom:5px;">Rate Limiting</div>
+                <p>Per Databricks user, group, or endpoint. Tokens per minute + requests per minute. Enforced using UC identity — the same model as row filters and column masks.</p>
+            </div>
+            <div class="card p2">
+                <div style="font-weight:600; font-size:var(--sz-body); color:var(--p2); margin-bottom:5px;">Content Guardrails</div>
+                <p>Input and output safety filtering. PII detection (block or mask). Topic filtering. Applied uniformly at the endpoint — no per-application code needed.</p>
+            </div>
+            <div class="card p2">
+                <div style="font-weight:600; font-size:var(--sz-body); color:var(--p2); margin-bottom:5px;">Usage Tracking</div>
+                <p>Token consumption per identity to system tables. Cost attribution by team, application, or user group. MLflow integration for experiment tracking.</p>
+            </div>
+            <div class="card p2">
+                <div style="font-weight:600; font-size:var(--sz-body); color:var(--p2); margin-bottom:5px;">Fallback Routing</div>
+                <p>Route to a backup model if the primary exceeds latency thresholds. Traffic splitting across model versions. Zero custom throttling code.</p>
+            </div>
+        </div>
+
+        <div class="callout reveal" style="margin-top: var(--gap);">
+            Configured <em>directly on</em> the serving endpoint — not a separate infrastructure hop. Works with OBO and M2M token flows. Compatible with FM API, custom models, and external models via AI Gateway.
+        </div>
+    </div>
+    <div class="slide-num">06 / 13</div>
+</section>
+
+<!-- ─── SLIDE 07 — PATTERN 3: UC CONNECTIONS ────────────── -->
+<section class="slide" id="s7" data-pattern="3">
+    <div class="slide-inner">
+        <div style="display:flex; align-items:center; gap:var(--gap-sm); margin-bottom:var(--gap-sm);" class="reveal">
+            <div class="eyebrow">Pattern 3</div>
+            <span class="badge p3">🟡 Outbound External</span>
+        </div>
+        <h2 class="reveal" style="margin-bottom: var(--gap-sm);">UC HTTP Connections + Serverless Network Policies</h2>
+
+        <div class="flow-box reveal" style="margin-bottom: var(--gap);">
+            <div class="col-label" style="margin-bottom:var(--gap-sm);">The Proxy Model</div>
+            <div style="display:flex; align-items:center; gap:clamp(0.4rem,0.8vw,0.8rem); flex-wrap:wrap;">
+                <div style="border:1.5px solid var(--border); border-radius:2px; padding:6px 12px; font-size:var(--sz-small); font-weight:600; background:white; text-align:center;">App / Agent<br><span style="font-weight:400; color:var(--muted);">sp-appeals</span></div>
+                <div style="color:var(--border); font-size:1.1rem;">→</div>
+                <div style="border:1.5px solid var(--p3); background:var(--p3-bg); border-radius:2px; padding:6px 12px; font-size:var(--sz-small); font-weight:600; color:var(--p3); text-align:center;">/api/2.0/mcp/external/<br>npi_registry_conn<br><span style="font-weight:400; font-size:var(--sz-label); color:var(--muted);">checks USE CONNECTION grant</span></div>
+                <div style="color:var(--p1); font-size:1.1rem;">→ ✅</div>
+                <div style="border:1.5px solid var(--border); border-radius:2px; padding:6px 12px; font-size:var(--sz-small); font-weight:600; background:white; text-align:center;">External Service<br><span style="font-weight:400; color:var(--muted);">+ injected credential</span><br><span style="font-size:var(--sz-label); color:var(--muted);">app never holds raw token</span></div>
+            </div>
+        </div>
+
+        <div class="cols-2 reveal">
+            <div>
+                <div class="col-label">UC HTTP Connections</div>
+                <ul class="blist">
+                    <li>Credentials stored encrypted in UC</li>
+                    <li><code>USE CONNECTION</code> grant = per-SP authorization</li>
+                    <li>sp-appeals ✅ for NPI registry; sp-billing ❌</li>
+                    <li>App code never receives raw credential values</li>
+                </ul>
+            </div>
+            <div>
+                <div class="col-label">Serverless Network Policy (SNP)</div>
+                <ul class="blist">
+                    <li>Workspace-level FQDN allowlist for all serverless compute</li>
+                    <li>Blocks egress to any host not on the list</li>
+                    <li>Network layer: "can this workspace reach this host?"</li>
+                    <li>UC Connections layer: "is this SP authorized to authenticate?"</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num">07 / 13</div>
+</section>
+
+<!-- ─── SLIDE 08 — DEFENSE IN DEPTH ─────────────────────── -->
+<section class="slide" id="s8" data-pattern="3">
+    <div class="slide-inner">
+        <div class="eyebrow reveal">Pattern 3 — Defense-in-Depth</div>
+        <h2 class="reveal" style="margin-bottom: var(--gap);">Two independent layers of control</h2>
+
+        <div class="cols-2 reveal" style="margin-bottom: var(--gap);">
+            <div class="card" style="border-top:3px solid var(--p3);">
+                <div class="col-label">Layer 1 — Network (SNP)</div>
+                <div style="font-weight:600; font-size:var(--sz-body); margin-bottom:5px;">Workspace-level FQDN allowlist</div>
+                <p>Blocks egress regardless of which app is calling. Governs: <em>"Can this workspace reach this host at all?"</em></p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--p2);">
+                <div class="col-label">Layer 2 — Credential (UC Connections)</div>
+                <div style="font-weight:600; font-size:var(--sz-body); margin-bottom:5px;">Per-SP authorization gate</div>
+                <p>Even if the host is reachable, the app needs a <code>USE CONNECTION</code> grant to get credentials injected. Governs: <em>"Is this SP authorized to authenticate?"</em></p>
+            </div>
+        </div>
+
+        <div class="reveal">
+            <div class="col-label" style="margin-bottom: var(--gap-sm);">Threat Model</div>
+            <table>
+                <thead>
+                    <tr><th>Threat</th><th>Defended by</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>App calls an unapproved external host</td>
+                        <td>SNP — FQDN not on allowlist, unreachable at network layer</td>
+                    </tr>
+                    <tr>
+                        <td>App calls approved host it's not authorized for</td>
+                        <td>UC Connections — no USE CONNECTION grant → 403, credentials never injected</td>
+                    </tr>
+                    <tr>
+                        <td>App exfiltrates stored credentials</td>
+                        <td>Not possible — app code never receives raw credential; proxy injects server-side</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="slide-num">08 / 13</div>
+</section>
+
+<!-- ─── SLIDE 09 — PATTERN 4: INBOUND EXTERNAL ──────────── -->
+<section class="slide" id="s9" data-pattern="4">
+    <div class="slide-inner">
+        <div style="display:flex; align-items:center; gap:var(--gap-sm); margin-bottom:var(--gap-sm);" class="reveal">
+            <div class="eyebrow">Pattern 4</div>
+            <span class="badge p4">🔴 Inbound External</span>
+        </div>
+        <h2 class="reveal" style="margin-bottom: var(--gap);">External API Gateway</h2>
+
+        <div class="cols-2 reveal">
+            <div>
+                <div class="col-label">When to use</div>
+                <ul class="blist">
+                    <li>Requests originate <strong>outside</strong> Databricks</li>
+                    <li>External clients use enterprise SSO or API keys not natively handled by Databricks</li>
+                    <li>Multiple external tenants need per-tenant rate limits</li>
+                    <li>You need an API catalog, versioned endpoints, or developer portal</li>
+                    <li>Regulatory or enterprise policy requires an API facade</li>
+                </ul>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:var(--gap-sm);">
+                <div class="col-label">What it provides</div>
+                <div class="card p4" style="padding:clamp(0.5rem,1vw,0.9rem);">
+                    <div style="font-weight:600; font-size:var(--sz-small); color:var(--p4);">Auth Translation</div>
+                    <p style="font-size:var(--sz-small);">Enterprise SSO / API key → Databricks OAuth token. Databricks doesn't natively manage external client identities.</p>
+                </div>
+                <div class="card p4" style="padding:clamp(0.5rem,1vw,0.9rem);">
+                    <div style="font-weight:600; font-size:var(--sz-small); color:var(--p4);">Per-Tenant Rate Limits</div>
+                    <p style="font-size:var(--sz-small);">Rate limit by external subscription tier, organization, or API key — not by Databricks identity.</p>
+                </div>
+                <div class="card p4" style="padding:clamp(0.5rem,1vw,0.9rem);">
+                    <div style="font-weight:600; font-size:var(--sz-small); color:var(--p4);">API Catalog + Dev Portal</div>
+                    <p style="font-size:var(--sz-small);">OpenAPI specs, versioned endpoints, subscription management — none provided natively to external clients.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="callout reveal" style="margin-top: var(--gap);">
+            Options: Azure APIM · AWS API Gateway · Kong · Apigee · Any OpenAPI-compatible gateway. The external gateway is additive — it can sit in front of a Databricks endpoint that also has Pattern 2 AI Gateway configured.
+        </div>
+    </div>
+    <div class="slide-num">09 / 13</div>
+</section>
+
+<!-- ─── SLIDE 10 — COMPARISON TABLE ─────────────────────── -->
+<section class="slide" id="s10">
+    <div class="slide-inner">
+        <div class="eyebrow reveal">Comparison</div>
+        <h2 class="reveal" style="margin-bottom: var(--gap);">Databricks AI Gateway vs External API Gateway</h2>
+
+        <div class="reveal">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dimension</th>
+                        <th style="color:var(--p2);">Databricks AI Gateway</th>
+                        <th style="color:var(--p4);">External API Gateway</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Where it sits</td><td>On the Databricks serving endpoint</td><td>In front of Databricks (customer-managed)</td></tr>
+                    <tr><td>Identity awareness</td><td>UC-aware — knows Databricks users and groups</td><td>Manages external client identities</td></tr>
+                    <tr><td>Rate limiting</td><td>Per Databricks user / group / endpoint</td><td>Per external tenant / subscription / API key</td></tr>
+                    <tr><td>Guardrails</td><td>Input + output safety, PII, topic filtering</td><td>Not provided natively; requires custom plugins</td></tr>
+                    <tr><td>Usage tracking</td><td>Token-level → system tables + MLflow</td><td>Request-level → gateway analytics</td></tr>
+                    <tr><td>Auth</td><td>Validates Databricks OAuth tokens</td><td>Translates external identities → Databricks tokens</td></tr>
+                    <tr><td>Use when</td><td>Governing LLM consumption within Databricks</td><td>Managing access from external enterprise clients</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="callout reveal" style="margin-top: var(--gap);">
+            <strong>Additive by design:</strong> external gateway handles boundary crossing (external identity → Databricks token); AI Gateway handles LLM governance at the endpoint; Unity Catalog handles data access. Each layer governs what it owns.
+        </div>
+    </div>
+    <div class="slide-num">10 / 13</div>
+</section>
+
+<!-- ─── SLIDE 11 — REFERENCE SCENARIO ───────────────────── -->
+<section class="slide" id="s11">
+    <div class="slide-inner">
+        <div class="eyebrow reveal">Reference Scenario</div>
+        <h2 class="reveal" style="margin-bottom:clamp(0.25rem,0.6vw,0.6rem);">Prior Authorization Appeals Agent</h2>
+        <p class="reveal" style="margin-bottom: var(--gap);">
+            Fictionalized scenario — all four patterns in one architecture. RegionalCare Health Plan automates context assembly for human appeal reviewers.
+        </p>
+
+        <div class="reveal">
+            <table>
+                <thead>
+                    <tr><th>Traffic</th><th>Pattern</th><th>Governance mechanism</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Case management system → Appeals endpoint</td>
+                        <td><span class="badge p4" style="font-size:0.58rem;">4 — Ext. Gateway</span></td>
+                        <td>Auth translation (enterprise SSO → Databricks token), rate limit per org</td>
+                    </tr>
+                    <tr>
+                        <td>Endpoint LLM consumption</td>
+                        <td><span class="badge p2" style="font-size:0.58rem;">2 — AI Gateway</span></td>
+                        <td>Rate limit per reviewer team · usage tracking by dept · content guardrails</td>
+                    </tr>
+                    <tr>
+                        <td>Agent → Genie (member eligibility, claim history)</td>
+                        <td><span class="badge p1" style="font-size:0.58rem;">1 — No Gateway</span></td>
+                        <td>OBO — UC row filters enforce per-reviewer data access</td>
+                    </tr>
+                    <tr>
+                        <td>Agent → Vector Search (clinical guidelines)</td>
+                        <td><span class="badge p1" style="font-size:0.58rem;">1 — No Gateway</span></td>
+                        <td>M2M — shared knowledge, same for all reviewers</td>
+                    </tr>
+                    <tr>
+                        <td>Agent → NPI Registry + CMS Coverage DB</td>
+                        <td><span class="badge p3" style="font-size:0.58rem;">3 — UC Connections</span></td>
+                        <td>USE CONNECTION grant per SP · SNP allows FQDNs · credentials injected server-side</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="slide-num">11 / 13</div>
+</section>
+
+<!-- ─── SLIDE 12 — DECISION FRAMEWORK ───────────────────── -->
+<section class="slide" id="s12">
+    <div class="slide-inner">
+        <div class="eyebrow reveal">Decision Framework</div>
+        <h2 class="reveal" style="margin-bottom: var(--gap);">Which pattern for which traffic?</h2>
+
+        <div class="reveal" style="display:grid; grid-template-columns: auto 1fr; gap:var(--gap); align-items:start;">
+            <div style="font-size:var(--sz-label); font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); white-space:nowrap; padding-top:4px; border-right:2px solid var(--border); padding-right:var(--gap);">
+                Where does<br>the request<br>originate?
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--gap);">
+                <div class="card p4" style="display:flex; flex-direction:column; gap:var(--gap-sm);">
+                    <div style="font-weight:700; font-size:var(--sz-body); color:var(--p4);">Outside Databricks</div>
+                    <p style="font-size:var(--sz-small);">Enterprise apps · partners · customer portals · external workflows</p>
+                    <div style="margin-top:auto;"><span class="badge p4">→ Pattern 4 — External Gateway</span></div>
+                </div>
+
+                <div>
+                    <div style="font-weight:700; font-size:var(--sz-body); color:var(--muted); margin-bottom:var(--gap-sm);">Inside Databricks — going where?</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-sm);">
+                        <div class="card p3" style="display:flex; flex-direction:column; gap:var(--gap-sm);">
+                            <div style="font-weight:600; font-size:var(--sz-small); color:var(--p3);">External service</div>
+                            <p style="font-size:var(--sz-small);">API · MCP server · external LLM</p>
+                            <div style="margin-top:auto;"><span class="badge p3" style="font-size:0.6rem;">→ Pattern 3</span></div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:var(--gap-sm);">
+                            <div class="card p1" style="display:flex; flex-direction:column; gap:4px; flex:1;">
+                                <div style="font-weight:600; font-size:var(--sz-small); color:var(--p1);">Databricks service — no LLM governance</div>
+                                <span class="badge p1" style="font-size:0.6rem; margin-top:auto;">→ Pattern 1</span>
+                            </div>
+                            <div class="card p2" style="display:flex; flex-direction:column; gap:4px; flex:1;">
+                                <div style="font-weight:600; font-size:var(--sz-small); color:var(--p2);">LLM endpoint — need rate limits or guardrails</div>
+                                <span class="badge p2" style="font-size:0.6rem; margin-top:auto;">→ Pattern 2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-num">12 / 13</div>
+</section>
+
+<!-- ─── SLIDE 13 — SUMMARY ───────────────────────────────── -->
+<section class="slide" id="s13">
+    <div class="slide-inner">
+        <div class="eyebrow reveal">Summary</div>
+        <h2 class="reveal" style="margin-bottom: var(--gap);">Quick Reference</h2>
+
+        <div class="reveal">
+            <table>
+                <thead>
+                    <tr><th>Traffic Type</th><th>Pattern</th><th>Approach</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Agent ↔ Genie · FM API · Agent Bricks · Vector Search · UC Functions</td>
+                        <td><span class="badge p1" style="font-size:0.62rem;">1 — No Gateway</span></td>
+                        <td>OBO or M2M · UC row filters at the data plane</td>
+                    </tr>
+                    <tr>
+                        <td>LLM endpoint — rate limits, guardrails, or cost tracking needed</td>
+                        <td><span class="badge p2" style="font-size:0.62rem;">2 — AI Gateway</span></td>
+                        <td>Databricks AI Gateway configured on the endpoint</td>
+                    </tr>
+                    <tr>
+                        <td>Agent calling external APIs, MCP servers, or external LLMs</td>
+                        <td><span class="badge p3" style="font-size:0.62rem;">3 — UC Connections</span></td>
+                        <td>UC HTTP Connections + SNP · credential never in app code</td>
+                    </tr>
+                    <tr>
+                        <td>External clients (enterprise apps, partners) calling Databricks</td>
+                        <td><span class="badge p4" style="font-size:0.62rem;">4 — Ext. Gateway</span></td>
+                        <td>External API Gateway (APIM · Kong · AWS API GW)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="cols-2 reveal" style="margin-top: var(--gap);">
+            <div class="callout">
+                <strong>Patterns 2 + 4 are additive.</strong> External gateway handles boundary crossing; Databricks AI Gateway handles LLM governance. Neither interferes with the other.
+            </div>
+            <div class="callout">
+                <strong>OBO token chain is non-negotiable.</strong> Any intermediary that re-issues its own token breaks UC governance silently. Keep internal traffic direct.
+            </div>
+        </div>
+
+        <div style="margin-top: var(--gap);" class="reveal">
+            <span style="font-size:var(--sz-label); color:var(--border);">Reference: AI-GATEWAY-PATTERNS.md · Interactive: interactive/orchestration/ai-gateway-patterns.html</span>
+        </div>
+    </div>
+    <div class="slide-num">13 / 13</div>
+</section>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   =========================================== */
+(function () {
+    const TOTAL = 13;
+    const slides = [...document.querySelectorAll('.slide')];
+    const progress = document.getElementById('progress');
+    const navDots = document.getElementById('navDots');
+    let current = 0;
+
+    /* Build nav dots */
+    slides.forEach((_, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'dot' + (i === 0 ? ' active' : '');
+        btn.setAttribute('aria-label', `Slide ${i + 1}`);
+        btn.addEventListener('click', () => scrollTo(i));
+        navDots.appendChild(btn);
+    });
+
+    function updateState(idx) {
+        current = Math.max(0, Math.min(TOTAL - 1, idx));
+        progress.style.width = ((current + 1) / TOTAL * 100) + '%';
+        [...navDots.children].forEach((d, i) => d.classList.toggle('active', i === current));
+    }
+
+    function scrollTo(idx) {
+        slides[idx].scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* IntersectionObserver — marks slide visible, triggers .reveal */
+    const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                updateState(slides.indexOf(e.target));
+            }
+        });
+    }, { threshold: 0.55 });
+
+    slides.forEach(s => io.observe(s));
+
+    /* Keyboard navigation */
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            scrollTo(Math.min(current + 1, TOTAL - 1));
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            scrollTo(Math.max(current - 1, 0));
+        } else if (e.key === 'Home') {
+            e.preventDefault(); scrollTo(0);
+        } else if (e.key === 'End') {
+            e.preventDefault(); scrollTo(TOTAL - 1);
+        }
+    });
+
+    /* Touch / swipe */
+    let touchY = 0;
+    document.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
+    document.addEventListener('touchend', e => {
+        const diff = touchY - e.changedTouches[0].clientY;
+        if (Math.abs(diff) > 40) scrollTo(diff > 0 ? current + 1 : current - 1);
+    }, { passive: true });
+
+})();
+</script>
+</body>
+</html>
