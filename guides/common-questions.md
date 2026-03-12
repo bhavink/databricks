@@ -432,7 +432,157 @@ Both automatically allow return traffic (stateful).
 
 ## Authentication & Identity
 
-_Coming soon - content from authentication.md will be added here_
+### General Authentication
+
+**Q: What credentials does Terraform need to deploy Databricks?**
+
+**A:** Terraform needs two sets of credentials:
+
+1. **Cloud provider credentials** — to create infrastructure (VPCs, storage, IAM, etc.)
+2. **Databricks credentials** — to create workspaces, clusters, Unity Catalog, etc.
+
+| Cloud | Cloud Credentials | Databricks Credentials |
+|-------|------------------|----------------------|
+| **Azure** | `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_TENANT_ID`, `ARM_SUBSCRIPTION_ID` | `DATABRICKS_ACCOUNT_ID`, `DATABRICKS_CLIENT_ID`, `DATABRICKS_CLIENT_SECRET` |
+| **AWS** | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (or `AWS_PROFILE`) | `DATABRICKS_ACCOUNT_ID`, `DATABRICKS_CLIENT_ID`, `DATABRICKS_CLIENT_SECRET` |
+| **GCP** | `GOOGLE_OAUTH_ACCESS_TOKEN` (or Application Default Credentials) | `DATABRICKS_ACCOUNT_ID`, `DATABRICKS_GOOGLE_SERVICE_ACCOUNT` |
+
+See the full [Authentication Guide](./authentication.md) for step-by-step setup.
+
+**Q: What's the difference between an account-level and workspace-level provider?**
+
+**A:** Databricks Terraform configs use **two provider aliases**:
+
+- **Account provider** (`alias = "account"`) — manages resources that span workspaces: Unity Catalog metastore, network connectivity config, account users/groups, storage credentials
+- **Workspace provider** (`alias = "workspace"`) — manages resources inside a single workspace: clusters, jobs, notebooks, workspace settings
+
+Both use the same credential type but point to different hosts.
+
+**Q: In what order does Terraform resolve credentials?**
+
+**A:**
+1. Values hardcoded in the provider block (not recommended)
+2. Environment variables (`ARM_*`, `AWS_*`, `DATABRICKS_*`)
+3. Configuration files (`~/.aws/credentials`, `~/.databrickscfg`)
+4. Default credentials (e.g., AWS instance roles, GCP metadata service)
+
+Environment variables are the recommended approach for most setups.
+
+---
+
+### Azure Authentication
+
+**Q: Can I reuse my Azure Service Principal for Databricks authentication?**
+
+**A:** Yes — on Azure, the same Service Principal works for both:
+
+```bash
+export DATABRICKS_CLIENT_ID="$ARM_CLIENT_ID"
+export DATABRICKS_CLIENT_SECRET="$ARM_CLIENT_SECRET"
+export DATABRICKS_AZURE_TENANT_ID="$ARM_TENANT_ID"
+```
+
+No separate Databricks service principal needed.
+
+**Q: Why do I get "Failed to retrieve tenant ID for given token"?**
+
+**A:** The Databricks provider can't determine your Azure tenant. Fix by setting:
+
+```bash
+export DATABRICKS_AZURE_TENANT_ID="$ARM_TENANT_ID"
+```
+
+Or add `azure_tenant_id` to your provider block.
+
+---
+
+### AWS Authentication
+
+**Q: Are AWS IAM credentials and Databricks credentials the same thing?**
+
+**A:** No. AWS uses **two separate credential sets**:
+
+- **AWS IAM** (for AWS resources) — access key + secret, or CLI profile, or IAM role
+- **Databricks OAuth** (for Databricks API) — service principal client ID + secret, created in the [Databricks account console](https://accounts.cloud.databricks.com)
+
+Both must be configured for Terraform to work.
+
+**Q: Can I use AWS SSO with Terraform?**
+
+**A:** Yes:
+
+```bash
+aws configure sso
+aws sso login --profile your-sso-profile
+export AWS_PROFILE="your-sso-profile"
+terraform plan
+```
+
+---
+
+### GCP Authentication
+
+**Q: Should I use a service account key file or impersonation?**
+
+**A:** **Always prefer impersonation** over key files:
+
+| Method | Security | Recommended |
+|--------|----------|-------------|
+| Key file (`GOOGLE_APPLICATION_CREDENTIALS`) | Risk — anyone with the file has full access | No |
+| Impersonation (`gcloud config set auth/impersonate_service_account`) | Secure — short-lived tokens, auditable | Yes |
+
+Impersonation setup:
+```bash
+gcloud config set auth/impersonate_service_account $SA_EMAIL
+export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
+```
+
+**Q: Why does GCP use `google_service_account` in the Databricks provider instead of a client ID/secret?**
+
+**A:** GCP Databricks authenticates via Google's identity system directly. The Databricks provider impersonates the GCP service account to get tokens — no separate Databricks-specific credentials needed.
+
+---
+
+### Troubleshooting Authentication
+
+**Q: How do I debug "authentication is not configured for provider"?**
+
+**A:** Check if environment variables are set:
+
+```bash
+# Show all auth-related variables
+env | grep -E "(ARM|AWS|GOOGLE|DATABRICKS)_"
+```
+
+If empty, source your auth script. Make sure you're in the **same terminal session** where you set them.
+
+**Q: How do I test that my credentials work before running Terraform?**
+
+**A:** Test cloud access first, then Terraform:
+
+```bash
+# Azure
+az account show
+
+# AWS
+aws sts get-caller-identity
+
+# GCP
+gcloud config list
+
+# Then test Terraform
+terraform plan
+```
+
+**Q: I get "403 Forbidden" or "AuthorizationFailed" — what's wrong?**
+
+**A:** Your credentials are valid but lack permissions. Ensure:
+
+- **Azure**: Service principal has `Contributor` role on the subscription
+- **AWS**: IAM user/role has required policies; Databricks SP has Account Admin role
+- **GCP**: Service account has `roles/editor` on the project
+
+For Databricks-specific errors, verify the service principal has **Account Admin** in the [Databricks account console](https://accounts.cloud.databricks.com).
 
 ---
 
@@ -560,12 +710,6 @@ Combine these for defense-in-depth.
    ```
 4. **Check security rules** allow required traffic
 5. **Verify IAM/permissions** on test VM
-
----
-
-## Performance & Optimization
-
-_Coming soon - performance-related Q&A will be added here_
 
 ---
 
