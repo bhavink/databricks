@@ -10,9 +10,6 @@
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
-accTitle: Genie Observability Architecture
-accDescr: End-to-end data flow from audit log through ingestion to dashboard visualization
-
 flowchart LR
     subgraph Sources["Data Sources"]
         Audit["system.access.audit<br/>(Genie events)"]
@@ -158,19 +155,16 @@ genie-aibi/
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e1e1e1'}}}%%
-accTitle: Genie Observability Data Flow
-accDescr: Sequence showing how Genie messages flow from user prompt through audit to dashboard
-
 sequenceDiagram
     actor User
-    participant Genie["Genie Space"]
-    participant Audit["system.access.audit"]
-    participant Pipeline["SDP Pipeline (DLT)"]
-    participant SOT["genie_messages_to_fetch<br/>(Gold MV)"]
-    participant Job["Python Ingestion Job"]
-    participant API["Genie API"]
-    participant MD["message_details<br/>(UC Table)"]
-    participant Dashboard["AI/BI Dashboard"]
+    participant Genie as Genie Space
+    participant Audit as system.access.audit
+    participant Pipeline as SDP Pipeline (DLT)
+    participant SOT as genie_messages_to_fetch (Gold MV)
+    participant Job as Python Ingestion Job
+    participant API as Genie API
+    participant MD as message_details (UC Table)
+    participant Dashboard as AI/BI Dashboard
 
     User->>Genie: Ask question
     Genie->>Genie: Generate SQL & execute
