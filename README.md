@@ -53,7 +53,7 @@ This repository contains **production-ready infrastructure templates**, ready-to
 | **🔷 Azure** | Production-ready security & modular Terraform deployment patterns | [adb4u](./adb4u/) |
 | **☁️ AWS** | Private Link workspace templates with DEP controls | [awsdb4u](./awsdb4u/) |
 | **🟢 GCP** | VPC-SC, Private Service Connect, CMEK implementations | [gcpdb4u](./gcpdb4u/) |
-| **🛠️ Utils** | Utilities and helper scripts | [databricks-utils](./databricks-utils/) |
+| **🛠️ Utils** | Databricks IP range extraction tool | [databricksIPranges](https://github.com/bhavink/databricksIPranges) |
 | **📦 Archive** | Legacy content and code samples | [archive](./archive/) |
 
 ---
@@ -157,7 +157,7 @@ Each cloud folder contains multiple deployment patterns:
 
 ### 4. **Explore Additional Resources**
 - **Cross-Cloud Guides**: [guides/](./guides/) - Authentication, networking, troubleshooting
-- **Utility Scripts**: [databricks-utils/](./databricks-utils/) - Helper tools and scripts
+- **Utility Scripts**: [databricksIPranges](https://github.com/bhavink/databricksIPranges) - Databricks IP range extraction tool
 - **Archive**: [archive/](./archive/) - Legacy code samples and REST API collections
 
 ---
