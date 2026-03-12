@@ -18,9 +18,9 @@ Teaching moment: USE CONNECTION privilege is the governance layer.
   REVOKE → tools vanish immediately, no code change needed
 
 Run:
-  DATABRICKS_CONFIG_PROFILE=<YOUR_CLI_PROFILE> \
-  CUSTMCP_APP_HOST=<YOUR_CUSTMCP_APP_HOST> \
-  SP_BEARER_TOKEN=$(databricks auth token --profile <YOUR_CLI_PROFILE> | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])") \
+  DATABRICKS_CONFIG_PROFILE=adb-wx1 \
+  CUSTMCP_APP_HOST=authz-showcase-custom-mcp-1516413757355523.3.azure.databricksapps.com \
+  SP_BEARER_TOKEN=$(databricks auth token --profile adb-wx1 | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])") \
   python 08_create_external_mcp_conn.py
 
 ⚠️  The bearer token is a short-lived Databricks OAuth token (~1 hour). The connection must be
@@ -42,7 +42,7 @@ from databricks.sdk import WorkspaceClient
 CUSTMCP_APP_HOST = os.environ.get("CUSTMCP_APP_HOST", "")
 SP_BEARER_TOKEN  = os.environ.get("SP_BEARER_TOKEN", "")   # M2M OAuth token for app SP
 
-APP_SP_NAME = "<YOUR_APP_SP_CLIENT_ID>"       # authz-showcase app SP UUID
+APP_SP_NAME = "f3df4948-99d6-46db-b207-e2cbffd6d625"       # authz-showcase app SP UUID (updated 2026-03-08)
 
 
 def create_github_conn(w: WorkspaceClient) -> None:
@@ -95,7 +95,7 @@ def create_custmcp_conn(w: WorkspaceClient) -> None:
         print(
             "⚠️  Skipping authz_showcase_custmcp_conn — set CUSTMCP_APP_HOST and SP_BEARER_TOKEN.\n"
             "   Generate SP bearer token:\n"
-            "     databricks auth token --profile <YOUR_CLI_PROFILE>\n"
+            "     databricks auth token --profile adb-wx1\n"
             "   Or via M2M client credentials:\n"
             "     curl -X POST https://<workspace>/oidc/v1/token \\\n"
             "       -d 'grant_type=client_credentials&scope=all-apis' \\\n"
@@ -159,7 +159,7 @@ def verify_connections(w: WorkspaceClient) -> None:
     for name in ["authz_showcase_github_conn", "authz_showcase_custmcp_conn"]:
         try:
             conn = w.connections.get(name)
-            print(f"✅ {conn.name}: type={conn.connection_type}, comment={conn.comment or '-'}")
+            print(f"✅ {conn.name}: type={conn.connection_type}, comment={conn.comment or '—'}")
         except Exception as e:
             print(f"❌ {name}: {e}")
     print()
@@ -169,13 +169,13 @@ def verify_connections(w: WorkspaceClient) -> None:
     print(f"  Custom MCP: {host}/api/2.0/mcp/external/authz_showcase_custmcp_conn")
     print()
     print("Demo: revoke access and watch tools disappear:")
-    print("  REVOKE USE CONNECTION ON CONNECTION authz_showcase_github_conn FROM `<app-sp>`;")
+    print("  REVOKE USE CONNECTION ON CONNECTION authz_showcase_github_conn FROM `authz-showcase-app`;")
     print("  # → list_tools() returns empty — UC is the control plane, not the agent code")
 
 
 def _get_warehouse_id(w: WorkspaceClient) -> str:
     """Return the SQL warehouse ID configured in env or fall back to first available."""
-    wh_id = os.environ.get("SQL_WAREHOUSE_ID", "<YOUR_WAREHOUSE_ID>")
+    wh_id = os.environ.get("SQL_WAREHOUSE_ID", "093d4ec27ed4bdee")
     if wh_id:
         return wh_id
     warehouses = list(w.warehouses.list())

@@ -14,10 +14,10 @@ import requests
 from databricks.sdk import WorkspaceClient
 
 PROFILE = "adb-wx1"
-WAREHOUSE_ID = "<YOUR_WAREHOUSE_ID>"
-APP_URL = "https://authz-showcase-<YOUR_WORKSPACE_ORG_ID>.3.azure.databricksapps.com"
-CUSTOM_MCP_URL = "https://authz-showcase-custom-mcp-<YOUR_WORKSPACE_ORG_ID>.3.azure.databricksapps.com"
-SUPERVISOR_ENDPOINT = "<YOUR_SUPERVISOR_ENDPOINT>"
+WAREHOUSE_ID = "093d4ec27ed4bdee"
+APP_URL = "https://authz-showcase-1516413757355523.3.azure.databricksapps.com"
+CUSTOM_MCP_URL = "https://authz-showcase-custom-mcp-1516413757355523.3.azure.databricksapps.com"
+SUPERVISOR_ENDPOINT = "mas-155f64f7-endpoint"
 VS_INDEX = "authz_showcase.knowledge_base.product_docs_index"
 GITHUB_CONN = "authz_showcase_github_conn"
 CUSTMCP_CONN = "authz_showcase_custmcp_conn"
