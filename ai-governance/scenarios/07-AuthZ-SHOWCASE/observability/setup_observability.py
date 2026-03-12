@@ -22,7 +22,7 @@ After running:
 import mlflow
 
 # ── Config ────────────────────────────────────────────────────────────────────
-EXPERIMENT_NAME = "/Users/bhavin.kukadia@databricks.com/mas-155f64f7-dev-experiment"
+EXPERIMENT_NAME = "/Users/<YOUR_EMAIL>/<YOUR_EXPERIMENT_NAME>"
 TRACE_TABLE = "authz_showcase.agent_observability.traces"
 
 mlflow.set_experiment(EXPERIMENT_NAME)

@@ -16,6 +16,7 @@ import ast
 import json
 import logging
 import os
+import re
 import time
 import uuid
 
@@ -55,7 +56,7 @@ GENIE_SPACE_ID  = os.environ.get("GENIE_SPACE_ID",  "01f117ff5bdd167daf9aed6baa3
 VS_INDEX        = os.environ.get("VS_INDEX",       "authz_showcase.knowledge_base.product_docs_index")
 VS_INDEX_PB     = os.environ.get("VS_INDEX_PB",    "authz_showcase.knowledge_base.sales_playbooks_index")
 FM_ENDPOINT     = os.environ.get("FM_ENDPOINT",    "databricks-meta-llama-3-3-70b-instruct")
-SQL_WAREHOUSE   = os.environ.get("SQL_WAREHOUSE",  "093d4ec27ed4bdee")
+SQL_WAREHOUSE   = os.environ.get("SQL_WAREHOUSE",  "<YOUR_WAREHOUSE_ID>")
 UC_FUNCTIONS_CATALOG = os.environ.get("UC_FUNCTIONS_CATALOG", "authz_showcase")
 SUPERVISOR_ENDPOINT  = os.environ.get("SUPERVISOR_ENDPOINT",  "")
 CUSTOM_MCP_URL       = os.environ.get("CUSTOM_MCP_URL",       "")
@@ -172,7 +173,7 @@ _PERSONA_CONFIG = {
     "Finance":   ("2125440286635069", "authz_showcase_finance",    "finance"),
     "Executive": ("2124109784120434", "authz_showcase_executives", "executive"),
 }
-_DEMO_USER_ID = "1950142778633211"
+_DEMO_USER_ID = "<YOUR_USER_ID>"
 
 
 # ── VS + FM REST helpers (M2M) ────────────────────────────────────────────────
@@ -897,13 +898,13 @@ with st.sidebar:
         is_current = gname in ctx.get("authz_groups", [])
         with st.expander(f"{'✅' if is_current else '▶'} {label}", expanded=False):
             removes = "; \\\n".join(
-                f'databricks groups patch {ogid} --profile adb-wx1 --json \'{_SCIM_RM.format(uid=_DEMO_USER_ID)}\' 2>/dev/null || true'
+                f'databricks groups patch {ogid} --profile <YOUR_CLI_PROFILE> --json \'{_SCIM_RM.format(uid=_DEMO_USER_ID)}\' 2>/dev/null || true'
                 for ogid, _, _ in _PERSONA_CONFIG.values() if ogid != gid
             )
-            add = f'databricks groups patch {gid} --profile adb-wx1 --json \'{_SCIM_ADD.format(uid=_DEMO_USER_ID)}\''
+            add = f'databricks groups patch {gid} --profile <YOUR_CLI_PROFILE> --json \'{_SCIM_ADD.format(uid=_DEMO_USER_ID)}\''
             st.caption("Step 1 — Terminal:")
             st.code(f"{removes}; \\\n{add}", language="bash")
-            st.caption("Step 2 — [SQL Editor](https://adb-1516413757355523.3.azuredatabricks.net/sql/editor):")
+            st.caption(f"Step 2 — [SQL Editor]({host}/sql/editor):")
             st.code(_QUOTA_SQL[label], language="sql")
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -1169,7 +1170,7 @@ with tab3:
         f"# Run once after any app deploy/reset if you see\n"
         f"# 'PermissionDenied: You do not have permission to use the SQL Warehouse'\n"
         f"databricks permissions update warehouses {SQL_WAREHOUSE} \\\n"
-        f"  --profile adb-wx1 \\\n"
+        f"  --profile <YOUR_CLI_PROFILE> \\\n"
         f"  --json '{{\"access_control_list\": [{{\"service_principal_name\": \"{_sp3}\", \"permission_level\": \"CAN_USE\"}}]}}'"
     )
     _uc_grant3 = (
@@ -1265,7 +1266,7 @@ See the terminal demo below.
             f"python3 - << 'EOF'\n"
             f"from databricks.sdk import WorkspaceClient\n"
             f"\n"
-            f"w = WorkspaceClient(profile='adb-wx1')  # your user credentials\n"
+            f"w = WorkspaceClient(profile='<YOUR_CLI_PROFILE>')  # your user credentials\n"
             f"\n"
             f"# Auto-discover a serverless SQL warehouse\n"
             f"wh = next((w.id for w in w.warehouses.list() if w.enable_serverless_compute),\n"
@@ -1297,14 +1298,14 @@ See the terminal demo below.
             f"from databricks.sdk import WorkspaceClient\n"
             f"\n"
             f"# Bootstrap: use your CLI credentials to generate a fresh SP secret\n"
-            f"me = WorkspaceClient(profile='adb-wx1')\n"
+            f"me = WorkspaceClient(profile='<YOUR_CLI_PROFILE>')\n"
             f"r  = requests.post(\n"
             f"    f\"{{me.config.host}}/api/2.0/accounts/servicePrincipals/{SP_NUMERIC_ID}/credentials/secrets\",\n"
             f"    headers={{**me.config.authenticate(), 'Content-Type': 'application/json'}},\n"
             f")\n"
             f"if r.status_code != 200:\n"
             f"    print('Secret generation failed:', r.json())\n"
-            f"    print('Quota hit? Run: python3 seed/cleanup_sp_secrets.py --profile adb-wx1')\n"
+            f"    print('Quota hit? Run: python3 seed/cleanup_sp_secrets.py --profile <YOUR_CLI_PROFILE>')\n"
             f"    exit(1)\n"
             f"sp_secret = r.json()['secret']\n"
             f"\n"
@@ -1348,7 +1349,7 @@ See the terminal demo below.
             f"import requests\n"
             f"from databricks.sdk import WorkspaceClient\n"
             f"\n"
-            f"me  = WorkspaceClient(profile='adb-wx1')\n"
+            f"me  = WorkspaceClient(profile='<YOUR_CLI_PROFILE>')\n"
             f"obo = me  # your credentials (OBO)\n"
             f"\n"
             f"# Generate SP secret inline\n"
@@ -1358,7 +1359,7 @@ See the terminal demo below.
             f")\n"
             f"if r.status_code != 200:\n"
             f"    print('Secret generation failed:', r.json())\n"
-            f"    print('Quota hit? Run: python3 seed/cleanup_sp_secrets.py --profile adb-wx1')\n"
+            f"    print('Quota hit? Run: python3 seed/cleanup_sp_secrets.py --profile <YOUR_CLI_PROFILE>')\n"
             f"    exit(1)\n"
             f"sp = WorkspaceClient(host=me.config.host,\n"
             f"                     client_id='{SP_CLIENT_ID}',\n"
@@ -2257,7 +2258,7 @@ on that connection. If not → **403 — the request never leaves the platform.*
                     st.error(f"Error: {err_str}")
 
     st.markdown("**Step 2a — If you see 'token expired':**")
-    st.code("python3 seed/demo.py --before --profile adb-wx1", language="bash")
+    st.code("python3 seed/demo.py --before --profile <YOUR_CLI_PROFILE>", language="bash")
     st.caption("The stored bearer token in the UC connection expires in ~1h. This refreshes it.")
 
     st.markdown("**Step 3 — Grant access** (if you see 'lacks USE CONNECTION'):")
@@ -2294,7 +2295,10 @@ on that connection. If not → **403 — the request never leaves the platform.*
     )
 
     st.markdown("**Step 1 — Complete GitHub OAuth consent** (one-time):")
-    consent_url = f"{host}/explore/connections/{GITHUB_CONN}?o=1516413757355523"
+    # Extract org ID from workspace host URL (e.g. adb-1234567.3.azuredatabricks.net → 1234567)
+    _org_match = re.search(r'adb-(\d+)', host)
+    _org_id = _org_match.group(1) if _org_match else ""
+    consent_url = f"{host}/explore/connections/{GITHUB_CONN}?o={_org_id}"
     st.markdown(
         f"Visit the [connection page]({consent_url}) and click **Sign in** to authorize "
         f"your GitHub identity. This is a one-time step per user."

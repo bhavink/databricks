@@ -9,12 +9,12 @@
 --      This creates authz_showcase.agent_observability.traces via Delta sync
 --   2. UC schema: authz_showcase.agent_observability (created by setup)
 --   3. System tables accessible (system.serving.*, system.billing.*)
---   4. Experiment: /Users/bhavin.kukadia@databricks.com/mas-155f64f7-dev-experiment
+--   4. Experiment: /Users/<YOUR_EMAIL>/<YOUR_EXPERIMENT_NAME>
 --
 -- Concrete values used below (no placeholders):
 --   Catalog:    authz_showcase
 --   Schema:     agent_observability
---   Supervisor: mas-155f64f7-endpoint
+--   Supervisor: <YOUR_SUPERVISOR_ENDPOINT>
 -- ============================================================================
 
 
@@ -69,7 +69,7 @@ SELECT
     SUM(output_tokens) AS output_tokens,
     SUM(total_tokens) AS total_tokens
 FROM system.ai_gateway.usage
-WHERE endpoint_name = 'mas-155f64f7-endpoint'
+WHERE endpoint_name = '<YOUR_SUPERVISOR_ENDPOINT>'
     AND event_time >= CURRENT_DATE - INTERVAL 30 DAYS
 GROUP BY 1
 ORDER BY 1;
@@ -82,7 +82,7 @@ SELECT
     SUM(usage_quantity) AS total_dbus
 FROM system.billing.usage
 WHERE sku_name LIKE '%SERVERLESS_REAL_TIME_INFERENCE%'
-    AND usage_metadata.endpoint_name = 'mas-155f64f7-endpoint'
+    AND usage_metadata.endpoint_name = '<YOUR_SUPERVISOR_ENDPOINT>'
     AND usage_date >= CURRENT_DATE - INTERVAL 30 DAYS
 GROUP BY 1
 ORDER BY 1;
@@ -116,7 +116,7 @@ serving AS (
     FROM system.serving.endpoint_usage eu
     JOIN system.serving.served_entities se
         ON eu.served_entity_id = se.served_entity_id
-    WHERE se.endpoint_name = 'mas-155f64f7-endpoint'
+    WHERE se.endpoint_name = '<YOUR_SUPERVISOR_ENDPOINT>'
         AND eu.request_time >= CURRENT_DATE - INTERVAL 1 DAY
 )
 SELECT
@@ -169,7 +169,7 @@ SELECT
 FROM system.serving.endpoint_usage eu
 JOIN system.serving.served_entities se
     ON eu.served_entity_id = se.served_entity_id
-WHERE se.endpoint_name = 'mas-155f64f7-endpoint'
+WHERE se.endpoint_name = '<YOUR_SUPERVISOR_ENDPOINT>'
     AND eu.request_time >= CURRENT_DATE - INTERVAL 7 DAYS
 GROUP BY 1
 ORDER BY 1 DESC;

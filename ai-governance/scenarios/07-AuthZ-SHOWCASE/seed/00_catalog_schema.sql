@@ -4,7 +4,7 @@
 -- Works on any Databricks workspace (AWS, GCP, Azure) with Unity Catalog enabled.
 --
 -- Usage (Databricks CLI):
---   databricks sql exec --profile adb-wx1 --file 00_catalog_schema.sql
+--   databricks sql exec --profile <YOUR_CLI_PROFILE> --file 00_catalog_schema.sql
 --
 -- Or run each statement manually in a notebook / SQL editor.
 

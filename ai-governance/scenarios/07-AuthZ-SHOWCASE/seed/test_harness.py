@@ -3,7 +3,7 @@
 Headless test harness for the AI AuthZ Showcase demo.
 
 Usage:
-    DATABRICKS_CONFIG_PROFILE=adb-wx1 python seed/test_harness.py
+    DATABRICKS_CONFIG_PROFILE=<YOUR_CLI_PROFILE> python seed/test_harness.py
 
 Tests 8 capabilities in order. Exits 0 if all pass, 1 if any fail.
 """
@@ -13,11 +13,11 @@ import json
 import requests
 from databricks.sdk import WorkspaceClient
 
-PROFILE = "adb-wx1"
-WAREHOUSE_ID = "093d4ec27ed4bdee"
-APP_URL = "https://authz-showcase-1516413757355523.3.azure.databricksapps.com"
-CUSTOM_MCP_URL = "https://authz-showcase-custom-mcp-1516413757355523.3.azure.databricksapps.com"
-SUPERVISOR_ENDPOINT = "mas-155f64f7-endpoint"
+PROFILE = "<YOUR_CLI_PROFILE>"
+WAREHOUSE_ID = "<YOUR_WAREHOUSE_ID>"
+APP_URL = "https://authz-showcase-<YOUR_WORKSPACE_ORG_ID>.3.azure.databricksapps.com"
+CUSTOM_MCP_URL = "https://authz-showcase-custom-mcp-<YOUR_WORKSPACE_ORG_ID>.3.azure.databricksapps.com"
+SUPERVISOR_ENDPOINT = "<YOUR_SUPERVISOR_ENDPOINT>"
 VS_INDEX = "authz_showcase.knowledge_base.product_docs_index"
 GITHUB_CONN = "authz_showcase_github_conn"
 CUSTMCP_CONN = "authz_showcase_custmcp_conn"

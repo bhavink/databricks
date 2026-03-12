@@ -33,12 +33,12 @@ authorization: disabled
 
 env:
   - name: SQL_WAREHOUSE_ID
-    value: "093d4ec27ed4bdee"
+    value: "<YOUR_WAREHOUSE_ID>"
   # ── Tracing (Module B) — same experiment as AppA ──────────────────────────
   - name: MLFLOW_TRACKING_URI
     value: "databricks"
   - name: MLFLOW_EXPERIMENT_NAME
-    value: "/Users/bhavin.kukadia@databricks.com/mas-155f64f7-dev-experiment"
+    value: "/Users/<YOUR_EMAIL>/<YOUR_EXPERIMENT_NAME>"
   - name: MLFLOW_ENABLE_ASYNC_TRACE_LOGGING
     value: "true"
   - name: MLFLOW_ASYNC_TRACE_LOGGING_MAX_WORKERS
@@ -55,5 +55,5 @@ env:
 resources:
   # SP needs warehouse access for M2M queries (get_crm_sync_status)
   - sql_warehouse:
-      id: "093d4ec27ed4bdee"
+      id: "<YOUR_WAREHOUSE_ID>"
       permission: CAN_USE

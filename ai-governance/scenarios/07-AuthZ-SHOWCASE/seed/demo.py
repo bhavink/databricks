@@ -3,13 +3,13 @@
 demo.py — Single entry point for AI AuthZ Showcase demo lifecycle.
 
 BEFORE demo:
-  python3 seed/demo.py --before --profile adb-wx1
+  python3 seed/demo.py --before --profile <YOUR_CLI_PROFILE>
 
 AFTER demo:
-  python3 seed/demo.py --after --profile adb-wx1
+  python3 seed/demo.py --after --profile <YOUR_CLI_PROFILE>
 
 STATUS check only:
-  python3 seed/demo.py --status --profile adb-wx1
+  python3 seed/demo.py --status --profile <YOUR_CLI_PROFILE>
 
 What --before does (all idempotent):
   1. Verify both apps are RUNNING
@@ -54,7 +54,7 @@ from databricks.sdk.service import iam
 from databricks.sdk.service.sql import StatementState
 
 # ── Static config (infra-level, doesn't change with app recreate) ─────────────
-WAREHOUSE_ID  = "093d4ec27ed4bdee"
+WAREHOUSE_ID  = "<YOUR_WAREHOUSE_ID>"
 CATALOG       = "authz_showcase"
 MAIN_APP      = "authz-showcase"
 MCP_APP       = "authz-showcase-custom-mcp"
@@ -554,7 +554,7 @@ def run_status(w: WorkspaceClient) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--profile", default="adb-wx1")
+    parser.add_argument("--profile", default="<YOUR_CLI_PROFILE>")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--before", action="store_true", help="Pre-demo setup (run before every demo)")
     group.add_argument("--after",  action="store_true", help="Post-demo cleanup (run after every demo)")

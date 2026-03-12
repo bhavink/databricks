@@ -6,6 +6,38 @@ Every step is explicit. Nothing is left to assumption.
 
 ---
 
+## Values You Need to Configure
+
+All config files use `<PLACEHOLDER>` tokens. Gather these values before you start and do a find-and-replace across the repo:
+
+| Placeholder | Where to Find It | Used In |
+|-------------|------------------|---------|
+| `<YOUR_CLI_PROFILE>` | `databricks auth login --profile <name>` | seed scripts, demo.py, test_harness.py |
+| `<YOUR_WAREHOUSE_ID>` | Workspace UI → SQL Warehouses → your warehouse → URL or ID | app.yaml, mcp-server/app.yaml, seed scripts |
+| `<YOUR_WORKSPACE_ORG_ID>` | First number in your workspace URL: `adb-<THIS>.3.azuredatabricks.net` | app.yaml (CUSTOM_MCP_URL), test_harness.py |
+| `<YOUR_SUPERVISOR_ENDPOINT>` | AI Playground → deploy Multi-Agent Supervisor → endpoint name | app.yaml, test_harness.py |
+| `<YOUR_APP_SP_CLIENT_ID>` | `databricks apps get authz-showcase` → `service_principal.client_id` | seed/08_create_external_mcp_conn.py |
+| `<YOUR_EMAIL>` | Your Databricks login email | app.yaml, mcp-server/app.yaml (MLflow experiment) |
+| `<YOUR_EXPERIMENT_NAME>` | Created automatically when you deploy the supervisor endpoint | app.yaml, mcp-server/app.yaml |
+| `<YOUR_CUSTOM_APP_INTEGRATION_ID>` | `databricks account custom-app-integrations list` | app.yaml (comment) |
+
+**Quick replace** (from repo root):
+```bash
+# Example — replace with your actual values
+find . -type f \( -name "*.py" -o -name "*.yaml" -o -name "*.md" \) \
+  -exec sed -i '' \
+    -e 's/<YOUR_CLI_PROFILE>/my-profile/g' \
+    -e 's/<YOUR_WAREHOUSE_ID>/abc123def456/g' \
+    -e 's/<YOUR_WORKSPACE_ORG_ID>/1234567890/g' \
+    -e 's/<YOUR_SUPERVISOR_ENDPOINT>/my-supervisor-endpoint/g' \
+    -e 's/<YOUR_EMAIL>/you@company.com/g' \
+    -e 's/<YOUR_EXPERIMENT_NAME>/my-experiment/g' \
+    -e 's/<YOUR_APP_SP_CLIENT_ID>/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/g' \
+    {} +
+```
+
+---
+
 ## What You Are Building
 
 A 7-tab Streamlit application running on Databricks Apps that demonstrates:
@@ -570,18 +602,18 @@ Every value below must be replaced with your own. Grep for the example values to
 | Schema name (sales) | seed scripts, app.py, mcp-server | `sales` |
 | Schema name (knowledge_base) | seed scripts, app.py | `knowledge_base` |
 | Genie Space ID | `app/app.yaml` env + resources | `01f117ff5bdd167daf9aed6baa32c4c8` |
-| Supervisor Endpoint | `app/app.yaml` env + resources | `mas-155f64f7-endpoint` |
+| Supervisor Endpoint | `app/app.yaml` env + resources | `<YOUR_SUPERVISOR_ENDPOINT>` |
 | FM Endpoint | `app/app.yaml` env + resources | `databricks-meta-llama-3-3-70b-instruct` |
 | VS Index (product docs) | `app/app.yaml` env + resources | `authz_showcase.knowledge_base.product_docs_index` |
 | VS Index (playbooks) | `app/app.yaml` env + resources | `authz_showcase.knowledge_base.sales_playbooks_index` |
 | VS Endpoint Name | `seed/06_create_vs_index.py` | `authz-showcase-vs` |
-| SQL Warehouse ID | `app/app.yaml`, `mcp-server/app.yaml`, seed scripts | `093d4ec27ed4bdee` |
+| SQL Warehouse ID | `app/app.yaml`, `mcp-server/app.yaml`, seed scripts | `<YOUR_WAREHOUSE_ID>` |
 | Custom MCP URL | `app/app.yaml` | `https://authz-showcase-custom-mcp-<wid>.<region>.azure.databricksapps.com/mcp` |
 | GitHub MCP Connection | `app/app.yaml`, seed scripts | `authz_showcase_github_conn` |
 | Custom MCP Connection | `app/app.yaml`, seed scripts | `authz_showcase_custmcp_conn` |
 | MLflow Experiment Name | `app/app.yaml`, `mcp-server/app.yaml` | `/Users/<email>/mas-<id>-dev-experiment` |
-| Databricks CLI Profile | all CLI commands | `adb-wx1` |
-| Workspace URL | all CLI commands, app URLs | `adb-1516413757355523.3.azuredatabricks.net` |
+| Databricks CLI Profile | all CLI commands | `<YOUR_CLI_PROFILE>` |
+| Workspace URL | all CLI commands, app URLs | `adb-<YOUR_WORKSPACE_ORG_ID>.3.azuredatabricks.net` |
 | Demo User Email | `seed/02_seed_data.py` | `you@databricks.com` |
 | App SP Application ID | UC grants, connection ownership | (from `databricks apps get`) |
 

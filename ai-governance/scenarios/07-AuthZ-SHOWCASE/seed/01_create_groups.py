@@ -7,7 +7,7 @@ Works on any Databricks workspace (AWS, GCP, Azure).
 Usage:
     # Uses Databricks CLI OAuth profile — no PAT needed.
     # Ensure CLI is configured: databricks auth login --profile <profile>
-    DATABRICKS_CONFIG_PROFILE=adb-wx1 python 01_create_groups.py
+    DATABRICKS_CONFIG_PROFILE=<YOUR_CLI_PROFILE> python 01_create_groups.py
 
 Expected output:
     ✓ created  authz_showcase_west

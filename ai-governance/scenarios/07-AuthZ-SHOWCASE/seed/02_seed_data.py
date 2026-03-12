@@ -8,7 +8,7 @@ Your email (CURRENT_USER_EMAIL) is mapped to a West region rep so row-level
 security is immediately testable without adding extra users.
 
 Usage:
-    DATABRICKS_CONFIG_PROFILE=adb-wx1 \\
+    DATABRICKS_CONFIG_PROFILE=<YOUR_CLI_PROFILE> \\
     CURRENT_USER_EMAIL=you@databricks.com \\
     python 02_seed_data.py
 

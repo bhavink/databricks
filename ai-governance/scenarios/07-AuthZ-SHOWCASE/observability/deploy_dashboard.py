@@ -14,9 +14,9 @@ Also creates 3 SQL Alerts:
   - Safety score drop (<0.8 avg)
 
 Usage:
-    python3 deploy_dashboard.py --profile adb-wx1
-    python3 deploy_dashboard.py --profile adb-wx1 --alerts-only
-    python3 deploy_dashboard.py --profile adb-wx1 --dashboard-only
+    python3 deploy_dashboard.py --profile <YOUR_CLI_PROFILE>
+    python3 deploy_dashboard.py --profile <YOUR_CLI_PROFILE> --alerts-only
+    python3 deploy_dashboard.py --profile <YOUR_CLI_PROFILE> --dashboard-only
 """
 
 import argparse
@@ -25,11 +25,11 @@ import subprocess
 import sys
 
 # ── Config ────────────────────────────────────────────────────────────────────
-WAREHOUSE_ID = "093d4ec27ed4bdee"
-PARENT_PATH = "/Users/bhavin.kukadia@databricks.com"
+WAREHOUSE_ID = "<YOUR_WAREHOUSE_ID>"
+PARENT_PATH = "/Users/<YOUR_EMAIL>"
 DASHBOARD_NAME = "AuthZ Showcase — E2E Observability"
 TRACES_TABLE = "authz_showcase.agent_observability.traces"
-ENDPOINT_NAME = "mas-155f64f7-endpoint"
+ENDPOINT_NAME = "<YOUR_SUPERVISOR_ENDPOINT>"
 
 # ── Color Palette (Databricks-inspired, high contrast) ────────────────────────
 C_GREEN   = "#00A972"

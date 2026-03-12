@@ -10,7 +10,7 @@
 #     - dashboards.genie  (Genie space access)
 #     - genie             (Genie Conversation API — required on Azure)
 #   Scope configuration (via account CLI — run once after any app delete+create):
-#     databricks account custom-app-integration update 'e7594cff-ad76-4268-91db-b0689be2ec62' \
+#     databricks account custom-app-integration update '<YOUR_CUSTOM_APP_INTEGRATION_ID>' \
 #       --profile adb-account \
 #       --json '{"scopes":["offline_access","email","iam.current-user:read",
 #                "openid","dashboards.genie","genie","iam.access-control:read",
@@ -67,14 +67,14 @@ env:
   - name: FM_ENDPOINT
     value: "databricks-meta-llama-3-3-70b-instruct"
   - name: SQL_WAREHOUSE
-    value: "093d4ec27ed4bdee"
+    value: "<YOUR_WAREHOUSE_ID>"
   - name: UC_FUNCTIONS_CATALOG
     value: "authz_showcase"
   - name: SUPERVISOR_ENDPOINT
-    value: "mas-155f64f7-endpoint"
+    value: "<YOUR_SUPERVISOR_ENDPOINT>"
   # ── Tab 4: Custom MCP direct URL (OBO + M2M tools) ──────────────────────────
   - name: CUSTOM_MCP_URL
-    value: "https://authz-showcase-custom-mcp-1516413757355523.3.azure.databricksapps.com/mcp"
+    value: "https://authz-showcase-custom-mcp-<YOUR_WORKSPACE_ORG_ID>.3.azure.databricksapps.com/mcp"
   # ── Tab 6: External MCP connection names (UC governs access) ────────────────
   - name: GITHUB_CONN
     value: "authz_showcase_github_conn"
@@ -84,7 +84,7 @@ env:
   - name: MLFLOW_TRACKING_URI
     value: "databricks"
   - name: MLFLOW_EXPERIMENT_NAME
-    value: "/Users/bhavin.kukadia@databricks.com/mas-155f64f7-dev-experiment"
+    value: "/Users/<YOUR_EMAIL>/<YOUR_EXPERIMENT_NAME>"
   - name: MLFLOW_ENABLE_ASYNC_TRACE_LOGGING
     value: "true"
   - name: MLFLOW_ASYNC_TRACE_LOGGING_MAX_WORKERS
@@ -130,7 +130,7 @@ resources:
 
   # ── Tab 3: SQL Warehouse (M2M — SP executes UC function SELECT calls) ─────
   - sql_warehouse:
-      id: "093d4ec27ed4bdee"
+      id: "<YOUR_WAREHOUSE_ID>"
       permission: CAN_USE          # Least privilege: run queries only
 
   # ── Tab 3: UC Functions (M2M — SP calls all three functions) ──────────────
@@ -146,5 +146,5 @@ resources:
 
   # ── Tab 5: Supervisor Agent endpoint (OBO — user token forwarded) ───────────
   - serving_endpoint:
-      name: "mas-155f64f7-endpoint"
+      name: "<YOUR_SUPERVISOR_ENDPOINT>"
       permission: CAN_QUERY        # App SP can proxy queries; user OBO token enforces sub-agent auth

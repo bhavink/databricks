@@ -18,7 +18,7 @@ import mlflow
 
 EXPERIMENT_NAME = os.getenv(
     "MLFLOW_EXPERIMENT_NAME",
-    "/Users/bhavin.kukadia@databricks.com/mas-155f64f7-dev-experiment",
+    "/Users/<YOUR_EMAIL>/<YOUR_EXPERIMENT_NAME>",
 )
 
 

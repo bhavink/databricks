@@ -11,19 +11,19 @@ cleanup_sp_secrets.py — Delete DEMO secrets for the authz-showcase app SP.
     deletes all newer ones (created by terminal demo runs).
 
 Run after each demo session to reclaim slots under the 5-secret limit:
-    python3 seed/cleanup_sp_secrets.py --profile adb-wx1
+    python3 seed/cleanup_sp_secrets.py --profile <YOUR_CLI_PROFILE>
 
 ⚠️  SP_ID and SP_DISPLAY_NAME must be updated whenever the app is recreated
     (databricks apps delete + create creates a NEW service principal).
 
     To find the current SP_ID after recreating the app:
-        databricks apps get authz-showcase --profile adb-wx1 \\
+        databricks apps get authz-showcase --profile <YOUR_CLI_PROFILE> \\
             | python3 -c "import sys,json; d=json.load(sys.stdin); \\
                           print(d['service_principal_id'], d['service_principal_client_id'])"
 
 Recovery if you accidentally deleted ALL secrets (app enters UNAVAILABLE state):
-    1. databricks apps delete authz-showcase --profile adb-wx1
-    2. databricks apps create authz-showcase --description '...' --profile adb-wx1
+    1. databricks apps delete authz-showcase --profile <YOUR_CLI_PROFILE>
+    2. databricks apps create authz-showcase --description '...' --profile <YOUR_CLI_PROFILE>
        (may fail with QUOTA_EXCEEDED if account has 1000 OAuth integrations —
         ask a workspace admin to clean up old app integrations)
     3. Re-run grants: warehouse CAN_USE, USE SCHEMA, SELECT on sales tables,
@@ -45,8 +45,8 @@ KEEP_OLDEST = 1                     # always preserve the platform-managed secre
 def main():
     parser = argparse.ArgumentParser(
         description="Delete DEMO OAuth secrets for the authz-showcase SP (keeps oldest)")
-    parser.add_argument("--profile", default="adb-wx1",
-                        help="Databricks CLI profile (default: adb-wx1)")
+    parser.add_argument("--profile", default="<YOUR_CLI_PROFILE>",
+                        help="Databricks CLI profile (default: <YOUR_CLI_PROFILE>)")
     parser.add_argument("--dry-run", action="store_true",
                         help="List secrets without deleting")
     parser.add_argument("--force-all", action="store_true",

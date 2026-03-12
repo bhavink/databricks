@@ -1,6 +1,6 @@
 # seed/ — AI AuthZ Showcase Setup & Operations
 
-All scripts use profile `adb-wx1` by default. Override with `--profile <name>`.
+All scripts use profile `<YOUR_CLI_PROFILE>` by default. Override with `--profile <name>`.
 
 ## Quick Reference
 
@@ -13,16 +13,16 @@ python3 seed/06_create_vs_index.py
 python3 seed/08_create_external_mcp_conn.py
 
 # Before every demo (one command)
-python3 seed/demo.py --before --profile adb-wx1
+python3 seed/demo.py --before --profile <YOUR_CLI_PROFILE>
 
 # After every demo
-python3 seed/demo.py --after --profile adb-wx1
+python3 seed/demo.py --after --profile <YOUR_CLI_PROFILE>
 
 # Quick health check
-python3 seed/demo.py --status --profile adb-wx1
+python3 seed/demo.py --status --profile <YOUR_CLI_PROFILE>
 
 # Full integration test
-python3 seed/test_harness.py --profile adb-wx1
+python3 seed/test_harness.py --profile <YOUR_CLI_PROFILE>
 ```
 
 ## Scripts
@@ -76,7 +76,7 @@ For REVOKE/GRANT to work in the Tab 7 governance demo, the connection **owner** 
 
 A new app gets a new service principal. Run:
 ```bash
-python3 seed/demo.py --before --profile adb-wx1
+python3 seed/demo.py --before --profile <YOUR_CLI_PROFILE>
 ```
 This resolves SP UUIDs dynamically from the live app — no hardcoded IDs to update. The UI also picks up the new SP automatically via `DATABRICKS_CLIENT_ID` (injected by the Apps runtime).
 
@@ -84,10 +84,10 @@ This resolves SP UUIDs dynamically from the live app — no hardcoded IDs to upd
 
 | Value | Used in | Notes |
 |-------|---------|-------|
-| Warehouse `093d4ec27ed4bdee` | demo.py, test_harness.py, cleanup_sp_secrets.py | `test-serverless` |
+| Warehouse `<YOUR_WAREHOUSE_ID>` | demo.py, test_harness.py, cleanup_sp_secrets.py | `test-serverless` |
 | Catalog `authz_showcase` | All setup scripts, demo.py | |
 | App names `authz-showcase`, `authz-showcase-custom-mcp` | demo.py, test_harness.py | |
-| Supervisor endpoint `mas-155f64f7-endpoint` | test_harness.py | |
+| Supervisor endpoint `<YOUR_SUPERVISOR_ENDPOINT>` | test_harness.py | |
 | Connection names `authz_showcase_*_conn` | demo.py, 08_ | |
 
 ### Script Dependencies

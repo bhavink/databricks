@@ -63,7 +63,7 @@ This is not a monitoring bolt-on. Every trace, every scorer assessment, and ever
            ▼                          ▼
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                     MLflow Experiment                                     │
-│  /Users/<user>/mas-155f64f7-dev-experiment                               │
+│  /Users/<YOUR_EMAIL>/<YOUR_EXPERIMENT_NAME>                               │
 │                                                                          │
 │  Traces from both services land here, tagged with service_name + tool.   │
 │  Independent traces (no W3C stitching) but correlated via shared         │
@@ -142,7 +142,7 @@ env:
   - name: MLFLOW_TRACKING_URI
     value: "databricks"
   - name: MLFLOW_EXPERIMENT_NAME
-    value: "/Users/<your-user>/mas-155f64f7-dev-experiment"
+    value: "/Users/<your-user>/<YOUR_EXPERIMENT_NAME>"
   - name: MLFLOW_ENABLE_ASYNC_TRACE_LOGGING
     value: "true"
   - name: MLFLOW_ASYNC_TRACE_LOGGING_MAX_WORKERS
