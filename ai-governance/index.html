@@ -5,198 +5,248 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Databricks AI Governance - Interactive Guide</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
+        :root {
+            --white:      #ffffff;
+            --ink:        #1a1a1a;
+            --ink-light:  #444444;
+            --vermillion: #cc3311;
+            --vermillion-light: rgba(204,51,17,0.08);
+            --border:     #e0e0e0;
+            --muted:      #777777;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #e8e8e8;
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+            background: var(--white);
+            color: var(--ink);
             min-height: 100vh;
             line-height: 1.6;
         }
-        
+
         .container {
             max-width: 1100px;
             margin: 0 auto;
             padding: 2rem;
         }
-        
+
         header {
             text-align: center;
             padding: 3rem 0 2rem;
         }
-        
-        .logo { font-size: 4rem; margin-bottom: 1rem; }
-        
+
+        .logo { font-size: 3.5rem; margin-bottom: 1rem; }
+
         h1 {
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, #14b8a6, #22d3ee);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--ink);
+            letter-spacing: -0.03em;
         }
-        
+
+        h1 span {
+            color: var(--vermillion);
+        }
+
         .subtitle {
-            font-size: 1.2rem;
-            color: #94a3b8;
+            font-size: 1.1rem;
+            color: var(--muted);
             max-width: 600px;
             margin: 0 auto 1.5rem;
         }
-        
+
         .repo-link {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
             padding: 0.6rem 1.2rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: #94a3b8;
+            background: var(--ink);
+            border: 1px solid var(--ink);
+            border-radius: 4px;
+            color: var(--white);
             text-decoration: none;
             font-size: 0.9rem;
-            transition: all 0.3s ease;
+            font-weight: 600;
+            transition: background 0.2s;
         }
-        
+
         .repo-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            border-color: rgba(255,255,255,0.2);
+            background: var(--ink-light);
+            border-color: var(--ink-light);
         }
-        
+
         .section-title {
-            font-size: 1.1rem;
-            color: #64748b;
+            font-size: 0.85rem;
+            color: var(--ink);
             text-transform: uppercase;
             letter-spacing: 0.1em;
+            font-weight: 700;
             margin: 3rem 0 1.5rem;
             padding-bottom: 0.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 2px solid var(--ink);
         }
-        
+
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.2rem;
+            gap: 1rem;
         }
-        
+
         .card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 4px;
             padding: 1.5rem;
             text-decoration: none;
             color: inherit;
-            transition: all 0.3s ease;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
             display: flex;
             flex-direction: column;
         }
-        
+
         .card:hover {
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(20, 184, 166, 0.4);
+            border-color: var(--vermillion);
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
-        
+
         .card-icon {
-            font-size: 2rem;
+            font-size: 1.8rem;
             margin-bottom: 0.8rem;
         }
-        
+
         .card h3 {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             margin-bottom: 0.4rem;
-            color: #fff;
+            color: var(--ink);
+            font-weight: 700;
         }
-        
+
         .card p {
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: var(--muted);
             flex-grow: 1;
         }
-        
+
+        .card code {
+            font-size: 0.85em;
+            background: rgba(0,0,0,0.05);
+            padding: 0.1em 0.3em;
+            border-radius: 2px;
+        }
+
         .card-tag {
             display: inline-block;
-            padding: 0.2rem 0.6rem;
-            background: rgba(20, 184, 166, 0.15);
-            color: #14b8a6;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            padding: 0.2rem 0.55rem;
+            background: var(--vermillion-light);
+            color: var(--vermillion);
+            border-radius: 2px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
             margin-top: 0.8rem;
             align-self: flex-start;
         }
-        
-        .card-tag.auth { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
-        .card-tag.uc { background: rgba(34, 211, 238, 0.15); color: #22d3ee; }
-        .card-tag.abac { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
-        
+
+        .card-tag.auth { background: rgba(45,138,62,0.1); color: #2d8a3e; }
+        .card-tag.uc { background: rgba(45,111,204,0.1); color: #2d6fcc; }
+        .card-tag.abac { background: rgba(119,68,170,0.1); color: #7744aa; }
+
+        .card-featured {
+            border-color: rgba(204,51,17,0.3);
+            background: var(--vermillion-light);
+        }
+
+        .card-featured:hover {
+            border-color: var(--vermillion);
+        }
+
+        .card-featured .card-tag {
+            background: rgba(204,51,17,0.15);
+            color: var(--vermillion);
+            font-weight: 700;
+        }
+
         .info-box {
-            background: rgba(20, 184, 166, 0.1);
-            border: 1px solid rgba(20, 184, 166, 0.2);
-            border-radius: 12px;
+            background: var(--vermillion-light);
+            border: 1px solid rgba(204,51,17,0.15);
+            border-left: 3px solid var(--vermillion);
+            border-radius: 4px;
             padding: 1.5rem;
             margin: 2rem 0;
         }
-        
+
         .info-box h3 {
-            color: #14b8a6;
+            color: var(--vermillion);
             margin-bottom: 0.5rem;
             font-size: 1rem;
+            font-weight: 700;
         }
-        
+
         .info-box p {
-            color: #94a3b8;
+            color: var(--ink-light);
             font-size: 0.9rem;
         }
-        
+
         .info-box a {
-            color: #22d3ee;
+            color: var(--vermillion);
             text-decoration: none;
+            font-weight: 600;
         }
-        
+
         .info-box a:hover { text-decoration: underline; }
-        
+
         .two-col {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+            gap: 0.75rem;
             margin-top: 1rem;
         }
-        
+
         .two-col a {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             padding: 0.8rem 1rem;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
-            color: #e8e8e8;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--ink);
             text-decoration: none;
             font-size: 0.9rem;
-            transition: all 0.2s ease;
+            font-weight: 500;
+            transition: border-color 0.2s, transform 0.15s;
         }
-        
+
         .two-col a:hover {
-            background: rgba(255,255,255,0.1);
+            border-color: var(--vermillion);
+            transform: translateX(3px);
         }
-        
+
         footer {
             text-align: center;
             padding: 3rem 0 2rem;
-            color: #64748b;
+            margin-top: 2rem;
+            border-top: 2px solid var(--ink);
+            color: var(--muted);
             font-size: 0.85rem;
         }
-        
+
         footer a {
-            color: #14b8a6;
+            color: var(--vermillion);
             text-decoration: none;
+            font-weight: 600;
         }
-        
+
         footer a:hover { text-decoration: underline; }
-        
+
         @media (max-width: 700px) {
             .cards { grid-template-columns: 1fr; }
             .two-col { grid-template-columns: 1fr; }
@@ -209,29 +259,29 @@
     <div class="container">
         <header>
             <div class="logo">🛡️</div>
-            <h1>AI Governance Guide</h1>
+            <h1>AI <span>Governance</span> Guide</h1>
             <p class="subtitle">Interactive visualizations for Databricks authentication patterns and Unity Catalog access control</p>
             <a href="https://github.com/bhavink/databricks/tree/master/ai-governance" class="repo-link" target="_blank">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                 View Full Documentation on GitHub
             </a>
         </header>
-        
+
         <div class="info-box">
-            <h3>📖 How to Use This Site</h3>
+            <h3>How to Use This Site</h3>
             <p>
                 <strong>This site</strong> hosts <strong>interactive visualizations</strong> that explain complex concepts through scroll-based animations.<br>
                 <strong>The <a href="https://github.com/bhavink/databricks/tree/master/ai-governance" target="_blank">GitHub repo</a></strong> contains detailed markdown documentation with code examples, SQL snippets, and reference materials.
             </p>
         </div>
-        
-        <h2 class="section-title">🏗️ Orchestration Architecture</h2>
+
+        <h2 class="section-title">Orchestration Architecture</h2>
         <div class="cards">
-            <a href="interactive/orchestration/" class="card" style="border-color: rgba(20, 184, 166, 0.5); background: rgba(20, 184, 166, 0.08);">
+            <a href="interactive/orchestration/" class="card card-featured">
                 <div class="card-icon">🌐</div>
                 <h3>Governed Orchestration Hub</h3>
                 <p>The "mother of all" scenarios: Agent auth, External apps, MCP, Model Serving, AI Gateway, Lakebase — all in one place.</p>
-                <span class="card-tag" style="background: rgba(20, 184, 166, 0.25); color: #14b8a6;">START HERE</span>
+                <span class="card-tag">Start Here</span>
             </a>
             <a href="interactive/orchestration/agent-auth-methods.html" class="card">
                 <div class="card-icon">🔐</div>
@@ -255,17 +305,17 @@
                 <div class="card-icon">🌉</div>
                 <h3>AI Gateway Governance</h3>
                 <p>Rate limits, guardrails, inference tables, usage tracking for external LLM traffic.</p>
-                <span class="card-tag" style="background: rgba(249, 115, 22, 0.15); color: #f97316;">AI Gateway</span>
+                <span class="card-tag" style="background: rgba(204,119,0,0.1); color: #cc7700;">AI Gateway</span>
             </a>
             <a href="interactive/orchestration/databricks-apps.html" class="card">
                 <div class="card-icon">🏠</div>
                 <h3>Databricks Apps</h3>
                 <p>Host web apps with automatic OAuth, Unity Catalog integration, and serverless compute.</p>
-                <span class="card-tag" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">Apps</span>
+                <span class="card-tag" style="background: rgba(170,50,90,0.1); color: #aa325a;">Apps</span>
             </a>
         </div>
-        
-        <h2 class="section-title">🔐 Authentication Patterns</h2>
+
+        <h2 class="section-title">Authentication Patterns</h2>
         <div class="cards">
             <a href="interactive/auth-flow-obo.html" class="card">
                 <div class="card-icon">👤</div>
@@ -286,8 +336,8 @@
                 <span class="card-tag auth">Quick Start</span>
             </a>
         </div>
-        
-        <h2 class="section-title">🏛️ Unity Catalog Authorization</h2>
+
+        <h2 class="section-title">Unity Catalog Authorization</h2>
         <div class="cards">
             <a href="interactive/uc-access-control-layers.html" class="card">
                 <div class="card-icon">🛡️</div>
@@ -314,8 +364,8 @@
                 <span class="card-tag uc">Column Security</span>
             </a>
         </div>
-        
-        <h2 class="section-title">📚 Documentation (on GitHub)</h2>
+
+        <h2 class="section-title">Documentation (on GitHub)</h2>
         <div class="two-col">
             <a href="https://github.com/bhavink/databricks/blob/master/ai-governance/ORCHESTRATION-ARCHITECTURE.md" target="_blank">
                 🏗️ Orchestration Architecture
@@ -336,8 +386,8 @@
                 📄 Auth Flow Diagrams
             </a>
         </div>
-        
-        <h2 class="section-title">🔗 Official Databricks Documentation</h2>
+
+        <h2 class="section-title">Official Databricks Documentation</h2>
         <div class="two-col">
             <a href="https://docs.databricks.com/aws/en/generative-ai/agent-bricks/" target="_blank">
                 🚀 Agent Bricks
@@ -352,7 +402,7 @@
                 📎 Governed Tags
             </a>
         </div>
-        
+
         <footer>
             <p>
                 Built for learning Databricks AI product governance patterns.<br>

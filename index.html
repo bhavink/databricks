@@ -6,36 +6,38 @@
     <title>All Things Databricks — Bhavin Kukadia</title>
     <meta name="description" content="Production-ready Databricks infrastructure templates, AI governance patterns, and security architectures across Azure, AWS, and GCP.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg-deep:    #0d1117;
-            --bg-mid:     #161b22;
-            --bg-card:    rgba(255,255,255,0.03);
-            --bg-card-h:  rgba(255,255,255,0.06);
-            --border:     rgba(255,255,255,0.08);
-            --border-h:   rgba(255,140,0,0.45);
-            --text:       #e6edf3;
-            --muted:      #8b949e;
-            --accent:     #ff8c00;
-            --accent2:    #ffb347;
+            --white:      #ffffff;
+            --ink:        #1a1a1a;
+            --ink-light:  #444444;
+            --vermillion: #cc3311;
+            --vermillion-light: rgba(204,51,17,0.08);
+            --border:     #e0e0e0;
+            --border-h:   #cc3311;
+            --bg-card:    #fafafa;
+            --bg-card-h:  #f5f5f5;
+            --muted:      #777777;
             --azure:      #0078d4;
-            --aws:        #ff9900;
-            --gcp:        #4285f4;
-            --teal:       #14b8a6;
-            --teal-dim:   rgba(20,184,166,0.15);
-            --purple:     #a855f7;
-            --green:      #3fb950;
+            --aws:        #cc7700;
+            --gcp:        #2d6fcc;
+            --teal:       #0d7d6c;
+            --purple:     #7744aa;
+            --green:      #2d8a3e;
         }
 
         html { scroll-behavior: smooth; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg-deep);
-            color: var(--text);
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+            background: var(--white);
+            color: var(--ink);
             min-height: 100vh;
             line-height: 1.6;
             overflow-x: hidden;
@@ -46,7 +48,7 @@
             position: fixed;
             top: 0; left: 0; right: 0;
             z-index: 100;
-            background: rgba(13,17,23,0.85);
+            background: rgba(255,255,255,0.92);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
             padding: 0 2rem;
@@ -60,15 +62,15 @@
             font-size: 0.95rem;
             font-weight: 700;
             letter-spacing: -0.02em;
-            color: var(--text);
+            color: var(--ink);
             text-decoration: none;
             display: flex;
             align-items: center;
             gap: 0.45rem;
         }
 
-        .nav-logo .iconify { font-size: 1.3rem; color: var(--accent); }
-        .nav-logo span { color: var(--accent); }
+        .nav-logo .iconify { font-size: 1.3rem; color: var(--vermillion); }
+        .nav-logo span { color: var(--vermillion); }
 
         .nav-links {
             display: flex;
@@ -78,16 +80,17 @@
 
         .nav-links a {
             padding: 0.35rem 0.75rem;
-            border-radius: 6px;
+            border-radius: 4px;
             color: var(--muted);
             text-decoration: none;
             font-size: 0.85rem;
+            font-weight: 500;
             transition: color 0.2s, background 0.2s;
         }
 
         .nav-links a:hover {
-            color: var(--text);
-            background: rgba(255,255,255,0.06);
+            color: var(--ink);
+            background: var(--bg-card);
         }
 
         .nav-github {
@@ -95,20 +98,21 @@
             align-items: center;
             gap: 0.4rem;
             padding: 0.4rem 0.9rem;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
+            background: var(--ink);
+            border: 1px solid var(--ink);
+            border-radius: 4px;
+            color: var(--white);
             text-decoration: none;
             font-size: 0.82rem;
-            transition: background 0.2s, border-color 0.2s;
+            font-weight: 600;
+            transition: background 0.2s;
         }
 
         .nav-github .iconify { font-size: 1.05rem; }
 
         .nav-github:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.2);
+            background: var(--ink-light);
+            border-color: var(--ink-light);
         }
 
         /* ─── HERO ────────────────────────────────────────── */
@@ -127,30 +131,29 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.3rem 0.8rem;
-            background: rgba(255,140,0,0.12);
-            border: 1px solid rgba(255,140,0,0.25);
-            border-radius: 20px;
-            color: var(--accent2);
-            font-size: 0.78rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
+            background: var(--vermillion-light);
+            border: 1px solid rgba(204,51,17,0.2);
+            border-radius: 2px;
+            color: var(--vermillion);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
             margin-bottom: 1.25rem;
         }
 
         .hero h1 {
-            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
             font-weight: 700;
-            line-height: 1.15;
-            letter-spacing: -0.03em;
+            line-height: 1.1;
+            letter-spacing: -0.04em;
             margin-bottom: 1rem;
+            color: var(--ink);
         }
 
         .hero h1 .gradient {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, #ffd700 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--vermillion);
+            -webkit-text-fill-color: var(--vermillion);
         }
 
         .hero-desc {
@@ -169,11 +172,11 @@
 
         .btn-primary {
             padding: 0.65rem 1.4rem;
-            background: var(--accent);
-            color: #000;
+            background: var(--vermillion);
+            color: var(--white);
             font-weight: 700;
             font-size: 0.9rem;
-            border-radius: 8px;
+            border-radius: 4px;
             text-decoration: none;
             transition: background 0.2s, transform 0.15s;
             display: inline-flex;
@@ -182,15 +185,16 @@
         }
 
         .btn-primary .iconify { font-size: 1rem; }
-        .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+        .btn-primary:hover { background: #aa2200; transform: translateY(-1px); }
 
         .btn-ghost {
             padding: 0.65rem 1.4rem;
             background: transparent;
             border: 1px solid var(--border);
-            color: var(--muted);
+            color: var(--ink-light);
             font-size: 0.9rem;
-            border-radius: 8px;
+            font-weight: 500;
+            border-radius: 4px;
             text-decoration: none;
             transition: background 0.2s, border-color 0.2s, color 0.2s;
             display: inline-flex;
@@ -201,9 +205,9 @@
         .btn-ghost .iconify { font-size: 1rem; }
 
         .btn-ghost:hover {
-            background: rgba(255,255,255,0.05);
-            border-color: rgba(255,255,255,0.2);
-            color: var(--text);
+            background: var(--bg-card);
+            border-color: var(--ink);
+            color: var(--ink);
         }
 
         /* Stats panel */
@@ -216,30 +220,28 @@
         }
 
         .stat-box {
-            background: var(--bg-card);
+            background: var(--white);
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: 4px;
             padding: 1rem;
             text-align: center;
         }
 
         .stat-num {
             font-size: 1.6rem;
-            font-weight: 800;
+            font-weight: 700;
             letter-spacing: -0.03em;
             line-height: 1;
             margin-bottom: 0.25rem;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--vermillion);
         }
 
         .stat-label {
             font-size: 0.72rem;
             color: var(--muted);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
+            font-weight: 600;
         }
 
         /* ─── SECTIONS ────────────────────────────────────── */
@@ -255,31 +257,33 @@
             gap: 0.75rem;
             margin-bottom: 1.5rem;
             padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--ink);
         }
 
         .section-header .section-icon {
             font-size: 1.1rem;
             display: flex;
             align-items: center;
-            color: var(--muted);
+            color: var(--vermillion);
         }
 
         .section-header h2 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--muted);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--ink);
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.1em;
         }
 
         .section-header .pill {
-            padding: 0.1rem 0.5rem;
-            background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            font-size: 0.72rem;
-            color: var(--muted);
+            padding: 0.15rem 0.6rem;
+            background: var(--vermillion-light);
+            border-radius: 2px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--vermillion);
             margin-left: auto;
+            letter-spacing: 0.02em;
         }
 
         /* ─── CARDS ───────────────────────────────────────── */
@@ -293,22 +297,21 @@
         .cards-2 { grid-template-columns: repeat(2, 1fr); }
 
         .card {
-            background: var(--bg-card);
+            background: var(--white);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 4px;
             padding: 1.4rem;
             text-decoration: none;
             color: inherit;
             display: flex;
             flex-direction: column;
-            transition: background 0.25s, border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
         }
 
         .card:hover {
-            background: var(--bg-card-h);
-            border-color: var(--border-h);
+            border-color: var(--vermillion);
             transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
         .card-icon {
@@ -318,18 +321,18 @@
         }
 
         .card-icon .iconify {
-            font-size: 2rem;
-            color: var(--muted);
-            transition: color 0.25s;
+            font-size: 1.8rem;
+            color: var(--ink-light);
+            transition: color 0.2s;
         }
 
-        .card:hover .card-icon .iconify { color: var(--text); }
+        .card:hover .card-icon .iconify { color: var(--vermillion); }
 
         .card h3 {
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 0.4rem;
-            color: var(--text);
+            color: var(--ink);
         }
 
         .card p {
@@ -352,21 +355,22 @@
             display: inline-flex;
             align-items: center;
             gap: 0.3rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
+            padding: 0.2rem 0.55rem;
+            border-radius: 2px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
         }
 
-        .tag-azure  { background: rgba(0,120,212,0.15); color: #60b0ff; }
-        .tag-aws    { background: rgba(255,153,0,0.15);  color: var(--aws); }
-        .tag-gcp    { background: rgba(66,133,244,0.15); color: #79aeff; }
-        .tag-ai     { background: rgba(168,85,247,0.15); color: var(--purple); }
-        .tag-iac    { background: rgba(20,184,166,0.15); color: var(--teal); }
-        .tag-python { background: rgba(63,185,80,0.15);  color: var(--green); }
-        .tag-multi  { background: rgba(255,140,0,0.15);  color: var(--accent2); }
-        .tag-health { background: rgba(236,72,153,0.15); color: #f472b6; }
+        .tag-azure  { background: rgba(0,120,212,0.1); color: var(--azure); }
+        .tag-aws    { background: rgba(204,119,0,0.1);  color: var(--aws); }
+        .tag-gcp    { background: rgba(45,111,204,0.1); color: var(--gcp); }
+        .tag-ai     { background: rgba(119,68,170,0.1); color: var(--purple); }
+        .tag-iac    { background: rgba(13,125,108,0.1); color: var(--teal); }
+        .tag-python { background: rgba(45,138,62,0.1);  color: var(--green); }
+        .tag-multi  { background: var(--vermillion-light); color: var(--vermillion); }
+        .tag-health { background: rgba(170,50,90,0.1); color: #aa325a; }
 
         .card-arrow {
             color: var(--muted);
@@ -376,69 +380,63 @@
         }
 
         .card-arrow .iconify { font-size: 1.1rem; }
-        .card:hover .card-arrow { color: var(--accent); transform: translateX(2px); }
+        .card:hover .card-arrow { color: var(--vermillion); transform: translateX(3px); }
 
         /* ─── FEATURED CARD ───────────────────────────────── */
         .card-featured {
             grid-column: 1 / -1;
-            background: linear-gradient(135deg, rgba(255,140,0,0.08) 0%, rgba(255,179,71,0.05) 100%);
-            border-color: rgba(255,140,0,0.2);
+            background: var(--vermillion-light);
+            border-color: rgba(204,51,17,0.2);
             flex-direction: row;
             align-items: flex-start;
             gap: 1.5rem;
         }
 
-        .card-featured:hover { border-color: rgba(255,140,0,0.5); }
+        .card-featured:hover { border-color: var(--vermillion); }
 
         .card-featured .card-icon { flex-shrink: 0; padding-top: 0.1rem; }
-        .card-featured .card-icon .iconify { font-size: 2.6rem; color: var(--accent); }
-        .card-featured:hover .card-icon .iconify { color: var(--accent2); }
+        .card-featured .card-icon .iconify { font-size: 2.4rem; color: var(--vermillion); }
+        .card-featured:hover .card-icon .iconify { color: #aa2200; }
 
         .card-featured-body { flex: 1; }
 
-        .card-featured .card-footer { border-color: rgba(255,140,0,0.15); }
+        .card-featured .card-footer { border-color: rgba(204,51,17,0.15); }
 
         /* ─── CLOUD TRIO ──────────────────────────────────── */
-        .cloud-card-azure { border-color: rgba(0,120,212,0.2); }
-        .cloud-card-azure:hover { border-color: rgba(0,120,212,0.6); box-shadow: 0 8px 32px rgba(0,120,212,0.12); }
-        .cloud-card-azure .card-icon .iconify { color: #0078d4; filter: drop-shadow(0 0 6px rgba(0,120,212,0.35)); }
+        .cloud-card-azure .card-icon .iconify { color: var(--azure); }
+        .cloud-card-azure:hover { border-color: var(--azure); }
+        .cloud-card-azure:hover .card-icon .iconify { color: var(--azure); }
 
-        .cloud-card-aws { border-color: rgba(255,153,0,0.2); }
-        .cloud-card-aws:hover { border-color: rgba(255,153,0,0.6); box-shadow: 0 8px 32px rgba(255,153,0,0.12); }
-        .cloud-card-aws .card-icon .iconify { color: #ff9900; filter: drop-shadow(0 0 6px rgba(255,153,0,0.35)); }
+        .cloud-card-aws .card-icon .iconify { color: var(--aws); }
+        .cloud-card-aws:hover { border-color: var(--aws); }
+        .cloud-card-aws:hover .card-icon .iconify { color: var(--aws); }
 
-        .cloud-card-gcp { border-color: rgba(66,133,244,0.2); }
-        .cloud-card-gcp:hover { border-color: rgba(66,133,244,0.6); box-shadow: 0 8px 32px rgba(66,133,244,0.12); }
-        .cloud-card-gcp .card-icon .iconify { color: #4285f4; filter: drop-shadow(0 0 6px rgba(66,133,244,0.35)); }
-
-        /* don't grey out cloud icons on hover */
-        .cloud-card-azure:hover .card-icon .iconify,
-        .cloud-card-aws:hover .card-icon .iconify,
-        .cloud-card-gcp:hover .card-icon .iconify { color: inherit; }
+        .cloud-card-gcp .card-icon .iconify { color: var(--gcp); }
+        .cloud-card-gcp:hover { border-color: var(--gcp); }
+        .cloud-card-gcp:hover .card-icon .iconify { color: var(--gcp); }
 
         /* ─── ARTICLES ────────────────────────────────────── */
         .article-list {
             display: flex;
             flex-direction: column;
-            gap: 0.6rem;
+            gap: 0.5rem;
         }
 
         .article-item {
             display: flex;
             align-items: center;
             gap: 1rem;
-            padding: 0.9rem 1.1rem;
-            background: var(--bg-card);
+            padding: 0.85rem 1.1rem;
+            background: var(--white);
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: 4px;
             text-decoration: none;
             color: inherit;
-            transition: background 0.2s, border-color 0.2s, transform 0.15s;
+            transition: border-color 0.2s, transform 0.15s;
         }
 
         .article-item:hover {
-            background: var(--bg-card-h);
-            border-color: rgba(255,140,0,0.3);
+            border-color: var(--vermillion);
             transform: translateX(3px);
         }
 
@@ -446,7 +444,7 @@
             display: flex;
             align-items: center;
             flex-shrink: 0;
-            color: var(--accent);
+            color: var(--vermillion);
         }
 
         .article-icon .iconify { font-size: 1rem; }
@@ -454,13 +452,15 @@
         .article-title {
             flex: 1;
             font-size: 0.9rem;
-            color: var(--text);
+            font-weight: 500;
+            color: var(--ink);
         }
 
         .article-meta {
             font-size: 0.78rem;
             color: var(--muted);
             flex-shrink: 0;
+            font-weight: 600;
         }
 
         /* ─── FOOTER ──────────────────────────────────────── */
@@ -471,11 +471,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-top: 1px solid var(--border);
+            border-top: 2px solid var(--ink);
         }
 
         footer p { font-size: 0.85rem; color: var(--muted); }
-        footer a { color: var(--accent); text-decoration: none; }
+        footer a { color: var(--vermillion); text-decoration: none; font-weight: 600; }
         footer a:hover { text-decoration: underline; }
 
         .footer-links { display: flex; gap: 1.5rem; }
@@ -487,11 +487,12 @@
             font-size: 0.85rem;
             color: var(--muted);
             text-decoration: none;
+            font-weight: 500;
             transition: color 0.2s;
         }
 
         .footer-links a .iconify { font-size: 1rem; }
-        .footer-links a:hover { color: var(--text); }
+        .footer-links a:hover { color: var(--ink); }
 
         /* ─── RESPONSIVE ──────────────────────────────────── */
         @media (max-width: 900px) {
@@ -546,12 +547,12 @@
 <!-- HERO -->
 <section class="hero">
     <div>
-        <div class="hero-badge">⚡ Production-Ready · Open Source</div>
+        <div class="hero-badge">Production-Ready · Open Source</div>
         <h1>All Things<br><span class="gradient">Databricks</span></h1>
         <p class="hero-desc">
             Production-ready infrastructure templates, AI governance patterns, and security architectures
             for Databricks on Azure, AWS, and GCP — built by
-            <a href="https://www.linkedin.com/in/bhavink/" target="_blank" style="color:var(--accent); text-decoration:none;">Bhavin Kukadia</a>.
+            <a href="https://www.linkedin.com/in/bhavink/" target="_blank" style="color:var(--vermillion); text-decoration:none; font-weight:600;">Bhavin Kukadia</a>.
         </p>
         <div class="hero-ctas">
             <a href="https://github.com/bhavink/databricks/blob/master/adb4u/docs/01-QUICKSTART.md" target="_blank" class="btn-primary">
@@ -893,14 +894,14 @@
             </div>
         </a>
 
-        <a href="https://github.com/bhavink/databricks/tree/master/archive" target="_blank" class="card" style="opacity:0.7;">
+        <a href="https://github.com/bhavink/databricks/tree/master/archive" target="_blank" class="card" style="opacity:0.6;">
             <div class="card-icon">
                 <span class="iconify" data-icon="tabler:archive"></span>
             </div>
             <h3>Archive</h3>
             <p>Legacy content including Databricks jump-start notebooks, Spark/MLflow/Delta Lake examples, and REST API Postman collections.</p>
             <div class="card-footer">
-                <span class="tag" style="background:rgba(255,255,255,0.06);color:var(--muted);">Legacy</span>
+                <span class="tag" style="background:rgba(0,0,0,0.05);color:var(--muted);">Legacy</span>
                 <span class="card-arrow"><span class="iconify" data-icon="tabler:arrow-right"></span></span>
             </div>
         </a>
@@ -941,9 +942,9 @@
             <span class="article-meta">Mar 2024</span>
         </a>
 
-        <a href="https://www.databricks.com/blog/author/bhavin-kukadia" target="_blank" class="article-item" style="border-color:rgba(255,140,0,0.2);">
-            <span class="article-icon" style="color:var(--accent2);"><span class="iconify" data-icon="tabler:external-link"></span></span>
-            <span class="article-title" style="color:var(--accent2);">View all 13+ articles on Databricks Blog</span>
+        <a href="https://www.databricks.com/blog/author/bhavin-kukadia" target="_blank" class="article-item" style="border-color:rgba(204,51,17,0.25);">
+            <span class="article-icon"><span class="iconify" data-icon="tabler:external-link"></span></span>
+            <span class="article-title" style="color:var(--vermillion); font-weight:600;">View all 13+ articles on Databricks Blog</span>
             <span class="article-meta"></span>
         </a>
 
@@ -968,9 +969,6 @@
         </a>
         <a href="ai-governance/index.html">
             <span class="iconify" data-icon="tabler:shield-lock"></span> AI Governance
-        </a>
-        <a href="https://github.com/bhavink/databricks" target="_blank">
-            <span class="iconify" data-icon="tabler:brand-github"></span> Repo
         </a>
     </div>
 </footer>
