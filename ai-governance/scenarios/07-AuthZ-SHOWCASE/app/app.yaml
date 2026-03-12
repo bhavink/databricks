@@ -1,4 +1,4 @@
-# app.yaml — AI Auth Showcase, Phase 1+2+3+4
+# app.yaml — AI Auth Showcase
 #
 # Tab 1 — Genie + OBO (user authorization):
 #   The Apps proxy injects the authenticated user's OAuth token as
@@ -9,19 +9,24 @@
 #   OAuth integration, NOT in this file — there is no app.yaml scopes field):
 #     - dashboards.genie  (Genie space access)
 #     - genie             (Genie Conversation API — required on Azure)
-#   Patch command (run once after any app delete+create):
-#     databricks account custom-app-integration update '<YOUR_OAUTH_INTEGRATION_ID>' \
+#   Scope configuration (via account CLI — run once after any app delete+create):
+#     databricks account custom-app-integration update 'e7594cff-ad76-4268-91db-b0689be2ec62' \
 #       --profile adb-account \
 #       --json '{"scopes":["offline_access","email","iam.current-user:read",
 #                "openid","dashboards.genie","genie","iam.access-control:read",
-#                "profile","model-serving","sql","all-apis","unity-catalog"],
-#               "user_authorized_scopes":["dashboards.genie","genie","model-serving","sql","all-apis","unity-catalog"]}'
-#   Scopes required per tab:
-#     dashboards.genie + genie  → Tab 1 (Genie OBO)
-#     model-serving             → Tab 5 (Supervisor Agent OBO)
-#     sql                       → Tab 4 (Custom MCP OBO — warehouse execution)
-#     unity-catalog             → Tab 6 (External MCP proxy — USE CONNECTION check requires this scope)
-#   See IMPLEMENTATION-PLAN.md → Phase 4 → Step 4.2a for the full context.
+#                "profile","model-serving","sql","unity-catalog"],
+#               "user_authorized_scopes":["dashboards.genie","genie","model-serving","sql","unity-catalog"]}'
+#
+#   Additionally, configure User Authorization via the Databricks UI (Apps → Edit → Configure):
+#     Add scopes: sql, dashboards.genie, serving.serving-endpoints, unity-catalog
+#     This produces a real JWT with the scopes in the token's `scp` claim.
+#     The CLI only sets user_authorized_scopes but NOT effective_user_api_scopes.
+#
+#   Scopes required per tab (no all-apis — use specific scopes only):
+#     dashboards.genie + genie  → Tab 1 (Genie OBO User)
+#     sql                       → Tab 4 (Custom MCP OBO User — UC row filters fire as human)
+#     model-serving             → Tab 5 (Supervisor Agent OBO User)
+#     unity-catalog             → Tab 6 (External MCP proxy — USE CONNECTION check)
 #
 # Tab 2 — Vector Search + M2M (app authorization):
 #   The app SP's own credentials (DATABRICKS_CLIENT_ID / SECRET) are used
@@ -48,11 +53,13 @@
 #     -- Group membership (for is_member() check in get_rep_quota):
 #     databricks groups add-member authz_showcase_executives <SP_ID>
 
-command: ["streamlit", "run", "app.py", "--server.port", "8000", "--server.headless", "true"]
+# startup.sh removes conflicting mlflow-skinny (pre-installed in Apps runtime)
+# and force-reinstalls mlflow-tracing to restore shared namespace files.
+command: ["bash", "startup.sh"]
 
 env:
   - name: GENIE_SPACE_ID
-    value: "<YOUR_GENIE_SPACE_ID>"
+    value: "01f117ff5bdd167daf9aed6baa32c4c8"
   - name: VS_INDEX
     value: "authz_showcase.knowledge_base.product_docs_index"
   - name: VS_INDEX_PB
@@ -60,24 +67,52 @@ env:
   - name: FM_ENDPOINT
     value: "databricks-meta-llama-3-3-70b-instruct"
   - name: SQL_WAREHOUSE
-    value: "<YOUR_WAREHOUSE_ID>"
+    value: "093d4ec27ed4bdee"
   - name: UC_FUNCTIONS_CATALOG
     value: "authz_showcase"
   - name: SUPERVISOR_ENDPOINT
-    value: "<YOUR_SUPERVISOR_ENDPOINT>"
+    value: "mas-155f64f7-endpoint"
   # ── Tab 4: Custom MCP direct URL (OBO + M2M tools) ──────────────────────────
   - name: CUSTOM_MCP_URL
-    value: "https://authz-showcase-custom-mcp-<YOUR_WORKSPACE_ORG_ID>.3.azure.databricksapps.com/mcp"
+    value: "https://authz-showcase-custom-mcp-1516413757355523.3.azure.databricksapps.com/mcp"
   # ── Tab 6: External MCP connection names (UC governs access) ────────────────
   - name: GITHUB_CONN
     value: "authz_showcase_github_conn"
   - name: CUSTMCP_CONN
     value: "authz_showcase_custmcp_conn"
+  # ── Tracing (Module B) — E2E observability ──────────────────────────────────
+  - name: MLFLOW_TRACKING_URI
+    value: "databricks"
+  - name: MLFLOW_EXPERIMENT_NAME
+    value: "/Users/bhavin.kukadia@databricks.com/mas-155f64f7-dev-experiment"
+  - name: MLFLOW_ENABLE_ASYNC_TRACE_LOGGING
+    value: "true"
+  - name: MLFLOW_ASYNC_TRACE_LOGGING_MAX_WORKERS
+    value: "10"
+  - name: MLFLOW_ASYNC_TRACE_LOGGING_MAX_QUEUE_SIZE
+    value: "1000"
+  - name: MLFLOW_TRACE_SAMPLING_RATIO
+    value: "1.0"
+  - name: SERVICE_NAME
+    value: "app-a-frontend"
+  - name: APP_VERSION
+    value: "1.0.0"
+  # ── Theme — Swiss Modern (UI only, no functional impact) ────────────────────
+  - name: STREAMLIT_THEME_PRIMARY_COLOR
+    value: "#cc3311"
+  - name: STREAMLIT_THEME_BACKGROUND_COLOR
+    value: "#ffffff"
+  - name: STREAMLIT_THEME_SECONDARY_BACKGROUND_COLOR
+    value: "#f4f3f0"
+  - name: STREAMLIT_THEME_TEXT_COLOR
+    value: "#111111"
+  - name: STREAMLIT_THEME_FONT
+    value: "sans serif"
 
 resources:
   # ── Tab 1: Genie (OBO — user token forwarded; SP needs CAN_RUN to proxy) ──
   - genie:
-      id: "<YOUR_GENIE_SPACE_ID>"
+      id: "01f117ff5bdd167daf9aed6baa32c4c8"
       permission: CAN_RUN          # Least privilege: start/run conversations
 
   # ── Tab 2: Vector Search indexes (M2M — SP queries both indexes) ──────────
@@ -95,7 +130,7 @@ resources:
 
   # ── Tab 3: SQL Warehouse (M2M — SP executes UC function SELECT calls) ─────
   - sql_warehouse:
-      id: "<YOUR_WAREHOUSE_ID>"
+      id: "093d4ec27ed4bdee"
       permission: CAN_USE          # Least privilege: run queries only
 
   # ── Tab 3: UC Functions (M2M — SP calls all three functions) ──────────────
@@ -111,5 +146,5 @@ resources:
 
   # ── Tab 5: Supervisor Agent endpoint (OBO — user token forwarded) ───────────
   - serving_endpoint:
-      name: "<YOUR_SUPERVISOR_ENDPOINT>"
+      name: "mas-155f64f7-endpoint"
       permission: CAN_QUERY        # App SP can proxy queries; user OBO token enforces sub-agent auth

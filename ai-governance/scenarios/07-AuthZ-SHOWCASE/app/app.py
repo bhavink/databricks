@@ -1,5 +1,5 @@
 """
-app.py — AI Auth Showcase, Phase 1+2+3: Genie + OBO / Vector Search + M2M / UC Functions + M2M
+app.py — AI Auth Showcase: OBO + M2M + UC Functions + MCP + Governance
 
 OBO pattern: Databricks Apps injects the logged-in user's OAuth token as the
 'X-Forwarded-Access-Token' request header. We extract it here and pass it to
@@ -14,13 +14,40 @@ To run locally with your own token:
 
 import ast
 import json
+import logging
 import os
 import time
+import uuid
+
+import mlflow
 import requests
 import streamlit as st
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.errors import PermissionDenied as _SdkPermissionDenied
 from auth_utils import get_user_context
+
+logger = logging.getLogger(__name__)
+
+# ── Tracing Init (Module B) ──────────────────────────────────────────────────
+_TRACING_ENABLED = False
+_EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "")
+if _EXPERIMENT_NAME:
+    try:
+        os.environ.setdefault("MLFLOW_TRACKING_URI", "databricks")
+        os.environ.setdefault("MLFLOW_ENABLE_ASYNC_TRACE_LOGGING", "true")
+        os.environ.setdefault("MLFLOW_ASYNC_TRACE_LOGGING_MAX_WORKERS", "10")
+        os.environ.setdefault("MLFLOW_ASYNC_TRACE_LOGGING_MAX_QUEUE_SIZE", "1000")
+        os.environ.setdefault("MLFLOW_TRACE_SAMPLING_RATIO", "1.0")
+        # mlflow-tracing requires explicit set_destination() — env vars alone
+        # are not enough, and set_experiment()/get_experiment_by_name() are not
+        # available in the lightweight mlflow-tracing package.
+        from mlflow.tracing import set_destination
+        from mlflow.tracing.destination import Databricks
+        set_destination(Databricks(experiment_name=_EXPERIMENT_NAME))
+        _TRACING_ENABLED = True
+        logger.info("Tracing enabled: experiment=%s (destination set)", _EXPERIMENT_NAME)
+    except Exception as e:
+        logger.warning("Tracing init failed: %s — continuing without tracing", e)
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
@@ -294,44 +321,70 @@ def supervisor_ask(question: str, user_token: str, history: list[dict]) -> str:
       request:  {"input": [{"role": ..., "content": ...}, ...]}
       response: {"output": [{"role": "assistant", "content": ...}]}
     """
-    system = {
-        "role": "system",
-        "content": (
-            "Format all responses using clean markdown. "
-            "Show deal/opportunity lists as a markdown table with columns: Opp ID, Customer, Stage, Amount, Close Date. "
-            "Use **bold** for key values. Keep responses concise — avoid nested bullet trees. "
-            "For single-value answers (quota, attainment) show the value prominently then a one-line explanation."
-        ),
-    }
-    messages = [system] + [{"role": m["role"], "content": m["content"]} for m in history]
-    messages.append({"role": "user", "content": question})
-    r = requests.post(
-        f"{host}/serving-endpoints/{SUPERVISOR_ENDPOINT}/invocations",
-        headers={"Authorization": f"Bearer {user_token}", "Content-Type": "application/json"},
-        json={"input": messages},
-        timeout=120,
-    )
-    r.raise_for_status()
-    data = r.json()
-    # Agent Bricks ResponsesAgent format.
-    # output is a list of mixed items: {"type":"message","content":[{"type":"output_text","text":"..."}]}
-    # and {"type":"function_call",...}. We want the text from the last "message" item.
-    output = data.get("output", [])
-    if isinstance(output, list):
-        for item in reversed(output):
-            if item.get("type") == "message":
-                content = item.get("content", [])
-                if isinstance(content, list) and content:
-                    return content[-1].get("text", str(content[-1]))
-                if isinstance(content, str):
-                    return content
-    if isinstance(output, str):
-        return output
-    # Fallback: OpenAI-compatible format
-    choices = data.get("choices", [])
-    if choices:
-        return choices[0]["message"]["content"]
-    return str(data)
+    span_ctx = mlflow.start_span(name="app_a.supervisor_ask") if _TRACING_ENABLED else None
+    try:
+        if span_ctx:
+            span = span_ctx.__enter__()
+            span.set_inputs({"question": question, "user_token": "[REDACTED]", "history": f"{len(history)} messages"})
+            client_request_id = str(uuid.uuid4())
+            mlflow.update_current_trace(
+                client_request_id=client_request_id,
+                tags={"service_name": "app-a-frontend", "entry_point": "tab5_supervisor"},
+            )
+
+        system = {
+            "role": "system",
+            "content": (
+                "Format all responses using clean markdown. "
+                "Show deal/opportunity lists as a markdown table with columns: Opp ID, Customer, Stage, Amount, Close Date. "
+                "Use **bold** for key values. Keep responses concise — avoid nested bullet trees. "
+                "For single-value answers (quota, attainment) show the value prominently then a one-line explanation."
+            ),
+        }
+        messages = [system] + [{"role": m["role"], "content": m["content"]} for m in history]
+        messages.append({"role": "user", "content": question})
+
+        req_headers = {"Authorization": f"Bearer {user_token}", "Content-Type": "application/json"}
+
+        r = requests.post(
+            f"{host}/serving-endpoints/{SUPERVISOR_ENDPOINT}/invocations",
+            headers=req_headers,
+            json={"input": messages},
+            timeout=120,
+        )
+        r.raise_for_status()
+        data = r.json()
+        # Agent Bricks ResponsesAgent format.
+        # output is a list of mixed items: {"type":"message","content":[{"type":"output_text","text":"..."}]}
+        # and {"type":"function_call",...}. We want the text from the last "message" item.
+        output = data.get("output", [])
+        result = None
+        if isinstance(output, list):
+            for item in reversed(output):
+                if item.get("type") == "message":
+                    content = item.get("content", [])
+                    if isinstance(content, list) and content:
+                        result = content[-1].get("text", str(content[-1]))
+                        break
+                    if isinstance(content, str):
+                        result = content
+                        break
+        if result is None and isinstance(output, str):
+            result = output
+        if result is None:
+            choices = data.get("choices", [])
+            result = choices[0]["message"]["content"] if choices else str(data)
+
+        if span_ctx:
+            span.set_outputs({"response": result[:500] if result else None})
+        return result
+    except Exception:
+        if span_ctx:
+            span.set_status("ERROR")
+        raise
+    finally:
+        if span_ctx:
+            span_ctx.__exit__(None, None, None)
 
 
 # ── User context (identity + active UC policies) ─────────────────────────────
@@ -426,53 +479,53 @@ st.set_page_config(page_title="AI Auth Showcase", page_icon="🔐", layout="wide
 # ── Global CSS — Dark Premium Enterprise Dashboard ────────────────────────────
 st.markdown("""
 <style>
-/* ── Base & Background ── */
+/* ── Base & Background — Swiss Modern ── */
 .stApp {
-    background-color: #0f1117;
-    color: #e2e8f0;
+    background-color: #ffffff;
+    color: #111111;
 }
 .stApp > header {
-    background-color: #0f1117;
+    background-color: #ffffff;
 }
 section[data-testid="stSidebar"] {
-    background-color: #13161f;
-    border-right: 1px solid #1e2130;
+    background-color: #f4f3f0;
+    border-right: 1px solid #e0ddd8;
 }
 section[data-testid="stSidebar"] > div {
-    background-color: #13161f;
+    background-color: #f4f3f0;
 }
 
 /* ── Typography ── */
 body, .stApp, .stMarkdown, p, li, span {
-    color: #e2e8f0;
+    color: #111111;
     font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
 }
 h1, h2, h3, h4, h5, h6 {
-    color: #f1f5f9 !important;
+    color: #111111 !important;
     font-weight: 600;
 }
 code {
-    background-color: #1e2130 !important;
-    color: #7dd3fc !important;
+    background-color: #eae9e5 !important;
+    color: #1d4ed8 !important;
     border-radius: 4px;
     padding: 1px 5px;
 }
 pre {
-    background-color: #1a1f2e !important;
-    border: 1px solid #2d3352 !important;
+    background-color: #f4f3f0 !important;
+    border: 1px solid #e0ddd8 !important;
     border-radius: 8px !important;
 }
 
 /* ── Tabs ── */
 .stTabs [data-baseweb="tab-list"] {
-    background-color: #13161f;
-    border-bottom: 1px solid #1e2130;
+    background-color: #f4f3f0;
+    border-bottom: 1px solid #e0ddd8;
     gap: 4px;
     padding: 0 4px;
 }
 .stTabs [data-baseweb="tab"] {
     background-color: transparent;
-    color: #94a3b8;
+    color: #787878;
     border-radius: 6px 6px 0 0;
     padding: 10px 20px;
     font-weight: 500;
@@ -481,42 +534,42 @@ pre {
     transition: color 0.15s;
 }
 .stTabs [data-baseweb="tab"]:hover {
-    color: #e2e8f0;
-    background-color: #1e2130;
+    color: #111111;
+    background-color: #eae9e5;
 }
 .stTabs [aria-selected="true"] {
-    background-color: #1a1f2e !important;
-    color: #FF3621 !important;
-    border-bottom: 2px solid #FF3621 !important;
+    background-color: #ffffff !important;
+    color: #cc3311 !important;
+    border-bottom: 2px solid #cc3311 !important;
     font-weight: 600;
 }
 .stTabs [data-baseweb="tab-panel"] {
-    background-color: #0f1117;
+    background-color: #ffffff;
     padding-top: 24px;
 }
 
 /* ── Buttons ── */
 .stButton > button {
-    background-color: #1e2130;
-    color: #e2e8f0;
-    border: 1px solid #2d3352;
+    background-color: #f4f3f0;
+    color: #111111;
+    border: 1px solid #e0ddd8;
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.15s;
 }
 .stButton > button:hover {
-    background-color: #252a3d;
-    border-color: #4a5080;
-    color: #fff;
+    background-color: #eae9e5;
+    border-color: #c0bdb8;
+    color: #111111;
 }
 .stButton > button[kind="primary"] {
-    background-color: #FF3621;
+    background-color: #cc3311;
     color: #fff;
     border: none;
     font-weight: 600;
 }
 .stButton > button[kind="primary"]:hover {
-    background-color: #e02d1a;
+    background-color: #b02d0e;
     color: #fff;
 }
 
@@ -524,17 +577,17 @@ pre {
 .stTextInput > div > div > input,
 .stSelectbox > div > div > div,
 .stRadio > div {
-    background-color: #1a1f2e !important;
-    color: #e2e8f0 !important;
-    border-color: #2d3352 !important;
+    background-color: #f4f3f0 !important;
+    color: #111111 !important;
+    border-color: #e0ddd8 !important;
     border-radius: 8px;
 }
 .stTextInput > div > div > input:focus {
-    border-color: #00A4EF !important;
-    box-shadow: 0 0 0 1px #00A4EF !important;
+    border-color: #cc3311 !important;
+    box-shadow: 0 0 0 1px #cc3311 !important;
 }
 .stTextInput label, .stSelectbox label, .stRadio label {
-    color: #94a3b8 !important;
+    color: #787878 !important;
     font-size: 0.8rem !important;
     font-weight: 500 !important;
     text-transform: uppercase;
@@ -543,26 +596,26 @@ pre {
 
 /* ── Metrics ── */
 [data-testid="stMetric"] {
-    background: linear-gradient(135deg, #1a1f2e, #1e2438);
-    border: 1px solid #2d3352;
+    background: #f4f3f0;
+    border: 1px solid #e0ddd8;
     border-radius: 12px;
     padding: 16px 20px;
 }
 [data-testid="stMetricLabel"] {
-    color: #94a3b8 !important;
+    color: #787878 !important;
     font-size: 0.75rem !important;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     font-weight: 500;
 }
 [data-testid="stMetricValue"] {
-    color: #f1f5f9 !important;
+    color: #111111 !important;
     font-size: 2rem !important;
     font-weight: 700 !important;
     line-height: 1.2;
 }
 [data-testid="stMetricDelta"] {
-    color: #4ade80 !important;
+    color: #16a34a !important;
 }
 
 /* ── Alerts / Info boxes ── */
@@ -575,120 +628,120 @@ div[data-testid="stNotification"] {
 }
 .stAlert[data-baseweb="notification"][kind="info"],
 div[data-baseweb="notification"][kind="info"] {
-    background-color: #0c2340 !important;
-    border-color: #1e5a8e !important;
-    color: #7dd3fc !important;
+    background-color: #eff6ff !important;
+    border-color: #bfdbfe !important;
+    color: #1d4ed8 !important;
 }
 .stAlert[data-baseweb="notification"][kind="success"],
 div[data-baseweb="notification"][kind="success"] {
-    background-color: #052e16 !important;
-    border-color: #166534 !important;
-    color: #86efac !important;
+    background-color: #f0fdf4 !important;
+    border-color: #bbf7d0 !important;
+    color: #166534 !important;
 }
 .stAlert[data-baseweb="notification"][kind="warning"],
 div[data-baseweb="notification"][kind="warning"] {
-    background-color: #2a1a00 !important;
-    border-color: #92400e !important;
-    color: #fcd34d !important;
+    background-color: #fffbeb !important;
+    border-color: #fde68a !important;
+    color: #92400e !important;
 }
 .stAlert[data-baseweb="notification"][kind="error"],
 div[data-baseweb="notification"][kind="error"] {
-    background-color: #2d0a0a !important;
-    border-color: #991b1b !important;
-    color: #fca5a5 !important;
+    background-color: #fef2f2 !important;
+    border-color: #fecaca !important;
+    color: #991b1b !important;
 }
 
 /* ── Expanders ── */
 .streamlit-expanderHeader {
-    background-color: #1a1f2e !important;
-    border: 1px solid #2d3352 !important;
+    background-color: #f4f3f0 !important;
+    border: 1px solid #e0ddd8 !important;
     border-radius: 8px !important;
-    color: #94a3b8 !important;
+    color: #787878 !important;
     font-weight: 500;
 }
 .streamlit-expanderContent {
-    background-color: #141824 !important;
-    border: 1px solid #2d3352 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e0ddd8 !important;
     border-top: none !important;
     border-radius: 0 0 8px 8px !important;
 }
 
 /* ── Containers with border ── */
 [data-testid="stVerticalBlock"] > [data-testid="element-container"] > div[data-testid="stVerticalBlockBorderWrapper"] {
-    background-color: #1a1f2e;
-    border: 1px solid #2d3352 !important;
+    background-color: #f4f3f0;
+    border: 1px solid #e0ddd8 !important;
     border-radius: 10px;
 }
 
 /* ── Chat messages ── */
 [data-testid="stChatMessage"] {
-    background-color: #141824;
-    border: 1px solid #1e2130;
+    background-color: #f4f3f0;
+    border: 1px solid #e0ddd8;
     border-radius: 10px;
     padding: 12px 16px;
 }
 
 /* ── Divider ── */
 hr {
-    border-color: #1e2130 !important;
+    border-color: #e0ddd8 !important;
 }
 
 /* ── Sidebar text ── */
 section[data-testid="stSidebar"] .stMarkdown p,
 section[data-testid="stSidebar"] .stMarkdown li,
 section[data-testid="stSidebar"] .stMarkdown span {
-    color: #94a3b8;
+    color: #787878;
     font-size: 0.85rem;
 }
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3,
 section[data-testid="stSidebar"] h4 {
-    color: #e2e8f0 !important;
+    color: #111111 !important;
 }
 
 /* ── Caption text ── */
 .stCaptionContainer, [data-testid="stCaptionContainer"] {
-    color: #64748b !important;
+    color: #787878 !important;
     font-size: 0.75rem !important;
 }
 
 /* ── Tab header accent border ── */
 .tab-section-header {
-    border-left: 3px solid #FF3621;
+    border-left: 3px solid #cc3311;
     padding-left: 12px;
     margin-bottom: 4px;
 }
 
 /* ── Result card ── */
 .result-card {
-    background: #1a1f2e;
-    border: 1px solid #2d3352;
+    background: #f4f3f0;
+    border: 1px solid #e0ddd8;
     border-radius: 10px;
     padding: 16px 20px;
     margin: 8px 0;
     transition: border-color 0.15s;
 }
 .result-card:hover {
-    border-color: #4a5080;
+    border-color: #c0bdb8;
 }
 
-/* ── Auth badge ── */
+/* ── Auth badge — Swiss flat ── */
 .badge-obo {
-    background: linear-gradient(135deg, #c05000, #FF8C00);
+    background: #cc3311;
     color: #fff;
     padding: 2px 10px;
-    border-radius: 10px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.5px;
     display: inline-block;
 }
 .badge-m2m {
-    background: linear-gradient(135deg, #0070a8, #00A4EF);
+    background: #1d4ed8;
     color: #fff;
     padding: 2px 10px;
-    border-radius: 10px;
+    border-radius: 4px;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -697,42 +750,46 @@ section[data-testid="stSidebar"] h4 {
 
 /* ── Radio buttons ── */
 .stRadio > label {
-    color: #e2e8f0 !important;
+    color: #111111 !important;
 }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0f1117; }
-::-webkit-scrollbar-thumb { background: #2d3352; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #4a5080; }
+::-webkit-scrollbar-track { background: #f4f3f0; }
+::-webkit-scrollbar-thumb { background: #c0bdb8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #a0a09a; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── App Header ────────────────────────────────────────────────────────────────
+# ── App Header — Swiss Modern ─────────────────────────────────────────────────
 st.markdown("""
 <div style="
-    background: linear-gradient(135deg, #1a1f2e 0%, #151929 100%);
-    border: 1px solid #2d3352;
-    border-radius: 12px;
-    padding: 20px 28px;
+    background: #ffffff;
+    border-bottom: 3px solid #cc3311;
+    border-radius: 0;
+    padding: 18px 28px;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
     gap: 16px;
 ">
-    <div style="font-size: 32px; line-height: 1;">🔐</div>
+    <div style="
+        width: 40px; height: 40px;
+        background: #cc3311;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; line-height: 1; color: white;
+    ">🔐</div>
     <div>
         <div style="
             font-size: 22px;
             font-weight: 700;
-            background: linear-gradient(90deg, #FF3621, #FF6B50);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #111111;
             line-height: 1.2;
+            letter-spacing: -0.3px;
         ">AI Auth Showcase</div>
-        <div style="font-size: 12px; color: #64748b; margin-top: 3px; letter-spacing: 0.5px;">
-            Databricks Apps &nbsp;·&nbsp; Unity Catalog &nbsp;·&nbsp; MCP &nbsp;·&nbsp; Phase 1–4
+        <div style="font-size: 12px; color: #787878; margin-top: 3px; letter-spacing: 0.5px;">
+            Databricks Apps &nbsp;·&nbsp; Unity Catalog &nbsp;·&nbsp; MCP &nbsp;·&nbsp; Governance
         </div>
     </div>
 </div>
@@ -743,8 +800,8 @@ with st.sidebar:
     st.markdown("""
     <div style="text-align:center; padding: 8px 0 16px;">
         <span style="font-size:28px;">🔐</span>
-        <div style="font-size:16px; font-weight:700; color:#f1f5f9; margin-top:4px;">AI Auth Showcase</div>
-        <div style="font-size:11px; color:#64748b; margin-top:2px;">Phase 1–4</div>
+        <div style="font-size:16px; font-weight:700; color:#111111; margin-top:4px;">AI Auth Showcase</div>
+        <div style="font-size:11px; color:#787878; margin-top:2px;">OBO · M2M · UC · MCP · Governance</div>
     </div>
     """, unsafe_allow_html=True)
     st.divider()
@@ -755,24 +812,25 @@ with st.sidebar:
     _groups_display = ctx.get("authz_groups", [])
 
     _group_chips = "".join([
-        f'<span style="background:#1e2a3a;color:#7dd3fc;border:1px solid #1e4a6e;'
+        f'<span style="background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;'
         f'padding:2px 8px;border-radius:6px;font-size:11px;margin:2px 2px;display:inline-block;">'
         f'{g}</span>'
         for g in _groups_display
-    ]) if _groups_display else '<span style="color:#64748b;font-size:12px;">No authz_showcase_* groups</span>'
+    ]) if _groups_display else '<span style="color:#787878;font-size:12px;">No authz_showcase_* groups</span>'
 
     st.markdown(f"""
     <div style="
-        background: linear-gradient(135deg, #1e2130, #1a2540);
-        border: 1px solid #2d3a5e;
-        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #e0ddd8;
+        border-left: 3px solid #cc3311;
+        border-radius: 8px;
         padding: 16px;
         margin-bottom: 12px;
     ">
-        <div style="font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:6px;">Authenticated As</div>
-        <div style="font-size:15px; font-weight:600; color:#f1f5f9; margin-bottom:4px; word-break:break-all;">{_email_display}</div>
-        <div style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Persona: <span style="color:#e2e8f0; font-weight:500;">{_persona_display}</span></div>
-        <div style="font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Groups</div>
+        <div style="font-size:10px; color:#787878; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:6px;">Authenticated As</div>
+        <div style="font-size:15px; font-weight:600; color:#111111; margin-bottom:4px; word-break:break-all;">{_email_display}</div>
+        <div style="font-size:11px; color:#555555; margin-bottom:10px;">Persona: <span style="color:#111111; font-weight:500;">{_persona_display}</span></div>
+        <div style="font-size:10px; color:#787878; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Groups</div>
         <div style="line-height:1.8;">{_group_chips}</div>
     </div>
     """, unsafe_allow_html=True)
@@ -781,10 +839,10 @@ with st.sidebar:
         st.warning("Not in any `authz_showcase_*` group")
 
     st.markdown("""
-    <div style="font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Auth Method</div>
+    <div style="font-size:10px; color:#787878; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Auth Method</div>
     """, unsafe_allow_html=True)
     st.markdown(
-        '<span class="badge-obo">OBO</span> <span style="color:#94a3b8;font-size:12px;">On-Behalf-Of</span>',
+        '<span class="badge-obo">OBO</span> <span style="color:#555555;font-size:12px;">On-Behalf-Of</span>',
         unsafe_allow_html=True,
     )
     st.caption(
@@ -798,21 +856,21 @@ with st.sidebar:
     _row_filters = ctx.get("row_filters", [])
     _masked_cols = ctx.get("masked_cols", [])
 
-    _rf_items = "".join([f'<li style="color:#94a3b8;font-size:12px;">{f}</li>' for f in _row_filters]) if _row_filters else '<li style="color:#475569;font-size:12px;">none</li>'
-    _mc_items = "".join([f'<li style="color:#94a3b8;font-size:12px;">{c}</li>' for c in _masked_cols]) if _masked_cols else '<li style="color:#475569;font-size:12px;">none</li>'
+    _rf_items = "".join([f'<li style="color:#555555;font-size:12px;">{f}</li>' for f in _row_filters]) if _row_filters else '<li style="color:#787878;font-size:12px;">none</li>'
+    _mc_items = "".join([f'<li style="color:#555555;font-size:12px;">{c}</li>' for c in _masked_cols]) if _masked_cols else '<li style="color:#787878;font-size:12px;">none</li>'
 
     st.markdown(f"""
     <div style="
-        background: #141824;
-        border: 1px solid #1e2130;
-        border-radius: 10px;
+        background: #f4f3f0;
+        border: 1px solid #e0ddd8;
+        border-radius: 8px;
         padding: 14px 16px;
         margin-bottom: 12px;
     ">
-        <div style="font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">UC Security Policies</div>
-        <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:4px;">Active Row Filters</div>
+        <div style="font-size:10px; color:#787878; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">UC Security Policies</div>
+        <div style="font-size:11px; color:#555555; font-weight:600; margin-bottom:4px;">Active Row Filters</div>
         <ul style="margin:0 0 10px 0; padding-left:16px;">{_rf_items}</ul>
-        <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:4px;">Masked Columns</div>
+        <div style="font-size:11px; color:#555555; font-weight:600; margin-bottom:4px;">Masked Columns</div>
         <ul style="margin:0; padding-left:16px;">{_mc_items}</ul>
     </div>
     """, unsafe_allow_html=True)
@@ -820,7 +878,7 @@ with st.sidebar:
     # ── Demo Controls — Persona Switcher ─────────────────────────────────────
     st.divider()
     st.markdown("""
-    <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">🎭 Demo Controls</div>
+    <div style="font-size:11px; color:#787878; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Demo Controls</div>
     """, unsafe_allow_html=True)
     st.caption("Run in your terminal, then reload this page.")
 
@@ -850,9 +908,9 @@ with st.sidebar:
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "💬 Ask Genie", "🔍 Search Knowledge", "⚙️ Business Logic",
-    "🔧 Deal Tools", "🤖 Ask Agent", "🌐 External Intel"
+    "🔧 Deal Tools", "🤖 Ask Agent", "🌐 External Intel", "🔐 Governance"
 ])
 
 with tab1:
@@ -861,7 +919,7 @@ with tab1:
         f'<div style="margin-top:8px;margin-bottom:16px;">'
         f'Genie Space <code>{GENIE_SPACE_ID}</code>&nbsp;&nbsp;'
         f'<span class="badge-obo">OBO</span>&nbsp;&nbsp;'
-        f'<span style="color:#64748b;font-size:13px;">Answers reflect <strong style="color:#94a3b8;">your</strong> data access, not the app\'s</span>'
+        f'<span style="color:#64748b;font-size:13px;">Answers reflect <strong style="color:#555555;">your</strong> data access, not the app\'s</span>'
         f'</div>',
         unsafe_allow_html=True,
     )
@@ -882,7 +940,7 @@ with tab1:
 
     # Suggested questions (shown only when chat is empty)
     if not st.session_state.messages:
-        st.markdown('<div style="color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:10px;">Try asking:</div>', unsafe_allow_html=True)
+        st.markdown('<div style="color:#555555;font-size:13px;font-weight:600;margin-bottom:10px;">Try asking:</div>', unsafe_allow_html=True)
         cols = st.columns(2)
         for i, q in enumerate(_suggested_questions(ctx.get("authz_groups", []))):
             if cols[i % 2].button(q, key=f"sug_{i}", use_container_width=True):
@@ -992,7 +1050,7 @@ GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.sales_playbooks_index
     active_suggested = VS_SUGGESTED if kb_choice == "Product Docs" else PB_SUGGESTED
 
     # Suggested queries — use on_click callbacks to avoid st.rerun() tab-jump
-    st.markdown('<div style="color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:10px;">Suggested searches:</div>', unsafe_allow_html=True)
+    st.markdown('<div style="color:#555555;font-size:13px;font-weight:600;margin-bottom:10px;">Suggested searches:</div>', unsafe_allow_html=True)
     sug_cols = st.columns(len(active_suggested))
     for i, sq in enumerate(active_suggested):
         sug_cols[i].button(
@@ -1040,7 +1098,7 @@ GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.sales_playbooks_index
     # Display results from session state (persists across reruns)
     if st.session_state.vs_results:
         results = st.session_state.vs_results
-        st.markdown(f'<div style="color:#94a3b8;font-size:13px;margin:16px 0 8px;"><strong style="color:#e2e8f0;">{len(results)}</strong> result(s) for: <code>{st.session_state.vs_last_query}</code></div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color:#555555;font-size:13px;margin:16px 0 8px;"><strong style="color:#111111;">{len(results)}</strong> result(s) for: <code>{st.session_state.vs_last_query}</code></div>', unsafe_allow_html=True)
         st.divider()
 
         for row in results:
@@ -1053,7 +1111,7 @@ GRANT SELECT      ON TABLE   authz_showcase.knowledge_base.sales_playbooks_index
                 header_cols[0].markdown(f"**{title}**")
                 if badge:
                     header_cols[1].markdown(
-                        f"<span style='background:#1E88E5;color:white;padding:2px 8px;"
+                        f"<span style='background:#1d4ed8;color:white;padding:2px 8px;"
                         f"border-radius:4px;font-size:0.75rem'>{badge}</span>",
                         unsafe_allow_html=True,
                     )
@@ -1393,7 +1451,7 @@ See the terminal demo below.
         # Opportunities table + next action
         if st.session_state.fn_opps:
             st.divider()
-            st.markdown(f'<div style="color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:8px;">Your Opportunities <span style="color:#64748b;">({len(st.session_state.fn_opps)} rows)</span></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="color:#555555;font-size:13px;font-weight:600;margin-bottom:8px;">Your Opportunities <span style="color:#64748b;">({len(st.session_state.fn_opps)} rows)</span></div>', unsafe_allow_html=True)
 
             for opp in st.session_state.fn_opps:
                 opp_id    = opp.get("opp_id", "")
@@ -1459,44 +1517,69 @@ def _mcp_call(tool: str, args: dict, token: str | None, mcp_url: str) -> dict:
       - user OBO token  → tools execute as the calling user (row filters fire)
       - SP M2M token    → tools execute as the app SP (sees all data)
     """
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json, text/event-stream",
-    }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
+    span_ctx = mlflow.start_span(name="app_a.mcp_call") if _TRACING_ENABLED else None
+    try:
+        if span_ctx:
+            span = span_ctx.__enter__()
+            span.set_inputs({"tool": tool, "args": args, "token": "[REDACTED]" if token else None, "mcp_url": mcp_url})
+            client_request_id = str(uuid.uuid4())
+            mlflow.update_current_trace(
+                client_request_id=client_request_id,
+                tags={"service_name": "app-a-frontend", "tool": tool,
+                      "entry_point": "tab4_custom_mcp"},
+            )
 
-    init_payload = {
-        "jsonrpc": "2.0", "id": 0, "method": "initialize",
-        "params": {
-            "protocolVersion": "2024-11-05",
-            "capabilities": {},
-            "clientInfo": {"name": "authz-showcase-app", "version": "1.0"},
-        },
-    }
-    init_r = requests.post(mcp_url, json=init_payload, headers=headers, timeout=15)
-    # FastMCP streamable-http returns Mcp-Session-Id; subsequent calls must echo it back
-    session_id = init_r.headers.get("Mcp-Session-Id", "")
-    if session_id:
-        headers["Mcp-Session-Id"] = session_id
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
 
-    call_payload = {
-        "jsonrpc": "2.0", "id": 1, "method": "tools/call",
-        "params": {"name": tool, "arguments": args},
-    }
-    r = requests.post(mcp_url, json=call_payload, headers=headers, timeout=30)
-    r.raise_for_status()
-    resp = _parse_mcp_response(r)
-    if "error" in resp:
-        raise RuntimeError(resp["error"].get("message", str(resp["error"])))
-    content = resp.get("result", {}).get("content", [])
-    if content and isinstance(content, list) and content[0].get("type") == "text":
-        import json as _json
-        try:
-            return _json.loads(content[0]["text"])
-        except Exception:
-            return {"raw": content[0]["text"]}
-    return resp.get("result", {})
+        init_payload = {
+            "jsonrpc": "2.0", "id": 0, "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": {"name": "authz-showcase-app", "version": "1.0"},
+            },
+        }
+        init_r = requests.post(mcp_url, json=init_payload, headers=headers, timeout=15)
+        # FastMCP streamable-http returns Mcp-Session-Id; subsequent calls must echo it back
+        session_id = init_r.headers.get("Mcp-Session-Id", "")
+        if session_id:
+            headers["Mcp-Session-Id"] = session_id
+
+        call_payload = {
+            "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+            "params": {"name": tool, "arguments": args},
+        }
+        r = requests.post(mcp_url, json=call_payload, headers=headers, timeout=30)
+        r.raise_for_status()
+        resp = _parse_mcp_response(r)
+        if "error" in resp:
+            raise RuntimeError(resp["error"].get("message", str(resp["error"])))
+        content = resp.get("result", {}).get("content", [])
+        result = {}
+        if content and isinstance(content, list) and content[0].get("type") == "text":
+            import json as _json
+            try:
+                result = _json.loads(content[0]["text"])
+            except Exception:
+                result = {"raw": content[0]["text"]}
+        else:
+            result = resp.get("result", {})
+
+        if span_ctx:
+            span.set_outputs(result)
+        return result
+    except Exception:
+        if span_ctx:
+            span.set_status("ERROR")
+        raise
+    finally:
+        if span_ctx:
+            span_ctx.__exit__(None, None, None)
 
 
 with tab4:
@@ -1601,6 +1684,24 @@ app → MCP server → Unity Catalog row filters.
                     st.error(f"Error: {e}")
 
         st.divider()
+        st.markdown('<div class="tab-section-header" style="border-color:#14b8a6;margin-top:4px;"><h3 style="margin:0;font-size:1.1rem;">Auth Trace — How did this request get here?</h3></div>', unsafe_allow_html=True)
+        st.markdown(
+            '<span style="color:#64748b;font-size:12px;">Calls <code>debug_auth_context</code> on the MCP server to trace the full proxy chain, '
+            'identity headers, and SQL execution path. Great for demos.</span>',
+            unsafe_allow_html=True,
+        )
+        if st.button("🔍 Trace Auth Chain (direct call)", key="t4_auth_trace"):
+            with st.spinner("Tracing auth chain via direct MCP call …"):
+                try:
+                    result = _mcp_call(
+                        "debug_auth_context", {"call_source": "direct"},
+                        user_token, mcp_base
+                    )
+                    st.code(json.dumps(result, indent=2), language="json")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+        st.divider()
         with st.expander("🔎 Debug: token scopes (troubleshooting OBO)", expanded=False):
             st.markdown(
                 "Compares the **main app token** (what `app.py` holds) vs the "
@@ -1689,7 +1790,7 @@ The Agent Bricks supervisor correctly injects the OBO caller's identity as `curr
     if not SUPERVISOR_ENDPOINT:
         st.warning(
             "⚠️ `SUPERVISOR_ENDPOINT` is not configured. "
-            "Complete Step 1 of the Phase 4 plan (create the supervisor in the Databricks UI), "
+            "Create a supervisor agent in the Databricks UI, "
             "then set the endpoint name in `app.yaml` and redeploy."
         )
     else:
@@ -1701,7 +1802,7 @@ The Agent Bricks supervisor correctly injects the OBO caller's identity as `curr
             "What's my Q1 quota?",   # NULL for West Rep, value for Executive (quota_viewers controls this)
         ]
 
-        st.markdown('<div style="color:#94a3b8;font-size:13px;font-weight:600;margin-bottom:10px;">Try asking:</div>', unsafe_allow_html=True)
+        st.markdown('<div style="color:#555555;font-size:13px;font-weight:600;margin-bottom:10px;">Try asking:</div>', unsafe_allow_html=True)
         sug_cols = st.columns(2)
         for i, sq in enumerate(SUPERVISOR_SUGGESTED):
             sug_cols[i % 2].button(
@@ -1794,8 +1895,20 @@ def _mcp_tool_call(conn_name: str, tool: str, args: dict, token: str | None = No
         },
         headers=headers, timeout=15, allow_redirects=False,
     )
+    if init_r.status_code in (301, 302, 307, 308):
+        # UC proxy redirects to OAuth consent when target is a Databricks App
+        consent_url = init_r.headers.get("Location", "")
+        raise PermissionError(
+            f"OAuth consent required for this connection's target app. "
+            f"[Complete consent here]({consent_url}), then retry."
+        )
     if not init_r.ok:
-        raise RuntimeError(f"{init_r.status_code} calling proxy: {init_r.text[:300]}")
+        # Include response details for debugging
+        auth_type = "SP M2M" if token is None else "user OBO"
+        raise RuntimeError(
+            f"{init_r.status_code} calling proxy ({auth_type}): "
+            f"{init_r.text[:300]}"
+        )
     session_id = init_r.headers.get("Mcp-Session-Id", "")
     if session_id:
         headers["Mcp-Session-Id"] = session_id
@@ -1857,12 +1970,13 @@ with tab6:
 | Connection | Type | Credential stored | Who executes at external service |
 |---|---|---|---|
 | `{GITHUB_CONN}` | **Managed OAuth** | Per-user GitHub OAuth token (Databricks manages) | Calling user's GitHub identity |
-| `{CUSTMCP_CONN}` | **Custom HTTP Bearer** | Shared SP bearer token (stored in UC) | App SP identity — same for all users |
+| `{CUSTMCP_CONN}` | **Custom HTTP Bearer** | Shared SP bearer token (stored in UC) | Stored credential authenticates to external service; UC proxy injects calling user's email |
 
 **Why two patterns?**
-- GitHub: per-user access — each user's repos, issues, and PRs. Richer security story.
-- Custom bearer: shared credential for a service that doesn't support per-user OAuth.
-  UC governs *who can use it*, but everyone shares the same external identity.
+- GitHub: per-user access — each user's repos, issues, and PRs via Managed OAuth.
+- Custom bearer: the stored credential authenticates to the external service, but the UC proxy
+  still injects `x-forwarded-email` with the calling user's identity. The MCP server uses M2M
+  SQL (because the OBO token via proxy lacks `sql` scope) but reports the real caller's email.
 
 Proxy URL pattern: `{{workspace_host}}/api/2.0/mcp/external/{{connection_name}}`
 """)
@@ -1871,7 +1985,7 @@ Proxy URL pattern: `{{workspace_host}}/api/2.0/mcp/external/{{connection_name}}`
     st.markdown('<div class="tab-section-header" style="border-color:#00A4EF;margin-top:8px;"><h3 style="margin:0;font-size:1.1rem;">GitHub MCP</h3></div>', unsafe_allow_html=True)
     st.markdown(
         f'<div style="margin:6px 0 12px;">'
-        f'<span style="background:#1e3a1e;color:#86efac;border:1px solid #166534;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;">Managed OAuth</span>'
+        f'<span style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;">Managed OAuth</span>'
         f'&nbsp;&nbsp;<span style="color:#64748b;font-size:12px;">Connection: <code>{GITHUB_CONN}</code> · per-user OAuth — you see your own GitHub repos, issues, PRs</span>'
         f'</div>',
         unsafe_allow_html=True,
@@ -1933,8 +2047,8 @@ Proxy URL pattern: `{{workspace_host}}/api/2.0/mcp/external/{{connection_name}}`
     st.markdown('<div class="tab-section-header" style="border-color:#00A4EF;margin-top:4px;"><h3 style="margin:0;font-size:1.1rem;">Custom MCP via Bearer Token</h3></div>', unsafe_allow_html=True)
     st.markdown(
         f'<div style="margin:6px 0 12px;">'
-        f'<span style="background:#1a1a3e;color:#a5b4fc;border:1px solid #3730a3;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;">Stored Bearer</span>'
-        f'&nbsp;&nbsp;<span style="color:#64748b;font-size:12px;">Connection: <code>{CUSTMCP_CONN}</code> · external service sees stored credential identity, not calling user</span>'
+        f'<span style="background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;">Stored Bearer</span>'
+        f'&nbsp;&nbsp;<span style="color:#64748b;font-size:12px;">Connection: <code>{CUSTMCP_CONN}</code> · UC proxy forwards user identity, MCP server uses M2M fallback for SQL</span>'
         f'</div>',
         unsafe_allow_html=True,
     )
@@ -1988,13 +2102,14 @@ w.connections.create(
                 try:
                     result = _mcp_tool_call(
                         CUSTMCP_CONN, "get_deal_approval_status", {"opp_id": b_opp},
+                        token=user_token,
                     )
                     with st.expander("📄 Result", expanded=True):
                         st.code(json.dumps(result, indent=2), language="json")
                         st.caption(
-                            "Notice: `caller_identity` shows the **stored credential owner** — "
-                            "the UC connection's bearer token determines the external identity, "
-                            "not the calling user."
+                            "The UC proxy injects `x-forwarded-email` with the calling user's identity. "
+                            "The MCP server uses M2M fallback for SQL (OBO token lacks `sql` scope via proxy) "
+                            "but `caller_identity` still shows **your email** from the forwarded headers."
                         )
                 except PermissionError as e:
                     st.warning(str(e))
@@ -2006,6 +2121,7 @@ w.connections.create(
                 try:
                     result = _mcp_tool_call(
                         CUSTMCP_CONN, "get_crm_sync_status", {"customer_id": b_cust},
+                        token=user_token,
                     )
                     with st.expander("📄 Result", expanded=True):
                         st.code(json.dumps(result, indent=2), language="json")
@@ -2013,3 +2129,255 @@ w.connections.create(
                     st.warning(str(e))
                 except Exception as e:
                     st.error(f"Error: {e}")
+
+    st.markdown(
+        '<div class="tab-section-header" style="border-color:#14b8a6;margin-top:16px;">'
+        '<h3 style="margin:0;font-size:1.1rem;">Auth Trace — How did this request get here?</h3></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<span style="color:#64748b;font-size:12px;">Calls <code>debug_auth_context</code> via the UC External MCP Proxy to trace the full '
+        "multi-proxy chain. Compare with Tab 4's trace to see the extra UC proxy hop.</span>",
+        unsafe_allow_html=True,
+    )
+    if st.button("🔍 Trace Auth Chain (via UC proxy)", key="b_auth_trace"):
+        with st.spinner("Tracing auth chain via UC External MCP Proxy …"):
+            try:
+                result = _mcp_tool_call(
+                    CUSTMCP_CONN, "debug_auth_context", {"call_source": "uc_proxy"},
+                    token=user_token,
+                )
+                with st.expander("📄 Auth Trace Result", expanded=True):
+                    st.code(json.dumps(result, indent=2), language="json")
+            except PermissionError as e:
+                st.warning(str(e))
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+
+# ── Tab 7: UC Connection Governance ───────────────────────────────────────────
+
+with tab7:
+    st.markdown(
+        '<div class="tab-section-header"><h2 style="margin:0;font-size:1.4rem;">'
+        'UC Connection Governance</h2></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div style="margin-top:8px;margin-bottom:16px;">'
+        '<span style="color:#64748b;font-size:13px;">'
+        '<code>USE CONNECTION</code> is the on/off switch — '
+        'the MCP server needs <strong>zero</strong> scopes or data permissions. '
+        'Unity Catalog holds the key to the kingdom.</span></div>',
+        unsafe_allow_html=True,
+    )
+
+    with st.expander("🔑 How this demo works", expanded=True):
+        st.markdown(f"""
+**The architecture is simple:**
+
+```
+You (admin) ──GRANT/REVOKE──> UC Connection ──USE CONNECTION check──> External Service
+```
+
+The Streamlit app's service principal (`{SP_CLIENT_ID[:8]}…`) calls external services
+through **UC HTTP Connections**. Before any request reaches the target service, the
+UC External MCP Proxy checks whether the **calling identity** has `USE CONNECTION`
+on that connection. If not → **403 — the request never leaves the platform.**
+
+**Why this matters for agent security:**
+
+| Concern | How UC addresses it |
+|---|---|
+| **Confused deputy** | The MCP server is a pure proxy — it doesn't need data grants or elevated scopes to handle proxied calls. Only the *caller* needs `USE CONNECTION`. |
+| **Blast radius** | Revoking one `USE CONNECTION` cuts off *all* access through that connection — no per-endpoint or per-tool configuration needed. |
+| **Audit trail** | Every call through a UC connection is logged in `system.access.audit` with the caller's identity. |
+
+> **Note:** The custom MCP server's SP *does* have minimal data grants (`SELECT` on two tables,
+> warehouse access) — but those exist solely for the M2M SQL tools in Tabs 4 & 6.
+> For this governance demo, those grants are irrelevant. The UC proxy path doesn't
+> use or inherit the MCP server's data permissions.
+
+**Demo flow for each connection:**
+1. Start with no `USE CONNECTION` grant → call fails with 403
+2. Run the `GRANT` command → call succeeds
+3. Run the `REVOKE` command → call fails again
+""")
+
+    app_sp_display = SP_CLIENT_ID or "(SP_CLIENT_ID not set)"
+
+    st.divider()
+
+    # ── Section A: Bearer Token Connection ────────────────────────────────────
+    st.markdown(
+        '<div class="tab-section-header" style="border-color:#00A4EF;margin-top:4px;">'
+        '<h3 style="margin:0;font-size:1.1rem;">Bearer Token Connection</h3></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<span style="background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;'
+        f'padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;">Bearer</span>'
+        f'&nbsp;&nbsp;<span style="color:#64748b;font-size:12px;">'
+        f'Connection: <code>{CUSTMCP_CONN}</code> · Custom MCP server</span>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("**Step 1 — Verify no access** (revoke first if needed):")
+    st.code(
+        f"-- Run in a notebook or SQL editor (as metastore admin / connection owner)\n"
+        f"REVOKE USE CONNECTION ON CONNECTION {CUSTMCP_CONN}\n"
+        f"  FROM `{app_sp_display}`;",
+        language="sql",
+    )
+
+    st.markdown("**Step 2 — Test the call** (should fail with 403):")
+    if st.button("🔍 Test Bearer MCP (as app SP)", key="t7_bearer_test"):
+        with st.spinner("Calling via UC proxy as app SP …"):
+            try:
+                result = _mcp_tool_call(
+                    CUSTMCP_CONN, "debug_auth_context", {"call_source": "uc_proxy"},
+                )
+                st.success("Call succeeded — app SP has USE CONNECTION")
+                st.code(json.dumps(result, indent=2), language="json")
+            except PermissionError as e:
+                st.warning(str(e))
+            except Exception as e:
+                err_str = str(e)
+                if "401" in err_str:
+                    st.error(f"Stored bearer token expired on `{CUSTMCP_CONN}` (~1h TTL)")
+                    st.caption(
+                        "The UC connection's stored credential has expired. "
+                        "Refresh it with: `python3 seed/demo.py --before`"
+                    )
+                    st.caption(f"Raw error: {err_str[:300]}")
+                elif "403" in err_str or "PERMISSION" in err_str.upper():
+                    st.error(f"Access denied — app SP lacks USE CONNECTION on `{CUSTMCP_CONN}`")
+                    st.caption(f"Raw error: {err_str[:300]}")
+                else:
+                    st.error(f"Error: {err_str}")
+
+    st.markdown("**Step 2a — If you see 'token expired':**")
+    st.code("python3 seed/demo.py --before --profile adb-wx1", language="bash")
+    st.caption("The stored bearer token in the UC connection expires in ~1h. This refreshes it.")
+
+    st.markdown("**Step 3 — Grant access** (if you see 'lacks USE CONNECTION'):")
+    st.code(
+        f"-- Grant USE CONNECTION to the app SP\n"
+        f"GRANT USE CONNECTION ON CONNECTION {CUSTMCP_CONN}\n"
+        f"  TO `{app_sp_display}`;",
+        language="sql",
+    )
+    st.markdown("**Step 4 — Test again** (should succeed now). Click the test button above.")
+
+    st.divider()
+
+    # ── Section B: OAuth U2M Per User Connection (GitHub) ─────────────────────
+    st.markdown(
+        '<div class="tab-section-header" style="border-color:#00A4EF;margin-top:4px;">'
+        '<h3 style="margin:0;font-size:1.1rem;">OAuth U2M Per User Connection</h3></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<span style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;'
+        f'padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;">OAuth Per User</span>'
+        f'&nbsp;&nbsp;<span style="color:#64748b;font-size:12px;">'
+        f'Connection: <code>{GITHUB_CONN}</code> · GitHub (per-user identity)</span>',
+        unsafe_allow_html=True,
+    )
+
+    user_email_display = ctx.get("email", "(unknown)")
+
+    st.markdown(
+        "Unlike Bearer Token connections (shared credential), **Managed OAuth** connections "
+        "maintain per-user credentials. Each user must complete OAuth consent with GitHub, "
+        "and USE CONNECTION controls who can call through the proxy."
+    )
+
+    st.markdown("**Step 1 — Complete GitHub OAuth consent** (one-time):")
+    consent_url = f"{host}/explore/connections/{GITHUB_CONN}?o=1516413757355523"
+    st.markdown(
+        f"Visit the [connection page]({consent_url}) and click **Sign in** to authorize "
+        f"your GitHub identity. This is a one-time step per user."
+    )
+
+    st.markdown(f"**Step 2 — Verify no access** (revoke from `{user_email_display}`):")
+    st.code(
+        f"-- Revoke from the logged-in user (not the app SP)\n"
+        f"REVOKE USE CONNECTION ON CONNECTION {GITHUB_CONN}\n"
+        f"  FROM `{user_email_display}`;",
+        language="sql",
+    )
+
+    st.markdown("**Step 3 — Test the call** (as your user identity via OBO — should fail with 403):")
+    if st.button("🔍 Test GitHub MCP (as you)", key="t7_github_test"):
+        with st.spinner("Calling GitHub via UC proxy as your identity …"):
+            try:
+                result = _mcp_tool_call(
+                    GITHUB_CONN, "list_issues",
+                    {"owner": "databricks", "repo": "databricks-sdk-py", "state": "open"},
+                    token=user_token,
+                )
+                st.success("Call succeeded — your GitHub OAuth consent is active")
+                with st.expander("📄 Result", expanded=True):
+                    st.code(json.dumps(result, indent=2), language="json")
+            except PermissionError as e:
+                st.warning(str(e))
+            except Exception as e:
+                err_str = str(e)
+                if "Credential" in err_str and "not found" in err_str:
+                    st.error("GitHub OAuth consent not completed for your identity")
+                    st.markdown(
+                        f"Visit the [connection page]({consent_url}) and click **Sign in** "
+                        f"to authorize your GitHub account, then retry."
+                    )
+                    st.caption(f"Raw error: {err_str[:300]}")
+                elif "403" in err_str or "PERMISSION" in err_str.upper():
+                    st.error(f"Access denied — you lack USE CONNECTION on `{GITHUB_CONN}`")
+                    st.caption(f"Raw error: {err_str[:300]}")
+                else:
+                    st.error(f"Error: {err_str}")
+
+    st.markdown(f"**Step 4 — Grant access** (to `{user_email_display}`):")
+    st.code(
+        f"-- Grant to the logged-in user\n"
+        f"GRANT USE CONNECTION ON CONNECTION {GITHUB_CONN}\n"
+        f"  TO `{user_email_display}`;",
+        language="sql",
+    )
+    st.markdown("**Step 5 — Test again** (should succeed now). Click the test button above.")
+
+    st.markdown(
+        "**Key difference**: Bearer Token connections use a single stored credential for all callers. "
+        "Managed OAuth connections maintain per-user credentials — the proxy knows *who* is calling GitHub."
+    )
+
+    st.divider()
+
+    # ── Key takeaway ──────────────────────────────────────────────────────────
+    with st.expander("📌 Key takeaway", expanded=False):
+        st.markdown(f"""
+**Same governance model, different credentials:**
+
+| Connection | Auth Method | Who authenticates to external service | Governed by |
+|---|---|---|---|
+| `{CUSTMCP_CONN}` | **Bearer Token** | Stored token (shared identity) | `USE CONNECTION` |
+| `{GITHUB_CONN}` | **OAuth U2M Per User** | Each user's GitHub identity | `USE CONNECTION` |
+
+**For UC-proxied calls, the MCP server needs zero data permissions.**
+The UC connection governance layer sits *in front of* the MCP server — if `USE CONNECTION`
+is revoked, the request never reaches it.
+
+**What controls access:** `USE CONNECTION` on the UC HTTP Connection.
+- Revoke it → 403, the request never reaches the external service
+- Grant it → the call goes through, using the connection's stored credentials
+
+**The auth method** (Bearer, OAuth M2M, U2M Shared, U2M Per User) determines
+*how* the connection authenticates to the external service.
+**`USE CONNECTION`** determines *whether* the call is allowed at all.
+
+**Preventing the confused deputy problem:**
+The MCP server SP should hold only the minimum grants needed for its own tools
+(e.g., `SELECT` on specific tables for M2M SQL in Tabs 4 & 6). For UC-proxied
+external calls (this tab), the server acts as a stateless proxy — it inherits
+no caller permissions and grants none of its own.
+""")

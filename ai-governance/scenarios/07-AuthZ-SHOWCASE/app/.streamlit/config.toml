@@ -1,0 +1,12 @@
+# ============================================================
+# Streamlit Theme — Swiss Modern
+# White bg · charcoal text · Swiss red #cc3311 · sans-serif
+# Applied automatically by Streamlit at startup — no app code changes needed.
+# ============================================================
+
+[theme]
+primaryColor        = "#cc3311"   # Swiss red — buttons, active tab underline, focus rings
+backgroundColor     = "#ffffff"   # White main area
+secondaryBackgroundColor = "#f4f3f0"  # Off-white — sidebar, input fields, code blocks
+textColor           = "#111111"   # Near-black charcoal
+font                = "sans serif"
