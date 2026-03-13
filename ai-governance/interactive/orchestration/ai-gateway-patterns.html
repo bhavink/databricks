@@ -181,35 +181,37 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            opacity: 0.35;
-            transition: opacity 0.4s ease;
             color: #1a1a1a;
             font-weight: 600;
             font-size: 0.9rem;
+            border: 1px solid #e0e0e0;
+            background: #f8f8f6;
+            transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
         }
 
         .pattern-row.active {
-            opacity: 1;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         .pattern-row.green {
-            background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a;
+            border-left: 4px solid #16a34a;
         }
 
         .pattern-row.blue {
-            background: #ffffff; border-left: 3px solid #2563eb; color: #1a1a1a;
+            border-left: 4px solid #2563eb;
         }
 
         .pattern-row.amber {
-            background: #ffffff; border-left: 3px solid #d97706; color: #1a1a1a;
+            border-left: 4px solid #d97706;
         }
 
         .pattern-row.red {
-            background: #ffffff; border-left: 3px solid #dc2626; color: #1a1a1a;
+            border-left: 4px solid #dc2626;
         }
 
         .pattern-row .left { flex: 1; }
-        .pattern-row .right { flex: 1; text-align: right; opacity: 0.8; font-size: 0.85rem; }
+        .pattern-row .right { flex: 1; text-align: right; font-size: 0.85rem; color: #444; }
 
         /* Flow Diagram */
         .flow-diagram {
@@ -235,29 +237,32 @@
             font-size: 0.8rem;
             font-weight: 600;
             flex: 1;
-            transition: all 0.4s ease;
-            opacity: 0.35;
+            transition: background 0.4s ease, box-shadow 0.4s ease;
+            border: 1px solid #e0e0e0;
+            background: #f8f8f6;
+            color: #1a1a1a;
         }
 
         .flow-box.active {
-            opacity: 1;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         .flow-arrow {
             font-size: 1.5rem;
-            opacity: 0.35;
-            transition: opacity 0.4s ease;
+            color: #1a1a1a;
+            transition: color 0.4s ease;
         }
 
         .flow-arrow.active {
-            opacity: 1;
+            color: #cc3311;
         }
 
-        .flow-box.blue { background: #ffffff; border-left: 3px solid #2563eb; color: #1a1a1a; }
-        .flow-box.red { background: #ffffff; border-left: 3px solid #dc2626; color: #1a1a1a; }
-        .flow-box.green { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; }
-        .flow-box.gray { background: rgba(26, 26, 26, 0.08); color: var(--text-muted); }
-        .flow-box.yellow { background: #ffffff; border-left: 3px solid #d97706; color: #1a1a1a; }
+        .flow-box.blue { border-left: 4px solid #2563eb; }
+        .flow-box.red { border-left: 4px solid #dc2626; }
+        .flow-box.green { border-left: 4px solid #16a34a; }
+        .flow-box.gray { background: #f0efed; border-left: 4px solid #999999; color: #666; }
+        .flow-box.yellow { border-left: 4px solid #d97706; }
 
         .flow-box.highlight-bad {
             border: 2px solid #dc2626;
@@ -294,24 +299,25 @@
             font-size: 0.8rem;
             font-weight: 600;
             min-width: 100px;
-            transition: all 0.4s ease;
+            border: 1px solid #e0e0e0;
+            background: #f8f8f6;
+            color: #1a1a1a;
+            transition: background 0.4s ease, box-shadow 0.4s ease;
         }
 
-        .proxy-box.blue { background: #ffffff; border-left: 3px solid #2563eb; color: #1a1a1a; }
-        .proxy-box.green { background: #ffffff; border-left: 3px solid #16a34a; color: #1a1a1a; }
-        .proxy-box.red { background: #ffffff; border-left: 3px solid #dc2626; color: #1a1a1a; }
-        .proxy-box.yellow { background: #ffffff; border-left: 3px solid #d97706; color: #1a1a1a; }
-        .proxy-box.slate { background: rgba(26, 26, 26, 0.08); color: var(--text-muted); }
+        .proxy-box.blue { border-left: 4px solid #2563eb; }
+        .proxy-box.green { border-left: 4px solid #16a34a; }
+        .proxy-box.red { border-left: 4px solid #dc2626; }
+        .proxy-box.yellow { border-left: 4px solid #d97706; }
+        .proxy-box.slate { background: #f0efed; border-left: 4px solid #999999; color: #666; }
 
         .proxy-arrow {
             font-size: 1.3rem;
-            opacity: 0.4;
-            color: #999999;
-            transition: opacity 0.4s ease, color 0.4s ease;
+            color: #1a1a1a;
+            transition: color 0.4s ease;
         }
 
         .proxy-arrow.active {
-            opacity: 1;
             color: #2563eb;
         }
 
@@ -341,15 +347,15 @@
         .defense-layer {
             padding: 1rem;
             border-radius: 4px;
-            border: 1.5px solid rgba(26, 26, 26, 0.15);
-            transition: all 0.4s ease;
-            opacity: 0.35;
+            border: 1px solid #e0e0e0;
+            background: #f8f8f6;
+            transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
         }
 
         .defense-layer.active {
-            opacity: 1;
-            border-color: rgba(26, 26, 26, 0.3);
-            background: rgba(26, 26, 26, 0.02);
+            background: #ffffff;
+            border-color: #1a1a1a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         .defense-layer.snp {
@@ -406,19 +412,23 @@
             border-radius: 4px;
             font-size: 0.8rem;
             font-weight: 600;
-            background: #ffffff; border-left: 3px solid #7c3aed;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #7c3aed;
+            background: #f8f8f6;
             color: #1a1a1a;
-            opacity: 0.4;
-            transition: opacity 0.4s ease;
+            transition: background 0.4s ease, box-shadow 0.4s ease;
         }
 
         .inbound-box.active {
-            opacity: 1;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         .inbound-gateway {
             padding: 1.2rem;
-            background: #ffffff; border-left: 3px solid #dc2626;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #dc2626;
+            background: #ffffff;
             color: #1a1a1a;
             border-radius: 4px;
             font-weight: 600;
@@ -428,13 +438,12 @@
         .inbound-arrow {
             font-size: 1.3rem;
             margin: 0.3rem 0;
-            color: #999999;
-            opacity: 0.4;
-            transition: opacity 0.4s ease, color 0.4s ease;
+            color: #1a1a1a;
+            transition: color 0.4s ease;
         }
 
         .inbound-arrow.active {
-            opacity: 1;
+            color: #cc3311;
         }
 
         .inbound-databricks {
@@ -464,23 +473,24 @@
             border-radius: 4px;
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 2px solid rgba(59, 130, 246, 0.3);
-            background: rgba(59, 130, 246, 0.05);
-            color: var(--text-primary);
+            border: 1px solid #e0e0e0;
+            background: #f8f8f6;
+            color: #1a1a1a;
             font-weight: 600;
             text-align: center;
         }
 
         .decision-node:hover {
-            border-color: #2563eb;
-            background: rgba(59, 130, 246, 0.1);
+            border-color: #1a1a1a;
+            background: #ffffff;
             transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         .decision-node.active {
-            border-color: #2563eb;
-            background: rgba(37, 99, 235, 0.08);
-            color: #1a1a1a;
+            border-color: #1a1a1a;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         .decision-flow {
