@@ -130,7 +130,9 @@ External API keys or SP OAuth credentials stored in Databricks Secrets for servi
 - [Agent Framework Authentication](https://docs.databricks.com/aws/en/generative-ai/agent-framework/agent-authentication) -- Detailed auth setup
 - [ABAC (Attribute-Based Access Control)](https://docs.databricks.com/aws/en/data-governance/unity-catalog/abac)
 - [Row Filters & Column Masks](https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-row-filter-column-mask.html)
+- [Federation Exchange Architecture](reference/federation-exchange-architecture.md) -- Custom MCP governance for external IDP users (token exchange, scope-based access, UC connections)
+- [Identity & Governance Presentation](presentations/identity-governance-overview.html) -- OBO vs Federation side-by-side (17 slides)
 
 ---
 
-*Last updated: 2026-03-12 -- Slimmed to overview; detailed content consolidated into [reference/identity-and-auth-reference.md](reference/identity-and-auth-reference.md)*
+*Last updated: 2026-03-17 -- Slimmed to overview; detailed content consolidated into [reference/identity-and-auth-reference.md](reference/identity-and-auth-reference.md)*

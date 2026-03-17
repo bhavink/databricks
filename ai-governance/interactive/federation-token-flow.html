@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OAuth Federation Exchange — Animated Token Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--white:#fff;--ink:#1a1a1a;--red:#cc3311;--offwhite:#f8f8f4;--border:#e0e0e0;--muted:#888;--green:#1e7e34;--green-bg:#e6f4ea;--ink-60:rgba(26,26,26,0.6);--ink-20:rgba(26,26,26,0.2);--ink-10:rgba(26,26,26,0.1);--red-10:rgba(204,51,17,0.1);--red-20:rgba(204,51,17,0.2);--font:'Space Grotesk',system-ui,sans-serif;--mono:'DM Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--white);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--ink);color:#fff;flex-shrink:0}
+.topbar .title{font-size:0.85rem;font-weight:600}.topbar .title span{color:var(--red)}
+.topbar .controls{display:flex;gap:6px;align-items:center}
+.topbar .step-label{font-size:0.7rem;color:rgba(255,255,255,0.5);font-variant-numeric:tabular-nums;margin-right:6px}
+.btn{font-family:var(--font);font-size:0.7rem;font-weight:600;padding:5px 14px;border:1px solid rgba(255,255,255,0.2);border-radius:2px;background:transparent;color:#fff;cursor:pointer;transition:all 0.15s}
+.btn:hover{border-color:rgba(255,255,255,0.5)}.btn.primary{background:var(--red);border-color:var(--red)}.btn:disabled{opacity:0.3;cursor:not-allowed}
+
+.main{flex:1;display:grid;grid-template-columns:1fr 320px;grid-template-rows:1fr auto;min-height:0}
+.diagram-area{position:relative;overflow:hidden;grid-row:1;grid-column:1}
+.token-panel{grid-row:1/3;grid-column:2;background:var(--offwhite);border-left:1px solid var(--border);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px}
+.info-area{grid-row:2;grid-column:1;border-top:1px solid var(--border);padding:12px 20px;background:var(--white)}
+
+svg{width:100%;height:100%}
+.node text{font-family:var(--font)}
+.pulse-ring{opacity:0}.pulse-ring.active{animation:pr 1.5s ease-out infinite}
+@keyframes pr{0%{opacity:0.4}50%{opacity:0.12}100%{opacity:0}}
+.edge{opacity:0;transition:opacity 0.5s}.edge.visible{opacity:1}
+.edge .eline{stroke-dasharray:6 4}.edge.active .eline{animation:da 0.8s linear infinite}
+@keyframes da{to{stroke-dashoffset:-10}}
+.gov-flash{position:absolute;top:38%;left:38%;transform:translate(-50%,-50%);font-size:1rem;font-weight:700;letter-spacing:0.06em;opacity:0;pointer-events:none;text-transform:uppercase}
+.gov-flash.show{animation:fl 1.4s ease forwards}
+@keyframes fl{0%{opacity:0;transform:translate(-50%,-50%) scale(0.85)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.03)}25%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0}}
+
+/* Token panel */
+.tp-header{font-size:0.6rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--red)}
+.tp-section{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:8px 10px;transition:all 0.3s;opacity:0.3}
+.tp-section.active{opacity:1;border-color:var(--red);box-shadow:0 0 0 1px var(--red-10)}
+.tp-section.done{opacity:0.6}
+.tp-section.gov-active{opacity:1;border-color:var(--green);box-shadow:0 0 0 1px var(--green-bg)}
+.tp-label{font-size:0.58rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tp-label.red{color:var(--red)}.tp-label.green{color:var(--green)}
+.tp-field{display:flex;gap:4px;margin-bottom:2px;font-size:0.66rem;line-height:1.35}
+.tp-key{font-family:var(--mono);font-size:0.62rem;color:var(--ink-60);min-width:52px;flex-shrink:0}
+.tp-val{font-family:var(--mono);font-size:0.62rem;color:var(--ink);word-break:break-all}
+.tp-val.hl{background:var(--red-10);padding:0 3px;border-radius:2px;font-weight:500}
+.tp-note{font-size:0.6rem;color:var(--ink-60);line-height:1.45;margin-top:5px;padding-top:5px;border-top:1px solid var(--ink-10)}
+.tp-note strong{color:var(--ink);font-weight:600}
+.tp-note code{font-family:var(--mono);font-size:0.58rem;background:var(--ink-10);padding:0 3px;border-radius:2px}
+.tp-arrow{text-align:center;color:var(--border);font-size:0.65rem;line-height:1}
+.tp-security{font-size:0.58rem;color:var(--red);margin-top:3px}
+
+/* Info */
+.info-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:0.65rem;font-weight:700;margin-right:6px;vertical-align:middle}
+.info-title{font-size:0.82rem;font-weight:600;display:inline;vertical-align:middle}
+.info-detail{font-size:0.72rem;color:var(--ink-60);line-height:1.5;margin-top:3px}
+.info-detail code{font-family:var(--mono);font-size:0.66rem;background:var(--ink-10);padding:1px 4px;border-radius:2px}
+
+@media(max-width:1000px){.main{grid-template-columns:1fr}.token-panel{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="title">OAuth Federation <span>Exchange</span></div>
+  <div class="controls">
+    <span class="step-label" id="stepLabel">Press Space to begin</span>
+    <button class="btn" id="btnPrev" onclick="prevStep()" disabled>&larr;</button>
+    <button class="btn primary" id="btnNext" onclick="nextStep()">Play &rarr;</button>
+    <button class="btn" id="btnReset" onclick="resetAll()">Reset</button>
+    <button class="btn" id="btnAuto" onclick="toggleAuto()">Auto</button>
+  </div>
+</div>
+<div class="main">
+<div class="diagram-area">
+<svg viewBox="0 0 920 500" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <marker id="a-ink" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--ink)"/></marker>
+    <marker id="a-red" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--red)"/></marker>
+    <marker id="a-green" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--green)"/></marker>
+    <marker id="a-muted" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--muted)"/></marker>
+  </defs>
+
+  <!-- ═══ NODES — 3 columns, well spaced ═══ -->
+
+  <!-- Col 1: User (left center) -->
+  <g class="node" id="n-user" transform="translate(30,175)">
+    <circle class="pulse-ring" cx="60" cy="40" r="36" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+    <rect width="120" height="80" fill="var(--white)" stroke="var(--ink)" stroke-width="2" rx="3"/>
+    <rect x="24" y="0" width="72" height="14" rx="2" fill="var(--ink)"/>
+    <text x="60" y="10" fill="#fff" font-size="6" font-weight="600" text-anchor="middle" letter-spacing="0.08em">CUSTOMER</text>
+    <text x="60" y="33" fill="var(--ink-60)" font-size="7.5" font-weight="600" text-anchor="middle" letter-spacing="0.06em">EXTERNAL</text>
+    <text x="60" y="50" fill="var(--ink)" font-size="13" font-weight="700" text-anchor="middle">User</text>
+    <text x="60" y="65" fill="var(--muted)" font-size="7" text-anchor="middle">Browser / Client App</text>
+  </g>
+
+  <!-- Col 2 top: IDP -->
+  <g class="node" id="n-idp" transform="translate(250,35)">
+    <circle class="pulse-ring" cx="65" cy="40" r="36" fill="none" stroke="var(--red)" stroke-width="1.5"/>
+    <rect width="130" height="80" fill="var(--white)" stroke="var(--red)" stroke-width="2" rx="3"/>
+    <rect x="29" y="0" width="72" height="14" rx="2" fill="var(--ink)"/>
+    <text x="65" y="10" fill="#fff" font-size="6" font-weight="600" text-anchor="middle" letter-spacing="0.08em">CUSTOMER</text>
+    <text x="65" y="33" fill="var(--red)" font-size="7.5" font-weight="600" text-anchor="middle" letter-spacing="0.06em">IDENTITY PROVIDER</text>
+    <text x="65" y="50" fill="var(--ink)" font-size="13" font-weight="700" text-anchor="middle">OIDC IDP</text>
+    <text x="65" y="65" fill="var(--muted)" font-size="7" text-anchor="middle">Auth0 / Okta / Entra / Any</text>
+  </g>
+
+  <!-- Col 2 bottom: App Server -->
+  <g class="node" id="n-app" transform="translate(250,330)">
+    <circle class="pulse-ring" cx="65" cy="40" r="36" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+    <rect width="130" height="80" fill="var(--white)" stroke="var(--ink)" stroke-width="2" rx="3"/>
+    <rect x="29" y="0" width="72" height="14" rx="2" fill="var(--ink)"/>
+    <text x="65" y="10" fill="#fff" font-size="6" font-weight="600" text-anchor="middle" letter-spacing="0.08em">CUSTOMER</text>
+    <text x="65" y="33" fill="var(--ink-60)" font-size="7.5" font-weight="600" text-anchor="middle" letter-spacing="0.06em">EXTERNAL APP</text>
+    <text x="65" y="50" fill="var(--ink)" font-size="13" font-weight="700" text-anchor="middle">App Server</text>
+    <text x="65" y="65" fill="var(--muted)" font-size="7" text-anchor="middle">Token broker + API proxy</text>
+  </g>
+
+  <!-- Col 3 center: Databricks Token Exchange -->
+  <g class="node" id="n-exchange" transform="translate(500,185)">
+    <circle class="pulse-ring" cx="65" cy="40" r="36" fill="none" stroke="var(--red)" stroke-width="1.5"/>
+    <rect width="130" height="80" fill="var(--red-10)" stroke="var(--red)" stroke-width="2" rx="3"/>
+    <rect x="15" y="0" width="100" height="14" rx="2" fill="var(--red)"/>
+    <text x="65" y="10" fill="#fff" font-size="6" font-weight="600" text-anchor="middle" letter-spacing="0.08em">DATABRICKS PLATFORM</text>
+    <text x="65" y="33" fill="var(--red)" font-size="7.5" font-weight="600" text-anchor="middle" letter-spacing="0.06em">OAUTH ENDPOINT</text>
+    <text x="65" y="50" fill="var(--ink)" font-size="12" font-weight="700" text-anchor="middle">/oidc/v1/token</text>
+    <text x="65" y="65" fill="var(--muted)" font-size="7" text-anchor="middle">Federation Policy Check</text>
+  </g>
+
+  <!-- Col 4 top: API Server / Trust Boundary — runs ON Databricks Apps -->
+  <g class="node" id="n-mcp" transform="translate(720,55)">
+    <circle class="pulse-ring" cx="65" cy="40" r="36" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+    <rect width="130" height="80" fill="var(--offwhite)" stroke="var(--ink)" stroke-width="2" rx="3"/>
+    <rect x="7" y="0" width="116" height="14" rx="2" fill="var(--red)"/>
+    <text x="65" y="10" fill="#fff" font-size="6" font-weight="600" text-anchor="middle" letter-spacing="0.08em">DATABRICKS APPS (HOSTED)</text>
+    <text x="65" y="33" fill="var(--ink-60)" font-size="7.5" font-weight="600" text-anchor="middle" letter-spacing="0.06em">TRUST BOUNDARY</text>
+    <text x="65" y="50" fill="var(--ink)" font-size="13" font-weight="700" text-anchor="middle">API Server</text>
+    <text x="65" y="65" fill="var(--muted)" font-size="7" text-anchor="middle">JWT verify + server exchange</text>
+  </g>
+
+  <!-- Col 4 center: Unity Catalog -->
+  <g class="node" id="n-uc" transform="translate(720,280)">
+    <circle class="pulse-ring" cx="65" cy="40" r="36" fill="none" stroke="var(--green)" stroke-width="1.5"/>
+    <rect width="130" height="80" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2" rx="3"/>
+    <rect x="15" y="0" width="100" height="14" rx="2" fill="var(--red)"/>
+    <text x="65" y="10" fill="#fff" font-size="6" font-weight="600" text-anchor="middle" letter-spacing="0.08em">DATABRICKS PLATFORM</text>
+    <text x="65" y="33" fill="var(--green)" font-size="7.5" font-weight="600" text-anchor="middle" letter-spacing="0.06em">GOVERNANCE ENGINE</text>
+    <text x="65" y="50" fill="var(--ink)" font-size="13" font-weight="700" text-anchor="middle">Unity Catalog</text>
+    <text x="65" y="65" fill="var(--muted)" font-size="7" text-anchor="middle">Row filters + Column masks</text>
+  </g>
+
+  <!-- Col 4 bottom: Audit -->
+  <g class="node" id="n-audit" transform="translate(720,435)">
+    <circle class="pulse-ring" cx="65" cy="20" r="24" fill="none" stroke="var(--muted)" stroke-width="1"/>
+    <rect width="130" height="42" fill="var(--offwhite)" stroke="var(--border)" stroke-width="1.5" rx="3"/>
+    <rect x="15" y="0" width="100" height="14" rx="2" fill="var(--red)"/>
+    <text x="65" y="10" fill="#fff" font-size="6" font-weight="600" text-anchor="middle" letter-spacing="0.08em">DATABRICKS PLATFORM</text>
+    <text x="65" y="32" fill="var(--ink)" font-size="9" font-weight="600" text-anchor="middle">Audit + MLflow Trace</text>
+  </g>
+
+  <!-- ═══ EDGES — numbered, labeled, well-spaced ═══ -->
+
+  <!-- 1: User → IDP (up-right) -->
+  <g class="edge" id="e1">
+    <path class="eline" d="M150,200 L262,108" fill="none" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#a-ink)"/>
+    <circle cx="200" cy="150" r="10" fill="var(--red)"/><text x="200" y="154" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">1</text>
+    <text x="167" y="143" fill="var(--ink-60)" font-size="7.5">PKCE login</text>
+  </g>
+
+  <!-- 2: IDP → User (down-left, return) -->
+  <g class="edge" id="e2">
+    <path class="eline" d="M268,115 L142,215" fill="none" stroke="var(--red)" stroke-width="1.8" marker-end="url(#a-red)"/>
+    <circle cx="215" cy="170" r="10" fill="var(--red)"/><text x="215" y="174" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">2</text>
+    <text x="228" y="165" fill="var(--red)" font-size="7.5" font-weight="600">JWT returned</text>
+  </g>
+
+  <!-- 3: User → App Server (down-right) -->
+  <g class="edge" id="e3">
+    <path class="eline" d="M130,250 L260,345" fill="none" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#a-ink)"/>
+    <circle cx="190" cy="295" r="10" fill="var(--red)"/><text x="190" y="299" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">3</text>
+    <text x="152" y="312" fill="var(--ink-60)" font-size="7.5">Request + JWT</text>
+  </g>
+
+  <!-- 4: App → Exchange (up-right) -->
+  <g class="edge" id="e4">
+    <path class="eline" d="M380,345 L505,245" fill="none" stroke="var(--red)" stroke-width="1.8" marker-end="url(#a-red)"/>
+    <circle cx="440" cy="292" r="10" fill="var(--red)"/><text x="440" y="296" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">4</text>
+    <text x="415" y="282" fill="var(--red)" font-size="7.5" font-weight="600">Token exchange</text>
+  </g>
+
+  <!-- 5: Exchange → App (down-left, return) -->
+  <g class="edge" id="e5">
+    <path class="eline" d="M510,255 L375,352" fill="none" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#a-ink)"/>
+    <circle cx="450" cy="308" r="10" fill="var(--red)"/><text x="450" y="312" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">5</text>
+    <text x="466" y="306" fill="var(--ink-60)" font-size="7.5">DB token</text>
+  </g>
+
+  <!-- 6: App → API Server (long, up-right) -->
+  <g class="edge" id="e6">
+    <path class="eline" d="M380,340 L725,125" fill="none" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#a-ink)"/>
+    <circle cx="540" cy="238" r="10" fill="var(--red)"/><text x="540" y="242" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">6</text>
+    <text x="500" y="228" fill="var(--ink-60)" font-size="7.5">DB token + JWT + role</text>
+  </g>
+
+  <!-- 7: API Server → Exchange (left, server exchange) -->
+  <g class="edge" id="e7">
+    <path class="eline" d="M725,125 L630,210" fill="none" stroke="var(--red)" stroke-width="1.8" marker-end="url(#a-red)"/>
+    <circle cx="682" cy="165" r="10" fill="var(--red)"/><text x="682" y="169" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">7</text>
+    <text x="650" y="155" fill="var(--red)" font-size="7.5" font-weight="600">Server exchange</text>
+  </g>
+
+  <!-- 8: API Server → UC (down) -->
+  <g class="edge" id="e8">
+    <line class="eline" x1="785" y1="130" x2="785" y2="280" stroke="var(--green)" stroke-width="1.8" marker-end="url(#a-green)"/>
+    <circle cx="785" cy="205" r="10" fill="var(--red)"/><text x="785" y="209" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">8</text>
+    <text x="800" y="208" fill="var(--green)" font-size="7.5" font-weight="600">SQL as SP</text>
+  </g>
+
+  <!-- 9: UC → Audit (down) -->
+  <g class="edge" id="e9">
+    <line class="eline" x1="785" y1="350" x2="785" y2="430" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#a-muted)"/>
+    <circle cx="785" cy="390" r="10" fill="var(--red)"/><text x="785" y="394" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">9</text>
+    <text x="802" y="392" fill="var(--muted)" font-size="7.5">Audit write</text>
+  </g>
+
+  <!-- 10: Response back (curve) -->
+  <g class="edge" id="e10">
+    <path class="eline" d="M720,448 Q400,490 200,420 Q100,390 85,255" fill="none" stroke="var(--ink-20)" stroke-width="1.8" marker-end="url(#a-muted)"/>
+    <circle cx="380" cy="465" r="10" fill="var(--red)"/><text x="380" y="469" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">10</text>
+    <text x="400" y="480" fill="var(--muted)" font-size="7.5">Governed response</text>
+  </g>
+</svg>
+<div class="gov-flash" id="govFlash"></div>
+</div>
+
+<!-- ═══ TOKEN INSPECTOR ═══ -->
+<div class="token-panel" id="tokenPanel">
+  <div class="tp-header">Token Inspector</div>
+
+  <div class="tp-section" id="tp-jwt">
+    <div class="tp-label red">IDP JWT (RS256-signed)</div>
+    <div class="tp-field"><span class="tp-key">iss</span><span class="tp-val" id="j-iss">https://{idp-domain}/</span></div>
+    <div class="tp-field"><span class="tp-key">aud</span><span class="tp-val" id="j-aud">https://adb-{ws}.azuredatabricks.net</span></div>
+    <div class="tp-field"><span class="tp-key">sub</span><span class="tp-val" id="j-sub">{client_id}@clients</span></div>
+    <div class="tp-field"><span class="tp-key">exp</span><span class="tp-val">3600s (1 hour typical)</span></div>
+    <div class="tp-field"><span class="tp-key">groups</span><span class="tp-val" id="j-grp">["sales-west"]</span></div>
+    <div class="tp-field"><span class="tp-key">role</span><span class="tp-val" id="j-role">sales-west</span></div>
+    <div class="tp-field"><span class="tp-key">email</span><span class="tp-val" id="j-email">sarah@partner.com</span></div>
+    <div class="tp-note" id="j-note"></div>
+  </div>
+
+  <div class="tp-arrow">&darr;</div>
+
+  <div class="tp-section" id="tp-policy">
+    <div class="tp-label red">Federation Policy (on each SP)</div>
+    <div class="tp-field"><span class="tp-key">issuer</span><span class="tp-val">must match JWT <code>iss</code> exactly</span></div>
+    <div class="tp-field"><span class="tp-key">audience</span><span class="tp-val">must match JWT <code>aud</code></span></div>
+    <div class="tp-field"><span class="tp-key">subject</span><span class="tp-val">must match JWT <code>sub</code></span></div>
+    <div class="tp-note" id="p-note"></div>
+  </div>
+
+  <div class="tp-arrow">&darr;</div>
+
+  <div class="tp-section" id="tp-db">
+    <div class="tp-label">Databricks OAuth Token</div>
+    <div class="tp-field"><span class="tp-key">type</span><span class="tp-val">Bearer (opaque OAuth2 token)</span></div>
+    <div class="tp-field"><span class="tp-key">SP</span><span class="tp-val" id="d-sp">fed-exchange-sp-west-sales</span></div>
+    <div class="tp-field"><span class="tp-key">app_id</span><span class="tp-val" id="d-id">a1b2c3d4-e5f6-...</span></div>
+    <div class="tp-field"><span class="tp-key">scope</span><span class="tp-val" id="d-scope">sql genie serving</span></div>
+    <div class="tp-field"><span class="tp-key">TTL</span><span class="tp-val">3600s (1 hour, not refreshable)</span></div>
+    <div class="tp-note" id="d-note"></div>
+  </div>
+
+  <div class="tp-arrow">&darr;</div>
+
+  <div class="tp-section" id="tp-uc">
+    <div class="tp-label green">UC Governance Context</div>
+    <div class="tp-field"><span class="tp-key">user()</span><span class="tp-val" id="u-user">a1b2c3d4-e5f6-...</span></div>
+    <div class="tp-field"><span class="tp-key">member</span><span class="tp-val" id="u-grp">authz_showcase_west = true</span></div>
+    <div class="tp-field"><span class="tp-key">row</span><span class="tp-val" id="u-row">region = 'WEST' only</span></div>
+    <div class="tp-field"><span class="tp-key">column</span><span class="tp-val" id="u-col">margin_pct &rarr; NULL</span></div>
+    <div class="tp-field"><span class="tp-key">conn</span><span class="tp-val" id="u-conn">USE CONNECTION &rarr; denied</span></div>
+    <div class="tp-note" id="u-note"></div>
+  </div>
+</div>
+
+<!-- ═══ INFO PANEL ═══ -->
+<div class="info-area">
+  <span class="info-num" id="infoNum" style="display:none">1</span>
+  <div class="info-title" id="infoTitle" style="display:inline">OAuth Federation Exchange</div>
+  <div class="info-detail" id="infoDetail">Press <strong>Space</strong> or click <strong>Play</strong> to step through the identity chain. Token Inspector (right) shows JWT fields and how they map at each stage.</div>
+</div>
+</div>
+
+<script>
+// Token panel states per step — includes deep explanations
+const TPS = [
+  // Step 0 (1): User → IDP
+  { jwt:'', policy:'', db:'', uc:'',
+    jn:'', pn:'', dn:'', un:'' },
+  // Step 1 (2): IDP → JWT
+  { jwt:'active', policy:'', db:'', uc:'',
+    hl:['j-grp','j-role','j-email'],
+    jn:'<strong>How claims get in:</strong> The IDP\'s extension mechanism injects custom claims into the access token. Auth0 uses Actions (post-login), Okta uses Authorization Server Claims, Entra uses Claims Mapping Policy. The <code>role</code> claim drives which SP the token will be exchanged for.' },
+  // Step 2 (3): User → App
+  { jwt:'active', policy:'', db:'', uc:'',
+    hl:['j-role'],
+    jn:'<strong>Role resolution:</strong> App server reads <code>role</code> claim from JWT → looks up in ROLE_SP_MAP config → gets the SP\'s <code>application_id</code> for the exchange. The JWT itself is not modified — it travels as-is.' },
+  // Step 3 (4): App → Exchange
+  { jwt:'active', policy:'active', db:'', uc:'',
+    hl:['j-iss','j-aud','j-sub'],
+    jn:'<strong>These 3 fields are validated:</strong> Databricks checks the JWT\'s <code>iss</code>, <code>aud</code>, <code>sub</code> against the federation policy registered on the target SP. If ANY field mismatches: <code>401</code> or <code>403</code>.',
+    pn:'<strong>How Databricks validates:</strong> The <code>/oidc/v1/token</code> endpoint fetches the IDP\'s JWKS keys (from <code>iss/.well-known/jwks.json</code>), verifies the RS256 signature, then checks all 3 policy fields. No proxy headers — this is a standard OAuth2 token exchange (RFC 8693). <span class="tp-security">Common failure: trailing slash on issuer URL.</span>' },
+  // Step 4 (5): Exchange → DB Token
+  { jwt:'done', policy:'done', db:'active', uc:'',
+    hl:['d-sp','d-id','d-scope'],
+    dn:'<strong>What is this token?</strong> An opaque Databricks OAuth2 Bearer token, scoped to the role-SP. Not a JWT — cannot be decoded. <code>current_user()</code> returns the SP\'s <code>application_id</code> UUID. <code>is_member()</code> resolves against the SP\'s workspace group membership. TTL: 1 hour, not refreshable — must re-exchange.<br><br><strong>Scopes (hardened):</strong> <code>sql</code> + <code>genie</code> + <code>serving</code>. Enforces least privilege — token can only access SQL warehouses, Genie spaces, and serving endpoints. UC governance restricts at data layer independently.' },
+  // Step 5 (6): App → API Server
+  { jwt:'done', policy:'done', db:'active', uc:'',
+    hl:['d-sp'],
+    dn:'<strong>Dual-token pattern:</strong> The DB token passes the Databricks Apps proxy (authenticates the caller). The IDP JWT is sent as <code>X-IDP-Token</code> header for the API server to verify independently. The proxy does NOT forward the caller\'s token — it strips <code>Authorization</code> after validation.' },
+  // Step 6 (7): API Server verifies + re-exchanges
+  { jwt:'done', policy:'done', db:'active', uc:'',
+    hl:['d-sp','d-id'],
+    jn:'<strong>Why verify again?</strong> The API server is the trust boundary — it does not trust the caller\'s DB token for SQL execution. It verifies the IDP JWT independently (JWKS) and performs its OWN token exchange.',
+    dn:'<strong>Why is this more secure?</strong> The server controls which SP the token is issued for, based on the verified JWT role — not whatever the caller claims. Mitigates: (1) <strong>Token replay</strong> — stolen DB token can\'t be used with a different role. (2) <strong>MITM</strong> — IDP JWT signature is verified server-side via JWKS, not trusted from headers. (3) <strong>Privilege escalation</strong> — caller can\'t forge a role claim because JWT signature is cryptographically verified. <span class="tp-security">The API server is the trust boundary because it\'s the only component that both verifies identity AND controls data access.</span>' },
+  // Step 7 (8): SQL → UC
+  { jwt:'done', policy:'done', db:'done', uc:'gov-active',
+    hl:['u-grp','u-row','u-col','u-conn'],
+    un:'<strong>How UC enforces:</strong> Row filters and column masks fire at the SQL engine level via <code>is_member(\'group\')</code>. Cannot be bypassed by application code. <strong>USE CONNECTION:</strong> <code>GRANT/REVOKE USE CONNECTION</code> controls external API access — one SQL statement, instant effect. <strong>Genie:</strong> Natural language queries also go through UC — Genie-generated SQL respects row filters. Conversation threading via <code>conversation_id</code> enables multi-turn queries with 5 QPM rate limiting.' },
+  // Step 8 (9): Audit
+  { jwt:'done', policy:'done', db:'done', uc:'done',
+    un:'<strong>Audit integrity:</strong> The API server\'s own SP writes audit records — role SPs have zero write access to the audit table. This prevents a compromised role-SP from tampering with audit records. External user identity (email, role, sub) is preserved from the JWT claims, not from the DB token.' },
+  // Step 9 (10): Response
+  { jwt:'done', policy:'done', db:'done', uc:'done',
+    un:'<strong>What the user sees:</strong> Same table, same SQL query. User A (west_sales): 16 rows, WEST region, margin_pct = NULL. User B (executive): 41 rows, all regions, real margins. The data is filtered at the engine level — the application code is identical for both users.' },
+];
+
+const STEPS = [
+  { title:"User authenticates with external IDP", detail:'PKCE / Authorization Code flow. Scopes: <code>openid profile email</code>. User proves identity to IDP — IDP issues tokens.', edges:["e1"], pulse:"n-user" },
+  { title:"IDP issues JWT with custom claims", detail:'RS256-signed JWT. Custom claims (groups, role, email) injected via IDP extension mechanism. Token inspector shows which fields &rarr;', edges:["e2"], pulse:"n-idp" },
+  { title:"User sends request to external app", detail:'Browser sends tool request + IDP JWT to app server. App server is a <strong>token broker</strong> — browser never sees Databricks credentials.', edges:["e3"], pulse:"n-app" },
+  { title:"Token exchange: IDP JWT &rarr; Databricks token", detail:'<code>POST /oidc/v1/token</code> with <code>grant_type=token-exchange</code>. Databricks validates JWT against SP\'s federation policy. See policy fields highlighted &rarr;', edges:["e4"], pulse:"n-exchange", flash:{text:"Federation Policy Validation",color:"var(--red)"} },
+  { title:"Databricks returns role-scoped token", detail:'Opaque Bearer token scoped to role-SP. <code>current_user()</code> = SP app_id. TTL: 1 hour. Not refreshable — must re-exchange.', edges:["e5"], pulse:"n-exchange" },
+  { title:"App server calls API server with dual tokens", detail:'Three headers: <code>Authorization: Bearer {db_token}</code> for proxy, <code>X-IDP-Token: {jwt}</code> for server verification, <code>X-Federation-Role: {role}</code>.', edges:["e6"], pulse:"n-mcp" },
+  { title:"API server verifies JWT + server-side exchange", detail:'Independent JWKS verification. Performs its OWN token exchange — does not trust caller\'s DB token for SQL. This is the <strong>trust boundary</strong>.', edges:["e7"], pulse:"n-mcp", flash:{text:"JWT Verified \u2014 Trust Boundary",color:"var(--ink)"} },
+  { title:"SQL as role-SP &rarr; UC governance fires", detail:'<strong>Row filter</strong> + <strong>Column mask</strong> + <strong>USE CONNECTION</strong> — all fire at SQL engine level, cannot be bypassed by application.', edges:["e8"], pulse:"n-uc", flash:{text:"Row Filter + Column Mask",color:"var(--green)"} },
+  { title:"Audit record with external identity", detail:'API server SP writes audit (role SPs cannot). External user email, role, tool, request_id preserved. Correlatable with <code>system.access.audit</code>.', edges:["e9"], pulse:"n-audit" },
+  { title:"Governed response returns to user", detail:'Same table, same SQL. User A: <strong>16 rows, WEST, margins masked</strong>. User B: <strong>all regions, real margins</strong>. The identity chain is the architecture.', edges:["e10"], pulse:"n-user", flash:{text:"Same Query \u2014 Different Data",color:"var(--red)"} },
+];
+
+let currentStep = -1, autoInterval = null;
+
+function updateTP(n) {
+  const s = n >= 0 ? TPS[n] : { jwt:'', policy:'', db:'', uc:'' };
+  ['jwt','policy','db','uc'].forEach(id => {
+    document.getElementById('tp-'+id).className = 'tp-section' + (s[id] ? ' '+s[id] : '');
+  });
+  document.querySelectorAll('.tp-val').forEach(v => v.classList.remove('hl'));
+  (s.hl||[]).forEach(id => { const el=document.getElementById(id); if(el) el.classList.add('hl'); });
+  document.getElementById('j-note').innerHTML = s.jn||'';
+  document.getElementById('p-note').innerHTML = s.pn||'';
+  document.getElementById('d-note').innerHTML = s.dn||'';
+  document.getElementById('u-note').innerHTML = s.un||'';
+}
+
+function showStep(n) {
+  document.querySelectorAll('.edge').forEach(e => e.classList.remove('visible','active'));
+  document.querySelectorAll('.pulse-ring').forEach(p => p.classList.remove('active'));
+  for (let i=0;i<=n;i++) {
+    STEPS[i].edges.forEach(id => { const e=document.getElementById(id); if(e){e.classList.add('visible'); if(i===n) e.classList.add('active');} });
+  }
+  const step=STEPS[n];
+  if(step.pulse){const r=document.getElementById(step.pulse)?.querySelector('.pulse-ring');if(r)r.classList.add('active');}
+  const fl=document.getElementById('govFlash'); fl.classList.remove('show');
+  if(step.flash){fl.textContent=step.flash.text;fl.style.color=step.flash.color;void fl.offsetWidth;fl.classList.add('show');}
+  document.getElementById('infoNum').style.display='inline-flex';
+  document.getElementById('infoNum').textContent=n+1;
+  document.getElementById('infoTitle').textContent=step.title;
+  document.getElementById('infoDetail').innerHTML=step.detail;
+  document.getElementById('stepLabel').textContent=`${n+1} / ${STEPS.length}`;
+  document.getElementById('btnPrev').disabled=n<=0;
+  document.getElementById('btnNext').disabled=n>=STEPS.length-1;
+  document.getElementById('btnNext').textContent=n>=STEPS.length-1?"Done":"Next \u2192";
+  updateTP(n);
+}
+
+function nextStep(){if(currentStep<STEPS.length-1){currentStep++;showStep(currentStep);}}
+function prevStep(){if(currentStep>0){currentStep--;showStep(currentStep);}}
+function resetAll(){
+  stopAuto();currentStep=-1;
+  document.querySelectorAll('.edge').forEach(e=>e.classList.remove('visible','active'));
+  document.querySelectorAll('.pulse-ring').forEach(p=>p.classList.remove('active'));
+  document.getElementById('govFlash').classList.remove('show');
+  document.getElementById('infoNum').style.display='none';
+  document.getElementById('infoTitle').textContent="OAuth Federation Exchange";
+  document.getElementById('infoDetail').innerHTML='Press <strong>Space</strong> or click <strong>Play</strong>. Token Inspector (right) shows JWT fields and mappings at each stage.';
+  document.getElementById('stepLabel').textContent="Press Space to begin";
+  document.getElementById('btnPrev').disabled=true;document.getElementById('btnNext').disabled=false;
+  document.getElementById('btnNext').textContent="Play \u2192";
+  updateTP(-1);
+}
+function toggleAuto(){
+  if(autoInterval){stopAuto();return;}
+  if(currentStep>=STEPS.length-1)resetAll();
+  document.getElementById('btnAuto').textContent="Stop";
+  autoInterval=setInterval(()=>{if(currentStep>=STEPS.length-1){stopAuto();return;}nextStep();},4000);
+  if(currentStep<0)nextStep();
+}
+function stopAuto(){if(autoInterval){clearInterval(autoInterval);autoInterval=null;}document.getElementById('btnAuto').textContent="Auto";}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();nextStep();}
+  if(e.key==='ArrowLeft'){e.preventDefault();prevStep();}
+  if(e.key==='r'||e.key==='R'){e.preventDefault();resetAll();}
+  if(e.key==='a'||e.key==='A'){e.preventDefault();toggleAuto();}
+});
+updateTP(-1);
+</script>
+</body>
+</html>

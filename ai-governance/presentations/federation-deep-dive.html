@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Federation Exchange Deep Dive — IDP-Agnostic Identity Chain Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#ffffff;--ink:#1a1a1a;--red:#cc3311;
+  --surface:#f7f7f7;--border:#e0e0e0;--muted:#666;
+  --green:#1e7e34;--green-bg:#e6f4ea;--amber:#b45309;--amber-bg:#fef3c7;
+  --font:'Space Grotesk',sans-serif;--mono:'DM Mono',monospace;
+  --pad:clamp(2rem,5vw,4.5rem);
+  --sz-h1:clamp(2rem,4.5vw,3.2rem);
+  --sz-h2:clamp(1.4rem,3vw,2.2rem);
+  --sz-h3:clamp(1rem,2vw,1.4rem);
+  --sz-body:clamp(0.85rem,1.4vw,1.05rem);
+  --sz-small:clamp(0.72rem,1.1vw,0.88rem);
+  --sz-label:clamp(0.62rem,0.85vw,0.72rem);
+  --sz-code:clamp(0.68rem,1vw,0.82rem);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{overflow:hidden;height:100%;font-family:var(--font);background:var(--bg);color:var(--ink)}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:var(--ink);color:#fff;z-index:100;font-size:var(--sz-small)}
+.topbar .title{font-weight:600;letter-spacing:-0.02em}
+.topbar .title span{color:var(--red)}
+.topbar .counter{font-variant-numeric:tabular-nums;opacity:0.7}
+.progress-track{position:fixed;top:48px;left:0;right:0;height:3px;background:var(--border);z-index:100}
+.progress-bar{height:100%;background:var(--red);transition:width 0.4s ease;width:0}
+
+.slide{position:absolute;top:48px;left:0;right:0;bottom:0;opacity:0;pointer-events:none;transform:translateX(60px);transition:opacity 0.4s ease,transform 0.4s ease;overflow-y:auto;display:flex;flex-direction:column;padding:var(--pad)}
+.slide.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+.slide.exit-left{opacity:0;transform:translateX(-60px)}
+.slide-title{justify-content:center;align-items:center;text-align:center}
+.slide-title h1{font-size:clamp(2.4rem,5vw,4rem);font-weight:700;letter-spacing:-0.03em;line-height:1.1;max-width:900px}
+.slide-title .subtitle{font-size:var(--sz-h3);color:var(--muted);margin-top:12px;font-weight:400}
+.slide-title .red-line{width:80px;height:4px;background:var(--red);margin:20px auto 0}
+
+.slide h2{font-size:var(--sz-h1);font-weight:700;letter-spacing:-0.03em;margin-bottom:8px}
+.slide h3{font-size:var(--sz-h2);font-weight:600;letter-spacing:-0.02em;margin-bottom:6px}
+.slide p,.slide li{font-size:var(--sz-body);line-height:1.65}
+.label{font-size:var(--sz-label);text-transform:uppercase;letter-spacing:0.1em;color:var(--red);font-weight:600;margin-bottom:6px}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity 0.5s ease,transform 0.5s ease}
+.slide.active .reveal{opacity:1;transform:translateY(0)}
+.slide.active .reveal:nth-child(2){transition-delay:0.1s}
+.slide.active .reveal:nth-child(3){transition-delay:0.2s}
+.slide.active .reveal:nth-child(4){transition-delay:0.3s}
+.slide.active .reveal:nth-child(5){transition-delay:0.4s}
+.slide.active .reveal:nth-child(6){transition-delay:0.5s}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.5rem,3vw,2.5rem);flex:1;min-height:0}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(1rem,2vw,1.5rem);flex:1;min-height:0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:clamp(1rem,2vw,1.5rem);overflow:auto}
+.card h4{font-size:var(--sz-h3);font-weight:600;margin-bottom:8px}
+.card-red{border-left:4px solid var(--red)}
+.card-green{border-left:4px solid var(--green);background:var(--green-bg)}
+.card-amber{border-left:4px solid var(--amber);background:var(--amber-bg)}
+
+pre,code{font-family:var(--mono);font-size:var(--sz-code)}
+pre{background:#f5f3f0;color:var(--ink);border:1px solid var(--border);border-radius:4px;padding:clamp(0.6rem,1.2vw,1rem);overflow-x:auto;line-height:1.55}
+pre .kw{color:#cc3311}
+pre .str{color:#1e7e34}
+pre .cmt{color:#888;font-style:italic}
+pre .num{color:#b45309}
+code{background:var(--surface);padding:0.1em 0.4em;border-radius:3px;font-size:var(--sz-code)}
+
+table{width:100%;border-collapse:collapse;font-size:var(--sz-small)}
+th{text-align:left;font-weight:600;font-size:var(--sz-label);letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border)}
+td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:var(--surface)}
+
+.seq-diagram{display:flex;flex-direction:column;gap:0;font-size:var(--sz-small);flex:1}
+.seq-row{display:grid;grid-template-columns:120px 1fr 120px;align-items:center;min-height:44px;border-bottom:1px solid var(--border)}
+.seq-actor{font-weight:600;text-align:center;font-size:var(--sz-label);text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)}
+.seq-msg{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:var(--sz-small)}
+.seq-arrow{color:var(--red);font-weight:700;flex-shrink:0}
+.seq-label{font-family:var(--mono);font-size:var(--sz-code)}
+.seq-gov{background:var(--green-bg);border-radius:3px;padding:2px 8px;font-size:var(--sz-label);color:var(--green);font-weight:600;letter-spacing:0.04em}
+.seq-err{background:#fee;border-radius:3px;padding:2px 8px;font-size:var(--sz-label);color:var(--red);font-weight:600}
+
+.flow-vertical{display:flex;flex-direction:column;gap:0;align-items:center}
+.flow-step{display:flex;align-items:center;gap:12px;width:100%;max-width:700px}
+.flow-num{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:var(--sz-small);flex-shrink:0}
+.flow-num.red{background:var(--red)}
+.flow-num.green{background:var(--green)}
+.flow-content{flex:1;padding:10px 0}
+.flow-content strong{font-size:var(--sz-body)}
+.flow-content p{font-size:var(--sz-small);color:var(--muted);margin-top:2px}
+.flow-connector{width:2px;height:16px;background:var(--border);margin-left:15px}
+
+.badge{display:inline-block;font-size:var(--sz-label);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 8px;border-radius:3px}
+.badge-red{background:rgba(204,51,17,0.1);color:var(--red)}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-muted{background:var(--surface);color:var(--muted)}
+.badge-ink{background:var(--ink);color:#fff}
+
+.mt-1{margin-top:8px}.mt-2{margin-top:16px}.mt-3{margin-top:24px}
+.mb-1{margin-bottom:8px}.mb-2{margin-bottom:16px}
+.flex-1{flex:1 1 0;min-height:0;overflow-y:auto}
+
+@media(max-width:900px){.two-col,.three-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title">Federation <span>Exchange</span> Deep Dive</div>
+  <div class="counter" id="counter">01 / 21</div>
+</div>
+<div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1: TITLE -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide slide-title active" data-slide="1">
+  <h1 class="reveal">Federation Exchange<br><span style="color:var(--red)">Under the Hood</span></h1>
+  <div class="subtitle reveal">IDP-Agnostic Identity Chain &middot; Governance Enforcement &middot; Error Reference</div>
+  <div class="red-line reveal"></div>
+  <p class="reveal" style="margin-top:24px;color:var(--muted);font-size:var(--sz-small)">
+    Works with Auth0 &middot; Okta &middot; Microsoft Entra ID &middot; Any OIDC-compliant IDP
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2: WHY SERVICE PRINCIPALS -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="2">
+  <div class="label reveal">The Decision</div>
+  <h2 class="reveal">Two Paths for External Users &mdash; and Why SPs Win</h2>
+
+  <p class="reveal mt-1" style="font-size:var(--sz-body);color:var(--ink-60)">Your channel partners, external auditors, and consultants need governed access to Databricks. They have their own IDP. They are <strong>not in your directory</strong>. Two architectural options:</p>
+
+  <div class="two-col mt-2 reveal">
+    <div class="card" style="border-left:4px solid var(--muted)">
+      <h4 style="color:var(--muted)">Option A: On-Behalf-Of (OBO)</h4>
+      <p style="font-size:var(--sz-small);font-style:italic;color:var(--ink-60);margin-bottom:8px">Each external user is provisioned as a Databricks identity</p>
+
+      <p style="font-size:var(--sz-small)"><strong>How it works:</strong> External user authenticates &rarr; their token is exchanged for a Databricks token that represents <em>them</em> as an individual. <code>current_user()</code> returns their email. Row filters can use <code>current_user() = email</code>.</p>
+
+      <div style="margin-top:10px;font-size:var(--sz-small)">
+        <div style="font-weight:600;color:var(--green);margin-bottom:4px">Pros</div>
+        <ul style="padding-left:1rem;line-height:1.6">
+          <li>Individual audit &mdash; <code>current_user()</code> = real person</li>
+          <li>Per-user row filters possible (<code>WHERE owner = current_user()</code>)</li>
+          <li>Native Databricks identity lifecycle</li>
+        </ul>
+      </div>
+
+      <div style="margin-top:10px;font-size:var(--sz-small)">
+        <div style="font-weight:600;color:var(--red);margin-bottom:4px">Blockers</div>
+        <ul style="padding-left:1rem;line-height:1.6">
+          <li><strong>User must exist in Databricks</strong> (synced via SCIM from your corporate IDP)</li>
+          <li>External users from different orgs can't be SCIM-synced &mdash; they're not in your directory</li>
+          <li>Guest account provisioning for every external user &mdash; lifecycle management nightmare</li>
+          <li>Cross-tenant IDP federation required at the directory level</li>
+          <li><strong>Doesn't scale</strong>: 500 partner reps = 500 Databricks identities to manage</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card card-red">
+      <h4>Option B: Role-Based Service Principals</h4>
+      <p style="font-size:var(--sz-small);font-style:italic;color:var(--ink-60);margin-bottom:8px">N external users map to O(roles) SPs &mdash; no Databricks provisioning</p>
+
+      <p style="font-size:var(--sz-small)"><strong>How it works:</strong> External user authenticates with their IDP &rarr; JWT exchanged for Databricks token scoped to a <em>role-SP</em>. Governance fires via <code>is_member('group')</code>. Real identity preserved in JWT claims + audit.</p>
+
+      <div style="margin-top:10px;font-size:var(--sz-small)">
+        <div style="font-weight:600;color:var(--green);margin-bottom:4px">Why this wins</div>
+        <ul style="padding-left:1rem;line-height:1.6">
+          <li><strong>No Databricks user provisioning</strong> &mdash; external users never touch your directory</li>
+          <li><strong>Scales with roles, not users</strong>: 500 reps &rarr; 2 SPs (west + east)</li>
+          <li><strong>Works with any OIDC IDP</strong> &mdash; no cross-tenant federation needed</li>
+          <li><strong>UC governance fires natively</strong> via <code>is_member()</code> on SP groups</li>
+          <li><strong>Identity preserved</strong> &mdash; JWT claims &rarr; audit table + MLflow traces</li>
+        </ul>
+      </div>
+
+      <div style="margin-top:10px;font-size:var(--sz-small)">
+        <div style="font-weight:600;color:var(--red);margin-bottom:4px">Trade-off</div>
+        <ul style="padding-left:1rem;line-height:1.6">
+          <li><code>current_user()</code> returns SP UUID, not individual email</li>
+          <li>Per-user row filters need <code>is_member()</code> groups, not <code>current_user() = email</code></li>
+          <li>Individual attribution requires app-level audit (solved by JWT-tagged audit table)</li>
+        </ul>
+      </div>
+
+      <div class="card card-green" style="margin-top:10px;padding:8px 10px">
+        <p style="font-size:var(--sz-small);margin:0"><strong>The SP handles authorization.</strong> The JWT handles attribution. Together they give you governed access + full audit without provisioning a single Databricks user.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3: THREE ACTORS — THE MENTAL MODEL -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="3">
+  <div class="label reveal">The Mental Model</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">Three Actors Make Federation Work</h2>
+  <p class="reveal mt-1" style="font-size:var(--sz-body);color:var(--ink-60)">Every OIDC IDP has these three components. The names differ, the roles don't.</p>
+
+  <div class="three-col mt-2 reveal">
+    <div class="card card-red">
+      <h4>Actor 1: The API Declaration</h4>
+      <p style="font-size:var(--sz-small);color:var(--ink-60);font-style:italic;margin-bottom:6px">"Databricks exists at this address"</p>
+      <p style="font-size:var(--sz-small)">Declares the <strong>audience</strong> &mdash; the workspace URL. Goes into the JWT <code>aud</code> claim.</p>
+      <table style="font-size:var(--sz-small);margin-top:6px">
+        <tr><td style="color:var(--muted)">Auth0</td><td>API (Resource Server)</td></tr>
+        <tr><td style="color:var(--muted)">Okta</td><td>Authorization Server</td></tr>
+        <tr><td style="color:var(--muted)">Entra</td><td>App Reg &rarr; "Expose an API"</td></tr>
+      </table>
+      <pre style="font-size:0.58rem;margin-top:6px;padding:6px 8px"><span class="cmt">// IDP config</span>
+{
+  "identifier": "<span class="str">https://adb-123.azuredatabricks.net</span>"
+}
+
+<span class="cmt">// JWT claim produced</span>
+"aud": "<span class="str">https://adb-123.azuredatabricks.net</span>"
+
+<span class="cmt">// Databricks federation policy</span>
+"audiences": ["<span class="str">https://adb-123.azuredatabricks.net</span>"]</pre>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--ink)">
+      <h4>Actor 2: The M2M App</h4>
+      <p style="font-size:var(--sz-small);color:var(--ink-60);font-style:italic;margin-bottom:6px">"The machine identity of your app server"</p>
+      <p style="font-size:var(--sz-small)">App server uses <code>client_credentials</code> grant. <code>client_id</code> becomes JWT <code>sub</code> claim.</p>
+      <table style="font-size:var(--sz-small);margin-top:6px">
+        <tr><td style="color:var(--muted)">Auth0</td><td><code>sub</code> = <code>{id}@clients</code></td></tr>
+        <tr><td style="color:var(--muted)">Okta</td><td><code>sub</code> = <code>{client_id}</code></td></tr>
+        <tr><td style="color:var(--muted)">Entra</td><td><code>sub</code> = <code>{app_id}</code></td></tr>
+      </table>
+      <pre style="font-size:0.58rem;margin-top:6px;padding:6px 8px"><span class="cmt">// App server token request</span>
+POST /oauth/token
+{
+  "client_id": "<span class="str">your-m2m-client-id</span>",
+  "client_secret": "<span class="str">***</span>",
+  "audience": "<span class="str">https://adb-123...</span>",
+  "grant_type": "<span class="str">client_credentials</span>"
+}
+
+<span class="cmt">// JWT sub claim produced</span>
+"sub": "<span class="str">your-m2m-client-id@clients</span>"
+
+<span class="cmt">// Databricks federation policy</span>
+"subject": "<span class="str">your-m2m-client-id@clients</span>"</pre>
+    </div>
+
+    <div class="card card-green">
+      <h4>Actor 3: The SPA App</h4>
+      <p style="font-size:var(--sz-small);color:var(--ink-60);font-style:italic;margin-bottom:6px">"Identifies the human at the keyboard"</p>
+      <p style="font-size:var(--sz-small)">Browser PKCE login. IDP injects <code>role</code>, <code>email</code>, <code>groups</code> into ID token. <strong>Never talks to Databricks.</strong></p>
+      <pre style="font-size:0.58rem;margin-top:6px;padding:6px 8px"><span class="cmt">// You write this inside your IDP:</span>
+<span class="cmt">//   Auth0 → Action (Post-Login)</span>
+<span class="cmt">//   Okta  → Token Inline Hook</span>
+<span class="cmt">//   Entra → Claims Mapping Policy</span>
+<span class="cmt">// It runs at token issuance time.</span>
+
+token.claims["/role"] = user.role;
+  <span class="cmt">// → "west_sales"</span>
+token.claims["/email"] = user.email;
+  <span class="cmt">// → "sarah@partner.com"</span>
+
+<span class="cmt">// ID token the browser receives</span>
+{
+  "email": "<span class="str">sarah@partner.com</span>",
+  "<span class="str">https://fed/role</span>": "<span class="str">west_sales</span>",
+  "<span class="str">https://fed/groups</span>": ["<span class="str">sales</span>"]
+}
+
+<span class="cmt">// Your app reads role → picks SP</span>
+"west_sales" &rarr; SP <span class="str">sp-west-sales-id</span></pre>
+    </div>
+  </div>
+
+  <div class="card mt-1 reveal" style="max-width:800px;border-left:4px solid var(--red)">
+    <p style="font-size:var(--sz-small)"><strong>The handshake:</strong> IDP produces a JWT with <code>iss</code>, <code>aud</code>, <code>sub</code>. Databricks federation policy validates all three. They're mirror images &mdash; if any field doesn't match: <code>401</code> / <code>403</code>.</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4: THE ARCHITECTURE -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="4">
+  <div class="label reveal">The Architecture</div>
+  <h2 class="reveal">External User &rarr; IDP Token &rarr; Databricks Token</h2>
+  <p class="reveal mt-2">The external user authenticates with their own IDP. Their JWT is exchanged for a Databricks OAuth token scoped to a role-specific Service Principal. UC row filters, column masks, and connection grants enforce governance. The real external identity is preserved end-to-end for audit.</p>
+
+  <div class="two-col mt-3 reveal">
+    <div class="card card-red">
+      <h4>What Changes Per IDP</h4>
+      <ul style="padding-left:1.2rem">
+        <li>Token endpoint URL</li>
+        <li>JWKS endpoint URL</li>
+        <li>Custom claims injection method</li>
+        <li>M2M / client_credentials flow setup</li>
+        <li>Token dialect / claim namespace</li>
+      </ul>
+    </div>
+    <div class="card card-green">
+      <h4>What Stays the Same</h4>
+      <ul style="padding-left:1.2rem">
+        <li>Databricks <code>/oidc/v1/token</code> exchange endpoint</li>
+        <li>Federation policy on each SP (issuer + audience + subject)</li>
+        <li>Role &rarr; SP mapping</li>
+        <li>UC row filters, column masks, connection grants</li>
+        <li>Audit table, MLflow tracing</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3: COMPLETE SEQUENCE DIAGRAM -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="5">
+  <div class="label reveal">End-to-End Sequence</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">From Login to Governed Data Access</h2>
+
+  <div class="reveal" style="flex:1;min-height:0;display:grid;grid-template-columns:280px 1fr;gap:clamp(0.75rem,1.5vw,1.5rem)">
+    <div style="overflow-y:auto;padding-right:4px">
+      <div class="flow-vertical" style="gap:0">
+        <div class="flow-step"><div class="flow-num">1</div><div class="flow-content"><strong>User authenticates with IDP</strong><p>PKCE / Authorization Code flow</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num">2</div><div class="flow-content"><strong>IDP issues JWT + custom claims</strong><p><code>role</code>, <code>email</code>, <code>groups</code></p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num">3</div><div class="flow-content"><strong>App resolves role &rarr; SP</strong><p><code>"west_sales" &rarr; sp-west-sales-id</code></p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num red">4</div><div class="flow-content"><strong>Token Exchange</strong><p>IDP JWT &rarr; scoped Databricks SP token</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num">5</div><div class="flow-content"><strong>App calls MCP server</strong><p>DB token + IDP JWT + role header</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num green">6</div><div class="flow-content"><strong>MCP verifies JWT independently</strong><p>JWKS check &rarr; server-side exchange</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num green">7</div><div class="flow-content"><strong>UC governance fires</strong><p>Row filter + Column mask + USE CONNECTION</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num">8</div><div class="flow-content"><strong>Audit with external identity</strong><p>Email, role, tool, latency recorded</p></div></div>
+      </div>
+    </div>
+    <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;min-height:0">
+      <iframe src="../interactive/federation-token-flow.html" style="width:100%;height:100%;border:none" title="Federation Token Flow Animation"></iframe>
+    </div>
+  </div>
+  <p class="reveal" style="font-size:var(--sz-label);color:var(--muted);margin-top:4px">Interactive animation &rarr; click Next to step through the token flow. Token Inspector shows JWT fields at each stage.</p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4: TOKEN ANATOMY AT EACH STAGE -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="6">
+  <div class="label reveal">Token Anatomy</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">What's in Each Token at Each Stage</h2>
+
+  <div class="three-col mt-2 reveal flex-1">
+    <div class="card card-red">
+      <h4>Stage 1: IDP JWT</h4>
+      <p class="label mt-1">Issued by external IDP</p>
+<pre style="font-size:0.7rem">{
+  <span class="str">"iss"</span>: <span class="str">"https://{idp-domain}/"</span>,
+  <span class="str">"aud"</span>: <span class="str">"https://adb-{ws}.azuredatabricks.net"</span>,
+  <span class="str">"sub"</span>: <span class="str">"{client_id}@clients"</span>,
+  <span class="str">"exp"</span>: <span class="num">1710612000</span>,
+  <span class="cmt">// Custom claims (namespace varies by IDP)</span>
+  <span class="str">"https://ns.example.com/groups"</span>: [<span class="str">"sales-west"</span>],
+  <span class="str">"https://ns.example.com/role"</span>: <span class="str">"sales-west"</span>,
+  <span class="str">"https://ns.example.com/email"</span>: <span class="str">"sarah@partner.com"</span>
+}</pre>
+      <p class="mt-1" style="font-size:var(--sz-small);color:var(--muted)">Algorithm: RS256 &middot; Signed by IDP's private key &middot; Verifiable via JWKS</p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--ink)">
+      <h4>Stage 2: Databricks Token</h4>
+      <p class="label mt-1">From /oidc/v1/token exchange</p>
+<pre style="font-size:0.7rem">{
+  <span class="str">"access_token"</span>: <span class="str">"eyJhbG..."</span>,
+  <span class="str">"token_type"</span>: <span class="str">"Bearer"</span>,
+  <span class="str">"expires_in"</span>: <span class="num">3600</span>
+}
+<span class="cmt">// The access_token is a Databricks
+// OAuth token scoped to the role-SP.
+// current_user() = SP application_id
+// is_member() = SP's group membership</span></pre>
+      <p class="mt-1" style="font-size:var(--sz-small);color:var(--muted)">Opaque to the caller &middot; Encodes SP identity &middot; UC enforcement via SP's groups</p>
+    </div>
+
+    <div class="card card-green">
+      <h4>Stage 3: Governance Context</h4>
+      <p class="label mt-1">Derived from SP identity at query time</p>
+<pre style="font-size:0.7rem"><span class="cmt">-- Row filter function</span>
+<span class="kw">SELECT</span> *
+<span class="kw">FROM</span> sales.opportunities
+<span class="cmt">-- UC auto-applies:</span>
+<span class="kw">WHERE</span> is_member(<span class="str">'authz_showcase_west'</span>)
+  <span class="kw">AND</span> opp_region = <span class="str">'WEST'</span>
+
+<span class="cmt">-- Column mask function</span>
+<span class="kw">CASE WHEN</span> is_member(<span class="str">'authz_showcase_finance'</span>)
+  <span class="kw">THEN</span> margin_pct
+  <span class="kw">ELSE NULL END</span></pre>
+      <p class="mt-1" style="font-size:var(--sz-small);color:var(--muted)">Fires automatically &middot; No application code needed &middot; Can't be bypassed</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5: GOVERNANCE ENFORCEMENT POINTS -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="7">
+  <div class="label reveal">Governance Enforcement</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">7 Enforcement Points in the Chain</h2>
+
+  <div class="flex-1 mt-2 reveal" style="overflow:auto">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Enforcement Point</th><th>Layer</th><th>What Fires</th><th>Failure Mode</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="badge badge-ink">1</span></td><td><strong>IDP Authentication</strong></td><td>External IDP</td><td>PKCE / password / SSO &rarr; JWT issued</td><td>Login failed &rarr; no JWT issued</td></tr>
+        <tr><td><span class="badge badge-ink">2</span></td><td><strong>Claims Injection</strong></td><td>IDP Action/Hook</td><td>Groups, role, email injected into JWT</td><td>Missing claims &rarr; role resolution fails at step 5</td></tr>
+        <tr><td><span class="badge badge-red">3</span></td><td><strong>Federation Policy Validation</strong></td><td>Databricks /oidc/v1/token</td><td>Issuer + audience + subject checked against SP's policy</td><td><code>400/401/403</code> &rarr; no Databricks token</td></tr>
+        <tr><td><span class="badge badge-red">4</span></td><td><strong>JWT Signature Verification</strong></td><td>API Server <span style="font-size:0.55rem;color:var(--red)">(Databricks Apps)</span></td><td>JWKS-based RS256 verification + audience + issuer</td><td><code>401</code> &rarr; request rejected</td></tr>
+        <tr><td><span class="badge badge-red">5</span></td><td><strong>Role &rarr; SP Mapping</strong></td><td>API Server <span style="font-size:0.55rem;color:var(--red)">(Databricks Apps)</span></td><td>JWT role claim &rarr; SP application_id lookup</td><td><code>403</code> &rarr; unknown role</td></tr>
+        <tr><td><span class="badge badge-green">6</span></td><td><strong>Tool Access Control</strong></td><td>API Server <span style="font-size:0.55rem;color:var(--red)">(Databricks Apps)</span></td><td>TOOL_ACCESS dict: role &isin; allowed_roles?</td><td>ACCESS_DENIED logged to audit</td></tr>
+        <tr><td><span class="badge badge-green">7</span></td><td><strong>UC Governance</strong></td><td>Databricks SQL Engine</td><td>Row filters (<code>is_member()</code>), column masks, USE CONNECTION grants</td><td>Filtered/masked silently &mdash; never errors, just restricts</td></tr>
+      </tbody>
+    </table>
+
+    <div class="card card-amber mt-3" style="max-width:700px">
+      <h4>Key Insight: Silent vs. Loud Enforcement</h4>
+      <p style="font-size:var(--sz-small)">Points 1&ndash;5 are <strong>loud</strong> &mdash; they return HTTP errors and block the request. Point 6 is <strong>semi-loud</strong> &mdash; it returns a structured ACCESS_DENIED response and logs to audit. Point 7 is <strong>silent</strong> &mdash; UC row filters and column masks never error; they just restrict what data you see. A query that returns 0 rows is governance working, not a bug.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 6: ERROR CODES REFERENCE -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="8">
+  <div class="label reveal">Error Reference</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">What Goes Wrong and What It Means</h2>
+
+  <div class="flex-1 mt-2 reveal" style="overflow:auto">
+    <table>
+      <thead>
+        <tr><th>HTTP</th><th>Source</th><th>Error</th><th>Cause</th><th>Fix</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>400</code></td><td>App Server <span style="font-size:0.5rem;color:var(--muted)">(customer)</span></td><td>Missing tool or role</td><td>Request body missing <code>tool</code> or <code>role</code> field</td><td>Include both fields in POST body</td></tr>
+        <tr><td><code>400</code></td><td>App Server <span style="font-size:0.5rem;color:var(--muted)">(customer)</span></td><td>Unknown role</td><td>Role not in ROLE_SP_MAP</td><td>Check role key matches config exactly</td></tr>
+        <tr><td><code>400</code></td><td>/oidc/v1/token</td><td>invalid_request</td><td>Malformed JWT, missing fields</td><td>Verify JWT is well-formed, all params present</td></tr>
+        <tr><td><code>401</code></td><td>/oidc/v1/token</td><td>invalid_grant</td><td>JWT signature invalid, issuer mismatch</td><td>Check JWKS keys, issuer URL (trailing slash matters!)</td></tr>
+        <tr><td><code>401</code></td><td>API Server <span style="font-size:0.5rem;color:var(--red)">(Databricks)</span></td><td>Invalid IDP token</td><td>JWKS verification failed (expired, wrong key, tampered)</td><td>Check IDP JWKS endpoint, token expiry, algorithm</td></tr>
+        <tr><td><code>403</code></td><td>/oidc/v1/token</td><td>OIDC policy validation failed</td><td>No federation policy on SP, or subject claim mismatch</td><td>Create/update federation policy: issuer + audience + subject</td></tr>
+        <tr><td><code>403</code></td><td>API Server <span style="font-size:0.5rem;color:var(--red)">(Databricks)</span></td><td>No role determined</td><td>JWT has no role claim, no X-Federation-Role header</td><td>Add role to JWT claims or pass header</td></tr>
+        <tr><td><code>403</code></td><td>API Server <span style="font-size:0.5rem;color:var(--red)">(Databricks)</span></td><td>Unknown role: '{role}'</td><td>Role not in server's ROLE_SP_MAP</td><td>Add role to ROLE_SP_MAP env var</td></tr>
+        <tr><td><code>429</code></td><td>Federation Policy API</td><td>Rate limited</td><td>Too many policy creation requests</td><td>Exponential backoff: 2<sup>n+1</sup> seconds</td></tr>
+        <tr><td><code>502</code></td><td>App Server / API Server</td><td>Token exchange failed</td><td>Databricks rejected the exchange</td><td>Check federation policy, SP status, JWT claims</td></tr>
+        <tr><td><code>200</code></td><td>MCP Tool</td><td>ACCESS_DENIED</td><td>Role not in TOOL_ACCESS for this tool</td><td>Expected behavior &mdash; logged to audit table</td></tr>
+        <tr><td><code>200</code></td><td>SQL Engine</td><td>0 rows returned</td><td>UC row filter excluded all rows for this SP's groups</td><td>Expected behavior &mdash; governance working correctly</td></tr>
+        <tr><td><code>200</code></td><td>SQL Engine</td><td>NULL in column</td><td>UC column mask returned NULL for non-privileged group</td><td>Expected behavior &mdash; column masking active</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 7: TROUBLESHOOTING DECISION TREE -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="9">
+  <div class="label reveal">Troubleshooting</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">Decision Tree: Where Is It Failing?</h2>
+
+  <div class="two-col mt-2 reveal">
+    <div>
+      <div style="font-size:var(--sz-label);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--red);margin-bottom:12px">IDP &amp; Token Exchange</div>
+      <div class="flow-vertical">
+        <div class="flow-step"><div class="flow-num red">?</div><div class="flow-content"><strong>Can you get an IDP JWT?</strong><p>Test: <code>curl POST {idp}/oauth/token</code></p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num">N</div><div class="flow-content"><strong>&rarr; IDP config issue</strong><p>Check: client_id, client_secret, audience, grant_type</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num red">?</div><div class="flow-content"><strong>Does JWT have custom claims?</strong><p>Test: <code>echo $JWT | cut -d. -f2 | base64 -d | jq</code></p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num">N</div><div class="flow-content"><strong>&rarr; Claims injection issue</strong><p>Check IDP's claim injection mechanism: Action, Hook, or Policy</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num red">?</div><div class="flow-content"><strong>Does token exchange succeed?</strong><p>Test: <code>curl POST {workspace}/oidc/v1/token</code></p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num">N</div><div class="flow-content"><strong>&rarr; Federation policy issue</strong><p>Check: policy exists on SP, issuer matches (trailing slash!), audience = workspace URL, subject matches <code>sub</code> claim</p></div></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:var(--sz-label);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--green);margin-bottom:12px">API Server &amp; Governance</div>
+      <div class="flow-vertical">
+        <div class="flow-step"><div class="flow-num red">?</div><div class="flow-content"><strong>Does API server accept the call?</strong><p>Check: HTTP status from API endpoint</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num">401</div><div class="flow-content"><strong>&rarr; JWT verification failed</strong><p>Check: JWKS endpoint accessible, RS256 algorithm, audience + issuer match server config</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num">403</div><div class="flow-content"><strong>&rarr; Role mapping failed</strong><p>Check: JWT has <code>role</code> claim, role key exists in ROLE_SP_MAP config</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num red">?</div><div class="flow-content"><strong>Data returned but empty or masked?</strong></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num green">OK</div><div class="flow-content"><strong>&rarr; Governance is working correctly</strong><p>0 rows = row filter active<br>NULL values = column mask active<br>ACCESS_DENIED = tool access control<br><br><strong>Verify:</strong> <code>SELECT is_member('group')</code> as the SP</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 9: SETUP CHECKLIST — WHAT TO CONFIGURE -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="10">
+  <div class="label reveal">Setup Guide</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">What to Configure &mdash; In Order</h2>
+
+  <div class="two-col mt-2 reveal">
+    <div>
+      <div style="font-size:var(--sz-label);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--red);margin-bottom:10px">Identity Provider Side</div>
+
+      <div class="card mb-2">
+        <h4 style="font-size:var(--sz-body)"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:0.6rem;font-weight:700;margin-right:6px">1</span>Create an API / Resource Server</h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60)">Register a custom API with <strong>audience = Databricks workspace URL</strong>. This tells the IDP: "JWTs for this audience are meant for Databricks."</p>
+        <p style="font-size:var(--sz-small);margin-top:4px"><code>audience: https://adb-{workspace_id}.azuredatabricks.net</code></p>
+      </div>
+
+      <div class="card mb-2">
+        <h4 style="font-size:var(--sz-body)"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:0.6rem;font-weight:700;margin-right:6px">2</span>Create an M2M / Service App</h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60)">For the external app server to get JWTs via <code>client_credentials</code> grant. This app's <code>client_id</code> becomes the <code>sub</code> claim in the JWT.</p>
+      </div>
+
+      <div class="card mb-2">
+        <h4 style="font-size:var(--sz-body)"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:0.6rem;font-weight:700;margin-right:6px">3</span>Create a SPA App <span style="font-size:var(--sz-label);color:var(--muted)">(if browser login needed)</span></h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60)">For end-users to authenticate via PKCE in the browser. Redirect URI = your app's callback URL.</p>
+      </div>
+
+      <div class="card mb-2">
+        <h4 style="font-size:var(--sz-body)"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:0.6rem;font-weight:700;margin-right:6px">4</span>Configure Users &amp; Groups</h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60)">Users typically already exist in the IDP. Assign them to <strong>groups</strong> that map to Databricks roles. Group membership drives which SP the user's token exchanges for.</p>
+        <p style="font-size:var(--sz-small);margin-top:3px;color:var(--muted);font-style:italic">Groups are native objects in Okta/Entra. In Auth0, groups are stored in <code>app_metadata</code> on each user.</p>
+      </div>
+
+      <div class="card mb-2">
+        <h4 style="font-size:var(--sz-body)"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:0.6rem;font-weight:700;margin-right:6px">5</span>Add Claims Injection Logic</h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60)">Inject <code>groups</code>, <code>role</code>, <code>email</code> into the access token. This is the IDP-specific part:</p>
+        <table style="margin-top:4px;font-size:var(--sz-small)">
+          <tr><td style="color:var(--muted);width:50px">Auth0</td><td>Action (post-login trigger)</td></tr>
+          <tr><td style="color:var(--muted)">Okta</td><td>Authorization Server custom claims</td></tr>
+          <tr><td style="color:var(--muted)">Entra</td><td>Claims Mapping Policy + App Roles</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:var(--sz-label);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--red);margin-bottom:10px">Databricks Side</div>
+
+      <div class="card card-red mb-2">
+        <h4 style="font-size:var(--sz-body)"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:0.6rem;font-weight:700;margin-right:6px">6</span>Create Role-Based Service Principals</h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60)">One SP per role (not per user). Each SP gets a unique <code>application_id</code> and <code>numeric_id</code>.</p>
+        <p style="font-size:var(--sz-small);margin-top:3px"><code>fed-exchange-sp-west-sales</code>, <code>fed-exchange-sp-finance</code>, etc.</p>
+      </div>
+
+      <div class="card card-red mb-2">
+        <h4 style="font-size:var(--sz-body)"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:0.6rem;font-weight:700;margin-right:6px">7</span>Add SPs to Workspace Groups</h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60)">Create workspace groups (e.g., <code>authz_showcase_west</code>) and add each SP. These groups are what <code>is_member()</code> checks in row filters and column masks.</p>
+      </div>
+
+      <div class="card card-red mb-2">
+        <h4 style="font-size:var(--sz-body)"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:0.6rem;font-weight:700;margin-right:6px">8</span>Create Federation Policies</h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60)">On each SP, register the IDP's <code>issuer</code>, <code>audience</code>, and <code>subject</code>. This is what Databricks checks when validating the JWT during token exchange.</p>
+        <p style="font-size:var(--sz-small);margin-top:3px;color:var(--red)">Account-level API &mdash; requires Databricks account admin.</p>
+      </div>
+
+      <div class="card card-red mb-2">
+        <h4 style="font-size:var(--sz-body)"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:0.6rem;font-weight:700;margin-right:6px">9</span>Configure UC Governance</h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60)">Set up row filters (<code>is_member('group')</code>), column masks, and <code>GRANT USE CONNECTION</code> on tables. Grant SPs <code>SELECT</code> on data tables and SQL warehouse access.</p>
+      </div>
+
+      <div class="card mb-2" style="border-left:4px solid var(--ink)">
+        <h4 style="font-size:var(--sz-body)"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--ink);color:#fff;font-size:0.6rem;font-weight:700;margin-right:6px">10</span>Deploy API Server + External App</h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60)">API server on Databricks Apps (JWT verification + server-side exchange). External app anywhere (your infra). Configure both with the IDP's domain, client_id, JWKS URI, and the role &rarr; SP mapping.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 10: HOW IDP CONFIG MAPS TO DATABRICKS CONFIG -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="11">
+  <div class="label reveal">The Connection</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">How IDP Config Maps to Databricks Config</h2>
+
+  <div class="two-col mt-2 reveal" style="flex:1;min-height:0">
+    <div>
+      <div style="font-size:var(--sz-label);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--red);margin-bottom:8px">IDP produces &rarr; Federation Policy consumes</div>
+      <table style="font-size:var(--sz-small)">
+        <thead><tr><th>IDP Config</th><th>Produces</th><th>Databricks Field</th></tr></thead>
+        <tbody>
+          <tr><td>IDP Tenant / Domain</td><td><code>iss</code> claim</td><td>Policy <code>issuer</code></td></tr>
+          <tr><td>API / Resource Server</td><td><code>aud</code> claim</td><td>Policy <code>audiences</code></td></tr>
+          <tr><td>M2M App client_id</td><td><code>sub</code> claim</td><td>Policy <code>subject</code></td></tr>
+          <tr><td>Claims injection</td><td><code>role</code>, <code>groups</code></td><td>App-level ROLE_SP_MAP</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <div style="font-size:var(--sz-label);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--red);margin-bottom:8px">Create the policy (one API call per SP)</div>
+<pre style="font-size:0.6rem;padding:8px">
+<span class="cmt">// Databricks Account API</span>
+POST accounts/{account_id}
+  /servicePrincipals/{sp_id}
+  /federationPolicies
+
+{
+  "oidc_policy": {
+    "issuer":    "<span class="str">https://{idp-domain}/</span>",
+    "audiences": ["<span class="str">https://adb-{ws}...net</span>"],
+    "subject":   "<span class="str">{m2m_client_id}@clients</span>"
+  }
+}
+
+<span class="cmt">// Same 3 fields on all role SPs.</span>
+<span class="cmt">// Swap IDP → update these 3 → done.</span></pre>
+    </div>
+  </div>
+  <div class="card reveal" style="border-left:4px solid var(--amber);margin-top:8px">
+    <p style="font-size:var(--sz-small)"><strong>The federation policy is the only config that connects the IDP to Databricks.</strong> Everything else (SPs, groups, UC governance) is IDP-independent.</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 11b: ROLE SP MAP + GRANTS CHECKLIST -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="12">
+  <div class="label reveal">Runtime Config</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">Role &rarr; SP Mapping + Grants Checklist</h2>
+
+  <div class="two-col mt-2 reveal" style="flex:1;min-height:0">
+    <div>
+      <div style="font-size:var(--sz-label);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink);margin-bottom:8px">How the app server knows which SP to target</div>
+      <p style="font-size:var(--sz-small);color:var(--muted);margin-bottom:8px">Static config map — created once when you set up the role SPs. Lives in the app server's env config.</p>
+<pre style="font-size:0.6rem;padding:8px">
+<span class="cmt">// App server config (env var)</span>
+ROLE_SP_MAP = {
+  "west_sales":  "<span class="str">sp-west-sales-id</span>",
+  "east_sales":  "<span class="str">sp-east-sales-id</span>",
+  "managers":    "<span class="str">sp-managers-id</span>",
+  "executive":   "<span class="str">sp-executive-id</span>",
+  "finance":     "<span class="str">sp-finance-id</span>",
+  "admin":       "<span class="str">sp-admin-id</span>"
+}
+
+<span class="cmt">// Runtime flow:</span>
+<span class="cmt">// 1. SPA login → IDP token: role="west_sales"</span>
+<span class="cmt">// 2. App looks up ROLE_SP_MAP["west_sales"]</span>
+<span class="cmt">// 3. Token exchange: client_id=sp-west-sales-id</span></pre>
+      <p style="font-size:var(--sz-label);color:var(--muted);margin-top:6px">These are <strong>Databricks SP application_ids</strong> — not IDP client_ids. Created during setup, static thereafter. Only changes when you add/remove roles.</p>
+    </div>
+
+    <div>
+      <div style="font-size:var(--sz-label);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--red);margin-bottom:8px">Databricks grants checklist</div>
+      <table style="font-size:var(--sz-small)">
+        <thead><tr><th>Grant</th><th>On</th><th>To</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Federation Policy</strong></td><td>Each role-SP</td><td>&mdash;</td></tr>
+          <tr><td><strong>CAN_USE</strong></td><td>SQL Warehouse</td><td>All SPs</td></tr>
+          <tr><td><strong>USE CATALOG</strong></td><td>Data catalog</td><td>All SPs</td></tr>
+          <tr><td><strong>USE SCHEMA</strong></td><td>Data schema(s)</td><td>All SPs</td></tr>
+          <tr><td><strong>SELECT</strong></td><td>Data tables</td><td>Role SPs</td></tr>
+          <tr><td><strong>SELECT</strong></td><td>VS index</td><td>App SP</td></tr>
+          <tr><td><strong>MODIFY + SELECT</strong></td><td>Audit table</td><td>App SP only</td></tr>
+          <tr><td><strong>USE CONNECTION</strong></td><td>UC Connection</td><td>Exec + Admin</td></tr>
+          <tr><td><strong>CAN_QUERY</strong></td><td>Serving endpoint</td><td>Exec + Admin</td></tr>
+          <tr><td><strong>CAN_RUN</strong></td><td>Genie Space</td><td>All role SPs</td></tr>
+          <tr><td><strong>Workspace group</strong></td><td>Group per role</td><td>Each role SP</td></tr>
+        </tbody>
+      </table>
+
+      <div class="card card-green mt-2">
+        <h4 style="font-size:var(--sz-body)">Scopes (Token Exchange)</h4>
+        <p style="font-size:var(--sz-small)">Currently: <code>scope=all-apis</code>. Minimum required per tool:</p>
+        <table style="font-size:var(--sz-small);margin-top:4px">
+          <tr><td>Role SPs</td><td><code>sql</code> + <code>genie</code> + <code>serving</code></td></tr>
+          <tr><td>App SP</td><td><code>sql</code> + <code>vector-search</code></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 11: FEDERATION POLICY — TWO LEVELS -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="13">
+  <div class="label reveal">The Databricks Side</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">Federation Policy &mdash; Two Levels</h2>
+
+  <div class="two-col mt-2 reveal">
+    <div>
+      <div class="card card-red mb-2">
+        <h4>SP-Level Policy <span class="badge badge-red" style="margin-left:6px">Recommended for Federation Exchange</span></h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60);margin-bottom:6px">Policy is scoped to a <strong>specific Service Principal</strong>. Only that SP can exchange tokens from this IDP.</p>
+<pre style="font-size:0.65rem"><span class="kw">POST</span> /accounts/{account_id}
+     /servicePrincipals/<span class="str">{sp_numeric_id}</span>
+     /federationPolicies</pre>
+        <p style="font-size:var(--sz-small);margin-top:6px"><strong>When to use:</strong></p>
+        <ul style="font-size:var(--sz-small);padding-left:1rem;line-height:1.6">
+          <li><strong>Federation Exchange</strong> &mdash; each role-SP trusts one IDP with one subject</li>
+          <li><strong>Per-partner access</strong> &mdash; Partner A's IDP can only exchange for Partner A's SP</li>
+          <li><strong>Least privilege</strong> &mdash; tight blast radius if credentials leak</li>
+        </ul>
+        <p style="font-size:var(--sz-small);margin-top:6px;color:var(--green)"><strong>Visibility:</strong> Account Console &rarr; Service principals &rarr; {SP} &rarr; Credentials &amp; secrets &rarr; Federation policies.</p>
+      </div>
+
+      <div class="card mb-2">
+        <h4>Account-Level Policy</h4>
+        <p style="font-size:var(--sz-small);color:var(--ink-60);margin-bottom:6px">Policy applies to <strong>any identity in the account</strong>. Any SP or user can exchange tokens from this IDP.</p>
+<pre style="font-size:0.65rem"><span class="kw">POST</span> /accounts/{account_id}
+     /federationPolicies</pre>
+        <p style="font-size:var(--sz-small);margin-top:6px"><strong>When to use:</strong></p>
+        <ul style="font-size:var(--sz-small);padding-left:1rem;line-height:1.6">
+          <li><strong>CI/CD</strong> &mdash; GitHub Actions, GitLab CI, Azure DevOps OIDC tokens</li>
+          <li><strong>Workload identity</strong> &mdash; cloud-native services (EKS, GKE) with service account tokens</li>
+          <li><strong>Broad automation</strong> &mdash; any SP should be able to use this IDP</li>
+        </ul>
+        <p style="font-size:var(--sz-small);margin-top:6px;color:var(--green)"><strong>Visibility:</strong> Visible in Account Console &rarr; Security &rarr; Authentication &rarr; Federation policies.</p>
+      </div>
+    </div>
+
+    <div>
+      <p class="mb-2" style="font-size:var(--sz-small)">Both levels validate the same 3 fields against the JWT:</p>
+
+      <div class="card mb-2">
+        <h4>Policy Fields (Same for Both Levels)</h4>
+<pre style="font-size:0.65rem">{
+  <span class="str">"oidc_policy"</span>: {
+    <span class="str">"issuer"</span>:    <span class="str">"https://{idp-domain}/"</span>,
+    <span class="str">"audiences"</span>: [<span class="str">"https://adb-{ws}.azuredatabricks.net"</span>],
+    <span class="str">"subject"</span>:   <span class="str">"{jwt-sub-claim}"</span>
+  }
+}</pre>
+      </div>
+
+      <div class="card card-amber mb-2">
+        <h4>Common Gotcha: Trailing Slash</h4>
+        <p style="font-size:var(--sz-small)">The <code>issuer</code> URL <strong>must exactly match</strong> the <code>iss</code> claim in the JWT. Most IDPs include a trailing slash: <code>https://login.example.com/</code>. Omitting it = policy validation failure.</p>
+      </div>
+
+      <div class="card mb-2">
+        <h4>Subject Claim by IDP</h4>
+        <table>
+          <tr><td><strong>Auth0 M2M</strong></td><td><code>{client_id}@clients</code></td></tr>
+          <tr><td><strong>Okta Service</strong></td><td><code>{client_id}</code></td></tr>
+          <tr><td><strong>Entra App</strong></td><td><code>{app_id}</code> (GUID)</td></tr>
+          <tr><td><strong>GitHub Actions</strong></td><td><code>repo:{org}/{repo}:ref:refs/heads/main</code></td></tr>
+        </table>
+      </div>
+
+      <div class="card card-green">
+        <h4>Token Exchange Parameters (IDP-Agnostic)</h4>
+<pre style="font-size:0.65rem">grant_type=<span class="str">urn:ietf:params:oauth:grant-type:token-exchange</span>
+subject_token=<span class="str">{IDP_JWT}</span>
+subject_token_type=<span class="str">urn:ietf:params:oauth:token-type:jwt</span>
+client_id=<span class="str">{SP_APPLICATION_ID}</span>
+scope=<span class="str">all-apis</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 9: AUTH0 CONFIGURATION -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="14">
+  <div class="label reveal">IDP: Auth0</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">Auth0 Configuration</h2>
+
+  <div class="two-col mt-2 reveal flex-1">
+    <div style="overflow:auto">
+      <table>
+        <tr><th colspan="2">Endpoints</th></tr>
+        <tr><td>Token</td><td><code>https://{tenant}.auth0.com/oauth/token</code></td></tr>
+        <tr><td>JWKS</td><td><code>https://{tenant}.auth0.com/.well-known/jwks.json</code></td></tr>
+        <tr><td>Issuer</td><td><code>https://{tenant}.auth0.com/</code></td></tr>
+        <tr><td>Subject (M2M)</td><td><code>{client_id}@clients</code></td></tr>
+      </table>
+
+      <div class="card mt-2">
+        <h4>Claims Injection: Auth0 Action</h4>
+        <p style="font-size:var(--sz-small)" class="mb-1">Trigger: <code>post-login</code> (v3)</p>
+<pre style="font-size:0.65rem"><span class="kw">const</span> ns = <span class="str">'https://federation.example.com'</span>;
+<span class="kw">const</span> groups = event.user.app_metadata?.groups || [];
+api.accessToken.setCustomClaim(
+  `${ns}/groups`, groups);
+api.accessToken.setCustomClaim(
+  `${ns}/role`, resolveRole(groups));</pre>
+      </div>
+
+      <div class="card card-amber mt-2">
+        <h4>Auth0-Specific Gotchas</h4>
+        <ul style="font-size:var(--sz-small);padding-left:1rem">
+          <li><strong>Namespace</strong>: Must NOT be an Auth0 domain (silently strips claims)</li>
+          <li><strong>Token dialect</strong>: Must set <code>access_token_authz</code> on Resource Server</li>
+          <li><strong>SPA &rarr; API</strong>: Must authorize in Dashboard (not automatable)</li>
+          <li><strong>M2M sub claim</strong>: Format is <code>{client_id}@clients</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="overflow:auto">
+      <div class="card">
+        <h4>Required Auth0 Apps</h4>
+        <table>
+          <tr><td><span class="badge badge-ink">M2M</span></td><td>client_credentials flow for external app</td></tr>
+          <tr><td><span class="badge badge-red">SPA</span></td><td>PKCE flow for browser login</td></tr>
+          <tr><td><span class="badge badge-muted">MGMT</span></td><td>Management API access (automation only)</td></tr>
+        </table>
+      </div>
+
+      <div class="card mt-2">
+        <h4>Required Auth0 Config</h4>
+        <table>
+          <tr><td>API (Resource Server)</td><td>Identifier = workspace URL</td></tr>
+          <tr><td>Action</td><td>post-login: inject claims</td></tr>
+          <tr><td>Token Dialect</td><td><code>access_token_authz</code></td></tr>
+          <tr><td>Connection</td><td>Username-Password-Authentication</td></tr>
+          <tr><td>Users</td><td>app_metadata: groups, company, title</td></tr>
+        </table>
+      </div>
+
+      <div class="card card-green mt-2">
+        <h4>Federation Policy Subject</h4>
+<pre style="font-size:0.7rem"><span class="str">"subject"</span>: <span class="str">"{M2M_CLIENT_ID}@clients"</span></pre>
+      </div>
+
+      <div class="card mt-2" style="border-left:4px solid var(--ink)">
+        <h4>OAuth Scopes at Each Stage</h4>
+        <table>
+          <tr><td><span class="badge badge-ink">SPA Login</span></td><td><code>openid profile email</code><br><span style="font-size:var(--sz-label);color:var(--muted)">Standard OIDC scopes &rarr; ID token + user info</span></td></tr>
+          <tr><td><span class="badge badge-red">M2M Token</span></td><td><code>audience={workspace_url}</code> (implicit)<br><span style="font-size:var(--sz-label);color:var(--muted)">Auth0 M2M uses audience, not explicit scopes. Token includes all permissions granted to the M2M app for that API.</span></td></tr>
+          <tr><td><span class="badge badge-green">Token Exchange</span></td><td><code>scope=all-apis</code><br><span style="font-size:var(--sz-label);color:var(--muted)">Databricks-side scope. Grants full API access within SP's role. UC governance restricts at data layer.</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 10: OKTA CONFIGURATION -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="15">
+  <div class="label reveal">IDP: Okta</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">Okta Configuration</h2>
+
+  <div class="two-col mt-2 reveal flex-1">
+    <div style="overflow:auto">
+      <table>
+        <tr><th colspan="2">Endpoints</th></tr>
+        <tr><td>Token</td><td><code>https://{org}.okta.com/oauth2/{auth_server_id}/v1/token</code></td></tr>
+        <tr><td>JWKS</td><td><code>https://{org}.okta.com/oauth2/{auth_server_id}/v1/keys</code></td></tr>
+        <tr><td>Issuer</td><td><code>https://{org}.okta.com/oauth2/{auth_server_id}</code></td></tr>
+        <tr><td>Subject (M2M)</td><td><code>{client_id}</code> (no @clients suffix)</td></tr>
+      </table>
+
+      <div class="card mt-2">
+        <h4>Claims Injection: Authorization Server Claims</h4>
+        <p style="font-size:var(--sz-small)" class="mb-1">Admin &rarr; Security &rarr; API &rarr; Authorization Server &rarr; Claims tab</p>
+<pre style="font-size:0.65rem"><span class="cmt">// Custom claim: "groups"</span>
+Name:       groups
+Value:      user.getGroups().filter(
+              g, g.name.startsWith(<span class="str">"fed_"</span>))
+Include in: Access Token
+Scope:      Any scope</pre>
+      </div>
+
+      <div class="card card-amber mt-2">
+        <h4>Okta-Specific Gotchas</h4>
+        <ul style="font-size:var(--sz-small);padding-left:1rem">
+          <li><strong>Authorization Server</strong>: Use custom (not "default" org server) for custom claims</li>
+          <li><strong>Issuer URL</strong>: Includes <code>/oauth2/{server_id}</code> — NOT just the org URL</li>
+          <li><strong>No trailing slash</strong> on issuer (unlike Auth0)</li>
+          <li><strong>M2M sub claim</strong>: Just <code>{client_id}</code> (no @clients)</li>
+          <li><strong>Group filter</strong>: Use Okta Expression Language in claim value</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="overflow:auto">
+      <div class="card">
+        <h4>Required Okta Apps</h4>
+        <table>
+          <tr><td><span class="badge badge-ink">Service</span></td><td>OAuth 2.0 Service app (client_credentials)</td></tr>
+          <tr><td><span class="badge badge-red">SPA</span></td><td>OIDC SPA app (PKCE, authorization code)</td></tr>
+        </table>
+      </div>
+
+      <div class="card mt-2">
+        <h4>Required Okta Config</h4>
+        <table>
+          <tr><td>Authorization Server</td><td>Custom server with audience = workspace URL</td></tr>
+          <tr><td>Scopes</td><td>Add custom scope if needed</td></tr>
+          <tr><td>Claims</td><td>groups, role, email (custom claims on access token)</td></tr>
+          <tr><td>Access Policies</td><td>Rule for service app + SPA app</td></tr>
+          <tr><td>Groups</td><td>Assign users to Okta groups (mapped to Databricks roles)</td></tr>
+        </table>
+      </div>
+
+      <div class="card card-green mt-2">
+        <h4>Federation Policy Subject</h4>
+<pre style="font-size:0.7rem"><span class="str">"subject"</span>: <span class="str">"{SERVICE_APP_CLIENT_ID}"</span>
+<span class="cmt">// No @clients suffix for Okta</span></pre>
+      </div>
+
+      <div class="card mt-2" style="border-left:4px solid var(--ink)">
+        <h4>OAuth Scopes at Each Stage</h4>
+        <table>
+          <tr><td><span class="badge badge-ink">SPA Login</span></td><td><code>openid profile email</code> + custom scopes<br><span style="font-size:var(--sz-label);color:var(--muted)">Custom scopes gate which claims are included in token</span></td></tr>
+          <tr><td><span class="badge badge-red">Service App</span></td><td><code>scope={custom_scope}</code> on Auth Server<br><span style="font-size:var(--sz-label);color:var(--muted)">Okta requires at least one scope. Create a custom scope on the Authorization Server (e.g., <code>federation</code>). Access policy rules filter by scope.</span></td></tr>
+          <tr><td><span class="badge badge-green">Token Exchange</span></td><td><code>scope=all-apis</code><br><span style="font-size:var(--sz-label);color:var(--muted)">Same Databricks-side scope regardless of IDP</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 11: ENTRA ID CONFIGURATION -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="16">
+  <div class="label reveal">IDP: Microsoft Entra ID</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">Entra ID Configuration</h2>
+
+  <div class="two-col mt-2 reveal flex-1">
+    <div style="overflow:auto">
+      <table>
+        <tr><th colspan="2">Endpoints</th></tr>
+        <tr><td>Token</td><td><code>https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token</code></td></tr>
+        <tr><td>JWKS</td><td><code>https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys</code></td></tr>
+        <tr><td>Issuer</td><td><code>https://login.microsoftonline.com/{tenant_id}/v2.0</code></td></tr>
+        <tr><td>Subject (M2M)</td><td><code>{app_id}</code> (GUID of the App Registration)</td></tr>
+      </table>
+
+      <div class="card mt-2">
+        <h4>Claims Injection: Claims Mapping Policy</h4>
+        <p style="font-size:var(--sz-small)" class="mb-1">PowerShell / MS Graph API &rarr; Claims Mapping Policy</p>
+<pre style="font-size:0.65rem"><span class="cmt">// Claims Mapping Policy (JSON)</span>
+{
+  <span class="str">"ClaimsMappingPolicy"</span>: {
+    <span class="str">"Version"</span>: <span class="num">1</span>,
+    <span class="str">"IncludeBasicClaimSet"</span>: <span class="str">"true"</span>,
+    <span class="str">"ClaimsSchema"</span>: [{
+      <span class="str">"Source"</span>: <span class="str">"user"</span>,
+      <span class="str">"ID"</span>: <span class="str">"groups"</span>,
+      <span class="str">"JwtClaimType"</span>: <span class="str">"groups"</span>
+    }]
+  }
+}</pre>
+      </div>
+
+      <div class="card card-amber mt-2">
+        <h4>Entra-Specific Gotchas</h4>
+        <ul style="font-size:var(--sz-small);padding-left:1rem">
+          <li><strong>Issuer format</strong>: <code>.../v2.0</code> (v2 endpoints) vs <code>.../</code> (v1) &mdash; must match exactly</li>
+          <li><strong>App vs Service Principal</strong>: App Registration creates both &mdash; use App ID for subject</li>
+          <li><strong>Groups claim</strong>: Returns GUIDs by default, not names. Use <code>groupMembershipClaims: "SecurityGroup"</code> in manifest</li>
+          <li><strong>Token audience</strong>: Set via "Expose an API" &rarr; Application ID URI = workspace URL</li>
+          <li><strong>Client secret</strong>: Expires (max 2 years). Use certificates for production</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="overflow:auto">
+      <div class="card">
+        <h4>Required Entra Config</h4>
+        <table>
+          <tr><td><span class="badge badge-ink">App Reg (M2M)</span></td><td>Client credentials with secret/cert</td></tr>
+          <tr><td><span class="badge badge-red">App Reg (SPA)</span></td><td>PKCE redirect, SPA platform</td></tr>
+          <tr><td>API Scope</td><td>Expose an API &rarr; Application ID URI = workspace URL</td></tr>
+          <tr><td>Claims Policy</td><td>Assign to Service Principal</td></tr>
+          <tr><td>Security Groups</td><td>Map to Databricks roles</td></tr>
+        </table>
+      </div>
+
+      <div class="card card-green mt-2">
+        <h4>Federation Policy Subject</h4>
+<pre style="font-size:0.7rem"><span class="str">"subject"</span>: <span class="str">"{APP_REGISTRATION_APP_ID}"</span>
+<span class="cmt">// The Application (client) ID GUID
+// NOT the Object ID</span></pre>
+      </div>
+
+      <div class="card mt-2" style="border-left:4px solid var(--ink)">
+        <h4>OAuth Scopes at Each Stage</h4>
+        <table>
+          <tr><td><span class="badge badge-ink">SPA Login</span></td><td><code>openid profile email User.Read</code><br><span style="font-size:var(--sz-label);color:var(--muted)">MS Graph delegated permissions for user info</span></td></tr>
+          <tr><td><span class="badge badge-red">M2M (App)</span></td><td><code>scope={app_id_uri}/.default</code><br><span style="font-size:var(--sz-label);color:var(--muted)">Entra uses <code>.default</code> scope pattern. Requests all permissions pre-consented for the app. The <code>app_id_uri</code> = workspace URL.</span></td></tr>
+          <tr><td><span class="badge badge-green">Token Exchange</span></td><td><code>scope=all-apis</code><br><span style="font-size:var(--sz-label);color:var(--muted)">Same Databricks-side scope regardless of IDP</span></td></tr>
+        </table>
+      </div>
+
+      <div class="card mt-2">
+        <h4>Role Resolution Strategy</h4>
+        <p style="font-size:var(--sz-small)">Option A: Map Entra Security Group GUIDs to roles in app config<br>Option B: Use App Roles (defined in App Registration manifest) &mdash; appear as <code>roles</code> claim<br>Option C: Use Claims Mapping to emit group names instead of GUIDs</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 12: SIDE-BY-SIDE COMPARISON -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="17">
+  <div class="label reveal">Comparison</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">Auth0 vs Okta vs Entra &mdash; Side by Side</h2>
+
+  <div class="flex-1 mt-2 reveal" style="overflow:auto">
+    <table>
+      <thead>
+        <tr><th style="width:22%">Configuration</th><th>Auth0</th><th>Okta</th><th>Entra ID</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Issuer URL</strong></td>
+          <td><code>https://{tenant}.auth0.com/</code><br><span style="font-size:var(--sz-label);color:var(--red)">trailing slash</span></td>
+          <td><code>https://{org}.okta.com/oauth2/{server_id}</code><br><span style="font-size:var(--sz-label);color:var(--red)">no trailing slash</span></td>
+          <td><code>https://login.microsoftonline.com/{tenant}/v2.0</code><br><span style="font-size:var(--sz-label);color:var(--red)">v2.0 suffix</span></td>
+        </tr>
+        <tr>
+          <td><strong>JWKS URL</strong></td>
+          <td><code>.../.well-known/jwks.json</code></td>
+          <td><code>.../v1/keys</code></td>
+          <td><code>.../discovery/v2.0/keys</code></td>
+        </tr>
+        <tr>
+          <td><strong>M2M Sub Claim</strong></td>
+          <td><code>{client_id}@clients</code></td>
+          <td><code>{client_id}</code></td>
+          <td><code>{app_id}</code> (GUID)</td>
+        </tr>
+        <tr>
+          <td><strong>Claims Injection</strong></td>
+          <td>Auth0 Action (post-login)</td>
+          <td>Authorization Server custom claims</td>
+          <td>Claims Mapping Policy + manifest</td>
+        </tr>
+        <tr>
+          <td><strong>Namespace Required?</strong></td>
+          <td><span class="badge badge-red">Yes</span> Must be non-Auth0 URL</td>
+          <td><span class="badge badge-muted">No</span> Top-level claims OK</td>
+          <td><span class="badge badge-muted">No</span> Top-level claims OK</td>
+        </tr>
+        <tr>
+          <td><strong>Token Dialect Fix?</strong></td>
+          <td><span class="badge badge-red">Yes</span> <code>access_token_authz</code></td>
+          <td><span class="badge badge-green">No</span> Custom claims included by default</td>
+          <td><span class="badge badge-green">No</span> Claims policy handles it</td>
+        </tr>
+        <tr>
+          <td><strong>Group Format</strong></td>
+          <td>String names (from app_metadata)</td>
+          <td>String names (Okta groups)</td>
+          <td>GUIDs (Security Groups) by default</td>
+        </tr>
+        <tr>
+          <td><strong>M2M App Type</strong></td>
+          <td>Machine-to-Machine Application</td>
+          <td>OAuth 2.0 Service App</td>
+          <td>App Registration + Client Secret/Cert</td>
+        </tr>
+        <tr>
+          <td><strong>SPA App Type</strong></td>
+          <td>Single Page Application</td>
+          <td>OIDC SPA App</td>
+          <td>App Registration (SPA platform)</td>
+        </tr>
+        <tr>
+          <td><strong>Automation</strong></td>
+          <td>Management API v2</td>
+          <td>Okta Admin API</td>
+          <td>MS Graph API</td>
+        </tr>
+        <tr>
+          <td><strong>SPA Scopes</strong></td>
+          <td><code>openid profile email</code></td>
+          <td><code>openid profile email</code> + custom</td>
+          <td><code>openid profile email User.Read</code></td>
+        </tr>
+        <tr>
+          <td><strong>M2M Scopes</strong></td>
+          <td>Implicit via <code>audience</code><br><span style="font-size:var(--sz-label);color:var(--muted)">No explicit scope param</span></td>
+          <td><code>scope={custom_scope}</code><br><span style="font-size:var(--sz-label);color:var(--muted)">Must create on Auth Server</span></td>
+          <td><code>scope={app_id_uri}/.default</code><br><span style="font-size:var(--sz-label);color:var(--muted)">.default = all pre-consented</span></td>
+        </tr>
+        <tr>
+          <td><strong>Exchange Scope</strong></td>
+          <td colspan="3"><code>scope=all-apis</code> <span style="font-size:var(--sz-label);color:var(--green);font-weight:600">&larr; SAME for all IDPs (Databricks-side)</span></td>
+        </tr>
+        <tr>
+          <td><strong>Free Tier</strong></td>
+          <td>25k MAU, 7.5k M2M tokens/mo</td>
+          <td>100 MAU (Workforce), limited M2M</td>
+          <td>Part of Azure AD (included with M365)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 13: MIGRATION CHECKLIST -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="18">
+  <div class="label reveal">Migration</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">Swapping IDP &mdash; Checklist</h2>
+
+  <div class="two-col mt-2 reveal flex-1">
+    <div>
+      <h3>What You Change</h3>
+      <div class="flow-vertical mt-2">
+        <div class="flow-step"><div class="flow-num red">1</div><div class="flow-content"><strong>IDP Apps</strong><p>Create M2M + SPA apps in new IDP</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num red">2</div><div class="flow-content"><strong>Claims Injection</strong><p>Configure groups/role/email claims in new IDP's mechanism</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num red">3</div><div class="flow-content"><strong>Federation Policies</strong><p>Update <code>issuer</code> and <code>subject</code> on each SP's policy</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num red">4</div><div class="flow-content"><strong>External App Config</strong><p>Update IDP domain, client_id, JWKS URI, token endpoint, claims namespace</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num red">5</div><div class="flow-content"><strong>API Server Config</strong><p>Update IDP_DOMAIN, IDP_AUDIENCE, IDP_ISSUER, JWKS_URI env vars</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num red">6</div><div class="flow-content"><strong>Test Users</strong><p>Create test users with groups/roles in new IDP</p></div></div>
+      </div>
+    </div>
+
+    <div>
+      <h3>What You Keep</h3>
+      <div class="flow-vertical mt-2">
+        <div class="flow-step"><div class="flow-num green">&#10003;</div><div class="flow-content"><strong>Databricks Service Principals</strong><p>Same SPs, same application_ids, same group membership</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num green">&#10003;</div><div class="flow-content"><strong>UC Row Filters &amp; Column Masks</strong><p>Same <code>is_member()</code> functions, same tables</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num green">&#10003;</div><div class="flow-content"><strong>UC Connection Grants</strong><p>Same GRANT/REVOKE USE CONNECTION SQL</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num green">&#10003;</div><div class="flow-content"><strong>Role &rarr; SP Mapping</strong><p>Same ROLE_SP_MAP config (roles are app-defined, not IDP-defined)</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num green">&#10003;</div><div class="flow-content"><strong>Token Exchange Endpoint</strong><p>Same <code>/oidc/v1/token</code> with same grant_type</p></div></div>
+        <div class="flow-connector"></div>
+        <div class="flow-step"><div class="flow-num green">&#10003;</div><div class="flow-content"><strong>Audit Table + MLflow Traces</strong><p>Same schema, same tags, same correlation</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 14: KEY TAKEAWAYS -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="19">
+  <div class="label reveal">Takeaways</div>
+  <h2 class="reveal">The Identity Chain Is the Architecture</h2>
+
+  <div class="two-col mt-3 reveal">
+    <div>
+      <div class="card card-red mb-2">
+        <h4>1. IDP Is Swappable</h4>
+        <p style="font-size:var(--sz-small)">The IDP provides the JWT. Databricks validates it via federation policy. Swap the JWT issuer, update the policy &mdash; everything downstream stays the same. The governance layer (UC) is completely IDP-agnostic.</p>
+      </div>
+      <div class="card mb-2">
+        <h4>2. Two Token Exchanges, One Identity</h4>
+        <p style="font-size:var(--sz-small)">External app exchanges IDP JWT &rarr; DB token (for proxy auth). MCP server independently exchanges the same IDP JWT &rarr; DB token (for SQL execution). Both resolve to the same role-SP. The external user's identity is preserved in JWT claims, audit records, and MLflow traces.</p>
+      </div>
+      <div class="card card-green mb-2">
+        <h4>3. Governance Is Native</h4>
+        <p style="font-size:var(--sz-small)">UC row filters and column masks fire at the SQL engine level. They can't be bypassed by changing the application, the IDP, or the query. <code>is_member()</code> checks the SP's group membership &mdash; not the caller's headers.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card card-amber mb-2">
+        <h4>4. Silent vs. Loud Failures</h4>
+        <p style="font-size:var(--sz-small)">Auth failures (401/403) are loud and visible. Governance enforcement (0 rows, NULL columns) is silent and correct. Know which one you're looking at before debugging.</p>
+      </div>
+      <div class="card mb-2">
+        <h4>5. The Subject Claim Is the Linchpin</h4>
+        <p style="font-size:var(--sz-small)">90% of federation failures are a mismatch between the JWT's <code>sub</code> claim and the federation policy's <code>subject</code> field. Every IDP formats this differently: <code>client_id@clients</code> (Auth0), <code>client_id</code> (Okta), <code>app_id</code> (Entra). Decode the JWT first, then write the policy.</p>
+      </div>
+      <div class="card mb-2" style="border-left:4px solid var(--ink)">
+        <h4>6. Test the Chain, Not the Parts</h4>
+        <p style="font-size:var(--sz-small)">A working IDP token + a working federation policy can still fail if the subject claim doesn't match. Test the full chain: get IDP JWT &rarr; exchange &rarr; call /api/2.0/preview/scim/v2/Me &rarr; verify SP identity.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 18: PERSONAS & ACCESS MATRIX -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide" data-slide="20">
+  <div class="label reveal">Demo Reference</div>
+  <h2 class="reveal" style="font-size:var(--sz-h2)">6 Personas &times; 9 Tools &mdash; Access Matrix</h2>
+
+  <div class="flex-1 mt-2 reveal" style="overflow:auto">
+    <table style="font-size:var(--sz-small)">
+      <thead>
+        <tr>
+          <th>Persona</th>
+          <th>Role</th>
+          <th>Group</th>
+          <th>Regions</th>
+          <th>Margins</th>
+          <th style="font-size:0.5rem">Identity</th>
+          <th style="font-size:0.5rem">Regions</th>
+          <th style="font-size:0.5rem">Sales</th>
+          <th style="font-size:0.5rem">Genie</th>
+          <th style="font-size:0.5rem">KB</th>
+          <th style="font-size:0.5rem">Supervisor</th>
+          <th style="font-size:0.5rem">GitHub</th>
+          <th style="font-size:0.5rem">Ext API</th>
+          <th style="font-size:0.5rem">Audit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Sarah Chen</strong><br><span style="color:var(--muted)">West Territory Lead</span></td><td>west_sales</td><td>authz_showcase_west</td><td style="color:var(--red)">WEST only</td><td>NULL</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td></tr>
+        <tr><td><strong>Marcus Johnson</strong><br><span style="color:var(--muted)">East Territory Lead</span></td><td>east_sales</td><td>authz_showcase_east</td><td style="color:var(--red)">EAST only</td><td>NULL</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td></tr>
+        <tr><td><strong>David Park</strong><br><span style="color:var(--muted)">Sales Manager</span></td><td>managers</td><td>authz_showcase_managers</td><td style="color:var(--green)">ALL</td><td>NULL</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td></tr>
+        <tr><td><strong>Priya Sharma</strong><br><span style="color:var(--muted)">VP of Sales</span></td><td>executive</td><td>authz_showcase_executives</td><td style="color:var(--green)">ALL</td><td style="color:var(--green)">Real</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td></tr>
+        <tr><td><strong>Lisa Okafor</strong><br><span style="color:var(--muted)">External Auditor</span></td><td>finance</td><td>authz_showcase_finance</td><td style="color:var(--green)">ALL</td><td style="color:var(--green)">Real</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--red)">&mdash;</td><td style="color:var(--green)">Y</td></tr>
+        <tr><td><strong>Raj Patel</strong><br><span style="color:var(--muted)">Platform Admin</span></td><td>admin</td><td>authz_showcase_admin</td><td style="color:var(--green)">ALL</td><td style="color:var(--green)">Real</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td><td style="color:var(--green)">Y</td></tr>
+      </tbody>
+    </table>
+
+    <div class="two-col mt-2">
+      <div class="card" style="font-size:var(--sz-small)">
+        <h4 style="font-size:var(--sz-body)">Governance Layers Demonstrated</h4>
+        <ul style="padding-left:1rem;line-height:1.7">
+          <li><strong>Row filter</strong>: Sarah sees 16 WEST rows, Marcus sees 15 EAST rows, Priya sees all 41</li>
+          <li><strong>Column mask</strong>: margin_pct &rarr; NULL for sales/managers, real values for finance/exec/admin</li>
+          <li><strong>Tool access</strong>: Supervisor + GitHub + External API restricted to executive + admin</li>
+          <li><strong>UC Connection</strong>: GRANT/REVOKE USE CONNECTION &mdash; instant, no deploy</li>
+          <li><strong>Audit isolation</strong>: role-SPs have zero write access to audit table</li>
+        </ul>
+      </div>
+      <div class="card card-red" style="font-size:var(--sz-small)">
+        <h4 style="font-size:var(--sz-body)">5 Demo Flows</h4>
+        <ol style="padding-left:1rem;line-height:1.7">
+          <li><strong>Data Isolation</strong>: Sarah &rarr; Genie "top deals" &rarr; WEST. Marcus &rarr; same &rarr; EAST.</li>
+          <li><strong>Column Masking</strong>: Sarah &rarr; Sales Data &rarr; margins &mdash;. Lisa &rarr; same &rarr; real values.</li>
+          <li><strong>AI Governance</strong>: Sarah &rarr; Genie "pipeline by region" &rarr; WEST. Priya &rarr; all regions.</li>
+          <li><strong>UC Connections</strong>: Priya &rarr; GitHub &rarr; succeeds. Sarah &rarr; ACCESS_DENIED.</li>
+          <li><strong>Audit Trail</strong>: Raj &rarr; Audit Log &rarr; all actions with external user identity.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 19: CLOSING — IMPACT -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="slide slide-title" data-slide="21">
+  <div class="label reveal" style="margin-bottom:16px">Impact</div>
+  <h1 class="reveal" style="font-size:clamp(1.8rem,4vw,3rem)">External users get governed access.<br><span style="color:var(--red)">Without ever touching Databricks.</span></h1>
+
+  <div class="red-line reveal"></div>
+
+  <div style="max-width:720px;margin:0 auto" class="reveal">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(1rem,2vw,2rem);margin-top:clamp(1.5rem,3vw,2.5rem)">
+      <div style="text-align:center">
+        <div style="font-size:clamp(2rem,5vw,3.5rem);font-weight:700;color:var(--red);line-height:1">0</div>
+        <div style="font-size:var(--sz-small);color:var(--muted);margin-top:4px">Databricks users provisioned</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:clamp(2rem,5vw,3.5rem);font-weight:700;color:var(--ink);line-height:1">N:1</div>
+        <div style="font-size:var(--sz-small);color:var(--muted);margin-top:4px">Users to SPs ratio per role</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:clamp(2rem,5vw,3.5rem);font-weight:700;color:var(--green);line-height:1">1</div>
+        <div style="font-size:var(--sz-small);color:var(--muted);margin-top:4px">SQL statement to toggle access</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(0.8rem,1.5vw,1.5rem);margin-top:clamp(1.5rem,3vw,2.5rem);text-align:left">
+      <div class="card" style="border-left:4px solid var(--red)">
+        <p style="font-size:var(--sz-small);line-height:1.6"><strong>For the business:</strong> Partners, auditors, and consultants get self-service access to exactly the data they need &mdash; no IT tickets, no shared credentials, no waiting for provisioning.</p>
+      </div>
+      <div class="card" style="border-left:4px solid var(--green)">
+        <p style="font-size:var(--sz-small);line-height:1.6"><strong>For security:</strong> Every query runs through UC row filters and column masks. Every action is audited with the real external identity. Access is revocable with one SQL statement.</p>
+      </div>
+      <div class="card" style="border-left:4px solid var(--ink)">
+        <p style="font-size:var(--sz-small);line-height:1.6"><strong>For engineering:</strong> Swap the IDP by updating the federation policy &mdash; no code changes. Add a new role by creating one SP and one workspace group. The architecture scales horizontally.</p>
+      </div>
+      <div class="card" style="border-left:4px solid var(--muted)">
+        <p style="font-size:var(--sz-small);line-height:1.6"><strong>For compliance:</strong> External identity preserved end-to-end. Correlatable audit trail across custom tables, MLflow traces, and <code>system.access.audit</code>. No identity gaps.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- JS: Navigation -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let current = 0;
+
+function goTo(n) {
+  if (n < 0 || n >= total) return;
+  slides[current].classList.remove('active');
+  slides[current].classList.add('exit-left');
+  setTimeout(() => slides[current === n ? current : current].classList.remove('exit-left'), 400);
+  const prev = current;
+  current = n;
+  slides[current].classList.add('active');
+  setTimeout(() => slides[prev].classList.remove('exit-left'), 400);
+  document.getElementById('counter').textContent = `${String(current + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
+  document.getElementById('progressBar').style.width = `${((current + 1) / total) * 100}%`;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current - 1); }
+  if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+  if (e.key === 'End') { e.preventDefault(); goTo(total - 1); }
+});
+
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) dx < 0 ? goTo(current + 1) : goTo(current - 1);
+});
+
+goTo(0);
+</script>
+</body>
+</html>

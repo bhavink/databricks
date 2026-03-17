@@ -30,6 +30,7 @@ These are the consolidated reference documents. Start here for any topic.
 | [UC Policy Design Principles](UC-POLICY-DESIGN-PRINCIPLES.md) | When `current_user()` and `is_member()` work (and don't) across Genie OBO, Apps, Model Serving |
 | [AI Gateway Patterns](AI-GATEWAY-PATTERNS.md) | When to use Databricks AI Gateway vs external gateway vs UC-native controls; four traffic patterns |
 | [Orchestration Architecture](ORCHESTRATION-ARCHITECTURE.md) | Governed AI orchestration across Model Serving, MCP, AI Gateway, and Lakebase |
+| [Federation Exchange Architecture](reference/federation-exchange-architecture.md) | Custom MCP governance: scope-based access, UC connections, supervisor integration, observability stack |
 
 ---
 
@@ -48,6 +49,7 @@ These are the consolidated reference documents. Start here for any topic.
 | Row Filters | Row-level security | [View](https://bhavink.github.io/databricks/ai-governance/interactive/uc-row-filters.html) |
 | Column Masks | Column-level security | [View](https://bhavink.github.io/databricks/ai-governance/interactive/uc-column-masks.html) |
 | OBO Auth Flow | On-Behalf-Of-User authentication | [View](https://bhavink.github.io/databricks/ai-governance/interactive/auth-flow-obo.html) |
+| Federation Token Flow | 10-step animated token exchange with token inspector | [View](https://bhavink.github.io/databricks/ai-governance/interactive/federation-token-flow.html) |
 | Decision Guide | Choose the right pattern | [View](https://bhavink.github.io/databricks/ai-governance/interactive/decision-guide.html) |
 
 ---
@@ -93,6 +95,8 @@ Features: Conversation activity tracking, user analytics, query insights, real-t
 
 | Deck | Topic |
 |------|-------|
+| [Identity & Governance for AI](presentations/identity-governance-overview.html) | Two patterns (OBO + Federation), shared UC governance, scope model, supervisor integration — 17 slides |
+| [Federation Exchange Deep Dive](presentations/federation-deep-dive.html) | Three actors, token anatomy, sequence diagram, embedded animation, API calls, grants checklist — 21 slides |
 | [AI Gateway Patterns v2](presentations/ai-gateway-patterns-v2.html) | AI Gateway traffic patterns and decision framework |
 
 ---
@@ -117,6 +121,12 @@ A: Under OBO, `is_member()` may evaluate the execution identity, not the calling
 **Q: How do I audit access when using M2M?**
 A: Platform audit records the SP UUID. You need app-level logging with `X-Forwarded-Email` for human identity. See [Observability and Audit](reference/observability-and-audit.md).
 
+**Q: How do I give external users (partners, customers) governed access to Databricks AI tools?**
+A: Use the Federation Exchange pattern: external IDP JWT → Databricks token exchange → role-based SPs → UC governance. See [Federation Exchange Architecture](reference/federation-exchange-architecture.md) and the [deep dive presentation](presentations/federation-deep-dive.html).
+
+**Q: What's the difference between OBO and Federation?**
+A: OBO = apps ON Databricks (user has a workspace account). Federation = apps OUTSIDE Databricks (user has no Databricks account, authenticates via external IDP). See the [Identity & Governance presentation](presentations/identity-governance-overview.html).
+
 ---
 
 ## Related Databricks Documentation
@@ -134,4 +144,4 @@ A: Platform audit records the SP UUID. You need app-level logging with `X-Forwar
 
 ---
 
-*Last updated: 2026-03-12 -- Restructured as clean index after documentation consolidation*
+*Last updated: 2026-03-17 -- Added Federation Exchange presentations, interactive token flow, and architecture reference*
