@@ -1,2 +1,0 @@
-mcp[cli]>=1.9
-databricks-sdk>=0.40.0

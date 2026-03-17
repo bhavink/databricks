@@ -1,6 +1,0 @@
-DEMO-*.md
-USER-*.md
-*.backup.*
-__pycache__/
-.venv/
-.databricks/

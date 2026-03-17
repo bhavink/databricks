@@ -2,7 +2,7 @@
 
 > **Read this before writing any row filter, column mask, or UC function.**
 >
-> These principles apply to every scenario in this repo — regardless of product (Genie, Agent Bricks, Databricks Apps, Vector Search, UC Functions), scale (10 users or 10,000), or cloud (AWS, Azure, GCP). The patterns are derived from building and verifying the [AI Auth Showcase](scenarios/07-AuthZ-SHOWCASE/) end-to-end on Azure Databricks.
+> These principles apply regardless of product (Genie, Agent Bricks, Databricks Apps, Vector Search, UC Functions), scale (10 users or 10,000), or cloud (AWS, Azure, GCP). The patterns are derived from building and verifying auth patterns end-to-end on Azure Databricks.
 
 ---
 
@@ -171,22 +171,9 @@ RETURN (
 
 ---
 
-## Applied to This Repo's Scenarios
-
-| Scenario | Primary execution context | `is_member()` appropriate? | `current_user()` appropriate? |
-|---|---|---|---|
-| [01 — Knowledge Assistant](scenarios/01-KNOWLEDGE-ASSISTANT/) | Vector Search OBO | For team-based bypass where SP has group membership; individual access via `current_user()` | ✅ For author/owner scoping |
-| [04 — Multi-Agent Supervisor](scenarios/04-MULTI-AGENT-SUPERVISOR/) | Mixed: SP for intent classification, OBO for Genie routing | ✅ For SP-based audit/logging; use allowlist for OBO user-role checks | ✅ For per-user data scoping in Genie sub-agents |
-| [05 — Genie Space (multi-team)](scenarios/05-GENIE-SPACE/standalone-multi-team.md) | Genie OBO | For team bypass if execution context carries group membership; individual via `current_user()` | ✅ For owner/creator scoping |
-| [05 — Genie Space (scale)](scenarios/05-GENIE-SPACE/standalone-scale.md) | Genie OBO | For complex ABAC; validate empirically that execution context reflects intended groups | ✅ For manager→report, employee→self |
-| [07 — AuthZ Showcase](scenarios/07-AuthZ-SHOWCASE/) | Mixed per tab | ✅ Tab 3 M2M; use allowlist pattern for OBO column masks | ✅ All row filters anchored here |
-
----
-
 ## Further Reading
 
 - [Authentication Patterns](01-AUTHENTICATION-PATTERNS.md) — OBO vs M2M decision
 - [Authorization with UC](02-AUTHORIZATION-WITH-UC.md) — four-layer access control model
-- [AuthZ Showcase — Auth Patterns](scenarios/07-AuthZ-SHOWCASE/AUTHZ-PATTERNS.md) — verified patterns from end-to-end build
-- [Fieldkit: OBO Passthrough](../../0-dayjob/databricks-fieldkit/auth/obo-passthrough.md) — two-proxy problem, X-Forwarded-Email, allowlist pattern
-- [Fieldkit: M2M Service Principal](../../0-dayjob/databricks-fieldkit/auth/m2m-service-principal.md) — SP group membership, INVOKER vs DEFINER
+- [Identity and Auth Reference](reference/identity-and-auth-reference.md) — token flows, two-proxy problem, OAuth scope map
+- [OBO vs M2M Decision Matrix](reference/obo-vs-m2m-decision-matrix.md) — detailed decision framework with audit implications

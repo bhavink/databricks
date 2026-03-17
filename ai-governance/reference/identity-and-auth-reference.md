@@ -241,7 +241,7 @@ The `X-Forwarded-Access-Token` is an OIDC identity token, not a full API token:
 
 Adding a scope to `user_authorized_scopes` does NOT affect existing refresh tokens. When the Apps proxy refreshes an access token, the new access token inherits the original scopes from the authorization code grant -- not the current integration configuration. Opening the app in incognito does not help if the workspace SSO session is still valid.
 
-**The only fix**: Delete and recreate the app (creates a new OAuth integration), then immediately patch the new integration with the full scope set. See `scenarios/07-AuthZ-SHOWCASE/DEMO-GUIDE.md` for the complete procedure.
+**The only fix**: Delete and recreate the app (creates a new OAuth integration), then immediately patch the new integration with the full scope set.
 
 ---
 
@@ -281,7 +281,7 @@ Correlation:
   Gap: No platform-built join exists
 ```
 
-For details on building the app-level audit layer, see [scenarios/07-AuthZ-SHOWCASE/observability/OBSERVABILITY.md](../scenarios/07-AuthZ-SHOWCASE/observability/OBSERVABILITY.md).
+For details on building the app-level audit layer, see [Observability and Audit](observability-and-audit.md).
 
 ---
 
@@ -334,5 +334,3 @@ Do you need per-user row filter enforcement at the SQL layer?
 - [OBO vs M2M Decision Matrix](obo-vs-m2m-decision-matrix.md) -- Detailed decision framework with audit implications
 - [Observability and Audit](observability-and-audit.md) -- Two-layer audit model, app-plane and data-plane correlation
 - [UC Policy Design Principles](../UC-POLICY-DESIGN-PRINCIPLES.md) -- `current_user()` vs `is_member()` in all execution contexts
-- [scenarios/07-AuthZ-SHOWCASE/docs/AUTHZ-PATTERNS.md](../scenarios/07-AuthZ-SHOWCASE/docs/AUTHZ-PATTERNS.md) -- Implementation patterns, code examples, proxy header reference
-- [scenarios/07-AuthZ-SHOWCASE/docs/IDENTITY-AND-AUDIT-ARCHITECTURE.md](../scenarios/07-AuthZ-SHOWCASE/docs/IDENTITY-AND-AUDIT-ARCHITECTURE.md) -- Complete identity map with 16-service analysis

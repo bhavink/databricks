@@ -60,7 +60,6 @@ Every Databricks AI application uses one or more of these three patterns:
 | UC policy design (`current_user()` vs `is_member()`) | [UC-POLICY-DESIGN-PRINCIPLES.md](UC-POLICY-DESIGN-PRINCIPLES.md) |
 | Genie authorization cookbook | [reference/genie-authorization-cookbook.md](reference/genie-authorization-cookbook.md) |
 | Observability and audit architecture | [reference/observability-and-audit.md](reference/observability-and-audit.md) |
-| Implementation patterns (AuthZ Showcase) | [scenarios/07-AuthZ-SHOWCASE/docs/AUTHZ-PATTERNS.md](scenarios/07-AuthZ-SHOWCASE/docs/AUTHZ-PATTERNS.md) |
 
 ---
 

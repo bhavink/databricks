@@ -193,4 +193,3 @@ User asks: "What's the approval status of deal OPP-001?"
 - [Identity and Auth Reference](identity-and-auth-reference.md) -- Complete auth patterns, token flows, scope reference
 - [Observability and Audit](observability-and-audit.md) -- Building the two-layer audit trail
 - [Authorization Flows](authorization-flows.md) -- UC four-layer access control
-- [scenarios/07-AuthZ-SHOWCASE/docs/AUTHZ-BEST-PRACTICES.md](../scenarios/07-AuthZ-SHOWCASE/docs/AUTHZ-BEST-PRACTICES.md) -- Detailed best practices with code examples

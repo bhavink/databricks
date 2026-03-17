@@ -1,2 +1,0 @@
-[console_scripts]
-authz-showcase-mcp = server.main:main

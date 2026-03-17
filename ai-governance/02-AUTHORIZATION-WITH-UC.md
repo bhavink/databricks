@@ -1309,16 +1309,7 @@ Learn how specific AI products use UC:
 - Databricks Apps (UC enforcement based on auth mode)
 - Model Serving (UC enforcement for data access)
 
-### 2. Explore Real-World Scenarios
-**[scenarios/ →](scenarios/)**
-
-Complete implementation examples:
-- Multi-team analytics with row filters
-- Large-scale deployments with ABAC
-- Embedded applications with dynamic views
-- Industry-specific patterns (financial services, healthcare, retail)
-
-### 3. Hands-On Setup
+### 2. Hands-On Setup
 **[examples/ →](examples/)** *(Coming Soon)*
 
 > **Note**: Practical, copy-paste ready examples are currently being developed. These will include step-by-step SQL scripts and UI instructions for:
@@ -1327,9 +1318,7 @@ Complete implementation examples:
 > - ABAC patterns
 > - Genie Space curation with UC governance
 
-For now, refer to the [scenarios/](scenarios/) folder for complete implementation examples.
-
-### 4. Review Best Practices
+### 3. Review Best Practices
 **[Best Practices →](../guides/)** *(See related guides)*
 
 > **Note**: Dedicated best-practices section is planned for future release. For now, this document includes production-ready patterns in the sections above.

@@ -325,6 +325,4 @@ Scorers are registered against an MLflow experiment, not a serving endpoint. If 
 
 - [Identity and Auth Reference](identity-and-auth-reference.md) -- Auth patterns, token flows, identity models
 - [OBO vs M2M Decision Matrix](obo-vs-m2m-decision-matrix.md) -- Auth pattern selection with audit implications
-- [scenarios/07-AuthZ-SHOWCASE/observability/OBSERVABILITY.md](../scenarios/07-AuthZ-SHOWCASE/observability/OBSERVABILITY.md) -- Complete implementation guide for app-level observability (scorers, dashboard, alerts)
 - [audit-logging/genie-aibi/](../audit-logging/genie-aibi/) -- Genie-specific monitoring and analytics suite
-- [scenarios/07-AuthZ-SHOWCASE/docs/IDENTITY-AND-AUDIT-ARCHITECTURE.md](../scenarios/07-AuthZ-SHOWCASE/docs/IDENTITY-AND-AUDIT-ARCHITECTURE.md) -- Full 16-service identity map and gap analysis

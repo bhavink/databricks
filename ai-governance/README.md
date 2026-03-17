@@ -54,31 +54,6 @@ These are the consolidated reference documents. Start here for any topic.
 
 ---
 
-## Scenarios
-
-### AI Auth Showcase (Scenario 07)
-
-End-to-end working demonstration of every auth pattern: Genie OBO, Agent Bricks OBO, custom MCP server, external MCP proxy, SQL with user filtering. Verified on Azure Databricks, March 2026.
-
-| Document | Contents |
-|----------|----------|
-| [README](scenarios/07-AuthZ-SHOWCASE/README.md) | Overview and getting started |
-| [SETUP](scenarios/07-AuthZ-SHOWCASE/SETUP.md) | Complete deployment guide |
-| [DEMO-GUIDE](scenarios/07-AuthZ-SHOWCASE/DEMO-GUIDE.md) | Demo walkthrough and troubleshooting |
-| [DEMO-SCRIPT](scenarios/07-AuthZ-SHOWCASE/DEMO-SCRIPT.md) | Presenter script |
-| [Auth Patterns](scenarios/07-AuthZ-SHOWCASE/docs/AUTHZ-PATTERNS.md) | Hard-won implementation details: two-proxy problem, OAuth scope map, code patterns |
-| [Best Practices](scenarios/07-AuthZ-SHOWCASE/docs/AUTHZ-BEST-PRACTICES.md) | Decision matrix, confused deputy prevention, proxy architecture decisions |
-| [Identity Architecture](scenarios/07-AuthZ-SHOWCASE/docs/IDENTITY-AND-AUDIT-ARCHITECTURE.md) | Complete 16-service identity map, audit gaps, proposed solutions |
-| [Observability](scenarios/07-AuthZ-SHOWCASE/observability/OBSERVABILITY.md) | MLflow traces, automated scorers, Lakeview dashboard, alerts |
-
-### Knowledge Assistant
-
-| Scenario | Description |
-|----------|-------------|
-| [Multi-Team](scenarios/01-KNOWLEDGE-ASSISTANT/multi-team.md) | Engineering teams with team-specific documentation access |
-
----
-
 ## Audit Logging & Monitoring
 
 Comprehensive Genie monitoring and analytics using system tables.
