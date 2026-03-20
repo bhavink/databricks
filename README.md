@@ -49,7 +49,7 @@ This repository contains **production-ready infrastructure templates**, ready-to
 | Cloud | Description | Path |
 |-------|-------------|------|
 | **📖 Guides** | Cross-cloud guides (authentication, networking, troubleshooting) | [guides](./guides/) |
-| **🤖 AI Governance** | Authentication & authorization for Agent Bricks, Genie, Databricks Apps | [ai-governance](./ai-governance/) |
+| **🤖 AI Governance** | Authentication & authorization for Agent Bricks, Genie, Databricks Apps | [applied-ai-governance](https://github.com/bhavink/applied-ai-governance) |
 | **🔷 Azure** | Production-ready security & modular Terraform deployment patterns | [adb4u](./adb4u/) |
 | **☁️ AWS** | Private Link workspace templates with DEP controls | [awsdb4u](./awsdb4u/) |
 | **🟢 GCP** | VPC-SC, Private Service Connect, CMEK implementations | [gcpdb4u](./gcpdb4u/) |
@@ -69,7 +69,7 @@ This repository contains **production-ready infrastructure templates**, ready-to
 
 **Building AI Applications?** Check out our AI governance guide:
 
-- **[AI Governance Guide](./ai-governance/)** - Production-ready authentication & authorization patterns for:
+- **[Applied AI Governance](https://github.com/bhavink/applied-ai-governance)** - Production-ready authentication & authorization patterns for:
   - 🔮 **Genie Space** - Multi-team access, 1000+ users with complex UC governance
   - 🤖 **Agent Bricks** - Knowledge Assistant, Information Extraction, Multi-Agent Supervisor, Custom LLM
   - 📱 **Databricks Apps** - App authorization vs user authorization patterns
