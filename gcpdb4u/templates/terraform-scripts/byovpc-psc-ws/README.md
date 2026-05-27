@@ -189,11 +189,24 @@ You need to know the Databricks PSC service attachment URIs for your region. The
 
 **Format:**
 ```
-Frontend: projects/prod-gcp-<region>/regions/<region>/serviceAttachments/plproxy-psc-endpoint-all-ports
-Backend: projects/prod-gcp-<region>/regions/<region>/serviceAttachments/ngrok-psc-endpoint
+Frontend (workspace): projects/<frontend-project>/regions/<region>/serviceAttachments/plproxy-psc-endpoint-all-ports
+Backend  (SCC relay): projects/prod-gcp-<region>/regions/<region>/serviceAttachments/ngrok-psc-endpoint
 ```
 
-**Find Service Attachments**: [Databricks Supported Regions - PSC](https://docs.databricks.com/gcp/en/resources/supported-regions)
+> **Note:** The frontend and relay service attachments live in **different** GCP projects. The relay project is consistently `prod-gcp-<region>`. The frontend project is region-specific — examples:
+>
+> | Region | Frontend project |
+> |---|---|
+> | `us-central1` | `gcp-prod-general` |
+> | `us-east1` | `general-prod-useast1-01` |
+> | `us-east4` | `general-prod-useast4-01` |
+> | `us-west1` | `general-prod-uswest1-01` |
+> | `europe-west1` | `general-prod-europewest1-01` |
+> | `asia-south1` | `gen-prod-asias1-01` |
+>
+> Always look up the current values for your region — Databricks publishes the canonical list in the link below.
+
+**Find Service Attachments**: [Databricks PSC attachment URIs and project numbers](https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers)
 
 ### 3. Local Requirements
 
@@ -691,10 +704,10 @@ relay_pe = "us-c1-backend-ep"
 workspace_pe_ip_name = "frontend-pe-ip"
 relay_pe_ip_name = "backend-pe-ip"
 
-# PSC Service Attachments (region-specific)
-# Find yours at: https://docs.databricks.com/gcp/en/resources/supported-regions
-workspace_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
-relay_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
+# PSC Service Attachments (region-specific; frontend and relay are in different projects)
+# Find yours at: https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers
+workspace_service_attachment = "projects/gcp-prod-general/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
+relay_service_attachment     = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
 
 # DNS Configuration
 private_zone_name = "databricks"

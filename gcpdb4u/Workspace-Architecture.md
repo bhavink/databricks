@@ -215,3 +215,35 @@ graph TB
 6. **Flow 8:** Outbound communication to public repositories to download python, r and java libraries
    * optionally you could have a local mirror of these public repos and avoid downloading it from public sites.
 7. **Flow 9:** Accessing your data sources (GCS/BQ/PubSub/Any External source)
+
+## Post-deployment Subnet and Sharing Options
+
+### Updating the subnet of an existing workspace (GA)
+
+The subnet (and therefore the IP range) used by an existing workspace can be swapped without recreating the workspace. The VPC itself cannot be changed post-creation — only the subnet within the same customer-managed VPC.
+
+High-level flow:
+
+1. Create a new subnet in the same VPC with the desired CIDR.
+2. Grant the workspace service account the **Databricks Network Role v2** on the new subnet.
+3. Create a new network configuration object pointing at the new subnet.
+4. Update the workspace to use the new network config:
+   `PATCH /api/2.0/accounts/{account_id}/workspaces/{workspace_id}`.
+5. Terminate all running clusters and jobs before the switch to avoid disruption.
+
+Reference: [Update workspace network configuration](https://docs.databricks.com/gcp/en/security/network/classic/update-workspaces).
+
+### Multiple workspaces sharing a single subnet (GA)
+
+It is **GA-supported** to deploy more than one Databricks workspace into the same subnet, but it is **not recommended** as the default pattern. Prefer one-subnet-per-workspace unless you have a specific reason (e.g., constrained IP space, consolidated networking with a single shared compute-plane VPC) to share.
+
+Trade-offs:
+
+| Aspect | One subnet per workspace (recommended) | Multiple workspaces per subnet (GA, advanced) |
+|---|---|---|
+| IP isolation | Each workspace has its own CIDR | All workspaces draw from the same pool |
+| Quota planning | Per-workspace sizing | Aggregate sizing across all sharing workspaces |
+| Blast radius | Network changes affect one workspace | Network changes affect every workspace in the subnet |
+| Audit / chargeback | Easier per-workspace attribution | Requires labels/tags to attribute usage |
+
+If you choose to share, size the subnet for the **sum** of cluster IP demand across every workspace that will live in it ([sizing guidance](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/network-sizing.html)).

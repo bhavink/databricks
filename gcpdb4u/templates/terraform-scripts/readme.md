@@ -1065,9 +1065,12 @@ google_pe_subnet = "databricks-psc-subnet"
 workspace_pe = "frontend-ep"
 relay_pe = "backend-ep"
 
-# PSC Service Attachments (region-specific)
-workspace_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
-relay_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
+# PSC Service Attachments (region-specific; frontend and relay live in DIFFERENT projects)
+# Frontend project name varies per region (e.g., gcp-prod-general for us-central1,
+# general-prod-<regionshort>-01 for most others). Relay project is consistently prod-gcp-<region>.
+# Authoritative list: https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers
+workspace_service_attachment = "projects/gcp-prod-general/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
+relay_service_attachment     = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
 ```
 
 ### CMEK Variables (if applicable)

@@ -24,10 +24,14 @@ workspace_pe_ip_name = "frontend-pe-ip"
 
 /*
 Databricks PSC service attachments
-https://docs.gcp.databricks.com/resources/supported-regions.html#psc
+https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers
+Note: the workspace (frontend) and relay (backend) service attachments live in DIFFERENT GCP projects.
+The frontend project name varies per region (e.g., gcp-prod-general for us-central1,
+general-prod-<regionshort>-01 / gen-prod-<regionshort>-01 for most other regions).
+The relay project name is consistently prod-gcp-<region>.
 */
 relay_service_attachment     = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
-workspace_service_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
+workspace_service_attachment = "projects/gcp-prod-general/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
 
 # DNS Configs
 private_zone_name = "databricks"

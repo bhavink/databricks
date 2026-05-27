@@ -182,7 +182,7 @@ graph LR
 
 ### Recommendation
 
-* Pay close attention to subnet CIDR ranges, they cannot be changed (increase or decrease) after the workspace is created.
+* Plan subnet CIDR ranges carefully up front. The IP range of an existing subnet cannot be resized in place, but the workspace can be **switched to a different subnet** (within the same VPC) post-creation if you need a larger or relocated range — see [Updating the subnet of an existing workspace](./Workspace-Architecture.md#updating-the-subnet-of-an-existing-workspace-ga). The VPC itself is immutable after workspace creation.
 * Review and Increase [GCP resource quota](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html) appropiately.
 * Use Customer Managed VPC
 * Enable [Private Google Access](./security/Configure-PrivateGoogleAccess.md) on your vpc
@@ -192,6 +192,11 @@ graph LR
   * For a PSC enabled workspace: make sure that the private DNS for Databricks is configured properly and has the required A records for fontend and backend PSC endpoints.
 * If you have VPC SC configured than please make sure you read through [this](./security/Configure-VPC-SC.md) section.
 
+
+### Post-deployment network changes
+
+* **Subnet swap is GA**: an existing workspace can be moved to a different subnet (within the same VPC) via `PATCH /api/2.0/accounts/{account_id}/workspaces/{workspace_id}`. Terminate running clusters first and grant the workspace SA the **Databricks Network Role v2** on the new subnet. The VPC itself remains immutable after workspace creation. See [Update workspace network configuration](https://docs.databricks.com/gcp/en/security/network/classic/update-workspaces).
+* **Multiple workspaces in one subnet is GA but not recommended**: keep one subnet per workspace by default; share only when IP space is constrained or you are intentionally consolidating networking. Size the subnet for the sum of cluster IP demand across all sharing workspaces. Detailed trade-offs: [Workspace-Architecture.md → Multiple workspaces sharing a single subnet](./Workspace-Architecture.md#multiple-workspaces-sharing-a-single-subnet-ga).
 
 ### Create Workspace (using UI)
 Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)

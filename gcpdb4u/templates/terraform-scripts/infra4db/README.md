@@ -100,3 +100,28 @@ Confirm the action when prompted.
 - Modify the `terraform.tfvars` file to customize the setup according to your needs.
 - The configuration includes commented-out sections for additional regions. Uncomment and modify as needed.
 
+## Subnet Lifecycle & Sharing Patterns
+
+This module creates the node subnets and (optionally) PSC subnets that downstream workspace configs consume. Two GA-supported patterns are worth calling out before you provision:
+
+### 1. Swapping an existing workspace's subnet (GA)
+
+The IP range of a deployed workspace cannot be resized in place, but the workspace can be **moved to a different subnet** in the same VPC after creation:
+
+1. Add the new subnet here (extend `subnet_configs` with a new key, or create a sibling subnet in the same VPC).
+2. Grant the workspace SA the **Databricks Network Role v2** on the new subnet.
+3. Create a new Databricks network configuration object referencing the new subnet.
+4. `PATCH /api/2.0/accounts/{account_id}/workspaces/{workspace_id}` to switch the workspace over (terminate running clusters/jobs first).
+
+The customer-managed VPC itself remains immutable post-creation — only the subnet inside it can change. Reference: [Update workspace network configuration](https://docs.databricks.com/gcp/en/security/network/classic/update-workspaces).
+
+### 2. Multiple workspaces in one subnet (GA, not recommended)
+
+`subnet_configs` is keyed by region — a single entry produces a single subnet that any number of workspaces can attach to. Sharing one subnet across workspaces is **GA-supported** but the default recommendation is still one subnet per workspace.
+
+Use shared subnets only when:
+- IP address space is genuinely constrained, or
+- You are deliberately consolidating a shared compute-plane VPC across many workspaces.
+
+When sharing, size the subnet's CIDR for the **sum** of cluster IP demand across every workspace that will live in it. Per-workspace isolation, blast radius, and chargeback all degrade — see [Workspace-Architecture.md → Multiple workspaces sharing a single subnet](../../../Workspace-Architecture.md#multiple-workspaces-sharing-a-single-subnet-ga) for the full trade-off matrix.
+

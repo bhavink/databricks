@@ -52,17 +52,19 @@ psc_subnet_configs = {
  } 
 
 #https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers
+# Note: workspace (frontend) attachments use a region-specific project name that is NOT prod-gcp-<region>.
+# Relay (backend) attachments stay on prod-gcp-<region>. Always look up the current URI for your region in the docs above.
 psc_attachments = {
   # "us-central1" = {
-  #   workspace_attachment = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
+  #   workspace_attachment = "projects/gcp-prod-general/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
   #   relay_attachment     = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
   # }
   "us-east1" = {
-    workspace_attachment = "projects/prod-gcp-us-east1/regions/us-east1/serviceAttachments/plproxy-psc-endpoint-all-ports"
+    workspace_attachment = "projects/general-prod-useast1-01/regions/us-east1/serviceAttachments/plproxy-psc-endpoint-all-ports"
     relay_attachment     = "projects/prod-gcp-us-east1/regions/us-east1/serviceAttachments/ngrok-psc-endpoint"
   }
   # "us-west1" = {
-  #   workspace_attachment = "projects/prod-gcp-us-west1/regions/us-west1/serviceAttachments/plproxy-psc-endpoint-all-ports"
+  #   workspace_attachment = "projects/general-prod-uswest1-01/regions/us-west1/serviceAttachments/plproxy-psc-endpoint-all-ports"
   #   relay_attachment     = "projects/prod-gcp-us-west1/regions/us-west1/serviceAttachments/ngrok-psc-endpoint"
   # }
 }
