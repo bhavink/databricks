@@ -746,7 +746,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=~/sa-key.json
 
 - **Account Admin** role for the service account in Databricks Account Console
 
-**Reference**: [Databricks IAM Requirements](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html#role-requirements)
+**Reference**: [Databricks IAM Requirements](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/customer-managed-vpc#role-requirements)
 
 ---
 
@@ -1000,8 +1000,8 @@ graph TB
 - VPN or Cloud Interconnect for private access
 
 **Resources**:
-- [Databricks PSC Documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html)
-- [Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
+- [Databricks PSC Documentation](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/private-service-connect)
+- [Supported Regions - PSC](https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers)
 
 #### For CMEK (Customer-Managed Keys)
 
@@ -1010,7 +1010,7 @@ graph TB
 - Service account with KMS decrypt/encrypt permissions
 
 **Resources**:
-- [Databricks CMEK Documentation](https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html)
+- [Databricks CMEK Documentation](https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys)
 
 #### For Unity Catalog
 
@@ -1019,7 +1019,7 @@ graph TB
 - Service account for storage credentials
 
 **Resources**:
-- [Unity Catalog on GCP](https://docs.gcp.databricks.com/data-governance/unity-catalog/index.html)
+- [Unity Catalog on GCP](https://docs.databricks.com/gcp/en/data-governance/unity-catalog/index)
 
 ---
 
@@ -1134,11 +1134,11 @@ sequenceDiagram
 
 ### Official Documentation
 
-- **Databricks on GCP**: https://docs.gcp.databricks.com/
-- **Unity Catalog**: https://docs.gcp.databricks.com/data-governance/unity-catalog/
-- **Private Service Connect**: https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html
-- **CMEK**: https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html
-- **Customer-Managed VPC**: https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html
+- **Databricks on GCP**: https://docs.databricks.com/gcp/en/
+- **Unity Catalog**: https://docs.databricks.com/gcp/en/data-governance/unity-catalog/
+- **Private Service Connect**: https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/private-service-connect
+- **CMEK**: https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
+- **Customer-Managed VPC**: https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/customer-managed-vpc
 
 ### Terraform Providers
 

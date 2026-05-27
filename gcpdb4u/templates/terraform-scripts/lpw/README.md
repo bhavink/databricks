@@ -513,7 +513,7 @@ To add more compute capacity:
 
 ## Related Documentation
 
-- [Databricks on GCP Documentation](https://docs.gcp.databricks.com/)
+- [Databricks on GCP Documentation](https://docs.databricks.com/gcp/en/)
 - [Unity Catalog Documentation](https://docs.databricks.com/data-governance/unity-catalog/index.html)
 - [Terraform Databricks Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
 - [GCP VPC Documentation](https://cloud.google.com/vpc/docs)

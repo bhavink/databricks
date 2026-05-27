@@ -21,7 +21,7 @@ Service account attached to the GCE cluster to spin up GCE nodes
 GCE node pool use this service account to call Google Cloud APIs
 instead of using the default compute engine SA, databricks will use this SA
 this is different than the workload identity aka SA that you'll use to connect to your data sources as explained here
-https://docs.gcp.databricks.com/archive/compute/configure.html#google-service-account
+https://docs.databricks.com/gcp/en/archive/compute/configure#google-service-account
 */
 
 
@@ -68,7 +68,7 @@ resource "databricks_mws_private_access_settings" "pas" {
   /*
   
   Please carefully read thru this doc before proceeding
-  https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#step-6-create-a-databricks-private-access-settings-object
+  https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/private-service-connect#step-6-create-a-databricks-private-access-settings-object
 
   Public access enabled: Specify if public access is allowed. 
   Choose this value carefully because it cannot be changed after the private access settings object is created.
@@ -112,7 +112,7 @@ resource "databricks_mws_networks" "databricks_network" {
   }
 }
 # Provision databricks workspace in a customer managed vpc
-# https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/workspaces.html#create-a-workspace-using-the-account-console
+# https://docs.databricks.com/gcp/en/administration-guide/account-settings-gcp/workspaces#create-a-workspace-using-the-account-console
 
 resource "databricks_mws_workspaces" "databricks_workspace" {
   provider       = databricks.accounts

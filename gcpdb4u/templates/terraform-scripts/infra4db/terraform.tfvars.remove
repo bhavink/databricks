@@ -1,6 +1,6 @@
-vpc_project_id = "psc-host" # gcp project id where the vpc is created
-network_name = "databricks-vpc" # name of the vpc
-create_psc_resources = true # when true, creates psc subnets, routes, and firewall rules
+vpc_project_id       = "psc-host"       # gcp project id where the vpc is created
+network_name         = "databricks-vpc" # name of the vpc
+create_psc_resources = true             # when true, creates psc subnets, routes, and firewall rules
 create_cmk_resources = false
 
 
@@ -9,17 +9,17 @@ create_cmk_resources = false
 # You would need Control Plane services, including webapp and SCC relay ip
 # Commuication to this services is over tcp:443 and 8443
 destination_ips = {
-    "us-central1" = "34.72.196.197, 34.128.32.16/28, 34.8.0.0/28, 35.224.199.248/32"
-    "us-east1"    = "34.139.33.52, 34.138.66.176/28, 34.8.0.0/28, 34.138.156.37/32"
-    "us-west1"    = "35.185.196.216, 34.118.194.80/28, 34.8.0.0/28, 34.105.33.108/32"
-  }
+  "us-central1" = "34.72.196.197, 34.128.32.16/28, 34.8.0.0/28, 35.224.199.248/32"
+  "us-east1"    = "34.139.33.52, 34.138.66.176/28, 34.8.0.0/28, 34.138.156.37/32"
+  "us-west1"    = "35.185.196.216, 34.118.194.80/28, 34.8.0.0/28, 34.105.33.108/32"
+}
 
 # https://docs.databricks.com/gcp/en/resources/ip-domain-region#addresses-for-default-metastore
 databricks_hive_ips = {
-    "us-central1" = "34.72.196.197"
-    "us-east1"    = "34.74.134.43"
-    "us-west1"    = "35.185.196.216"
-  }
+  "us-central1" = "34.72.196.197"
+  "us-east1"    = "34.74.134.43"
+  "us-west1"    = "35.185.196.216"
+}
 
 subnet_configs = {
   # us-central1 = {
@@ -34,7 +34,7 @@ subnet_configs = {
   #   region = "us-west1"
   #   cidr   = "10.0.0.128/26"
   # }
- } 
+}
 
 psc_subnet_configs = {
   # us-central1 = {
@@ -49,7 +49,7 @@ psc_subnet_configs = {
   #   region = "us-west1"
   #   cidr   = "10.3.255.128/26"
   # }
- } 
+}
 
 #https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers
 # Note: workspace (frontend) attachments use a region-specific project name that is NOT prod-gcp-<region>.

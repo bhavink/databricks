@@ -4,14 +4,14 @@ In this script:
 https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/unity-catalog-gcp#create-unity-catalog-objects-in-the-metastore
 
 
-https://docs.gcp.databricks.com/data-governance/unity-catalog/create-catalogs.html
+https://docs.databricks.com/gcp/en/data-governance/unity-catalog/create-catalogs
 - Create catalog
 
-https://docs.gcp.databricks.com/data-governance/unity-catalog/create-schemas.html
+https://docs.databricks.com/gcp/en/data-governance/unity-catalog/create-schemas
 - Create database / schema
 Grant permissions to groups on catalog.database
 
-https://docs.gcp.databricks.com/data-governance/unity-catalog/manage-external-locations-and-credentials.html
+https://docs.databricks.com/gcp/en/data-governance/unity-catalog/manage-external-locations-and-credentials
 - Create storage account to be used as an external storage location
 - Create external storage account credential (databricks managed GSA)
 - Assign permision to GSA on storage account

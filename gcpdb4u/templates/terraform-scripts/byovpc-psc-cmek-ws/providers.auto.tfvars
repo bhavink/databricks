@@ -2,7 +2,7 @@
 Make sure that the service account:
 - Is added to databricks account console with admin role
 - Has permissions listed over here 
-https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html#role-requirements
+https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/customer-managed-vpc#role-requirements
 - Grant KMS Admin and Viewer role on the key
 */
 

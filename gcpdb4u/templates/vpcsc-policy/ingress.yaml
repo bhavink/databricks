@@ -20,7 +20,7 @@
 # - Add CMEK rules if using Customer-Managed Encryption Keys
 #
 # DOCUMENTATION REFERENCES:
-# - VPC Service Controls: https://docs.gcp.databricks.com/en/security/network/vpc-sc.html
+# - VPC Service Controls: https://docs.databricks.com/gcp/en/security/network/vpc-sc
 # - Regional Resources: https://docs.databricks.com/gcp/en/resources/ip-domain-region
 # - Unity Catalog: https://docs.databricks.com/gcp/en/sql/language-manual/sql-ref-syntax-aux-describe-credential
 #
@@ -347,7 +347,7 @@
 #
 # WHEN TO USE:
 # - If you configured audit log delivery to a customer-managed GCS bucket
-# - Reference: https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
+# - Reference: https://docs.databricks.com/gcp/en/admin/account-settings/audit-log-delivery
 # - Skip this rule if you don't use audit log delivery
 #
 # IDENTITIES:

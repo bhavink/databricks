@@ -117,7 +117,7 @@ graph TB
     style COST fill:#FDD835
 ```
 
-Most of the content is derived from [public docs](https://docs.gcp.databricks.com)
+Most of the content is derived from [public docs](https://docs.databricks.com/gcp/en/)
 
 
 # Contributing

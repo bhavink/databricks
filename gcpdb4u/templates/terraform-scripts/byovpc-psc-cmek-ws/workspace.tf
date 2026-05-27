@@ -73,7 +73,7 @@ resource "databricks_mws_private_access_settings" "pas" {
   /*
   
   Please carefully read thru this doc before proceeding
-  https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#step-6-create-a-databricks-private-access-settings-object
+  https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/private-service-connect#step-6-create-a-databricks-private-access-settings-object
 
   Public access enabled: Specify if public access is allowed. 
   Choose this value carefully because it cannot be changed after the private access settings object is created.
@@ -117,7 +117,7 @@ resource "databricks_mws_networks" "databricks_network" {
   }
 }
 # Provision databricks workspace in a customer managed vpc
-# https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/workspaces.html#create-a-workspace-using-the-account-console
+# https://docs.databricks.com/gcp/en/administration-guide/account-settings-gcp/workspaces#create-a-workspace-using-the-account-console
 
 resource "databricks_mws_workspaces" "databricks_workspace" {
   provider       = databricks.accounts

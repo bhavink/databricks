@@ -11,7 +11,7 @@ variable "node_subnet" {}
 
 # cmek_resource_id = "projects/[project-id]/locations/[region]]/keyRings/[key-ring-name]/cryptoKeys/[key-name]"
 
-# for more details on customer managed keys please refer to https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html
+# for more details on customer managed keys please refer to https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
 # we will be using same key for managed and unmanaged services encryption.
 
 
@@ -91,7 +91,7 @@ resource "databricks_mws_networks" "databricks_network" {
   }
 }
 # Provision databricks workspace in a customer managed vpc
-# https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/workspaces.html#create-a-workspace-using-the-account-console
+# https://docs.databricks.com/gcp/en/administration-guide/account-settings-gcp/workspaces#create-a-workspace-using-the-account-console
 
 resource "databricks_mws_workspaces" "databricks_workspace" {
   provider       = databricks.accounts

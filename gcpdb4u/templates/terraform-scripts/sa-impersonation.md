@@ -1,7 +1,7 @@
 ## Goal
 
 Create Databricks workspace using Terraform & Service Account based authentication and impersonation.
-This documentation outlines the steps to create and configure two Google Cloud Platform (GCP) service accounts, namely `caller-sa` and `privileged-sa`. The caller-sa service account is granted the "Service Account Token Creator" role, while the privileged-sa service account is given the required [permissions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/permissions.html#required-permissions-for-the-workspace-creator) to create a Databricks workspace. Please note that databricks terraform provider only support GCP Service Account based authentication.
+This documentation outlines the steps to create and configure two Google Cloud Platform (GCP) service accounts, namely `caller-sa` and `privileged-sa`. The caller-sa service account is granted the "Service Account Token Creator" role, while the privileged-sa service account is given the required [permissions](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/permissions#required-permissions-for-the-workspace-creator) to create a Databricks workspace. Please note that databricks terraform provider only support GCP Service Account based authentication.
 
 ## Create two service accounts
 
@@ -10,7 +10,7 @@ This documentation outlines the steps to create and configure two Google Cloud P
 
 ## Assign roles/permissions to service accounts
 
-- **privileged-sa:** Required [permissions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/permissions.html#required-permissions-for-the-workspace-creator) to create a workspace and if you are using shared VPC then grant `Network` viewer role on the host or shared VPC project.
+- **privileged-sa:** Required [permissions](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/permissions#required-permissions-for-the-workspace-creator) to create a workspace and if you are using shared VPC then grant `Network` viewer role on the host or shared VPC project.
 - **caller-sa:** [Service Account Token Creator](https://cloud.google.com/iam/docs/understanding-roles#iam.serviceAccountTokenCreator) role on the caller-sa.
 
 Make sure to replace following variables with actual values while running the commands.
@@ -97,9 +97,9 @@ This command activates authentication with Google Cloud using the provided servi
 
 Follow these steps to add privileged-sa to the Databricks account console:
 
-- [Login](https://docs.gcp.databricks.com/administration-guide/users-groups/users.html#manage-users-in-your-account) into the account console.
-- [Add](https://docs.gcp.databricks.com/administration-guide/users-groups/users.html#add-users-to-your-account-using-the-account-console)  `privileged-sa` as an accounts user.
-- [Assign](https://docs.gcp.databricks.com/administration-guide/users-groups/users.html#assign-account-admin-roles-to-a-user) accounts admin role to `privileged-sa`.
+- [Login](https://docs.databricks.com/gcp/en/admin/users-groups/users#manage-users-in-your-account) into the account console.
+- [Add](https://docs.databricks.com/gcp/en/admin/users-groups/users#add-users-to-your-account-using-the-account-console)  `privileged-sa` as an accounts user.
+- [Assign](https://docs.databricks.com/gcp/en/admin/users-groups/users#assign-account-admin-roles-to-a-user) accounts admin role to `privileged-sa`.
 - Please note that you should add only **privileged-sa** as a **user** in the Databricks account console.
 
 **You are now ready to run Terraform scripts.**

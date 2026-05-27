@@ -144,7 +144,7 @@ Before configuring VPC-SC, it's essential to understand the various identities a
 
 | Term | Description | Reference |
 |------|-------------|-----------|
-| **Databricks Control Plane IPs** | Source IP addresses from where requests into your GCP projects originate | [Databricks IP Addresses by Region](https://docs.gcp.databricks.com/resources/supported-regions.html#ip-addresses-and-domains) |
+| **Databricks Control Plane IPs** | Source IP addresses from where requests into your GCP projects originate | [Databricks IP Addresses by Region](https://docs.databricks.com/gcp/en/resources/supported-regions#ip-addresses-and-domains) |
 
 ---
 
@@ -165,7 +165,7 @@ Databricks uses several service accounts to manage resources in customer project
 
 ### Databricks Project Numbers
 
-A list of Databricks-owned GCP project numbers is available at: [Databricks Supported Regions](https://docs.gcp.databricks.com/resources/supported-regions.html#private-service-connect-psc-attachment-uris-and-project-numbers)
+A list of Databricks-owned GCP project numbers is available at: [Databricks Supported Regions](https://docs.databricks.com/gcp/en/resources/supported-regions#private-service-connect-psc-attachment-uris-and-project-numbers)
 
 **Required for VPC-SC Configuration**: You'll need these project numbers when defining ingress sources and egress destinations in perimeter policies.
 
@@ -306,7 +306,7 @@ gcloud access-context-manager levels create databricks_control_plane_ips \
   - "34.138.66.176/32"    # Example: us-east1 control plane IP 1
   - "34.73.198.113/32"    # Example: us-east1 control plane IP 2
   # Add all control plane IPs for your region
-  # See: https://docs.gcp.databricks.com/resources/supported-regions.html#ip-addresses-and-domains
+  # See: https://docs.databricks.com/gcp/en/resources/supported-regions#ip-addresses-and-domains
 ```
 
 ### Step 2: Create Service Perimeter (Dry-Run Mode)
@@ -720,12 +720,12 @@ See [Lock Down VPC Firewall Rules](./LockDown-VPC-Firewall-Rules.md) for firewal
 
 - [GCP VPC Service Controls Documentation](https://cloud.google.com/vpc-service-controls/docs/overview)
 - [VPC-SC Supported Services](https://cloud.google.com/vpc-service-controls/docs/supported-products)
-- [Databricks GCP Network Architecture](https://docs.gcp.databricks.com/security/network/classic/index.html)
+- [Databricks GCP Network Architecture](https://docs.databricks.com/gcp/en/security/network/classic/index)
 - [Restricted VIP Services](https://cloud.google.com/vpc-service-controls/docs/restricted-vip-services)
 - [Private Google Access Setup](https://cloud.google.com/vpc-service-controls/docs/set-up-private-connectivity)
 - [Access Context Manager](https://cloud.google.com/access-context-manager/docs/overview)
-- [Databricks IP Addresses by Region](https://docs.gcp.databricks.com/resources/supported-regions.html#ip-addresses-and-domains)
-- [Databricks Project Numbers](https://docs.gcp.databricks.com/resources/supported-regions.html#private-service-connect-psc-attachment-uris-and-project-numbers)
+- [Databricks IP Addresses by Region](https://docs.databricks.com/gcp/en/resources/supported-regions#ip-addresses-and-domains)
+- [Databricks Project Numbers](https://docs.databricks.com/gcp/en/resources/supported-regions#private-service-connect-psc-attachment-uris-and-project-numbers)
 - [Configure Private Google Access](./Configure-PrivateGoogleAccess.md)
 - [Lock Down VPC Firewall Rules](./LockDown-VPC-Firewall-Rules.md)
 

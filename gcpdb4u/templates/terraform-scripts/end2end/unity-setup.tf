@@ -65,7 +65,7 @@ resource "databricks_group_member" "admin_member2" {
 }
 
 // create managed storage account for metastore
-// https://docs.gcp.databricks.com/data-governance/unity-catalog/index.html#managed-storage
+// https://docs.databricks.com/gcp/en/data-governance/unity-catalog/index#managed-storage
 resource "google_storage_bucket" "unity_metastore" {
   name          = "${var.metastore_name}-${var.google_region}-${random_string.databricks_suffix.result}"
   location      = var.google_region
@@ -73,7 +73,7 @@ resource "google_storage_bucket" "unity_metastore" {
 }
 
 # // create metastore
-# // https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html
+# // https://docs.databricks.com/gcp/en/data-governance/unity-catalog/create-metastore
 
 resource "databricks_metastore" "this" {
   depends_on = [
@@ -90,7 +90,7 @@ resource "databricks_metastore" "this" {
 # at this moment destroying databricks_metastore_data_access resource is not supported using TF
 # please use `terraform state rm databricks_metastore_data_access.first` and re-run terraform destroy
 
-//https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html#step-2-create-the-metastore-and-generate-a-service-account
+//https://docs.databricks.com/gcp/en/data-governance/unity-catalog/create-metastore#step-2-create-the-metastore-and-generate-a-service-account
 resource "databricks_metastore_data_access" "first" {
   depends_on = [
     databricks_metastore.this
@@ -102,7 +102,7 @@ resource "databricks_metastore_data_access" "first" {
   is_default = true
 }
 
-//https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html#step-3-give-the-service-account-access-to-your-gcs-bucket-and-assign-workspaces
+//https://docs.databricks.com/gcp/en/data-governance/unity-catalog/create-metastore#step-3-give-the-service-account-access-to-your-gcs-bucket-and-assign-workspaces
 resource "google_storage_bucket_iam_member" "unity_sa_admin" {
   depends_on = [
     databricks_metastore_data_access.first

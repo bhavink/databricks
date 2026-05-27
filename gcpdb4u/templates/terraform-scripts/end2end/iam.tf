@@ -2,7 +2,7 @@
 In this script we'll be using identity federation where in users and groups available on the account console will
 be added to workspaces and workspace level permissions will be assigned
 
-https://docs.gcp.databricks.com/administration-guide/users-groups/best-practices.html#sync-users-and-groups-from-your-identity-provider-to-your-databricks-account
+https://docs.databricks.com/gcp/en/admin/users-groups/best-practices#sync-users-and-groups-from-your-identity-provider-to-your-databricks-account
 
 
 */

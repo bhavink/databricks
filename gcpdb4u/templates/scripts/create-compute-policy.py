@@ -5,7 +5,7 @@ import json
 DATABRICKS_INSTANCE = 'https://<your-databricks-workspace-url>'
 # ex: https://123456789108.8.gcp.databricks.com
 DATABRICKS_TOKEN = 'https://<your-databricks-token>'
-# ex: https://docs.gcp.databricks.com/en/dev-tools/auth/pat.html
+# ex: https://docs.databricks.com/gcp/en/dev-tools/auth/pat
 
 # Set up the request headers
 headers = {

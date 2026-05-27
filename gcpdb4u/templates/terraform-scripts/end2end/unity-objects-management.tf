@@ -1,5 +1,5 @@
 /*
-Please carefully read thru this doc [ https://docs.gcp.databricks.com/data-governance/unity-catalog/manage-external-locations-and-credentials.html ]
+Please carefully read thru this doc [ https://docs.databricks.com/gcp/en/data-governance/unity-catalog/manage-external-locations-and-credentials ]
 We'll be automating the following steps using
 https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/unity-catalog-gcp#create-unity-catalog-objects-in-the-metastore
 */
@@ -8,7 +8,7 @@ https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides
 variable "external_storage" {}
 
 /*
-https://docs.gcp.databricks.com/data-governance/unity-catalog/create-catalogs.html
+https://docs.databricks.com/gcp/en/data-governance/unity-catalog/create-catalogs
 Create catalog
 Grant permissions to a group on catalog
 */
@@ -59,7 +59,7 @@ resource "databricks_grants" "dev" {
 }
 
 /*
-https://docs.gcp.databricks.com/data-governance/unity-catalog/create-schemas.html
+https://docs.databricks.com/gcp/en/data-governance/unity-catalog/create-schemas
 Create database / schema
 Grant permissions to groups on catalog.database
 */
@@ -93,7 +93,7 @@ resource "databricks_grants" "dev_database_grants" {
 }
 
 /*
-https://docs.gcp.databricks.com/data-governance/unity-catalog/manage-external-locations-and-credentials.html
+https://docs.databricks.com/gcp/en/data-governance/unity-catalog/manage-external-locations-and-credentials
 - Create GCS storage to be used as an external storage location
 - Create Databricks storage account credential (databricks managed GSA)
 - Assign permision to GSA on GCS storage account
@@ -112,7 +112,7 @@ resource "google_storage_bucket" "ext_bucket" {
   force_destroy = true
 }
 
-// https://docs.gcp.databricks.com/data-governance/unity-catalog/manage-external-locations-and-credentials.html#create-a-storage-credential
+// https://docs.databricks.com/gcp/en/data-governance/unity-catalog/manage-external-locations-and-credentials#create-a-storage-credential
 
 resource "databricks_storage_credential" "external_storage1_credential" {
   provider     = databricks.accounts
@@ -157,7 +157,7 @@ resource "databricks_grants" "external_storage1_credential_grants" {
 }
 
 // Create external storage location and assign external storage credential
-// https://docs.gcp.databricks.com/data-governance/unity-catalog/manage-external-locations-and-credentials.html#create-an-external-location
+// https://docs.databricks.com/gcp/en/data-governance/unity-catalog/manage-external-locations-and-credentials#create-an-external-location
 
 resource "databricks_external_location" "external_storage1" {
   provider = databricks.workspace

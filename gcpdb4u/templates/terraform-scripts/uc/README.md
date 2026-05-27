@@ -944,10 +944,10 @@ Delete metastore in Account Console:
 
 ## Additional Resources
 
-- [Unity Catalog on GCP Overview](https://docs.gcp.databricks.com/data-governance/unity-catalog/index.html)
-- [Create Unity Catalog Metastore](https://docs.gcp.databricks.com/data-governance/unity-catalog/create-metastore.html)
-- [Manage External Locations](https://docs.gcp.databricks.com/data-governance/unity-catalog/manage-external-locations-and-credentials.html)
-- [Unity Catalog Best Practices](https://docs.gcp.databricks.com/data-governance/unity-catalog/best-practices.html)
+- [Unity Catalog on GCP Overview](https://docs.databricks.com/gcp/en/data-governance/unity-catalog/index)
+- [Create Unity Catalog Metastore](https://docs.databricks.com/gcp/en/data-governance/unity-catalog/create-metastore)
+- [Manage External Locations](https://docs.databricks.com/gcp/en/data-governance/unity-catalog/manage-external-locations-and-credentials)
+- [Unity Catalog Best Practices](https://docs.databricks.com/gcp/en/data-governance/unity-catalog/best-practices)
 - [Databricks Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
 
 ---

@@ -33,7 +33,7 @@ resource "databricks_mws_networks" "databricks_network" {
   }
 }
 # Provision databricks workspace in a customer managed vpc
-# https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/workspaces.html#create-a-workspace-using-the-account-console
+# https://docs.databricks.com/gcp/en/administration-guide/account-settings-gcp/workspaces#create-a-workspace-using-the-account-console
 
 resource "databricks_mws_workspaces" "databricks_workspace" {
   provider       = databricks.accounts

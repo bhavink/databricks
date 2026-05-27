@@ -615,7 +615,7 @@ gcloud compute forwarding-rules describe <psc-endpoint-name> \
 - [Private Service Connect Documentation](https://cloud.google.com/vpc/docs/private-service-connect)
 - [Terraform Google DNS Provider](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/dns_managed_zone)
 - [GCP DNS Best Practices](https://cloud.google.com/dns/docs/best-practices)
-- [Databricks PSC Architecture](https://docs.gcp.databricks.com/security/network/serverless-network-security/private-service-connect.html)
+- [Databricks PSC Architecture](https://docs.databricks.com/gcp/en/security/network/serverless-network-security/private-service-connect)
 
 ### Summary
 

@@ -8,7 +8,7 @@ google_vpc_id = "databricks-vpc-xpn"
 node_subnet   = "node-subnet"
 
 # if you are bringing pre-created key then uncomment the following line and update it with your key resource id
-# for more details on customer managed keys please refer to https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html
+# for more details on customer managed keys please refer to https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
 # we will be using same key for managed and unmanaged services encryption.
 
 # cmek_resource_id = "projects/<gcp_project>/locations/<gcp_region>/keyRings/<keyring_name>/cryptoKeys/<key_name>"

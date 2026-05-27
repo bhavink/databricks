@@ -449,7 +449,7 @@ gcloud compute ssh INSTANCE_NAME --command="dig restricted.googleapis.com"
 
 - [GCP Private Google Access Documentation](https://cloud.google.com/vpc/docs/configure-private-google-access)
 - [VPC Service Controls Overview](https://cloud.google.com/vpc-service-controls/docs/overview)
-- [Databricks GCP Network Architecture](https://docs.gcp.databricks.com/security/network/classic/index.html)
+- [Databricks GCP Network Architecture](https://docs.databricks.com/gcp/en/security/network/classic/index)
 - [Restricted VIP Services](https://cloud.google.com/vpc-service-controls/docs/supported-products)
 - [Private Google Access Setup](https://cloud.google.com/vpc-service-controls/docs/set-up-private-connectivity)
 

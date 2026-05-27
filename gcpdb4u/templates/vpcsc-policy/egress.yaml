@@ -17,7 +17,7 @@
 # - These rules allow cluster nodes to access required Databricks services
 #
 # DOCUMENTATION REFERENCES:
-# - VPC Service Controls: https://docs.gcp.databricks.com/en/security/network/vpc-sc.html
+# - VPC Service Controls: https://docs.databricks.com/gcp/en/security/network/vpc-sc
 # - Regional Resources: https://docs.databricks.com/gcp/en/resources/ip-domain-region
 # - Ingress/Egress Rules: https://cloud.google.com/vpc-service-controls/docs/ingress-egress-rules
 #

@@ -1,10 +1,10 @@
 ## Consuming Databricks on GCP
-Databricks service is available as a GCP market place offering and the unit of deployment is called a [`workspace`](https://docs.gcp.databricks.com/getting-started/concepts.html#workspace), from here onwards we'll be using `workspace` to refer to databricks service through out this guide.
+Databricks service is available as a GCP market place offering and the unit of deployment is called a [`workspace`](https://docs.databricks.com/gcp/en/getting-started/concepts#workspace), from here onwards we'll be using `workspace` to refer to databricks service through out this guide.
 
 Databricks is a `Managed Service` and is fully hosted, managed, and supported by the Databricks. Although you register with the Databricks to use the service, Google handles all billing.
 
 ## Try Databricks
-* Trying databricks in an individual capacity? here's your 14 days free [trial](https://docs.gcp.databricks.com/getting-started/try-databricks-gcp.html) Please note that free trial requires credit card and the trial is converted to a pay-as-you-go subscription after 14 days.
+* Trying databricks in an individual capacity? here's your 14 days free [trial](https://docs.databricks.com/gcp/en/getting-started/try-databricks-gcp) Please note that free trial requires credit card and the trial is converted to a pay-as-you-go subscription after 14 days.
 * If your company has a contract subscription in place with GCP, you have two options:
   *  start the free trial and at the end of trial become a pay-as-you-go customer or end the trial.
   *  have a need to extend the trial then reach out to your databricks representative or send an email to `sales@databricks.com` about how to create/extend your subscription with a Google Marketplace Private Offer.
@@ -49,7 +49,7 @@ stateDiagram-v2
 | Subscription | maps to | *Entitlements |
 | Workspaces | resides in | [Consumer Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) |
 | Worker Environment (**classic dataplane) | maps to | Google Compute Engine based databricks cluster |
-| Databricks Serverless | maps to | [Serverless compute resources running in the serverless compute plane, which is managed by Databricks](https://docs.gcp.databricks.com/en/security/network/serverless-network-security/index.html#serverless-compute-plane-networking-overview) |
+| Databricks Serverless | maps to | [Serverless compute resources running in the serverless compute plane, which is managed by Databricks](https://docs.databricks.com/gcp/en/security/network/serverless-network-security/index#serverless-compute-plane-networking-overview) |
 
 - *Represents purchase, pricing, and payment mechanism for an account
 - **Compute resources resides within your GCP Project and utilizes your own VPC
@@ -107,7 +107,7 @@ graph TB
 
 ## Availability Regions
 
-Please refer to public doc site for [supported regions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/regions.html)
+Please refer to public doc site for [supported regions](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/regions)
 
 ## Things to remember
 
@@ -173,12 +173,12 @@ graph LR
 ## Recommendations
 
 * Read thru pricing and subscription tiers details before your begin.
-* `Premium` tier includes security features like [Customer Managed VPC](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html) and [IP Access List](https://docs.gcp.databricks.com/security/network/ip-access-list.html) which are are a must have for most of the enterprises and thats what rest of the docs are going to refer to.
-* Take advantage of [free training](https://docs.gcp.databricks.com/getting-started/free-training.html) to familiarize yourself with the offering.
-* Upon subscribing to Databricks on GCP, make sure to add atleast one more user to the [account](https://accounts.gcp.databricks.com) console and make them [accounts admin](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/admin-users.html), typicaly someone who's going to manage Databricks, this way we won't need the `billing` admin to create workspaces later on.
-* Review and Increase [GCP resource quota](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html) appropiately.
-* Configure [audit log](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/log-delivery.html) delivery, this is an account level feature.
-* Configure [domain name](https://docs.gcp.databricks.com/security/network/firewall-rules.html) firewall rules.
+* `Premium` tier includes security features like [Customer Managed VPC](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/customer-managed-vpc) and [IP Access List](https://docs.databricks.com/gcp/en/security/network/ip-access-list) which are are a must have for most of the enterprises and thats what rest of the docs are going to refer to.
+* Take advantage of [free training](https://docs.databricks.com/gcp/en/getting-started/free-training) to familiarize yourself with the offering.
+* Upon subscribing to Databricks on GCP, make sure to add atleast one more user to the [account](https://accounts.gcp.databricks.com) console and make them [accounts admin](https://docs.databricks.com/gcp/en/administration-guide/account-settings-gcp/admin-users), typicaly someone who's going to manage Databricks, this way we won't need the `billing` admin to create workspaces later on.
+* Review and Increase [GCP resource quota](https://docs.databricks.com/gcp/en/administration-guide/account-settings-gcp/quotas) appropiately.
+* Configure [audit log](https://docs.databricks.com/gcp/en/administration-guide/account-settings-gcp/log-delivery) delivery, this is an account level feature.
+* Configure [domain name](https://docs.databricks.com/gcp/en/security/network/firewall-rules) firewall rules.
 
 ### Initial Setup Sequence
 

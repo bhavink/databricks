@@ -476,7 +476,7 @@ After successful deployment:
 
 - [Main Module Documentation](../../README.md)
 - [Module Reference](../../modules/workspace-with-uc/README.md)
-- [Databricks on GCP Docs](https://docs.gcp.databricks.com/)
+- [Databricks on GCP Docs](https://docs.databricks.com/gcp/en/)
 - [Unity Catalog Guide](https://docs.databricks.com/data-governance/unity-catalog/)
 - [Terraform Databricks Provider](https://registry.terraform.io/providers/databricks/databricks/)
 

@@ -1102,10 +1102,10 @@ After `terraform destroy`, manually delete the metastore in Databricks Account C
 
 ## Additional Resources
 
-- [Databricks Unity Catalog on GCP](https://docs.gcp.databricks.com/data-governance/unity-catalog/index.html)
-- [Unity Catalog Best Practices](https://docs.gcp.databricks.com/data-governance/unity-catalog/best-practices.html)
+- [Databricks Unity Catalog on GCP](https://docs.databricks.com/gcp/en/data-governance/unity-catalog/index)
+- [Unity Catalog Best Practices](https://docs.databricks.com/gcp/en/data-governance/unity-catalog/best-practices)
 - [Cluster Policies](https://docs.databricks.com/administration-guide/clusters/policies.html)
-- [External Locations](https://docs.gcp.databricks.com/data-governance/unity-catalog/manage-external-locations-and-credentials.html)
+- [External Locations](https://docs.databricks.com/gcp/en/data-governance/unity-catalog/manage-external-locations-and-credentials)
 - [Databricks Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
 
 ---

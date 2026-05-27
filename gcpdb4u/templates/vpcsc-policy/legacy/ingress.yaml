@@ -29,7 +29,7 @@
           - method: '*'
         serviceName: container.googleapis.com
       # Required if you use workload identity
-      # https://docs.gcp.databricks.com/en/archive/compute/configure.html#google-service-account
+      # https://docs.databricks.com/gcp/en/archive/compute/configure#google-service-account
       - methodSelectors:
           - method: IAM.GetIamPolicy
           - method: IAM.SetIamPolicy
@@ -54,7 +54,7 @@
       - projects/546577047680
       - projects/488622148875
 # Optional: Only required if you use audit logging delivery
-# https://docs.gcp.databricks.com/en/admin/account-settings/audit-log-delivery.html
+# https://docs.databricks.com/gcp/en/admin/account-settings/audit-log-delivery
 - ingressFrom:
     identities:
       - group:databricks-vpc-sc-ingress-group@databricks.com

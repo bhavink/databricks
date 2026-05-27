@@ -3,7 +3,7 @@ Databricks provides two flavors of compute
 - Classic compute
 - Serverless compute
 
-* Each workspace is provisioned within the customer's GCP project. [Classic compute](https://docs.gcp.databricks.com/clusters/index.html) resides within customers project and utlizes customers vpc.
+* Each workspace is provisioned within the customer's GCP project. [Classic compute](https://docs.databricks.com/gcp/en/clusters/index) resides within customers project and utlizes customers vpc.
 * Life cycle of a databricks cluster (classic or serverless) is managed by Databricks Control Plane.
 * Compute instance type aka `node's` used by a Databricks cluster is backed by GCE instances aka nodes
 * Nodes have Private IP addresses only (classic and serverless compute)

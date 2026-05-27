@@ -2,7 +2,7 @@
 Make sure that the service account:
 - Is added to databricks account console with admin role
 - Has permissions listed over here 
-https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html#role-requirements
+https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/customer-managed-vpc#role-requirements
 */
 
 google_service_account_email = "automation-sa@<gcp_service_project>.iam.gserviceaccount.com"

@@ -153,7 +153,7 @@ The service account needs these IAM roles on both projects:
 - `roles/compute.networkUser`
 - `roles/compute.securityAdmin`
 
-For detailed role requirements, see [Databricks CMEK Documentation](https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html).
+For detailed role requirements, see [Databricks CMEK Documentation](https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys).
 
 #### GCP Projects
 
@@ -1147,7 +1147,7 @@ gcloud kms keys versions destroy <VERSION> \
 
 ## Additional Resources
 
-- [Databricks CMEK Documentation](https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html)
+- [Databricks CMEK Documentation](https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys)
 - [Google Cloud KMS Documentation](https://cloud.google.com/kms/docs)
 - [Key Rotation Best Practices](https://cloud.google.com/kms/docs/key-rotation)
 - [Databricks Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)

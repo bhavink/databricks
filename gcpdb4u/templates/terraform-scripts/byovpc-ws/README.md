@@ -129,7 +129,7 @@ The service account needs these IAM roles on both projects:
 - `roles/compute.networkUser`
 - `roles/compute.securityAdmin`
 
-For detailed role requirements, see [Databricks Documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html#role-requirements).
+For detailed role requirements, see [Databricks Documentation](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/customer-managed-vpc#role-requirements).
 
 #### GCP Projects
 
@@ -796,8 +796,8 @@ terraform destroy
 
 ## Additional Resources
 
-- [Databricks GCP Documentation](https://docs.gcp.databricks.com/)
-- [Customer-Managed VPC Setup Guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)
+- [Databricks GCP Documentation](https://docs.databricks.com/gcp/en/)
+- [Customer-Managed VPC Setup Guide](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/customer-managed-vpc)
 - [Databricks Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
 - [GCP Shared VPC Documentation](https://cloud.google.com/vpc/docs/shared-vpc)
 - [Service Account Impersonation Guide](../sa-impersonation.md)
@@ -831,7 +831,7 @@ After successfully deploying your basic workspace, consider:
 For issues or questions:
 
 1. Check the [Troubleshooting](#troubleshooting) section above
-2. Review [Databricks GCP Documentation](https://docs.gcp.databricks.com/)
+2. Review [Databricks GCP Documentation](https://docs.databricks.com/gcp/en/)
 3. Check Terraform plan output for errors
 4. Consult GCP logs for infrastructure issues
 5. Contact Databricks support for workspace-specific issues

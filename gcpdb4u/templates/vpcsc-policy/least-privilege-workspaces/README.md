@@ -227,7 +227,7 @@ For LPW deployments, always engage Databricks support:
 - Standard VPC-SC Setup: `../Configure-VPC-SC.md`
 - Private Google Access: `../Configure-PrivateGoogleAccess.md`
 - Firewall Rules: `../LockDown-VPC-Firewall-Rules.md`
-- Databricks VPC-SC Docs: https://docs.gcp.databricks.com/en/security/network/vpc-sc.html
+- Databricks VPC-SC Docs: https://docs.databricks.com/gcp/en/security/network/vpc-sc
 
 ---
 

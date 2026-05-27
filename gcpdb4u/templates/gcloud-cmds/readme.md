@@ -70,7 +70,7 @@ gcloud compute addresses list --filter="name=relay-pe-ip"
 ```
 
 # Create private endpoint using regional service serviceAttachments
-* Detailed list of per region attachement available over [here](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#regional-endpoints)
+* Detailed list of per region attachement available over [here](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/private-service-connect#regional-endpoints)
 
 ### Create forwarding rule for backend psc ep
 ```

@@ -120,11 +120,11 @@ sequenceDiagram
   * In total we need 1 subnet
     * Node Subnet
 * Can I share subnets among different databricks workspace's?
-  * No, each workspace requires its own dedicated subnet.
+  * Yes — multiple workspaces per subnet is **GA-supported but not recommended**. Default to one subnet per workspace; share only when IP space is constrained. See [Multiple workspaces sharing a single subnet](./Workspace-Architecture.md#multiple-workspaces-sharing-a-single-subnet-ga).
 * Can I change Subnet address space after the workspace is created?
-  * No
+  * The IP range of an existing subnet cannot be resized in place, but the workspace can be **switched to a different subnet** (in the same VPC) post-creation via `PATCH /api/2.0/accounts/{account_id}/workspaces/{workspace_id}`. See [Updating the subnet of an existing workspace](./Workspace-Architecture.md#updating-the-subnet-of-an-existing-workspace-ga).
 * Can I share a VPC among different databricks workspace's?
-  * Yes, as long as you do not use existing subnets being used by databricks.
+  * Yes. The VPC itself is immutable after workspace creation, but the same VPC can host any number of workspaces.
 * Supported IP Address Range?
   * `10.0.0.0/8`, `100.64.0.0/10`, `172.16.0.0/12`, `192.168.0.0/16`, and `240.0.0.0/4`
 * User/Service Account creating the workspace is automatically added to the workspace as an admin.
@@ -170,7 +170,7 @@ graph LR
     style S19 fill:#1565C0
 ```
 
-**Important Note:** Subnet CIDR ranges cannot be changed after workspace creation. Choose carefully based on your expected growth!
+**Important Note:** A subnet's CIDR cannot be resized in place. If you outgrow it, create a new subnet in the same VPC and switch the workspace to it via [the subnet-swap workflow](./Workspace-Architecture.md#updating-the-subnet-of-an-existing-workspace-ga). Still — plan generously up front to avoid disruption.
 
 ### Subnet CIDR ranges
 
@@ -183,7 +183,7 @@ graph LR
 ### Recommendation
 
 * Plan subnet CIDR ranges carefully up front. The IP range of an existing subnet cannot be resized in place, but the workspace can be **switched to a different subnet** (within the same VPC) post-creation if you need a larger or relocated range — see [Updating the subnet of an existing workspace](./Workspace-Architecture.md#updating-the-subnet-of-an-existing-workspace-ga). The VPC itself is immutable after workspace creation.
-* Review and Increase [GCP resource quota](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html) appropiately.
+* Review and Increase [GCP resource quota](https://docs.databricks.com/gcp/en/administration-guide/account-settings-gcp/quotas) appropiately.
 * Use Customer Managed VPC
 * Enable [Private Google Access](./security/Configure-PrivateGoogleAccess.md) on your vpc
 * Double check DNS is properly configured to resolve to restricted or private and restrcited.googleapis.com correctly (part of private google access configuration)
@@ -199,12 +199,12 @@ graph LR
 * **Multiple workspaces in one subnet is GA but not recommended**: keep one subnet per workspace by default; share only when IP space is constrained or you are intentionally consolidating networking. Size the subnet for the sum of cluster IP demand across all sharing workspaces. Detailed trade-offs: [Workspace-Architecture.md → Multiple workspaces sharing a single subnet](./Workspace-Architecture.md#multiple-workspaces-sharing-a-single-subnet-ga).
 
 ### Create Workspace (using UI)
-Step by Step [guide](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html)
+Step by Step [guide](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/customer-managed-vpc)
 
 ### Create Workspace (using Terraform)
 Please follow public [documentation](https://registry.terraform.io/providers/databricks/databricks/latest/docs/guides/gcp-workspace). Here's a few sample [TF script](./templates/terraform-scripts/readme.md) to deploy a bring your VPC based workspace using Terraform
 
-* create a [PSC + CMEK enabled workspace and attach a custom SA](./templates/terraform-scripts/byovpc-psc-cmek-ws). Please note that PSC and CMEK is in preview, follow [instructions](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html#step-1-enable-your-account-for-private-service-connect) to sign up for this feature
+* create a [PSC + CMEK enabled workspace and attach a custom SA](./templates/terraform-scripts/byovpc-psc-cmek-ws). Please note that PSC and CMEK is in preview, follow [instructions](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/private-service-connect#step-1-enable-your-account-for-private-service-connect) to sign up for this feature
 
 ### Validate setup
 - Create a Databricks cluster to validate n/w setup
@@ -256,7 +256,7 @@ sequenceDiagram
 ### Troubleshooting
 
 * Not able to create Network Configuration
-  * Follow steps mentioned over [here](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/customer-managed-vpc.html), pay close attention to required roles and permissions.
+  * Follow steps mentioned over [here](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/customer-managed-vpc), pay close attention to required roles and permissions.
   * If VPC SC is configured on the GCP project used by Databricks than please make sure that you have followed steps mentioned over here
 * Workspace creation fails
   * Verify that there is no organization policy blocking workspace creation process, please see recommendations section above
@@ -280,7 +280,7 @@ sequenceDiagram
     - Make sure an egress appliance like Cloud NAT is attached to subnets used by Databricks
 
 * Databricks Cluster Creation fails with quota errors:
-  - Verify that you have adequate GCP resource quota limit set, follow steps mentioned over [here](https://docs.gcp.databricks.com/administration-guide/account-settings-gcp/quotas.html).
+  - Verify that you have adequate GCP resource quota limit set, follow steps mentioned over [here](https://docs.databricks.com/gcp/en/administration-guide/account-settings-gcp/quotas).
 
 ### Common Failure Scenarios
 

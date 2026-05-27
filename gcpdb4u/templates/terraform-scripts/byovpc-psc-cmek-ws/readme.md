@@ -967,7 +967,7 @@ Backend psc status: PENDING
 **Solution:**
 
 1. Verify service attachments are correct for your region:
-   - Check [Databricks Supported Regions](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
+   - Check [Databricks Supported Regions](https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers)
 
 2. Confirm PSC is enabled for your account:
    - Contact Databricks support to verify PSC feature flag
@@ -1249,11 +1249,11 @@ terraform destroy
 
 ## Additional Resources
 
-- [Databricks PSC Documentation](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/private-service-connect.html)
-- [Databricks CMEK Documentation](https://docs.gcp.databricks.com/security/keys/customer-managed-keys.html)
+- [Databricks PSC Documentation](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/private-service-connect)
+- [Databricks CMEK Documentation](https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys)
 - [GCP Private Service Connect](https://cloud.google.com/vpc/docs/private-service-connect)
 - [Google Cloud KMS](https://cloud.google.com/kms/docs)
-- [Databricks Supported Regions - PSC](https://docs.gcp.databricks.com/resources/supported-regions.html#psc)
+- [Databricks Supported Regions - PSC](https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers)
 - [Cloud DNS Private Zones](https://cloud.google.com/dns/docs/zones#create-private-zone)
 
 ---
