@@ -246,4 +246,4 @@ Trade-offs:
 | Blast radius | Network changes affect one workspace | Network changes affect every workspace in the subnet |
 | Audit / chargeback | Easier per-workspace attribution | Requires labels/tags to attribute usage |
 
-If you choose to share, size the subnet for the **sum** of cluster IP demand across every workspace that will live in it ([sizing guidance](https://docs.gcp.databricks.com/administration-guide/cloud-configurations/gcp/network-sizing.html)).
+If you choose to share, size the subnet for the **sum** of cluster IP demand across every workspace that will live in it ([sizing guidance](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/network-sizing)).
