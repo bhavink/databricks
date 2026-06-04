@@ -110,6 +110,84 @@ for blob in client.list_blobs("workload-bucket"):
     print(blob.name)
 ```
 
+### Spark integration
+
+The Databricks Runtime ships the GCS Hadoop connector, the Spark BigQuery connector, and the native Spark `pubsub` source — no library install required. The same `tokenCreator` binding from Step 1 covers all three; each just consumes the impersonated identity differently. Snippets below are illustrative — the same options extend to streaming, predicate pushdown, partitioned writes, etc.
+
+#### GCS
+
+The Hadoop GCS connector takes the target SA as a single property. Anything that resolves a `gs://` URI — reads, writes, streaming checkpoints, library paths, init script pulls — flows through it:
+
+```python
+TARGET_SA = "workload-sa@target-prj.iam.gserviceaccount.com"
+sc._jsc.hadoopConfiguration().set(
+    "fs.gs.auth.impersonation.service.account", TARGET_SA
+)
+
+spark.read.parquet("gs://workload-bucket/raw/").show()
+df.write.format("delta").save("gs://workload-bucket/curated/")
+```
+
+For cluster-wide application, set the same property in the cluster's Spark config instead of at runtime.
+
+#### BigQuery
+
+The connector defaults to the Storage Read API for reads and supports the Storage Write API via `writeMethod=direct`. Impersonation is one option on either path:
+
+```python
+# Read (Storage Read API)
+df = (spark.read.format("bigquery")
+    .option("table", "target-prj.dataset.table")
+    .option("parentProject", "target-prj")
+    .option("impersonationServiceAccount", TARGET_SA)
+    .load())
+
+# Direct write (Storage Write API — no GCS staging)
+(df.write.format("bigquery")
+    .option("table", "target-prj.dataset.table_out")
+    .option("writeMethod", "direct")
+    .option("parentProject", "target-prj")
+    .option("impersonationServiceAccount", TARGET_SA)
+    .mode("append").save())
+```
+
+Typical target SA roles:
+
+- **Read** (Storage Read API): `roles/bigquery.dataViewer` + `roles/bigquery.readSessionUser`.
+- **Direct write** (Storage Write API): `roles/bigquery.dataEditor`.
+- **Indirect write** (legacy mode, omit `writeMethod`): same as direct write, plus target SA write access to the bucket set via `temporaryGcsBucket`.
+
+Set `parentProject` explicitly with impersonation — it controls billing attribution and defaults to the workspace project, which is rarely intended.
+
+#### Pub/Sub
+
+The native Spark `pubsub` source authenticates via ADC or static key fields; it does not currently expose an impersonation option. Two paths, pick by trade-off:
+
+- **Use the Spark source** when you need its Structured Streaming semantics — grant the cluster SA the Pub/Sub role directly. No impersonation; the cluster SA gains data access.
+- **Use the Python client** when you want impersonation end-to-end — publish via `foreachPartition`, consume via a pull loop in a Databricks job.
+
+```python
+def publish_partition(rows):
+    from google.auth import default, impersonated_credentials
+    from google.cloud import pubsub_v1
+
+    src, _ = default()
+    creds = impersonated_credentials.Credentials(
+        source_credentials=src,
+        target_principal=TARGET_SA,
+        target_scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        lifetime=3600,
+    )
+    pub = pubsub_v1.PublisherClient(credentials=creds)
+    topic = pub.topic_path("target-prj", "events-topic")
+    for f in [pub.publish(topic, r["payload"].encode()) for r in rows]:
+        f.result()
+
+events_df.foreachPartition(publish_partition)
+```
+
+The same in-executor minting pattern applies to any Google API without a Spark-native impersonation option (Vertex AI, Cloud Translation, custom services).
+
 ### Step 3 — Verify
 
 ```python
@@ -140,6 +218,9 @@ Each mint shows up with the cluster SA as the caller and the target SA in the re
 | Token works once, fails an hour later | Don't cache the raw `target_creds.token`. Pass the credentials object to client libraries and let them refresh. |
 | Need >1 hour lifetime | Requires the org policy `constraints/iam.allowServiceAccountCredentialLifetimeExtension` to be lifted. The default cap is 3600s. |
 | `impersonated_credentials` does not inherit source scopes | Expected. List every scope you need on the target explicitly. |
+| BigQuery jobs show up in the workspace project's billing | Set `parentProject` explicitly to the target's project on every read/write. |
+| Indirect BigQuery write fails at the staging step | Target SA needs write access to whatever bucket is set via `temporaryGcsBucket`. Switch to `writeMethod=direct` to skip staging. |
+| Spark `pubsub` source ignores `impersonationServiceAccount` | The source doesn't expose that option. Use the Python client for impersonation, or grant the cluster SA Pub/Sub access directly. |
 
 ### Security notes
 
