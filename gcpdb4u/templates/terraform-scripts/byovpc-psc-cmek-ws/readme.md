@@ -65,7 +65,7 @@ graph TB
 
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Managed - Encrypted & Private"
-            GKE[GKE Cluster<br/>Encrypted with CMEK]
+            GCE[GCE VMs<br/>🔒 Encrypted with CMEK]
             GCS[GCS Buckets<br/>Encrypted with CMEK]
             DISK[Persistent Disks<br/>Encrypted with CMEK]
         end
@@ -83,7 +83,7 @@ graph TB
     KEYRING --> KEY
     KEY -.Encrypts.-> GCS
     KEY -.Encrypts.-> DISK
-    KEY -.Encrypts.-> GKE
+    KEY -.Encrypts.-> GCE
 
     SUBNET --> FE_EP
     SUBNET --> BE_EP
@@ -92,9 +92,9 @@ graph TB
     FE_IP -.PSC.-> FE_SA
     BE_IP -.PSC.-> BE_SA
 
-    FE_SA --> GKE
-    BE_SA --> GKE
-    GKE --> SUBNET
+    FE_SA --> GCE
+    BE_SA --> GCE
+    GCE --> SUBNET
     SUBNET --> GCS
 
     DNS_ZONE --> A_REC
@@ -108,7 +108,7 @@ graph TB
     style BE_SA fill:#FF3621
     style KEY fill:#FBBC04
     style GCS fill:#4285F4
-    style GKE fill:#4285F4
+    style GCE fill:#4285F4
     style DNS_ZONE fill:#34A853
 ```
 
@@ -189,7 +189,6 @@ This configuration requires a **pre-existing VPC** with appropriate subnets:
 **Required Subnets:**
 1. **Node Subnet**: For Databricks cluster nodes
    - Minimum `/24` CIDR (251 usable IPs)
-   - Secondary IP ranges for GKE pods/services
    - Internet connectivity via Cloud NAT
 
 2. **PSC Subnet**: For Private Service Connect endpoints
@@ -705,7 +704,7 @@ sequenceDiagram
 
     Note over TF,DB_ACC: Phase 6: Encrypted Workspace
     TF->>DB_ACC: Create Workspace with PSC + CMEK
-    DB_ACC->>GCP: Deploy GKE Cluster (Encrypted)
+    DB_ACC->>GCP: Provision GCE VMs (Encrypted)
     DB_ACC->>GCP: Create GCS Bucket (Encrypted)
     DB_ACC->>KMS: Encrypt with Customer Key
     GCP-->>DB_ACC: Resources Ready (Encrypted & Private)

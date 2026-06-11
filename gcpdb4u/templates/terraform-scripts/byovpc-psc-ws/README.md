@@ -61,7 +61,7 @@ graph TB
 
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Managed"
-            GKE[GKE Cluster<br/>Control Plane Components]
+            GCE[GCE VMs<br/>Cluster Compute]
             GCS[GCS Bucket<br/>DBFS Storage]
         end
     end
@@ -82,9 +82,9 @@ graph TB
     FE_IP -.PSC Connection.-> FE_SA
     BE_IP -.PSC Connection.-> BE_SA
 
-    FE_SA --> GKE
-    BE_SA --> GKE
-    GKE --> SUBNET
+    FE_SA --> GCE
+    BE_SA --> GCE
+    GCE --> SUBNET
     SUBNET --> GCS
 
     DNS_ZONE --> A_REC1
@@ -103,7 +103,7 @@ graph TB
     style FE_SA fill:#FF3621
     style BE_SA fill:#FF3621
     style GCS fill:#4285F4
-    style GKE fill:#4285F4
+    style GCE fill:#4285F4
     style DNS_ZONE fill:#FBBC04
     style FE_EP fill:#34A853
     style BE_EP fill:#34A853
@@ -158,7 +158,6 @@ This configuration requires a **pre-existing VPC** with appropriate subnets:
 **Required Subnets:**
 1. **Node Subnet**: For Databricks cluster nodes
    - Minimum `/24` CIDR (251 usable IPs)
-   - Secondary IP ranges for GKE pods/services
    - Internet connectivity via Cloud NAT
 
 2. **PSC Subnet**: For Private Service Connect endpoints
@@ -610,7 +609,7 @@ sequenceDiagram
     Note over TF,DB_ACC: Phase 4: Network & Workspace
     TF->>DB_ACC: Create Network Configuration
     TF->>DB_ACC: Create Workspace
-    DB_ACC->>GCP: Deploy GKE Cluster
+    DB_ACC->>GCP: Provision GCE VMs
     DB_ACC->>GCP: Create GCS Bucket
     GCP-->>DB_ACC: Resources Ready
     DB_ACC-->>TF: Workspace URL + ID

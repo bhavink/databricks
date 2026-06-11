@@ -344,7 +344,7 @@ resource "databricks_mws_workspaces" "databricks_workspace"
 
 **Creates:**
 - Databricks workspace in your GCP project
-- GKE cluster for compute
+- GCE VMs for cluster compute
 - GCS bucket for DBFS
 - Network configuration
 
@@ -564,7 +564,7 @@ sequenceDiagram
     Note over TF,DB_ACC: Phase 1: Workspace
     TF->>DB_ACC: Create Network Configuration
     TF->>DB_ACC: Create Workspace
-    DB_ACC->>GCP: Deploy GKE Cluster
+    DB_ACC->>GCP: Provision GCE VMs
     DB_ACC->>GCP: Create DBFS Bucket
     DB_ACC-->>TF: Workspace URL
 

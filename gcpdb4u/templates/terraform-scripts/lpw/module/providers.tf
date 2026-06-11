@@ -6,7 +6,7 @@
 # Authentication Methods for Google Provider:
 # 1. Application Default Credentials (recommended for CI/CD)
 #    - Run: gcloud auth application-default login (for local development)
-#    - Or use Workload Identity in GKE/Cloud Build
+#    - Or use Workload Identity Federation in your CI/CD runner
 # 2. Service account impersonation via google_service_account parameter
 # 3. Service account key file:
 #    - Via GOOGLE_APPLICATION_CREDENTIALS environment variable

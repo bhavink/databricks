@@ -156,8 +156,6 @@ Databricks uses several service accounts to manage resources in customer project
 
 | Service Account | Purpose | Workspace Type | When Used |
 |-----------------|---------|----------------|-----------|
-| `cluster-manager-k8s-sa@<regional-project>.iam.gserviceaccount.com` | Legacy GKE cluster management | Classic (GKE-based) | **Legacy only** - GKE-based clusters |
-| `us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com` | Access to Databricks runtime images | Classic (GKE-based) | **Legacy only** - GKE-based clusters |
 | `delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com` | Launch and manage GCE-based clusters | Classic (GCE-based) | **Current** - GCE-based clusters |
 | `db-[WORKSPACEID]@[databricks-project].iam.gserviceaccount.com` | Per-workspace resource management | All workspace types | **Always** - Created at workspace creation |
 | `log-delivery@databricks-prod-master.iam.gserviceaccount.com` | Deliver audit logs to customer storage | All (if audit logs enabled) | When audit logging configured |
@@ -181,8 +179,6 @@ Understanding which identities are used for ingress (calls into customer project
 | **Consumer SA** | SA | `db-WORKSPACEID@prod-gcp-us-central1.iam.gserviceaccount.com` | Workspace operation, DBFS management | **Ingress** into customer project | Created at WS creation - use ANY_IDENTITY |
 | **Delegate SA** | SA | `delegate-sa@prod-gcp-us-central1.iam.gserviceaccount.com` | Launch GCE clusters | **Egress** from customer project | Must be in egress policy |
 | **Log Delivery SA** | SA | `log-delivery@databricks-prod-master.iam.gserviceaccount.com` | Deliver audit logs | **Ingress** into customer project | Must be in ingress policy |
-| **GKE Manager SA (Legacy)** | SA | `cluster-manager-k8s-sa@prod-gcp-us-central1.iam.gserviceaccount.com` | Legacy GKE cluster access to control plane | **Egress** from customer project | Legacy only - GKE workspaces |
-| **GAR Access SA (Legacy)** | SA | `us-central1-gar-access@databricks-prod-artifacts.iam.gserviceaccount.com` | Legacy GKE cluster access to runtime images | **Egress** from customer project | Legacy only - GKE workspaces |
 
 ---
 

@@ -234,7 +234,7 @@ graph TB
 
     subgraph "GCP - Service/Consumer Project"
         subgraph "Databricks Workspace"
-            GKE[GKE Cluster<br/>Control Plane]
+            GCE[GCE VMs<br/>Cluster Compute]
             GCS[GCS Bucket<br/>DBFS Storage]
         end
     end
@@ -245,14 +245,14 @@ graph TB
     end
 
     USERS -->|HTTPS| CONTROL
-    CONTROL -->|Public| GKE
+    CONTROL -->|Public| GCE
     SUBNET --> NAT
     NAT -->|Public Internet| CONTROL
-    GKE --> SUBNET
-    GKE --> GCS
+    GCE --> SUBNET
+    GCE --> GCS
 
     style CONTROL fill:#FF3621
-    style GKE fill:#4285F4
+    style GCE fill:#4285F4
     style GCS fill:#34A853
     style USERS fill:#FBBC04
 ```
@@ -284,7 +284,7 @@ graph TB
 
     subgraph "GCP - Service/Consumer Project"
         subgraph "Databricks Workspace - Encrypted"
-            GKE[GKE Cluster<br/>🔒 Encrypted with CMEK]
+            GCE[GCE VMs<br/>🔒 Encrypted with CMEK]
             GCS[GCS Buckets<br/>🔒 Encrypted with CMEK]
             DISK[Persistent Disks<br/>🔒 Encrypted with CMEK]
         end
@@ -298,17 +298,17 @@ graph TB
     KEYRING --> KEY
     KEY -.Encrypts.-> GCS
     KEY -.Encrypts.-> DISK
-    KEY -.Encrypts.-> GKE
+    KEY -.Encrypts.-> GCE
 
     USERS --> CONTROL
-    CONTROL --> GKE
+    CONTROL --> GCE
     SUBNET --> NAT
     NAT --> CONTROL
-    GKE --> SUBNET
+    GCE --> SUBNET
 
     style KEY fill:#FBBC04
     style GCS fill:#34A853
-    style GKE fill:#4285F4
+    style GCE fill:#4285F4
     style CONTROL fill:#FF3621
 ```
 
@@ -343,7 +343,7 @@ graph TB
     end
 
     subgraph "GCP - Service/Consumer"
-        GKE[GKE Cluster]
+        GCE[GCE VMs<br/>Cluster Compute]
         GCS[GCS Buckets]
     end
 
@@ -360,9 +360,9 @@ graph TB
     NODE_SUB --> BE_EP
     FE_EP -.PSC.-> FE_SA
     BE_EP -.PSC.-> BE_SA
-    FE_SA --> GKE
-    BE_SA --> GKE
-    GKE --> NODE_SUB
+    FE_SA --> GCE
+    BE_SA --> GCE
+    GCE --> NODE_SUB
 
     DNS -->|Resolves to| FE_EP
     DNS -->|Private IPs| BE_EP
@@ -410,7 +410,7 @@ graph TB
 
     subgraph "GCP - Service/Consumer"
         subgraph "Encrypted & Private Workspace"
-            GKE[GKE Cluster<br/>🔒 CMEK Encrypted]
+            GCE[GCE VMs<br/>🔒 Encrypted with CMEK]
             GCS[GCS Buckets<br/>🔒 CMEK Encrypted]
             DISK[Disks<br/>🔒 CMEK Encrypted]
         end
@@ -426,12 +426,12 @@ graph TB
 
     KEY -.Encrypts.-> GCS
     KEY -.Encrypts.-> DISK
-    KEY -.Encrypts.-> GKE
+    KEY -.Encrypts.-> GCE
 
     FE_EP -.PSC.-> CONTROL
     BE_EP -.PSC.-> CONTROL
-    CONTROL --> GKE
-    GKE --> NODE_SUB
+    CONTROL --> GCE
+    GCE --> NODE_SUB
 
     DNS --> FE_EP
     VPN -.Private DNS.-> DNS
@@ -1116,7 +1116,7 @@ sequenceDiagram
     User->>DB_ACC: Create Network Config
     User->>DB_ACC: Create Private Access Settings (if PSC)
     User->>DB_ACC: Create Workspace
-    DB_ACC->>GCP: Deploy GKE + Storage
+    DB_ACC->>GCP: Deploy GCE VMs + Storage
 
     Note over User,UC: Phase 5: Unity Catalog (if enabled)
     User->>GCP: Create Metastore GCS Bucket

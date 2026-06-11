@@ -25,7 +25,7 @@ This deployment creates a **secure Databricks workspace with encryption** featur
 - ✅ **Customer-Managed VPC (BYOVPC)** with custom subnets
 - ✅ **Customer-Managed Encryption Keys (CMEK)** using Google Cloud KMS
 - ✅ **Encrypted Storage** for both managed and unmanaged (DBFS) storage
-- ✅ **GKE Node Encryption** for cluster compute nodes
+- ✅ **GCE Node (VM disk) Encryption** for cluster compute nodes
 - ✅ **Key Rotation** with configurable rotation period
 - ✅ **Workspace Admin Assignment** for initial user
 - ✅ **Public Internet Access** for workspace and clusters
@@ -49,7 +49,7 @@ graph TB
 
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Managed - Encrypted"
-            GKE[GKE Cluster<br/>Encrypted with CMEK]
+            GCE[GCE VMs<br/>🔒 Encrypted with CMEK]
             GCS_DBFS[GCS Bucket - DBFS<br/>Encrypted with CMEK]
             GCS_SYS[System Storage<br/>Encrypted with CMEK]
             DISK[Persistent Disks<br/>Encrypted with CMEK]
@@ -70,19 +70,19 @@ graph TB
     KEY -.Encrypts.-> GCS_DBFS
     KEY -.Encrypts.-> GCS_SYS
     KEY -.Encrypts.-> DISK
-    KEY -.Encrypts.-> GKE
+    KEY -.Encrypts.-> GCE
 
     SUBNET --> CONTROL
     SUBNET --> NAT
-    GKE --> SUBNET
+    GCE --> SUBNET
     USER --> CONTROL
-    CONTROL --> GKE
+    CONTROL --> GCE
 
     style CONTROL fill:#FF3621
     style KEY fill:#FBBC04
     style KEYRING fill:#FBBC04
     style GCS_DBFS fill:#4285F4
-    style GKE fill:#4285F4
+    style GCE fill:#4285F4
     style SUBNET fill:#34A853
 ```
 
@@ -134,7 +134,6 @@ This configuration requires a **pre-existing VPC** with appropriate subnets. To 
 - VPC network in host/shared VPC project
 - Subnet for Databricks nodes with sufficient IP space:
   - Minimum `/24` CIDR recommended (251 usable IPs)
-  - Secondary IP ranges for GKE pods and services (auto-created by Databricks)
 - Internet connectivity via Cloud Router + Cloud NAT OR Direct Internet Gateway
 
 #### GCP Service Account Permissions
@@ -197,7 +196,7 @@ The CMEK created in this configuration encrypts:
 |----------|----------------|-----------|
 | **DBFS Storage** | User data, notebooks, libraries in GCS | STORAGE |
 | **System Storage** | Workspace configurations, logs | STORAGE |
-| **GKE Cluster Disks** | Persistent disks for cluster nodes | STORAGE |
+| **Cluster Node Disks (GCE)** | Persistent disks for cluster nodes | STORAGE |
 | **Notebook State** | Notebook execution state | MANAGED |
 
 ### Key Components
@@ -226,7 +225,7 @@ resource "google_kms_crypto_key" "databricks_key"
 **Algorithm**: Google-managed symmetric encryption
 
 **Use Cases:**
-- `STORAGE`: Encrypts DBFS, logs, GKE disks
+- `STORAGE`: Encrypts DBFS, logs, GCE VM disks
 - `MANAGED`: Encrypts notebook state in control plane
 
 #### 3. Key Registration with Databricks
@@ -411,10 +410,9 @@ Before deploying the workspace, ensure you have:
 
 #### Node Subnet
 - Name: Referenced in `node_subnet` variable
-- Purpose: Hosts Databricks cluster nodes (GKE)
+- Purpose: Hosts Databricks cluster nodes (GCE VMs)
 - IP Range:
   - Primary CIDR: Minimum `/24` (251 IPs)
-  - Secondary ranges: Auto-created by Databricks for pods/services
 - Region: Must match `google_region` variable
 
 #### Network Connectivity Requirements
@@ -516,7 +514,7 @@ resource "databricks_mws_networks" "databricks_network"
 **Creates:**
 - Network configuration object in Databricks account
 - Associates your VPC and subnet with Databricks
-- Enables Databricks to deploy GKE clusters in your subnet
+- Enables Databricks to deploy GCE VMs in your subnet
 
 **Key Attributes:**
 - `network_name`: Generated with random suffix for uniqueness
@@ -533,7 +531,7 @@ resource "databricks_mws_workspaces" "databricks_workspace"
 
 **Creates:**
 - Databricks workspace with CMEK encryption
-- GKE cluster with encrypted disks
+- GCE VMs with encrypted disks
 - GCS bucket with CMEK encryption for DBFS
 - Managed resources in Databricks-managed project
 
@@ -543,7 +541,6 @@ resource "databricks_mws_workspaces" "databricks_workspace"
 - `cloud_resource_container.gcp.project_id`: Your service project
 - `network_id`: Links to network configuration
 - `GCE_config.connectivity_type`: `PRIVATE_NODE_PUBLIC_MASTER` (default)
-- `GCE_config.master_ip_range`: IP range for GKE master (optional)
 - `storage_customer_managed_key_id`: Links to CMEK registration
 
 **Deployment Time:** ~10-15 minutes
@@ -621,7 +618,7 @@ sequenceDiagram
 
     Note over TF,DB_ACC: Phase 5: Workspace Creation
     TF->>DB_ACC: Create Workspace with CMEK
-    DB_ACC->>GCP: Deploy GKE Cluster (CMEK encrypted)
+    DB_ACC->>GCP: Provision GCE VMs (CMEK encrypted)
     DB_ACC->>GCP: Create GCS Bucket (CMEK encrypted)
     DB_ACC->>KMS: Encrypt with Customer Key
     GCP-->>DB_ACC: Resources Ready (Encrypted)
@@ -681,10 +678,6 @@ google_vpc_id = "my-vpc-network"
 
 # Existing Subnet Name
 node_subnet = "databricks-node-subnet"
-
-# Optional: GKE Master IP Range (for private GKE)
-# Uncomment if you want to specify a custom range
-# GCE_master_ip_range = "10.3.0.0/28"
 ```
 
 ### 3. Using Pre-Created KMS Key (Optional)

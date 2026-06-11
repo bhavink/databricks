@@ -39,7 +39,7 @@ graph TB
 
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Managed"
-            GKE[GKE Cluster<br/>Control Plane Components]
+            GCE[GCE VMs<br/>Cluster Compute]
             GCS[GCS Bucket<br/>DBFS Storage]
         end
     end
@@ -54,13 +54,13 @@ graph TB
 
     SUBNET --> CONTROL
     SUBNET --> GCS
-    GKE --> SUBNET
+    GCE --> SUBNET
     USER --> CONTROL
-    CONTROL --> GKE
+    CONTROL --> GCE
 
     style CONTROL fill:#FF3621
     style GCS fill:#4285F4
-    style GKE fill:#4285F4
+    style GCE fill:#4285F4
     style SUBNET fill:#34A853
 ```
 
@@ -112,7 +112,6 @@ This configuration requires a **pre-existing VPC** with appropriate subnets. To 
 - VPC network in host/shared VPC project
 - Subnet for Databricks nodes with sufficient IP space:
   - Minimum `/24` CIDR recommended (251 usable IPs)
-  - Secondary IP ranges for GKE pods and services (auto-created by Databricks)
 - Internet connectivity via Cloud Router + Cloud NAT OR Direct Internet Gateway
 
 #### GCP Service Account Permissions
@@ -258,10 +257,9 @@ Before deploying the workspace, ensure you have:
 
 #### Node Subnet
 - Name: Referenced in `node_subnet` variable
-- Purpose: Hosts Databricks cluster nodes (GKE)
+- Purpose: Hosts Databricks cluster nodes (GCE VMs)
 - IP Range:
   - Primary CIDR: Minimum `/24` (251 IPs)
-  - Secondary ranges: Auto-created by Databricks for pods/services
 - Region: Must match `google_region` variable
 
 #### Network Connectivity Requirements
@@ -308,7 +306,7 @@ resource "databricks_mws_networks" "databricks_network"
 **Creates:**
 - Network configuration object in Databricks account
 - Associates your VPC and subnet with Databricks
-- Enables Databricks to deploy GKE clusters in your subnet
+- Enables Databricks to deploy GCE VMs in your subnet
 
 **Key Attributes:**
 - `network_name`: Generated with random suffix for uniqueness
@@ -325,7 +323,7 @@ resource "databricks_mws_workspaces" "databricks_workspace"
 
 **Creates:**
 - Databricks workspace in your GCP service project
-- GKE cluster for control plane components
+- GCE VMs for cluster compute
 - GCS bucket for DBFS storage
 - Managed resources in Databricks-managed project
 
@@ -394,7 +392,7 @@ sequenceDiagram
 
     Note over TF,DB_ACC: Phase 3: Workspace Creation
     TF->>DB_ACC: Create Workspace
-    DB_ACC->>GCP: Deploy GKE Cluster
+    DB_ACC->>GCP: Provision GCE VMs
     DB_ACC->>GCP: Create GCS Bucket
     DB_ACC->>GCP: Configure Networking
     GCP-->>DB_ACC: Resources Ready
@@ -712,7 +710,7 @@ This can happen if GCP resource quotas are exceeded or there are networking issu
    ```
 
 3. Check for quota issues:
-   - GKE cluster node count
+   - cluster node count
    - IP address availability in subnet
    - Compute Engine API limits
 

@@ -99,11 +99,11 @@ gcloud compute forwarding-rules describe usc1-frontend-ep \
     --region=us-central1
 ```
 
-# Following commands runs on gke (service) project
+# Following commands run on the CMEK (key) project
 ## Create CMK keys for databricks
 * Key could reside in any project, service, host or any other project
 ```
-gcloud config set project GKE_PROJECT_NAME
+gcloud config set project CMEK_PROJECT_NAME
 ```
 ```
 gcloud kms keyrings create databricks-keyring \

@@ -2,6 +2,11 @@
 # DATABRICKS GCE COMPUTE MIGRATION - FIREWALL UPDATE POLICY
 ################################################################################
 #
+# DEPRECATED - HISTORICAL REFERENCE ONLY:
+# The GKE-based classic compute plane has been retired; classic compute on GCP
+# now runs on GCE (Compute Engine). This migration policy is complete and is kept
+# only for historical context. Do not apply it to new deployments.
+#
 # PURPOSE:
 # This policy allows Databricks to update firewall rules in customer-managed VPCs
 # during the migration from GKE-based to GCE-based classic compute clusters.

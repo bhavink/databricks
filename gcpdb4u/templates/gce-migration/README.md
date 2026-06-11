@@ -1,5 +1,10 @@
 # Databricks GCE Compute Migration
 
+> ⚠️ **DEPRECATED — historical reference only.** The GKE-based classic compute plane has been
+> retired; all classic compute on GCP now runs on **GCE (Compute Engine)**. This migration is
+> complete, so the content below is retained only for historical context. For current deployments,
+> use the GCE-based patterns under `templates/terraform-scripts/`.
+
 ## Overview
 
 This folder contains policies and documentation for the **Databricks GCE (Compute Engine) migration** - the transition from GKE-based (Kubernetes) to GCE-based (Compute Engine) classic compute clusters.
