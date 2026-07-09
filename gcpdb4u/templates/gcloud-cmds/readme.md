@@ -70,7 +70,8 @@ gcloud compute addresses list --filter="name=relay-pe-ip"
 ```
 
 # Create private endpoint using regional service serviceAttachments
-* Detailed list of per region attachement available over [here](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/private-service-connect#regional-endpoints)
+* Authoritative, region-specific PSC attachment URIs and project numbers: [Databricks PSC attachment URIs and project numbers](https://docs.databricks.com/gcp/en/resources/ip-domain-region#private-service-connect-psc-attachment-uris-and-project-numbers)
+* The URIs below are **illustrative examples for `us-central1` only** — the workspace (frontend) and relay (backend) attachments live in different GCP projects, and the frontend project name varies per region. Always look up the current values for your region at the link above before running these commands.
 
 ### Create forwarding rule for backend psc ep
 ```
@@ -86,7 +87,7 @@ gcloud compute forwarding-rules create usc1-frontend-ep \
     --region=us-central1 \
     --network=psc-vpc-svc-prj2-xpn \
     --address=workspace-pe-ip \
-    --target-service-attachment=projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/plproxy-psc-endpoint
+    --target-service-attachment=projects/gcp-prod-general/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports
 ```
 
 ### List endpoints
