@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars and fill in. This dir has its OWN state — do not share
+# state with the workspace config or the metastore config.
+
+databricks_account_id        = "00000000-0000-0000-0000-000000000000"
+google_service_account_email = "deployer-sa@my-gcp-project.iam.gserviceaccount.com"
+
+# Group topology + membership live in groups.yaml (edit there).

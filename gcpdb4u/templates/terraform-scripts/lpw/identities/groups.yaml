@@ -1,0 +1,25 @@
+# Account-level groups and their members. Edit THIS file to manage identities.
+# These are ACCOUNT groups shared across workspaces; workspace permission is NOT
+# set here (a workspace grants a group ADMIN/USER via ../groups.tf).
+#
+#   <group-name>:
+#     members: [ user emails / GSA emails ]
+#
+# List real identities as their literal emails (people, and any GSA registered as
+# a user). No token substitution here — this config has no workspace context.
+
+# NOTE: "admins" and "users" are RESERVED built-in Databricks group names — you
+# cannot create groups with those names. Use distinct names for custom groups.
+platform_admins:
+  members:
+    - admin@example.com
+
+data_engineers:
+  members:
+    - alice@example.com
+    - bob@example.com
+
+analysts:
+  members:
+    - bob@example.com      # bob intentionally in two groups
+    - carol@example.com

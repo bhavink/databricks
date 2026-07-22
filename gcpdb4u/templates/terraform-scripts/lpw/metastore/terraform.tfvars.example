@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars and fill in. This dir has its OWN state — do not share
+# state with the parent workspace config.
+
+databricks_account_id        = "00000000-0000-0000-0000-000000000000"
+google_service_account_email = "deployer-sa@my-gcp-project.iam.gserviceaccount.com"
+google_region                = "us-central1"
+
+# Optional: name (defaults to uc-<region>)
+# metastore_name = "uc-us-central1"
+
+# Optional: assign specific EXISTING workspace IDs now. New workspaces are handled
+# by the account-level auto-assign setting (manual — see README), not here.
+# assign_workspace_ids = ["1234567890123456"]

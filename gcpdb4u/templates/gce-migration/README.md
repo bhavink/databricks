@@ -106,7 +106,7 @@ Use the `cmv1-gce-policy.yaml` to allow Databricks to automatically create the f
    - As organization policy constraint
    - Consult with your GCP administrator
 
-3. **Coordinate with Databricks** support for migration timing
+3. **Plan the migration timing** for your workspace
 
 4. **Remove policy** after migration is complete
 
@@ -134,7 +134,7 @@ graph TD
     E -->|Automatic| G[Apply cmv1-gce-policy.yaml]
 
     F --> H[Verify Rule Created]
-    G --> I[Coordinate with Databricks]
+    G --> I[Plan Migration Timing]
 
     H --> J[Ready for Migration]
     I --> J
@@ -315,7 +315,7 @@ A: No, the migration is transparent to user code.
 A: Serverless is unaffected - already uses different infrastructure.
 
 **Q: How long does migration take?**
-A: Per-workspace migration is typically quick, but coordinate with Databricks for exact timing.
+A: Per-workspace migration is typically quick; plan the timing to suit your workloads.
 
 ## Support and Resources
 

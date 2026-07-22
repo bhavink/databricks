@@ -122,7 +122,7 @@ graph TB
 | **[byovpc-psc-ws/](byovpc-psc-ws/)** | Workspace + Private Service Connect | Need private connectivity |
 | **[byovpc-psc-cmek-ws/](byovpc-psc-cmek-ws/)** | Workspace + PSC + CMEK | Maximum security (private + encrypted) |
 | **[end2end/](end2end/)** | Workspace + Unity Catalog + Policies | Complete production deployment |
-| **[lpw/](lpw/)** | **2-Phase Workspace + Unity Catalog** | Advanced: Production workspace with 2-phase deployment, UC, compute policies, SQL warehouses |
+| **[lpw/](lpw/)** | **Least Privilege Workspace (2-phase)** | Maximum security: least-privilege IAM, CMK, PSC (front + back end), NCC, account groups + UC metastore binding. 2-phase deploy. |
 | **[uc/](uc/)** | Unity Catalog only | Add UC to existing workspace |
 
 ### 2. Prerequisites

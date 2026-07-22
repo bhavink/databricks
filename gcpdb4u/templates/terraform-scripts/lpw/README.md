@@ -1,543 +1,307 @@
-# Databricks Workspace with Unity Catalog on GCP
+# lpw-demo4 — Databricks GCP workspace (clean reference deployment)
 
-> **⚠️ IMPORTANT - SPECIAL CONFIGURATION NOTICE**
->
-> **Least Privilege Workspaces (LPW)** is a specialized Databricks deployment configuration with enhanced security controls. This configuration:
-> - **Requires explicit allowlisting** by Databricks support team
-> - **Is NOT available to all accounts** - requires Databricks approval and coordination
->
-> **Before using this module:**
-> 1. Contact your Databricks Account Team or Databricks Support
-> 2. Request approval for Least Privilege Workspace deployment
-> 3. Review the VPC-SC policies in [`/templates/vpcsc-policy/least-privilege-workspaces/`](../../vpcsc-policy/least-privilege-workspaces/)
-> 4. Coordinate with Databricks for your specific security requirements
->
-> **For standard workspace deployments**, use one of the other configurations in `/templates/terraform-scripts/` (byovpc-ws, byovpc-psc-ws, byovpc-cmek-ws, byovpc-psc-cmek-ws, or end2end).
->
-> This module is intended for **highly regulated environments** (financial services, healthcare, government) where maximum security posture and explicit access allowlisting are mandatory requirements.
+Least-privilege Databricks workspace on GCP with CMK, IAM role grants, and
+account-level groups. Greenfield layout: prereq primitives live in
+`modules/prereqs`, so they can be applied first.
 
----
+> **In a hurry? Read [RUNBOOK.md](RUNBOOK.md)** — the whole deploy in under 50 lines.
+> This README is the full walkthrough.
 
-A production-ready Terraform module for deploying Databricks workspaces on Google Cloud Platform (GCP) with complete Unity Catalog governance, compute policies, and SQL warehouses.
+## Layout
 
-## Overview
-
-This module provides a comprehensive solution for creating enterprise-grade Databricks workspaces on GCP with:
-
-- **2-Phase Deployment Model**: Safe, race-condition-free workspace provisioning
-- **Unity Catalog**: Fully configured data governance with catalogs, storage credentials, and external locations
-- **Compute Governance**: Pre-configured instance pools and cluster policies (Small, Medium, Large)
-- **SQL Analytics**: Serverless SQL warehouses with permission management
-- **Security**: BYOVPC, Private Service Connect (PSC), Customer-Managed Encryption Keys (CMEK) support
-- **Production-Ready**: Comprehensive tagging, IAM permissions, and workspace status polling
-
-## Key Features
-
-### Workspace Provisioning
-- Automated workspace creation with network configuration
-- Workspace status polling to prevent race conditions
-- Metastore assignment and configuration
-- Comprehensive permission management (groups, users, service principals)
-
-### Unity Catalog Setup
-- Storage credentials with GCP service account creation
-- GCS bucket provisioning with IAM bindings
-- External locations for data access
-- Catalog creation with workspace bindings
-- Granular permission grants (data_editor, data_reader, data_writer)
-
-### Compute Resources
-- **Instance Pools**: Pre-warmed compute (Small, Medium, Large)
-- **Cluster Policies**: Job and All-Purpose policies with/without pools
-- **Personal/Shared Compute**: Override policies for flexibility
-- **Governance**: DBU limits, auto-termination, node type restrictions
-
-### SQL Analytics
-- Multiple SQL warehouse sizes (Small, Medium, Large, X-Large, 2X-Large, 3X-Large, 4X-Large)
-- Serverless support
-- Auto-scaling configuration
-- Permission-based access control
-
-## Architecture
-
-```mermaid
-graph TB
-    subgraph "Phase 1: PROVISIONING"
-        A[terraform apply -var=phase=PROVISIONING] --> B[Create Network Config]
-        B --> C[Create Workspace Shell]
-        C --> D[Databricks Creates Workspace GSA]
-        D --> E[Manual: Add GSA to Operator Group]
-    end
-
-    subgraph "Phase 2: RUNNING"
-        E --> F[terraform apply -var=phase=RUNNING]
-        F --> G[Attach Network to Workspace]
-        G --> H[Poll Workspace Status]
-        H --> I{Status = RUNNING?}
-        I -->|No| H
-        I -->|Yes| J[Assign Metastore]
-        J --> K[Create Storage Credentials]
-        K --> L[Create GCS Buckets + IAM]
-        L --> M[Create External Locations]
-        M --> N[Create Catalogs]
-        N --> O[Create Instance Pools]
-        O --> P[Create Cluster Policies]
-        P --> Q[Create SQL Warehouses]
-        Q --> R[Grant Permissions]
-    end
+```
+providers.tf   variables.tf   workspace.tf   deploy.sh
+prereqs.tf     iam-grants.tf  groups.tf (assigns EXISTING groups; see identities/)
+dns.tf         (PSC DNS, post-workspace; only when enable_private_access = true)
+prereqs.sh     one-time GCP bootstrap (APIs, agents, deployer roles) — see PREREQUISITES.md
+PREREQUISITES.md  the full prereq checklist
+modules/
+  prereqs/   main.tf            CMK keyring/key + service-agent grants (active)
+             network.tf         VPC (optional) + subnet + firewall (active)
+             iam-roles.tf       3 LPW roles for the workspace COMPUTE SA (active)
+             service-account.tf databricks-compute SA + monitoring.viewer (active)
+             psc.tf             PSC subnet + IPs + endpoints (enable_private_access)
+             routes.tf          default IGW route (enable_private_access + create_vpc)
+             account-admin.tf   commented reference (bootstrap done out of band)
+identities/    standalone, own-state TF for account groups/users/GSAs (shared, out of band)
+metastore/     standalone, own-state TF to create a regional UC metastore (one-time)
 ```
 
-## Prerequisites
+**Three separate configs, three separate states.** Account-level, shared resources
+are NOT owned by the per-workspace flow (they outlive any single workspace):
+- `identities/` — account groups, users, GSAs, memberships. Created once.
+- `metastore/` — regional Unity Catalog metastore. Created once per region.
+- root (this dir) — the workspace itself; it only **references** the above
+  (assigns existing groups, binds to an existing metastore).
 
-⚠️ **IMPORTANT**: This module does NOT create the foundational infrastructure. The following resources must exist BEFORE deploying:
+## Created by this config
 
-### 1. Databricks Account Setup (Must Exist)
+- **Custom IAM roles** (`modules/prereqs/iam-roles.tf`): the three
+  `lpw.databricks.*.role.v2` roles, bound to the workspace compute SA by
+  `iam-grants.tf`. (These are for the *compute SA*. The identity that RUNS Terraform
+  gets predefined roles out of band — see [PREREQUISITES.md](PREREQUISITES.md).)
+- **CMK** (`prereqs.tf` + `modules/prereqs/main.tf`): KMS key ring + crypto key,
+  service-agent grants, and the `databricks_mws_customer_managed_keys` config. The
+  workspace uses it for **both** `storage` and `managed_services` (encryption is
+  actually applied, not just provisioned). Attached only at RUNNING.
+- **NCC** (`workspace.tf`), only when `enable_ncc = true`: a
+  `databricks_mws_network_connectivity_config` (regional, stable egress / private
+  connectivity for serverless), attached to the workspace only at RUNNING.
+- **Workspace subnet** with Private Google Access, under the VPC.
+- **The VPC itself**, when `create_vpc = true` (**default true**; set false to use existing).
+- **Databricks-compute service account** (`modules/prereqs/service-account.tf`):
+  `databricks-compute@<project>`, the default SA for clusters with no custom SA.
+  Bare-minimum privilege: `roles/monitoring.viewer` (read-only metrics). No cost.
+- **PSC endpoints** (`modules/prereqs/psc.tf`) + **PSC DNS** (`dns.tf`), only when
+  `enable_private_access = true` — see the PSC section below.
 
-#### Account Access
-- ✅ Databricks account on GCP with **account-level admin access**
-- ✅ Access to account console: `https://accounts.gcp.databricks.com/`
+## Prerequisites (outside this config)
 
-#### Regional Unity Catalog Metastore (Must Be Created First)
-- ✅ **Unity Catalog metastore** already created in your target region (e.g., `us-east4`)
-  - Created by Databricks during account provisioning
-  - One metastore per region
-  - Obtain the metastore UUID from your Databricks account team
+**See [PREREQUISITES.md](PREREQUISITES.md) for the full checklist.** Everything
+Terraform cannot do itself is automated by `prereqs.sh`, run **once** by a project
+admin before the first deploy:
 
-#### Databricks Groups (Must Exist Before Deployment)
-- ✅ **Account-level groups** created in Databricks for permission management
-  - Example: `databricks-admins`, `databricks-writers`, `databricks-readers`
-  - Create at: https://accounts.gcp.databricks.com/ → User Management → Groups
-  - Groups must exist BEFORE running Terraform
-
-#### Regional Databricks Infrastructure IDs (Obtain from Databricks Account Team)
-- ✅ **Private Access Settings ID** (UUID) - per region
-- ✅ **Dataplane Relay VPC Endpoint ID** (UUID) - per region (ngrok endpoint)
-- ✅ **REST API VPC Endpoint ID** (UUID) - per region (plproxy endpoint)
-
-### 2. GCP Infrastructure (Must Exist)
-
-#### GCP Projects
-- ✅ **Databricks workspace project** - where workspace resources will be created
-- ✅ **Network project** (if using Shared VPC) - where VPC/subnets exist
-
-#### Network Infrastructure
-- ✅ **VPC network** configured and accessible
-  - Can be Shared VPC or dedicated VPC
-  - Must allow outbound internet access (for Databricks control plane)
-- ✅ **Subnet** allocated for Databricks worker nodes
-  - Minimum size: `/26` (64 IPs) - **Required**
-  - Recommended: `/24` (256 IPs) for production workloads
-  - Must have Private Google Access enabled
-  - Region must match workspace region
-
-#### Service Account with Permissions
-- ✅ **Terraform service account** with the following roles:
-  - `roles/iam.serviceAccountUser` - To use service accounts
-  - `roles/compute.networkAdmin` - To configure networking
-  - `roles/storage.admin` - To create GCS buckets
-  - `roles/resourcemanager.projectIamAdmin` - To grant IAM permissions
-  - **Databricks account admin role** - For workspace provisioning
-
-### 3. Terraform Environment
-
-#### Required Tools
-- ✅ Terraform >= 1.0
-- ✅ gcloud CLI (for authentication)
-
-#### Provider Versions
-- Databricks provider ~> 1.95.0
-- Google provider ~> 6.5.0
-- Null provider ~> 3.0
-- Random provider ~> 3.0
-
-### 4. Information Gathering Checklist
-
-Before starting deployment, gather the following information:
-
-#### From Databricks Account Team:
-- [ ] Databricks account ID (UUID format)
-- [ ] Regional private access settings ID
-- [ ] Regional dataplane relay VPC endpoint ID
-- [ ] Regional REST API VPC endpoint ID
-- [ ] Regional Unity Catalog metastore ID
-
-#### From GCP:
-- [ ] GCP project ID for Databricks workspace
-- [ ] GCP project ID for network (if using Shared VPC)
-- [ ] VPC network name
-- [ ] Subnet name (with adequate IP space)
-- [ ] Service account email for Terraform
-- [ ] Target region (e.g., `us-east4`)
-
-#### From Your Organization:
-- [ ] Databricks group names (must be created in account)
-- [ ] Owner email address
-- [ ] Team name
-- [ ] Notification distribution list
-- [ ] Optional: Billing tracking codes (cost center, APM ID, etc.)
-
-### What This Module Creates
-
-This module creates the following resources (it does NOT create the prerequisites above):
-
-**Phase 1:**
-- Databricks workspace object
-- Network configuration
-
-**Phase 2:**
-- Unity Catalog storage credentials
-- GCS buckets for Unity Catalog
-- External locations
-- Catalogs
-- Instance pools
-- Cluster policies
-- SQL warehouses
-- Permission grants
-
-### What You Must Create Separately
-
-The following are NOT created by this module and must exist beforehand:
-
-❌ VPC network
-❌ Subnets
-❌ Unity Catalog metastore
-❌ Databricks account
-❌ Databricks groups
-❌ GCP projects
-❌ Regional Databricks endpoint infrastructure
-
-## Quick Start
-
-### 1. Navigate to Example Directory
 ```bash
-cd example/
+PROJECT_ID=<workspace-project> \
+DEPLOYER_GSA=<sa-terraform-impersonates> \
+RUNNER=user:<who-runs-terraform> \
+./prereqs.sh
 ```
 
-### 2. Configure Variables
+In short, it: (1) enables the required APIs, (2) creates the GCP service agents the
+CMK grants need, (3) grants the deployer GSA the **predefined** roles to build the
+infra, (4) grants the runner impersonation on that GSA. One manual step it can't do:
+make the deployer GSA a **Databricks account admin** (console/API).
+
+**Why predefined roles, not a custom role:** the deploy needs
+`compute.forwardingRules.pscCreate` (PSC endpoints) and
+`dns.networks.bindPrivateDNSZone` (private DNS zone), which **cannot be granted via
+custom roles** — gcloud silently drops them. Predefined roles
+(`compute.networkAdmin`, `cloudkms.admin`, `dns.admin`, `iam.roleAdmin`,
+`iam.serviceAccountAdmin`, `resourcemanager.projectIamAdmin`) include them. This is
+the deployer identity; do not confuse it with the 3 LPW least-privilege roles this
+config grants to the workspace **compute SA**.
+
+Also: unless `create_vpc = false`, the VPC is created by this config (default
+`true`). With `false`, `google_vpc_id` must already exist.
+
+## VPC: non-shared (default) vs Shared VPC
+
+The default deployment is **non-shared VPC**: leave `google_shared_vpc_project`
+unset and the subnet, firewall, workspace network, and subnet-level IAM grant are
+all created in `google_project_id`. Nothing extra to do.
+
+**Shared VPC** is opt-in — set `google_shared_vpc_project` to the host project.
+The same four resources then target the host project instead. A single local drives
+this: `vpc_project_id = google_shared_vpc_project != "" ? google_shared_vpc_project : google_project_id`.
+
+If you use Shared VPC, these **host-project prerequisites must exist first** (this
+config does NOT manage them — they are host-project-admin operations):
+
+- The workspace project (`google_project_id`) is attached to the host project as a
+  **service project**.
+- The impersonated creator GSA has permission to create the subnet/firewall in the
+  host project (e.g. `roles/compute.networkAdmin` on the host project).
+- The Databricks compute service account (`gcp_workspace_sa`) has
+  `roles/compute.networkUser` on the subnet in the host project, in addition to the
+  `lpw.databricks.network.role.v2` grant this config applies.
+
+Without these, the shared-VPC apply will fail on the subnet/firewall create or the
+workspace will fail to provision. Non-shared VPC has none of these requirements.
+
+## Private Access Settings (PSC) — on by default
+
+`enable_private_access` defaults to **true**, so the full PSC path is built. Set it
+to `false` for a standard public workspace with no PSC resources.
+
+With it on, a `databricks_mws_private_access_settings` object is created and attached
+to the workspace. Like the CMK/NCC attachments, PAS is attached **only at RUNNING**
+(apply 2), never at PROVISIONING.
+
+The PAS shape is controlled by two variables that **default to the LPW-safe posture**:
+`public_access_enabled = true` (hybrid: public + PSC) and `private_access_level =
+"ACCOUNT"`. Both are overridable, but flipping `public_access_enabled = false` with no
+working PSC endpoints registered will **lock you out** of the workspace — change it
+only deliberately, after the private path is verified.
+
+### What `enable_private_access = true` builds
+
+**Pre-workspace (in `module.prereqs`, `psc.tf` + `routes.tf`):**
+
+- A dedicated **PSC endpoint subnet** (`psc_subnet_cidr`, default `10.1.255.0/26`,
+  separate from the workspace subnet).
+- Two **internal IPs** — one for the workspace (plproxy) endpoint, one for the SCC
+  relay (ngrok) endpoint.
+- Two **PSC consumer endpoints** (forwarding rules) targeting the Databricks
+  service attachments. Defaults are **us-central1**
+  (`workspace_service_attachment`, `relay_service_attachment`); override for other
+  regions using the values at the docs link above.
+- A **default internet-gateway route**, only when `create_vpc = true` (an existing
+  VPC already has one).
+
+**Databricks-side registration (`workspace.tf`):**
+
+- Two `databricks_mws_vpc_endpoint` resources registering the forwarding rules with
+  Databricks, bound into the network's `vpc_endpoints` block (back-end PSC). See
+  below.
+
+**Post-workspace (root `dns.tf`):**
+
+- A private **DNS zone for `gcp.databricks.com`** bound to the VPC, with A records:
+  - `<workspace-host>` -> plproxy endpoint IP (front-end)
+  - `dp-<workspace-host>` -> plproxy endpoint IP (back-end / data plane)
+  - `tunnel.<region>.gcp.databricks.com` -> ngrok relay endpoint IP
+  - `<region>.psc-auth.gcp.databricks.com` -> plproxy endpoint IP (front-end PSC auth)
+
+  These live in the root (not the module) because they need the workspace URL,
+  which only exists after the workspace object is created.
+
+### Region
+
+Service-attachment defaults are **us-central1**. For another region, override
+`workspace_service_attachment` and `relay_service_attachment` with that region's URIs
+from the docs link above, and set `google_region` accordingly.
+
+### Back-end PSC: `databricks_mws_vpc_endpoint`
+
+When `enable_private_access = true`, this config also registers the two GCP
+forwarding rules with Databricks as `databricks_mws_vpc_endpoint` resources
+(`workspace_vpce`, `relay_vpce`) and binds them into the network's `vpc_endpoints`
+block (`rest_api` = workspace/plproxy, `dataplane_relay` = SCC relay/ngrok). This is
+the back-end PSC path — required on GCP for the workspace to use the private
+endpoints, not just the front-end DNS.
+
+## NCC (`enable_ncc`) — bare config only on GCP
+
+`enable_ncc = true` creates a `databricks_mws_network_connectivity_config` and
+attaches it at RUNNING. It does **not** add NCC private endpoint rules: the
+`databricks_mws_ncc_private_endpoint_rule` resource only supports Azure and AWS
+today — it has no GCP fields. Serverless-PSC egress rules on GCP are a
+console/API step, out of scope for this Terraform.
+
+## Setup
+
 ```bash
-# Copy the example file
-cp terraform.tfvars.example terraform.tfvars
+# 1. Variables
+cp terraform.tfvars.example terraform.tfvars   # fill in real values
 
-# Edit with your values
-vim terraform.tfvars
-```
+# 2. Identities + metastore (out of band, ONCE — see identities/ and metastore/).
+#    Groups/users/GSAs are created in identities/; the metastore in metastore/.
+#    Then reference them here via terraform.tfvars:
+#      workspace_groups = { platform_admins = "ADMIN", data_engineers = "USER" }
+#      metastore_name   = "<existing-regional-metastore-name>"
 
-**Critical values to configure:**
-- `databricks_account_id` - Your Databricks account UUID
-- `databricks_google_service_account` - Service account email
-- Regional endpoint IDs (private_access_settings_id, VPC endpoints, metastore_id)
-- Network configuration (network_project_id, vpc_id, subnet_id)
-- GCP project details
-- Databricks groups (must exist before deployment)
-
-### 3. Phase 1: Provisioning
-```bash
+# 3. Auth + init
+export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 terraform init
-terraform plan -var="phase=PROVISIONING"
-terraform apply -var="phase=PROVISIONING"
 ```
 
-**Outputs**: Note the `workspace_gsa_email` from outputs.
+## Deploy
 
-**Manual Step**: Add the workspace GSA (from outputs) to your operator group in Google Workspace or GCP IAM.
-
-### 4. Phase 2: Running
 ```bash
-# Wait for workspace to reach RUNNING status (check Databricks console)
-terraform plan -var="phase=RUNNING"
-terraform apply -var="phase=RUNNING"
+./deploy.sh            # full deploy (see below)
+./deploy.sh --dryrun   # terraform plan only — changes nothing
+./deploy.sh --help     # usage
 ```
 
-This will create all workspace resources: pools, policies, Unity Catalog, SQL warehouses, and permissions.
+Run `./deploy.sh` **once** — it performs the two required applies in sequence
+within the single run (you do not run it twice):
 
-## What Gets Created
+1. **Apply 1** — prereqs (custom roles, VPC/subnet, CMK, compute SA, PSC endpoints)
+   + workspace at `PROVISIONING` + IAM role grants + groups. Terraform's dependency
+   graph orders these in a single apply: prereqs → workspace object →
+   `gcp_workspace_sa` → grants. The workspace is created **bare** — the LPW API
+   rejects all cloud-resource-configuration IDs at creation, so none of the fields
+   below are attached yet.
+2. **Apply 2** — flips the workspace to `RUNNING`, the update step where all the
+   config IDs attach: **network_id**, **CMK** (storage + managed_services), **PAS**
+   (`enable_private_access`), and **NCC** (`enable_ncc`). Each is null during
+   PROVISIONING and set only at RUNNING. If `metastore_id` is set, the workspace is
+   also bound to that regional Unity Catalog metastore here.
 
-### Phase 1: PROVISIONING
-- Databricks workspace (shell, no resources)
-- Network configuration object
-- Workspace GSA (created by Databricks): `db-<workspace-id>@prod-gcp-<region>.iam.gserviceaccount.com`
+**Unity Catalog:** set `metastore_id` to an existing regional metastore's ID to bind
+this workspace to it (see `metastore/` for creating one out of band). Only one
+metastore per region per account. Do **not** also enable account-level auto-assign
+for the region — the explicit binding and auto-assign collide.
 
-### Phase 2: RUNNING
-- **Workspace Configuration**: Network attachment, metastore assignment
-- **IAM & Permissions**: Account-level and workspace-level role assignments
-- **Storage**:
-  - Storage credentials (Databricks creates GCP service accounts)
-  - GCS buckets for Unity Catalog
-  - IAM bindings for bucket access
-- **Unity Catalog**:
-  - External locations
-  - Catalogs with workspace bindings
-  - Permission grants
-- **Compute**:
-  - 3 instance pools (Small, Medium, Large) - if configured
-  - Multiple cluster policies per size (Job, Job Pool, All-Purpose, All-Purpose Pool)
-  - Personal Compute and Shared Compute policies
-- **SQL Analytics**:
-  - SQL warehouses with serverless support
-  - Warehouse permissions
+Two applies are required, not one: creating the workspace straight to `RUNNING`
+deadlocks (RUNNING needs IAM roles on the compute SA, but that SA doesn't exist
+until the workspace is created). Creating at `PROVISIONING` first breaks the cycle.
 
-## 2-Phase Deployment Explained
+**Pre-flight:** the script checks for `terraform`/`gcloud`, `terraform.tfvars`,
+and an initialized `.terraform/` before doing anything, and exits
+with a clear message if something is missing.
 
-### Why 2 Phases?
+**On failure:** the failing stage is named and a short triage checklist is printed
+(the raw Terraform error is shown above it). `deploy.sh` is idempotent — re-run it;
+completed work shows "no changes" and it continues from the break.
 
-Databricks workspace creation is **asynchronous**. The workspace must be fully initialized before resources can be provisioned. Attempting to create resources while the workspace is still initializing causes errors:
+**`--dryrun` caveat:** it plans stage 1 only. Stage 2 ("flip to RUNNING") can't be
+planned in a fresh environment because it acts on a workspace object that stage 1
+hasn't created yet. For an already-deployed env, use `terraform plan` for full drift.
 
-```
-Error: cannot create resources: workspace not in RUNNING state
-```
+## Deploy without deploy.sh (raw Terraform)
 
-### The Solution
+`deploy.sh` is only a convenience wrapper around two `terraform apply` calls. If you
+prefer to run Terraform directly (assuming `terraform`, `gcloud`, and auth are
+already set up), the two stages are:
 
-**Phase 1: PROVISIONING** - Creates an empty workspace shell
-- Creates the workspace object (returns workspace ID immediately)
-- Creates network configuration object
-- Databricks initializes the workspace in the background
-- Databricks creates the workspace GSA: `db-<workspace-id>@prod-gcp-<region>.iam.gserviceaccount.com`
-- Returns workspace details (ID, URL) but workspace is NOT yet functional
+```bash
+# Export a fresh token for the Databricks account API (deploy.sh does this for you).
+export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 
-**Phase 2: RUNNING** - Turns the workspace into a functional, running state
-- Attaches the network configuration to the workspace
-- Polls workspace status every 10 seconds (max 10 minutes) until status = `RUNNING`
-- Once `RUNNING`, safely provisions all resources:
-  - Metastore assignment
-  - Storage credentials & GCS buckets
-  - Unity Catalog (external locations, catalogs)
-  - Compute resources (instance pools, cluster policies)
-  - SQL warehouses
-  - All permission grants
+terraform init
 
-### Status Polling
+# --- Apply 1: prereqs + workspace @ PROVISIONING + IAM grants + groups ---
+terraform apply -var expected_workspace_status=PROVISIONING
 
-The module includes a workspace status polling mechanism:
-- Polls Databricks API every 10 seconds
-- Maximum 60 attempts (10 minutes)
-- Uses service account impersonation for authentication
-- Blocks resource creation until workspace is confirmed RUNNING
+# --- Apply 2: flip the workspace to RUNNING ---
+terraform apply -var expected_workspace_status=RUNNING
 
-### Control Variable
-
-The `phase` variable controls deployment:
-```hcl
-phase = "PROVISIONING"  # Phase 1: Workspace creation
-phase = "RUNNING"       # Phase 2: Resource provisioning
+terraform output
 ```
 
-Internally, this sets:
-- `expected_workspace_status`: What status to wait for
-- `provision_workspace_resources`: Boolean flag for resource creation
+Notes:
+- **Two applies are mandatory**, in this order, for the reason above (the RUNNING
+  deadlock). Do not try to reach RUNNING in a single apply.
+- **`expected_workspace_status` is passed with `-var`**, not set in
+  `terraform.tfvars` — the deploy owns the phase, so the two don't conflict.
+- Drop `-auto-approve` (shown omitted here) to review each plan before applying, or
+  add it to match `deploy.sh`'s hands-off behavior.
+- **Preview a stage** without changing anything:
+  `terraform plan -var expected_workspace_status=PROVISIONING`.
+- **Re-running is safe** — Terraform is idempotent; a completed stage re-plans to
+  "no changes." If apply 1 succeeds but apply 2 is interrupted, just run apply 2
+  again (or re-run both).
+- **Targeting prereqs only** (optional): `terraform apply -target=module.prereqs`
+  provisions just the roles/VPC/subnet/CMK. Not required — apply 1 already creates
+  them first via the dependency graph.
 
-All workspace resources use this pattern:
-```hcl
-for_each = var.provision_workspace_resources ? local.resources_map : {}
-```
+## Changing groups / membership later
 
-## Directory Structure
+Group **membership** (who is in `platform_admins`, etc.) is managed in `identities/`
+— edit `identities/groups.yaml` and re-apply there. It is account-level and shared,
+so the change applies to every workspace referencing that group.
 
-```
-lpw/
-├── README.md                          # This file
-├── module/                            # Reusable Terraform module
-│   ├── README.md                      # Module documentation
-│   ├── versions.tf                    # Provider version requirements
-│   ├── providers.tf                   # Provider configurations
-│   ├── variables.tf                   # Input variables
-│   ├── locals.tf                      # Local values and transformations
-│   ├── data.tf                        # Data source lookups
-│   ├── outputs.tf                     # Module outputs
-│   ├── workspace.tf                   # Workspace creation + status polling
-│   ├── catalog*.tf                    # Unity Catalog resources (4 files)
-│   ├── gcs.tf                         # GCS bucket creation
-│   ├── storage_permission.tf          # GCS IAM bindings
-│   ├── workspace_computes.tf          # Instance pools + cluster policies
-│   ├── workspace_*_permissions.tf     # Permission grants (3 files)
-│   ├── sql_warehouse.tf               # SQL warehouse creation
-│   ├── sql_permissions.tf             # SQL warehouse permissions
-│   ├── foriegn_catalog_connections.tf # BigQuery connections
-│   └── random.tf                      # Random string generation
-└── example/                           # Full deployment example with 2-phase logic
-    ├── README.md                      # Deployment guide
-    ├── main.tf                        # Module invocation
-    ├── variables.tf                   # Variable definitions
-    ├── locals.tf                      # Phase configuration logic
-    ├── outputs.tf                     # Output forwarding
-    └── terraform.tfvars.example       # Configuration template
-```
+Which groups **this workspace** grants, and at what level, is `var.workspace_groups`
+in this config's `terraform.tfvars` — edit it and re-run `./deploy.sh`.
 
-**Why Two Directories?**
-- **`module/`** - The reusable Terraform module with all resource definitions
-- **`example/`** - Shows how to use the module correctly with 2-phase deployment logic
+## Gotchas / known behaviors
 
+Lessons baked into this config (so you don't rediscover them):
 
-## Configuration Examples
-
-### Minimal Configuration
-```hcl
-# Focus on required fields only
-workspace_name = "my-databricks-workspace"
-metastore_id   = "your-metastore-uuid"
-
-# Network
-network_project_id = "my-network-project"
-vpc_id             = "my-vpc"
-subnet_id          = "my-subnet"
-
-# One catalog
-unity_catalog_config = "[{\"name\": \"main\", \"external_bucket\": \"my-catalog-bucket\", \"shared\": \"false\"}]"
-```
-
-### Production Configuration
-```hcl
-# Complete setup with multiple catalogs, SQL warehouses, and granular permissions
-unity_catalog_config = "[
-  {\"name\": \"prod_data\", \"external_bucket\": \"prod-data-bucket\", \"shared\": \"false\"},
-  {\"name\": \"dev_data\", \"external_bucket\": \"dev-data-bucket\", \"shared\": \"false\"}
-]"
-
-sqlwarehouse_cluster_config = "[
-  {\"name\": \"small-sql\", \"config\": {\"type\": \"small\", \"max_instance\": 2, \"serverless\": \"true\"}, \"permission\": [...]},
-  {\"name\": \"large-sql\", \"config\": {\"type\": \"large\", \"max_instance\": 4, \"serverless\": \"true\"}, \"permission\": [...]}
-]"
-
-# Multiple groups with different roles
-permissions_group_role_user = "data-analysts,data-engineers,data-scientists,admins"
-```
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. Workspace Stuck in PROVISIONING
-**Symptoms**: Phase 2 hangs during workspace status polling
-**Solution**:
-- Check Databricks console for workspace status
-- Verify network configuration is correct
-- Check for quota issues in GCP project
-- Contact Databricks support if stuck >20 minutes
-
-#### 2. Permission Denied Errors
-**Symptoms**: `Error: insufficient permissions to create resource`
-**Solution**:
-- Verify service account has required roles
-- Check if groups exist in Databricks account before deployment
-- Ensure workspace GSA was added to operator group
-
-#### 3. Network Attachment Fails
-**Symptoms**: `Error: cannot attach network to workspace`
-**Solution**:
-- Verify VPC exists and is accessible
-- Check subnet has sufficient IP addresses (minimum /26)
-- Ensure private access settings ID is correct for region
-
-#### 4. Storage Credential Creation Fails
-**Symptoms**: `Error creating storage credential`
-**Solution**:
-- Verify Databricks account has permissions to create GCP service accounts
-- Check if storage credential name conflicts with existing one
-- Ensure isolation mode is set correctly (ISOLATION_MODE_OPEN)
-
-## Advanced Topics
-
-### Custom Cluster Policies
-
-The module creates policies for each compute size (Small, Medium, Large):
-- **Job Policy**: For automated workloads (fixed cluster_type)
-- **Job Pool Policy**: Job policy with instance pool reference
-- **All-Purpose Policy**: For interactive workloads
-- **All-Purpose Pool Policy**: All-purpose with instance pool
-- **Personal Compute**: Override for individual users
-- **Shared Compute**: Override for shared clusters
-
-### Unity Catalog Permissions Model
-
-Permissions are granted at multiple levels:
-- **Catalog Level**: `data_editor`, `data_reader`, `data_writer`
-- **External Location Level**: `writer`, `reader`
-- **Storage Credential Level**: `writer`, `reader`
-
-### External Project Support
-
-To create GCS buckets in a different project:
-```hcl
-external_project  = true
-bucket_project_id = "my-data-project"
-```
-
-### Billing Tags
-
-Optional billing/tracking codes for cost allocation:
-```hcl
-costcenter  = "CC12345"   # Cost center
-apmid       = "APM000000" # Application Portfolio Management ID
-ssp         = "SSP000000" # Service & Support Plan ID
-trproductid = "0000"      # Product tracking ID
-```
-
-## Security Considerations
-
-1. **Sensitive Variables**: Account IDs, endpoint IDs, and metastore IDs are marked `sensitive = true`
-2. **Authentication**: Use Application Default Credentials or service account impersonation (avoid key files)
-3. **Network Isolation**: Deploy with BYOVPC and PSC for maximum security
-4. **Encryption**: Enable CMEK for data at rest (configured at workspace level)
-5. **Access Control**: Grant minimum necessary permissions to groups
-6. **Audit**: All resources are tagged with owner, team, and environment
-
-## Migration and Updates
-
-### Updating Compute Policies
-Cluster policies use JSON. To update:
-1. Modify policy in Databricks UI
-2. Export policy JSON
-3. Update `cluster_policy_permissions` in terraform.tfvars
-4. Run `terraform apply -var="phase=RUNNING"`
-
-### Adding New Catalogs
-```hcl
-# Update unity_catalog_config with new catalog
-unity_catalog_config = "[
-  {\"name\": \"existing_catalog\", ...},
-  {\"name\": \"new_catalog\", \"external_bucket\": \"new-bucket\", \"shared\": \"false\"}
-]"
-
-# Update permissions
-unity_catalog_permissions = "[
-  {\"name\": \"existing_catalog\", ...},
-  {\"name\": \"new_catalog\", \"permission\": [...]}
-]"
-```
-
-### Workspace Scaling
-To add more compute capacity:
-1. Increase instance pool `max_capacity` in `locals.tf`
-2. Add larger compute types: `compute_types = "Small,Medium,Large,XLarge"`
-3. Apply changes: `terraform apply -var="phase=RUNNING"`
-
-## Related Documentation
-
-- [Databricks on GCP Documentation](https://docs.databricks.com/gcp/en/)
-- [Unity Catalog Documentation](https://docs.databricks.com/data-governance/unity-catalog/index.html)
-- [Terraform Databricks Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
-- [GCP VPC Documentation](https://cloud.google.com/vpc/docs)
-
-## Support
-
-For issues related to:
-- **This Terraform module**: Open an issue in this repository
-- **Databricks platform**: Contact your Databricks account team
-- **GCP infrastructure**: Consult GCP support
-
-## License
-
-This module is provided as-is for use with Databricks on GCP deployments.
-
-## Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request with detailed description
-
----
-
-**Note**: This module creates billable resources in both GCP (compute, storage, networking) and Databricks (DBUs). Review pricing before deployment.
+- **Reserved group names.** `admins` and `users` are built-in Databricks groups; you
+  cannot create groups with those names. Use distinct names (e.g. `platform_admins`)
+  in `identities/groups.yaml` and `workspace_groups`.
+- **Workspace GSA propagation lag.** The workspace emits its compute SA at creation,
+  but GCP IAM is eventually consistent — binding roles immediately can 400 "service
+  account does not exist." A `time_sleep.wait_for_workspace_gsa` (60s) gates **every**
+  grant that references the GSA (project/resource/network roles *and* the CMK grant).
+  If you add another GSA-referencing resource, wire it to that sleep too.
+- **LPW rejects config IDs at creation.** `network_id`, CMK, PAS, NCC all attach only
+  at RUNNING (apply 2), never at PROVISIONING — this is the LPW API contract.
+- **Metastore is per-region, one per account.** Bind by `metastore_name` (region is
+  validated at plan) or `metastore_id`. Don't also enable account-level auto-assign.
+- **Your own admin user is protected.** In `identities/`, users use
+  `disable_as_user_deletion = true`, so `terraform destroy` deactivates rather than
+  hard-deletes a real account — you can't accidentally delete yourself.

@@ -140,8 +140,8 @@ targetResource: "projects/NNNNNNNNNNN"  # UPDATE: Your customer VPC project
 # The exact command depends on your organization's policy structure.
 # Consult with your GCP administrator or Databricks support.
 #
-# STEP 3: Coordinate with Databricks
-# Contact Databricks support to coordinate the migration timing.
+# STEP 3: Plan the migration timing
+# Schedule the migration window to suit your workloads.
 #
 # STEP 4: Remove policy after migration
 # Once migration is complete, remove this policy as it's no longer needed.

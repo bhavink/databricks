@@ -1,0 +1,69 @@
+# Copy to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored (never commit real values).
+
+# --- Databricks account ---
+databricks_account_id          = "00000000-0000-0000-0000-000000000000"
+databricks_account_console_url = "https://accounts.gcp.databricks.com"
+databricks_admin_user          = "you@example.com"
+
+# --- Workspace ---
+databricks_workspace_name = "lpw-demo-ws"
+# NOTE: expected_workspace_status is set by deploy.sh (-var), not here.
+
+# --- GCP project / auth ---
+google_project_id     = "my-gcp-project"
+google_project_number = "000000000000"
+google_region         = "us-central1"
+
+# OPTIONAL — Shared VPC only. Leave unset for the default non-shared setup
+# (subnet/firewall created in google_project_id).
+# google_shared_vpc_project = "my-shared-vpc-host-project"
+
+# GSA the Databricks provider impersonates. Must ALREADY be an account admin
+# (bootstrap prereq) so it can create the workspace. See modules/prereqs/account-admin.tf.
+google_service_account_email = "deployer-sa@my-gcp-project.iam.gserviceaccount.com"
+
+# --- Network ---
+google_vpc_id         = "my-vpc"    # VPC name (created if create_vpc = true, else must exist)
+create_vpc            = true        # DEFAULT true = create the VPC (non-shared only); false = use existing
+workspace_subnet      = "my-subnet" # workspace subnet to CREATE (always created)
+workspace_subnet_cidr = "10.1.0.0/26"
+
+# --- Workspace group assignments (optional) ---
+# Grant EXISTING account groups a role on this workspace. Groups/users are created
+# out of band in identities/ — this only references them by name. Empty = none.
+# NOTE: "admins"/"users" are reserved built-in group names — use custom names.
+# workspace_groups = {
+#   platform_admins = "ADMIN"
+#   data_engineers  = "USER"
+#   analysts        = "USER"
+# }
+
+# --- Unity Catalog metastore (optional) ---
+# Bind the workspace to an EXISTING regional metastore (one per region per account).
+# Identify it by NAME (resolved to an ID) — preferred — or by explicit ID.
+# Empty/omitted = no UC binding. Create/manage the metastore out of band (metastore/).
+# Do NOT also turn on account-level auto-assign for the region if you set this.
+# metastore_name = "uc-us-central1"
+# metastore_id   = "00000000-0000-0000-0000-000000000000"   # optional override
+
+# --- Network Connectivity Config ---
+# DEFAULT enable_ncc = true. Stable egress / private connectivity for serverless.
+# Attached only at RUNNING. Set false to skip.
+# enable_ncc = true
+
+# --- Private Service Connect ---
+# DEFAULT enable_private_access = true. Builds PSC subnet + endpoints + DNS + the
+# two databricks_mws_vpc_endpoint registrations, and attaches a PAS object.
+# Set false for a standard public workspace.
+# enable_private_access = true
+# psc_subnet_cidr       = "10.1.255.0/26"  # separate from workspace_subnet_cidr
+#
+# PAS shape (defaults are the LPW-safe posture; override only if you know why):
+# public_access_enabled = true       # false = PSC-only (LOCKOUT risk if endpoints not ready)
+# private_access_level  = "ACCOUNT"  # or "ENDPOINT"
+#
+# Service attachment URIs default to us-central1. Override for other regions
+# (https://docs.databricks.com/gcp/en/resources/ip-domain-region#psc):
+# workspace_service_attachment = "projects/gcp-prod-general/regions/us-central1/serviceAttachments/plproxy-psc-endpoint-all-ports"
+# relay_service_attachment     = "projects/prod-gcp-us-central1/regions/us-central1/serviceAttachments/ngrok-psc-endpoint"
