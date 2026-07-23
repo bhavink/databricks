@@ -37,6 +37,12 @@ email, VPC + subnet names) are uncommented; optional ones are commented with the
 defaults. For this run also set:
 - `workspace_groups = { platform_admins = "ADMIN", data_engineers = "USER" }`
 - `metastore_name   = "<name from step 2>"`
+
+Optional (all default off/lean, toggle in `terraform.tfvars`):
+- `enable_ip_access_list = true` — restrict workspace access by IP. Put your ranges
+  in `ip_access_list.yaml` first, and include your own egress IP or you lock
+  yourself out. Applied automatically **after** the workspace is RUNNING (apply 2).
+
 Wait for `Done. Workspace is RUNNING.` Your workspace URL prints at the end.
 
 ## 3b. Prefer raw Terraform (no deploy.sh)?

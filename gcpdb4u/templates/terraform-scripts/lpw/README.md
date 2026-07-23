@@ -25,12 +25,16 @@ modules/
              account-admin.tf   commented reference (bootstrap done out of band)
 identities/    standalone, own-state TF for account groups/users/GSAs (shared, out of band)
 metastore/     standalone, own-state TF to create a regional UC metastore (one-time)
+register-account-gsa/  standalone reference TF to register + admin a creator GSA (DISABLED; opt-in)
 ```
 
-**Three separate configs, three separate states.** Account-level, shared resources
-are NOT owned by the per-workspace flow (they outlive any single workspace):
+**Separate configs, separate states.** Account-level, shared resources are NOT owned
+by the per-workspace flow (they outlive any single workspace):
 - `identities/` — account groups, users, GSAs, memberships. Created once.
 - `metastore/` — regional Unity Catalog metastore. Created once per region.
+- `register-account-gsa/` — optional, **disabled by default** reference: register a
+  workspace-creator GSA in the account console + grant account_admin (automates a
+  manual precursor). Enable only if you choose to use it.
 - root (this dir) — the workspace itself; it only **references** the above
   (assigns existing groups, binds to an existing metastore).
 
@@ -178,6 +182,20 @@ attaches it at RUNNING. It does **not** add NCC private endpoint rules: the
 `databricks_mws_ncc_private_endpoint_rule` resource only supports Azure and AWS
 today — it has no GCP fields. Serverless-PSC egress rules on GCP are a
 console/API step, out of scope for this Terraform.
+
+## IP access lists (`enable_ip_access_list`) — optional, default off
+
+Set `enable_ip_access_list = true` to restrict workspace UI/API access by IP. Two
+steps, handled automatically in order (`ip-access-list.tf`):
+1. `databricks_workspace_conf` enables the feature (`enableIpAccessLists = true`).
+2. `databricks_ip_access_list` applies each entry from `ip_access_list.yaml`.
+
+Edit `ip_access_list.yaml` to set your entries (`<label>: {list_type: ALLOW|BLOCK,
+ip_addresses: [...]}`). Default is **off** — no lists, no restriction.
+
+⚠️ An **ALLOW** list restricts the workspace to the listed IPs only. Include your own
+egress IP/CIDR or you will lock yourself out of the UI/API. These resources use the
+workspace-level provider, so they apply once the workspace is RUNNING.
 
 ## Setup
 

@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars and fill in. This dir has its OWN state — do not share
+# state with the workspace, identities, or metastore configs.
+
+databricks_account_id = "00000000-0000-0000-0000-000000000000"
+
+# The bootstrap GSA that is ALREADY an account admin (added manually, once).
+# The provider impersonates this to register the GSAs below.
+bootstrap_admin_gsa_email = "bootstrap-admin-sa@my-gcp-project.iam.gserviceaccount.com"
+
+# The workspace-creator GSA(s) to register + grant account_admin. One or many.
+workspace_creator_gsa_emails = [
+  "deployer-sa@my-gcp-project.iam.gserviceaccount.com",
+]

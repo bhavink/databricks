@@ -47,6 +47,12 @@ workspace_subnet_cidr = "10.1.0.0/26"
 # metastore_name = "uc-us-central1"
 # metastore_id   = "00000000-0000-0000-0000-000000000000"   # optional override
 
+# --- Workspace IP access lists (optional; DEFAULT off) ---
+# false = none. true = enable IP ACLs on the workspace and apply the entries in
+# ip_access_list.yaml. WARNING: an ALLOW list restricts access to listed IPs only —
+# include your own egress IP/CIDR or you lock yourself out.
+# enable_ip_access_list = false
+
 # --- Network Connectivity Config ---
 # DEFAULT enable_ncc = true. Stable egress / private connectivity for serverless.
 # Attached only at RUNNING. Set false to skip.

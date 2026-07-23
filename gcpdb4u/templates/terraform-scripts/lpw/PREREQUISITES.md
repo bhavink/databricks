@@ -75,6 +75,11 @@ Do this in the Databricks account console or via API.
 *Why:* the Databricks provider creates the workspace/network/CMK/PAS/NCC objects via
 the account API; the impersonated GSA must hold account_admin or those calls 403.
 
+*Optional automation:* if you have one bootstrap GSA that is already an account
+admin, you can register + grant account_admin to the deployer GSA(s) with Terraform
+instead of by hand — see `register-account-gsa/`. The very first bootstrap admin
+still has to be added manually once (nothing can grant the first admin).
+
 ---
 
 ## After prereqs — full deploy order

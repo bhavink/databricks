@@ -1,0 +1,21 @@
+# Workspace IP access lists. Only applied when enable_ip_access_list = true.
+#
+# Each entry becomes a databricks_ip_access_list:
+#   <label>:
+#     list_type: ALLOW | BLOCK
+#     ip_addresses: [ IPs and/or CIDRs ]
+#
+# NOTE: once any ALLOW list exists, only listed IPs can reach the workspace UI/API.
+# Make sure your own egress IP/CIDR is included, or you will lock yourself out.
+# Example entries below — replace with your real ranges.
+
+office-allow:
+  list_type: ALLOW
+  ip_addresses:
+    - 203.0.113.0/24      # example office CIDR
+    - 198.51.100.10       # example single IP
+
+# blocked-range:
+#   list_type: BLOCK
+#   ip_addresses:
+#     - 192.0.2.0/24

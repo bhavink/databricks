@@ -43,6 +43,15 @@ variable "workspace_groups" {
   }
 }
 
+# Workspace IP access lists (optional, default OFF). Two-step: (1) enable the
+# feature on the workspace, (2) add the allow/block entries. When false, neither
+# happens. The IP/CIDR entries live in ip_access_list.yaml (edit there).
+variable "enable_ip_access_list" {
+  type        = bool
+  default     = false # false = no IP ACLs enabled on the workspace
+  description = "Enable IP access lists on the workspace and apply the entries from ip_access_list.yaml. Default false."
+}
+
 # Unity Catalog metastore binding (optional). Bind THIS workspace to an EXISTING
 # regional metastore (one per region per account). The metastore is created out of
 # band (see metastore/), not here. Two ways to identify it:

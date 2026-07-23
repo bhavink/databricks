@@ -1,0 +1,84 @@
+# ==================================================================
+# OPTIONAL, OUT-OF-BAND: register GSAs in the Databricks account console and make
+# them account admins. SEPARATE Terraform + state.
+#
+# Purpose: automate what is otherwise a one-off manual click. A workspace-creator
+# GSA must exist as an account admin before it can create workspaces. Doing that
+# by hand for every new GSA is tedious; this config does it in Terraform.
+#
+# The chain (deliberate, least-standing-privilege):
+#   - ONE bootstrap GSA is added to the account console + made admin MANUALLY, once
+#     (the true chicken-and-egg root — no automation can grant the very first one).
+#   - This config's provider impersonates THAT bootstrap GSA, and uses it to
+#     register + grant account_admin to the OTHER GSAs used for workspace creation.
+#
+# So: bootstrap GSA (manual, once) -> this config -> workspace-creator GSA(s).
+#
+# Run ONCE per new workspace-creator GSA (or re-run to add more), from THIS dir
+# with its OWN state, as a precursor to workspace deployment:
+#     cd register-account-gsa/
+#     export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
+#     terraform init && terraform apply
+#
+# !!! SECURITY: account_admin is the HIGHEST privilege in Databricks (full control
+# of the entire account: every workspace, billing, identities, network/security,
+# audit). Granting it to a workspace-creator GSA is a large blast radius. Only do
+# this if account-admin is genuinely required for the creation flow; otherwise
+# scope the GSA to workspace-level ADMIN instead (see ../groups.tf).
+# ==================================================================
+
+terraform {
+  required_providers {
+    databricks = {
+      source  = "databricks/databricks"
+      version = ">=1.70.0"
+    }
+  }
+}
+
+# Impersonates the EXISTING bootstrap account-admin GSA (added manually, once).
+provider "databricks" {
+  alias                  = "accounts"
+  host                   = "https://accounts.gcp.databricks.com"
+  account_id             = var.databricks_account_id
+  google_service_account = var.bootstrap_admin_gsa_email
+}
+
+variable "databricks_account_id" {
+  type        = string
+  description = "Databricks account ID."
+}
+
+variable "bootstrap_admin_gsa_email" {
+  type        = string
+  description = "Existing account-admin GSA the provider impersonates. Must ALREADY be added to the account console and hold account_admin (the one manual step this config cannot do for itself)."
+}
+
+variable "workspace_creator_gsa_emails" {
+  type        = list(string)
+  default     = []
+  description = "GSA emails to register as account users and grant account_admin (the workspace-creator GSAs). One or many."
+}
+
+# Register each target GSA as an account user. force = true adopts it if it
+# already exists at the account level (idempotent, no duplicate).
+resource "databricks_user" "creator_gsa" {
+  provider                 = databricks.accounts
+  for_each                 = toset(var.workspace_creator_gsa_emails)
+  user_name                = each.value
+  force                    = true
+  disable_as_user_deletion = true # on destroy, deactivate — never hard-delete the GSA user
+}
+
+# Grant account_admin to each registered GSA.
+resource "databricks_user_role" "creator_gsa_admin" {
+  provider = databricks.accounts
+  for_each = databricks_user.creator_gsa
+  user_id  = each.value.id
+  role     = "account_admin"
+}
+
+output "registered_gsa_ids" {
+  description = "Map of GSA email => account user id."
+  value       = { for k, u in databricks_user.creator_gsa : k => u.id }
+}
