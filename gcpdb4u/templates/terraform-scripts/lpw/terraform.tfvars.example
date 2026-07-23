@@ -53,6 +53,15 @@ workspace_subnet_cidr = "10.1.0.0/26"
 # include your own egress IP/CIDR or you lock yourself out.
 # enable_ip_access_list = false
 
+# --- Serverless egress control / network policy (optional; DEFAULT off) ---
+# Off = workspace uses the account's built-in 'default-policy' (FULL_ACCESS/open).
+# true = create a per-workspace RESTRICTED policy from network_policy.yaml + bind it.
+# Start in DRY_RUN (logs only); flip to ENFORCED after the allow-list is proven.
+# See README "Serverless egress control" for the update-only teardown gotchas.
+# enable_network_policy            = false
+# network_policy_enforcement_mode  = "DRY_RUN"          # or "ENFORCED"
+# shared_network_policy_id         = ""                 # bind an existing shared policy instead
+
 # --- Network Connectivity Config ---
 # DEFAULT enable_ncc = true. Stable egress / private connectivity for serverless.
 # Attached only at RUNNING. Set false to skip.

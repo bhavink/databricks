@@ -42,6 +42,12 @@ Optional (all default off/lean, toggle in `terraform.tfvars`):
 - `enable_ip_access_list = true` — restrict workspace access by IP. Put your ranges
   in `ip_access_list.yaml` first, and include your own egress IP or you lock
   yourself out. Applied automatically **after** the workspace is RUNNING (apply 2).
+- `enable_network_policy = true` — restrict serverless egress (anti-exfil). Off =
+  the workspace uses the account `default-policy` (open). When on, creates a per-ws
+  RESTRICTED policy from `network_policy.yaml`, in `DRY_RUN` (logs only) until you
+  flip to `ENFORCED`. Read the README "Serverless egress control" section first —
+  turning it back OFF has an update-only lifecycle gotcha (rebind to `default-policy`
+  before deleting the custom policy).
 
 Wait for `Done. Workspace is RUNNING.` Your workspace URL prints at the end.
 

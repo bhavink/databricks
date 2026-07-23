@@ -13,6 +13,8 @@ account-level groups. Greenfield layout: prereq primitives live in
 providers.tf   variables.tf   workspace.tf   deploy.sh
 prereqs.tf     iam-grants.tf  groups.tf (assigns EXISTING groups; see identities/)
 dns.tf         (PSC DNS, post-workspace; only when enable_private_access = true)
+ip-access-list.tf + ip_access_list.yaml   (IP ACLs; only when enable_ip_access_list = true)
+network-policy.tf + network_policy.yaml   (serverless egress; only when enable_network_policy = true)
 prereqs.sh     one-time GCP bootstrap (APIs, agents, deployer roles) — see PREREQUISITES.md
 PREREQUISITES.md  the full prereq checklist
 modules/
@@ -197,6 +199,47 @@ ip_addresses: [...]}`). Default is **off** — no lists, no restriction.
 egress IP/CIDR or you will lock yourself out of the UI/API. These resources use the
 workspace-level provider, so they apply once the workspace is RUNNING.
 
+## Serverless egress control (`enable_network_policy`) — optional, default OFF
+
+Restricts where **serverless** compute can egress, to guard against accidental data
+exfiltration. **Off by default**: the workspace uses the account's built-in
+`default-policy`, which is `FULL_ACCESS` (open egress). This is BYO-policy — opt in
+only when you want restriction.
+
+When `enable_network_policy = true`, this flow creates a **per-workspace**
+`databricks_account_network_policy` (`RESTRICTED_ACCESS`) from `network_policy.yaml`
+(allowed internet DNS names + GCS buckets) and binds the workspace to it via
+`databricks_workspace_network_option`. Enforcement defaults to **`DRY_RUN`** (logs
+violations, blocks nothing) — set `network_policy_enforcement_mode = "ENFORCED"` only
+after you've confirmed the allow-list covers everything serverless needs. To bind an
+existing **shared** policy instead of creating a per-workspace one, set
+`shared_network_policy_id`.
+
+Scope + defaults:
+- **Serverless only** — classic compute egress is governed by the VPC/PSC/VPC-SC
+  layer, not this.
+- `default-policy` **exists automatically** in every account (Databricks-managed,
+  cannot be deleted). A workspace with no explicit binding uses it — so "default off
+  = do nothing" leaves the workspace on `default-policy`. No resource needed.
+- Start in `DRY_RUN`. `RESTRICTED_ACCESS` + `ENFORCED` **will** break serverless jobs
+  until the allow-list includes everything they reach (control plane, DBFS/GCS, PyPI).
+
+### ⚠️ Lifecycle gotchas (learned the hard way)
+
+`databricks_workspace_network_option` is **update-only** — every workspace always has
+one (defaulting to `default-policy`). Consequences when tearing a custom policy down:
+
+- **Deleting the binding resource does NOT revert the workspace to `default-policy`.**
+  The workspace stays pinned to the custom policy on the backend. You must explicitly
+  re-bind it to `default-policy` first (set `shared_network_policy_id = "default-policy"`
+  and apply the binding), *then* remove the custom policy.
+- **A custom policy cannot be deleted while any running workspace is still attached**
+  — the API returns `attached to N running workspace(s)`. Detach (rebind to
+  `default-policy`) before deleting. There is also brief propagation lag after
+  detaching before the delete succeeds.
+- To fully turn this off after using it: rebind to `default-policy`, confirm, then
+  delete the custom policy (Terraform, or account console → Network policies).
+
 ## Setup
 
 ```bash
@@ -323,3 +366,10 @@ Lessons baked into this config (so you don't rediscover them):
 - **Your own admin user is protected.** In `identities/`, users use
   `disable_as_user_deletion = true`, so `terraform destroy` deactivates rather than
   hard-deletes a real account — you can't accidentally delete yourself.
+- **Network policy binding is update-only.** `databricks_workspace_network_option`
+  can't be created/destroyed, only updated — every workspace always has one
+  (`default-policy` by default). Deleting the TF binding does NOT revert the workspace
+  to `default-policy`, and a custom policy can't be deleted while a running workspace
+  is still attached. To turn it off: rebind to `default-policy`
+  (`shared_network_policy_id = "default-policy"`), then delete the custom policy. See
+  "Serverless egress control" above. This is why it defaults OFF (BYO policy).

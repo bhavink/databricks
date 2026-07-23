@@ -52,6 +52,36 @@ variable "enable_ip_access_list" {
   description = "Enable IP access lists on the workspace and apply the entries from ip_access_list.yaml. Default false."
 }
 
+# Serverless egress control (network policy). Default OFF. When enabled, this flow
+# creates a PER-WORKSPACE account network policy (RESTRICTED_ACCESS) and binds the
+# workspace to it, restricting where serverless compute can egress (anti-exfil).
+# Allowed destinations live in network_policy.yaml. Enforcement defaults to DRY_RUN
+# (logs violations, blocks nothing) so it can't break serverless workloads on day 1.
+variable "enable_network_policy" {
+  type        = bool
+  default     = false # false = workspace keeps account 'default-policy' (FULL_ACCESS)
+  description = "Create + bind a per-workspace serverless egress policy from network_policy.yaml. Default false."
+}
+
+variable "network_policy_enforcement_mode" {
+  type        = string
+  default     = "DRY_RUN" # DRY_RUN = log only; ENFORCED = block violations
+  description = "Serverless egress policy enforcement: DRY_RUN (log only) or ENFORCED (block). Default DRY_RUN."
+  validation {
+    condition     = contains(["DRY_RUN", "ENFORCED"], var.network_policy_enforcement_mode)
+    error_message = "network_policy_enforcement_mode must be DRY_RUN or ENFORCED."
+  }
+}
+
+# Opt-in: bind to an EXISTING shared network policy instead of creating a per-ws one.
+# When set, enable_network_policy's per-ws policy is skipped and the workspace binds
+# to this id (shared across workspaces). Create shared policies out of band.
+variable "shared_network_policy_id" {
+  type        = string
+  default     = ""
+  description = "Existing shared account network policy ID to bind instead of creating a per-workspace one. Empty = per-workspace (when enable_network_policy = true)."
+}
+
 # Unity Catalog metastore binding (optional). Bind THIS workspace to an EXISTING
 # regional metastore (one per region per account). The metastore is created out of
 # band (see metastore/), not here. Two ways to identify it:

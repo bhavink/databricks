@@ -7,7 +7,7 @@
 #
 # NOTE: once any ALLOW list exists, only listed IPs can reach the workspace UI/API.
 # Make sure your own egress IP/CIDR is included, or you will lock yourself out.
-# Example entries below — replace with your real ranges.
+# Example entries below (RFC 5737 documentation ranges) — replace with your own.
 
 office-allow:
   list_type: ALLOW
