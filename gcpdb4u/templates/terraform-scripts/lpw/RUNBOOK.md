@@ -63,6 +63,20 @@ terraform output                                              # workspace URL + 
 Both applies are required, in this order — the workspace can't be created straight to
 RUNNING. Re-running either is safe. (Full detail: README.md "Deploy without deploy.sh".)
 
+## Inspect, destroy, re-plan
+`deploy.sh` is the single entry point — it exports the GCP token and passes the
+right `-var` for you, so prefer it over raw `terraform`:
+```bash
+./deploy.sh state            # list every resource in state
+./deploy.sh show <address>   # one resource's full state (no arg = list + hint)
+./deploy.sh output           # workspace URL + resource ids
+./deploy.sh plan-running      # dry-run the apply-2 (RUNNING) flip on a live ws
+./deploy.sh destroy          # tear everything down (prompts to confirm)
+./deploy.sh destroy --target <address>   # destroy just one resource
+./deploy.sh destroy --yes    # skip the confirm prompt (automation)
+```
+Run `./deploy.sh --help` for the full command list.
+
 ## If something fails
 Re-run the same command — it's safe and resumes. A `403` means a missing GCP
 permission: add it to `prereqs.sh`, re-run step 0, then retry.

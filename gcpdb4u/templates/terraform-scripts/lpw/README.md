@@ -260,10 +260,26 @@ terraform init
 ## Deploy
 
 ```bash
-./deploy.sh            # full deploy (see below)
-./deploy.sh --dryrun   # terraform plan only — changes nothing
-./deploy.sh --help     # usage
+./deploy.sh            # full deploy (two applies; see below)
+./deploy.sh plan       # terraform plan for apply 1 — changes nothing (--dryrun alias)
+./deploy.sh --help     # full command list
 ```
+
+`deploy.sh` is the single entry point for the workspace lifecycle. Every command
+exports a fresh GCP token and passes the correct `-var` (raw `terraform` calls
+won't authenticate without the token):
+
+| Command | Does |
+|---|---|
+| `./deploy.sh` (or `deploy`) | Full deploy: apply 1 (PROVISIONING) → apply 2 (RUNNING) |
+| `./deploy.sh plan` / `--dryrun` | Dry-run apply 1 (PROVISIONING) |
+| `./deploy.sh plan-running` | Dry-run apply 2 (RUNNING); accurate only after a deploy exists |
+| `./deploy.sh state` | List every resource in state |
+| `./deploy.sh show <address>` | Full state of one resource (no arg = list + hint) |
+| `./deploy.sh output` | Workspace URL + resource ids |
+| `./deploy.sh destroy` | Tear everything down (prompts to confirm) |
+| `./deploy.sh destroy --target <address>` | Destroy one resource (repeatable) |
+| `./deploy.sh destroy --yes` | Skip the confirm prompt (automation) |
 
 Run `./deploy.sh` **once** — it performs the two required applies in sequence
 within the single run (you do not run it twice):
@@ -297,9 +313,10 @@ with a clear message if something is missing.
 (the raw Terraform error is shown above it). `deploy.sh` is idempotent — re-run it;
 completed work shows "no changes" and it continues from the break.
 
-**`--dryrun` caveat:** it plans stage 1 only. Stage 2 ("flip to RUNNING") can't be
-planned in a fresh environment because it acts on a workspace object that stage 1
-hasn't created yet. For an already-deployed env, use `terraform plan` for full drift.
+**`plan` / `--dryrun` caveat:** it plans stage 1 only. Stage 2 ("flip to RUNNING")
+can't be planned in a fresh environment because it acts on a workspace object that
+stage 1 hasn't created yet. For an already-deployed env, use `./deploy.sh plan-running`
+(or `terraform plan -var expected_workspace_status=RUNNING`) for full drift.
 
 ## Deploy without deploy.sh (raw Terraform)
 
