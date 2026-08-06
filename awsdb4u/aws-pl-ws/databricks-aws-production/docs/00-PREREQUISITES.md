@@ -79,10 +79,16 @@ flowchart TD
     style A fill:#FF9900
 ```
 
-**Required Permissions:**
+**Required Permissions** (for the identity that RUNS Terraform, i.e. the deployer):
 - VPC creation and management
 - EC2, S3, IAM, KMS operations
 - Databricks workspace deployment rights
+
+> **Not the same as the cross-account role.** These are the permissions *you* need to
+> build the infrastructure, so S3 is included because Terraform creates the buckets.
+> The Databricks **cross-account role** is a separate identity and carries no `s3:*`
+> actions at all, root bucket access comes from the bucket policy. See
+> [Cross-Account Role](../../../README.md#cross-account-role).
 
 **Verify Access:**
 ```bash
