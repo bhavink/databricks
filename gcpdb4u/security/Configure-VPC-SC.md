@@ -180,6 +180,12 @@ Understanding which identities are used for ingress (calls into customer project
 | **Delegate SA** | SA | `delegate-sa@prod-gcp-us-central1.iam.gserviceaccount.com` | Launch GCE clusters | **Egress** from customer project | Must be in egress policy |
 | **Log Delivery SA** | SA | `log-delivery@databricks-prod-master.iam.gserviceaccount.com` | Deliver audit logs | **Ingress** into customer project | Must be in ingress policy |
 
+> **IAM grants alone are not sufficient.** A perimeter can deny a request from an otherwise
+> authorized identity based on source project, target project, API, or method. For a GCE-based
+> workspace, missing or incomplete rules for the regional **Delegate SA** surface as cluster-launch
+> failures, failures retrieving runtime artifacts, or errors during GCE resource operations. Validate
+> IAM, ingress/egress rules, Google API access, and trusted-image organization policies together.
+
 ---
 
 ## VPC-SC Configuration Workflow

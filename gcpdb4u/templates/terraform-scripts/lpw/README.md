@@ -58,6 +58,10 @@ by the per-workspace flow (they outlive any single workspace):
 - **Databricks-compute service account** (`modules/prereqs/service-account.tf`):
   `databricks-compute@<project>`, the default SA for clusters with no custom SA.
   Bare-minimum privilege: `roles/monitoring.viewer` (read-only metrics). No cost.
+  Clusters that name a custom GSA use that identity instead — grant
+  `iam.serviceAccounts.actAs` on it and keep workload data access (GCS, BigQuery)
+  on the custom GSA rather than widening `databricks-compute`. Keep this SA even if
+  every cluster uses a custom GSA: any compute that omits one falls back to it.
 - **PSC endpoints** (`modules/prereqs/psc.tf`) + **PSC DNS** (`dns.tf`), only when
   `enable_private_access = true` — see the PSC section below.
 

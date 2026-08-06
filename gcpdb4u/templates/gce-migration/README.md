@@ -166,6 +166,10 @@ graph TD
 
 **Purpose**: Databricks regional service account that launches and manages GCE-based cluster instances.
 
+**How it is used**: It is Databricks-owned and lives in the Databricks regional control plane project, you do not create it. Rather than needing broad direct grants in your project, it impersonates the per-workspace service account (`db-{workspaceid}@prod-gcp-{region}`) to perform GCE operations. It is also used to hand a newly launched VM downscoped credentials for pulling Databricks runtime artifacts.
+
+> **Not a rename of `cluster-manager-k8s-sa`.** That service account belonged to the retired GKE-based architecture and is not the predecessor of `delegate-sa` in any 1:1 sense. Base new security policy and troubleshooting on the GCE flow unless the workspace is explicitly mid-migration. See [legacy VPC-SC policies](../vpcsc-policy/legacy/README.md).
+
 **Examples by Region**:
 | Region | Delegate SA |
 |--------|-------------|

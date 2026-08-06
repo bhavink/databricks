@@ -10,6 +10,7 @@ graph TB
     subgraph "Databricks Account"
         ACCT[Account Console]
         NC[Network Configuration]
+        DELSA["Delegate SA<br/>delegate-sa@prod-gcp-{region}"]
     end
 
     subgraph "Customer GCP Project"
@@ -47,6 +48,8 @@ graph TB
     WS --> CLUSTER
     CLUSTER --> SUBNET
 
+    DELSA -.launches GCE compute.-> CLUSTER
+
     ORGPOL -.validates.-> WS
     IMGPOL -.validates.-> CLUSTER
     AUTHPOL -.validates.-> SA
@@ -56,6 +59,7 @@ graph TB
     style WS fill:#1E88E5
     style CLUSTER fill:#43A047
     style ORGPOL fill:#FF6F00
+    style DELSA fill:#FB8C00
 ```
 
 ### Before you begin
@@ -77,7 +81,9 @@ Make sure to allow `SERVICE_ACCOUNT_HMAC_SIGNED_REQUESTS` authentication, more d
 `Workspace SA`: This is created in the Regional Control Plane that is specific to this Workspace is assigned privileges to create and manage resources
 inside the Databricks Compute Plane.  Its email address looks like db-{workspaceid}@prod-gcp-{region}.iam.gserviceaccount.com
 
-`Compute SA`: Databricks will use a service account in the Compute Plane named `databricks-compute@{workspace-project}.iam.gserviceaccount.com` as the SA attached to every VM launched by Databricks in the GCP project. This GSA could be precreated in the project used by Databricks workspace and in that workspace would automatically use it.
+`Delegate SA`: A Databricks-owned regional identity in the Databricks control plane project, `delegate-sa@prod-gcp-{region}.iam.gserviceaccount.com`. You do not create it. The control plane uses it to impersonate the Workspace SA to launch, configure, and terminate GCE-based classic compute, and to hand a newly launched VM downscoped credentials for retrieving Databricks runtime artifacts. You normally grant the Workspace SA the operator permissions in your project rather than granting Delegate SA anything directly. If you run VPC SC, this identity must be accounted for in your ingress/egress rules, see [Configure VPC SC](./security/Configure-VPC-SC.md).
+
+`Compute SA`: Databricks will use a service account in the Compute Plane named `databricks-compute@{workspace-project}.iam.gserviceaccount.com` as the SA attached to every VM launched by Databricks in the GCP project. This GSA could be precreated in the project used by Databricks workspace and in that workspace would automatically use it. It is intentionally minimal, its standard permissions cover only logging and monitoring, and it should not be given broad project-level permissions to make provisioning work. When a cluster specifies a custom Google service account, that identity becomes the VM's workload identity instead, the Workspace SA needs `iam.serviceAccounts.actAs` on it, and workload data access (GCS, BigQuery, Pub/Sub) belongs on the custom GSA rather than on `databricks-compute`.
 
 `Storage SAs` (one or more Google Service Accounts) in the Control Plane are used to set up Unity Catalog (UC) Credentials that enable granting access to UC managed  storage in your Projects and in the Compute Plane.  The Storage SA generates a short-lived token and provides it to the Compute cluster process with privileges to access data. Privileges are scoped down to be specific to the requested operation.
 
@@ -86,6 +92,7 @@ inside the Databricks Compute Plane.  Its email address looks like db-{workspace
 ```mermaid
 sequenceDiagram
     participant DCP as Databricks<br/>Control Plane
+    participant DEL as Delegate SA<br/>delegate-sa@prod-gcp-{region}
     participant WSA as Workspace SA<br/>db-{workspaceid}@prod-gcp-{region}
     participant CSA as Compute SA<br/>databricks-compute@project
     participant GCE as GCE Instances
@@ -98,9 +105,11 @@ sequenceDiagram
     WSA->>CSA: Validate/Create<br/>Compute SA in Project
 
     Note over DCP,GCE: Cluster Launch
-    DCP->>WSA: Launch Cluster Request
+    DCP->>DEL: Launch Cluster Request
+    DEL->>WSA: Impersonate Workspace SA
     WSA->>GCE: Create GCE Instances
     GCE->>CSA: Attach Compute SA<br/>to VMs
+    DEL->>GCE: Downscoped credentials for<br/>runtime artifact retrieval
 
     Note over CSA,GCS: Data Access (Non-UC)
     CSA->>GCS: Access Data<br/>(Using Compute SA permissions)
@@ -262,6 +271,15 @@ sequenceDiagram
   * Verify that there is no organization policy blocking workspace creation process, please see recommendations section above
   * If VPC SC is configured on the GCP project used by Databricks than please make sure that you have followed steps mentioned over [here](./security/Configure-VPC-SC.md)
   * Verify that you have required role and permissions
+  * Workspace creation or GCE migration can fail while validating or creating `databricks-compute@{workspace-project}`. Either pre-create it with only the logging and monitoring roles, or make sure the workspace-creating identity can create and configure it.
+
+* Databricks Cluster Creation fails during provisioning (no timeout, fails early)
+  * Classic GCE compute cannot launch when the Delegate SA path is broken. Check, in this order:
+    * The Workspace SA impersonation grant is present and correct
+    * VPC SC ingress/egress rules allow the regional `delegate-sa`, see [Configure VPC SC](./security/Configure-VPC-SC.md)
+    * Access to Google APIs is not restricted
+    * The trusted image organization policy allows `databricks-external-images`
+  * A correct IAM configuration can still fail if perimeter or organization policies deny the request, validate both together.
 * Databricks Cluster Creation fails with:
   ```
   {
