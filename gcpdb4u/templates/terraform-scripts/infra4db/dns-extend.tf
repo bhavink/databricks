@@ -52,15 +52,10 @@ variable "databricks_regions" {
   }
 }
 
-variable "vpc_network_id" {
-  description = "VPC network ID for private DNS zones (format: projects/PROJECT_ID/global/networks/VPC_NAME)"
-  type        = string
-}
-
-variable "vpc_project_id" {
-  description = "GCP Project ID where the VPC network resides"
-  type        = string
-}
+# Network and project inputs are shared with the rest of the infra4db module:
+# `network_name` and `vpc_project_id` are declared in variables.tf, and the VPC
+# is created as google_compute_network.vpc. DNS zones reference that resource
+# directly, so no separate vpc_network_id input is required.
 
 variable "workspaces" {
   description = <<-EOT
@@ -90,7 +85,7 @@ resource "google_dns_managed_zone" "databricks_main" {
 
   private_visibility_config {
     networks {
-      network_url = var.vpc_network_id
+      network_url = google_compute_network.vpc.id
     }
   }
 
@@ -124,7 +119,7 @@ resource "google_dns_managed_zone" "databricks_psc_webapp" {
 
   private_visibility_config {
     networks {
-      network_url = var.vpc_network_id
+      network_url = google_compute_network.vpc.id
     }
   }
 
@@ -149,6 +144,22 @@ resource "google_dns_record_set" "psc_webapp_a_record" {
   depends_on = [google_dns_managed_zone.databricks_psc_webapp]
 }
 
+# A Records: region.service-direct.psc.gcp.databricks.com → Frontend Private IP
+# Regional services (Lakebase, Zerobus, Files API, Delta Sharing) resolve through
+# service-direct.psc. This lives in the same databricks-psc-webapp zone (no new zone)
+# and points at the same frontend PSC endpoint IP as the workspace intermediate.
+resource "google_dns_record_set" "psc_service_direct_a_record" {
+  for_each = var.workspace_type == "psc" ? var.databricks_regions : {}
+
+  managed_zone = google_dns_managed_zone.databricks_psc_webapp[0].name
+  name         = "${each.key}.service-direct.${google_dns_managed_zone.databricks_psc_webapp[0].dns_name}"
+  type         = "A"
+  ttl          = 300
+  rrdatas      = [each.value.frontend_pe_ip]
+
+  depends_on = [google_dns_managed_zone.databricks_psc_webapp]
+}
+
 # Zone 3: Auth Callback Zone - psc-auth.gcp.databricks.com
 # Contains A records for authentication service
 resource "google_dns_managed_zone" "databricks_psc_auth" {
@@ -160,7 +171,7 @@ resource "google_dns_managed_zone" "databricks_psc_auth" {
 
   private_visibility_config {
     networks {
-      network_url = var.vpc_network_id
+      network_url = google_compute_network.vpc.id
     }
   }
 
@@ -197,7 +208,7 @@ resource "google_dns_managed_zone" "databricks_psc_backend" {
 
   private_visibility_config {
     networks {
-      network_url = var.vpc_network_id
+      network_url = google_compute_network.vpc.id
     }
   }
 
@@ -239,7 +250,7 @@ resource "google_dns_managed_zone" "databricks_public_regional" {
 
   private_visibility_config {
     networks {
-      network_url = var.vpc_network_id
+      network_url = google_compute_network.vpc.id
     }
   }
 
@@ -274,7 +285,7 @@ resource "google_dns_managed_zone" "databricks_accounts" {
 
   private_visibility_config {
     networks {
-      network_url = var.vpc_network_id
+      network_url = google_compute_network.vpc.id
     }
   }
 
@@ -380,12 +391,14 @@ output "regional_dns_mappings" {
   value = {
     psc_regions = var.workspace_type == "psc" ? {
       for region, config in var.databricks_regions : region => {
-        frontend_dns = "${region}.psc.gcp.databricks.com"
-        frontend_ip  = config.frontend_pe_ip
-        auth_dns     = "${region}.psc-auth.gcp.databricks.com"
-        auth_ip      = config.frontend_pe_ip
-        tunnel_dns   = "tunnel.${region}.gcp.databricks.com"
-        tunnel_ip    = config.backend_pe_ip
+        frontend_dns       = "${region}.psc.gcp.databricks.com"
+        frontend_ip        = config.frontend_pe_ip
+        service_direct_dns = "${region}.service-direct.psc.gcp.databricks.com"
+        service_direct_ip  = config.frontend_pe_ip
+        auth_dns           = "${region}.psc-auth.gcp.databricks.com"
+        auth_ip            = config.frontend_pe_ip
+        tunnel_dns         = "tunnel.${region}.gcp.databricks.com"
+        tunnel_ip          = config.backend_pe_ip
       }
     } : null
 
@@ -421,6 +434,7 @@ output "verification_commands" {
   "# PSC Workspace DNS verification:",
   "dig @169.254.169.254 ${try(element([for ws in var.workspaces : "${ws.workspace_id}.gcp.databricks.com"], 0), "YOUR-WORKSPACE-ID.gcp.databricks.com")}",
   "dig @169.254.169.254 ${try(element([for region in keys(var.databricks_regions) : "${region}.psc.gcp.databricks.com"], 0), "REGION.psc.gcp.databricks.com")}",
+  "dig @169.254.169.254 ${try(element([for region in keys(var.databricks_regions) : "${region}.service-direct.psc.gcp.databricks.com"], 0), "REGION.service-direct.psc.gcp.databricks.com")}",
   "dig @169.254.169.254 ${try(element([for region in keys(var.databricks_regions) : "tunnel.${region}.gcp.databricks.com"], 0), "tunnel.REGION.gcp.databricks.com")}"
   ]) : ""}
     ${var.workspace_type == "non-psc" ? join("\n    ", [

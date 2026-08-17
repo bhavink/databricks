@@ -29,6 +29,22 @@ Introduction to DNS configuration requirements for Databricks workspaces on GCP,
 - Resolves to private endpoint in your VPC
 - All traffic stays within VPC boundaries
 
+#### PSC Regional Service DNS Chain (Lakebase, Zerobus, Files API, Delta Sharing)
+
+Some Databricks services carry the region in the hostname and resolve through a `service-direct` intermediate instead of the `psc` intermediate. They still terminate on the **same frontend PSC endpoint** as the workspace URL.
+
+```
+1234567890123456.zerobus.us-east1.gcp.databricks.com       [regional service URL]
+→ us-east1.service-direct.psc.gcp.databricks.com           [intermediate PSC DNS]
+→ us-east1.service-direct.gcp.databricks.com               [regional shard URL]
+→ 34.138.66.176                                            [resolves to frontend private IP in VPC]
+```
+
+**Key Characteristics**:
+- Region is part of the hostname (`<name>.<service>.<region>.gcp.databricks.com`)
+- Resolves through `service-direct.psc` and lands on the same frontend PSC endpoint private IP as the workspace URL
+- `service-direct.psc.gcp.databricks.com` is a subdomain of `psc.gcp.databricks.com`, so it lives in the existing `databricks-psc-webapp` zone and needs no new zone
+
 #### Non-PSC Workspace DNS Chain
 ```
 3987547239507508.8.gcp.databricks.com         [workspace URL]
@@ -59,7 +75,7 @@ graph TB
 
     subgraph "Private DNS Zones"
         MainZone["gcp.databricks.com<br/>(CNAME records)"]
-        PSCZone["psc.gcp.databricks.com<br/>(A records)"]
+        PSCZone["psc.gcp.databricks.com<br/>(A records + service-direct)"]
         AuthZone["psc-auth.gcp.databricks.com<br/>(A records)"]
         TunnelZone["tunnel.region.gcp.databricks.com<br/>(A records)"]
     end
@@ -195,8 +211,11 @@ All DNS records are configured in **private DNS zones**. Records resolve to **pr
 |---------|-----------|----------|------|-------------|----------------|-------------|-------|
 | **Frontend DNS (Main)** | `databricks-main` | `gcp.databricks.com.` | Private | CNAME | `311716749948597.7.gcp.databricks.com` → `us-east1.psc.gcp.databricks.com` | Intermediate PSC DNS | Repeat for each workspace; workspaces in same region point to same alias |
 | **Frontend DNS (Intermediate)** | `databricks-psc-webapp` | `psc.gcp.databricks.com.` | Private | A | `us-east1.psc.gcp.databricks.com` → Frontend Private IP | Frontend Private IP | Same as workspace URL private IP |
-| **Auth Callback DNS** | `databricks-psc-webapp-auth` | `psc-auth.gcp.databricks.com.` | Private | A | `us-east1.psc-auth.gcp.databricks.com` → Frontend Private IP | Frontend Private IP | Same as workspace URL private IP |
+| **Regional Service DNS (Lakebase, Zerobus, Files API, Delta Sharing)** | `databricks-psc-webapp` | `psc.gcp.databricks.com.` | Private | A | `us-east1.service-direct.psc.gcp.databricks.com` → Frontend Private IP | Frontend Private IP | Same zone as the intermediate; region-carrying service URLs resolve here. Same private IP as workspace URL. Created automatically by the Terraform and gcloud templates below. |
+| **Auth Callback DNS** | `databricks-psc-webapp-auth` | `psc-auth.gcp.databricks.com.` | Private | A | `us-east1.psc-auth.gcp.databricks.com` → Frontend Private IP | Frontend Private IP | Browser sign-in / SSO callback. Same private IP as workspace URL. Not needed for REST API-only access. |
 | **Backend (Tunnel) DNS** | `databricks-psc-backend-<region>` | `tunnel.<region>.gcp.databricks.com.` | Private | A | `tunnel.us-east1.gcp.databricks.com` → Backend Private PSC Endpoint IP | Backend Private PSC Endpoint IP | Region-specific private DNS zone |
+
+> **Two kinds of URLs, and a scaling tip.** Region-less URLs (workspace URL, apps) resolve through the `psc` intermediate; region-carrying URLs (Lakebase, Zerobus, Files API, Delta Sharing) resolve through `service-direct.psc`. Region-carrying URLs can be covered with a single wildcard A record per region, `*.<region>.gcp.databricks.com` → Frontend Private IP, so new regional endpoints need no additional records. Where Google Cloud DNS CNAME chasing is enabled, region-less URLs can likewise share one `<region>.psc` override instead of a per-workspace record.
 
 #### Non-PSC Workspace DNS Configuration
 
@@ -230,10 +249,12 @@ Required for **both PSC and Non-PSC workspaces**:
 
 **Configuration Steps**:
 
-1. **Set variables in `terraform.tfvars`**:
+`dns-extend.tf` composes within the `infra4db` module: it reuses `network_name` and `vpc_project_id` from the module and attaches the DNS zones to the VPC that `infra4db` creates (`google_compute_network.vpc`). It needs no separate network ID, and it applies alongside `infra4db`'s other resources, so the module's other variables (subnets, PSC, etc.) also apply.
+
+1. **Set variables in `terraform.tfvars`** (DNS-specific values shown; combine with the rest of your `infra4db` variables):
    ```hcl
    workspace_type    = "psc"  # or "non-psc"
-   vpc_network_id    = "projects/PROJECT_ID/global/networks/VPC_NAME"
+   network_name      = "your-vpc-network"   # shared with infra4db; DNS zones attach to this VPC
    vpc_project_id    = "your-project-id"
 
    databricks_regions = {
@@ -370,7 +391,8 @@ sequenceDiagram
 
 #### PSC Flow
 - **Workspace URL**: `workspace_id.gcp.databricks.com` → private DNS → CNAME to `region.psc.gcp.databricks.com` → A record to private frontend IP → PSC Endpoint → Databricks Control Plane
-- **Workspace Auth**: `region.psc-auth.gcp.databricks.com` → private DNS → A record to private frontend IP → PSC Endpoint → Databricks Control Plane
+- **Workspace Auth**: `region.psc-auth.gcp.databricks.com` → private DNS → A record to private frontend IP → PSC Endpoint → Databricks Control Plane (browser sign-in / SSO only)
+- **Regional Services** (Lakebase, Zerobus, Files API, Delta Sharing): `<name>.<service>.region.gcp.databricks.com` → private DNS → CNAME to `region.service-direct.psc.gcp.databricks.com` → A record to private frontend IP → PSC Endpoint → Databricks
 - **Tunnel DNS**: `tunnel.region.gcp.databricks.com` → private DNS → A record to private backend IP → PSC Endpoint → Databricks Control Plane
 
 #### Non-PSC Flow
@@ -417,7 +439,8 @@ nslookup 311716749948597.7.gcp.databricks.com 169.254.169.254
 **PSC Workspace**:
 - `workspace_id.gcp.databricks.com` should resolve to `region.psc.gcp.databricks.com` (CNAME)
 - `region.psc.gcp.databricks.com` should resolve to private IP (A record, e.g., 10.10.10.10)
-- `region.psc-auth.gcp.databricks.com` should resolve to private IP (A record, same as above)
+- `region.psc-auth.gcp.databricks.com` should resolve to private IP (A record, same as above; browser sign-in / SSO only)
+- `<name>.<service>.region.gcp.databricks.com` (e.g., Lakebase, Zerobus) should resolve via `region.service-direct.psc.gcp.databricks.com` to the frontend private IP
 - `tunnel.region.gcp.databricks.com` should resolve to private backend IP (A record, e.g., 10.10.10.20)
 
 **Non-PSC Workspace**:
@@ -621,7 +644,7 @@ gcloud compute forwarding-rules describe <psc-endpoint-name> \
 
 This guide covers DNS setup for both PSC and Non-PSC Databricks workspaces on GCP:
 
-- **PSC Workspaces**: Require 4 private DNS zones with CNAME and A records resolving to private IPs for maximum security
+- **PSC Workspaces**: Require 4 private DNS zones with CNAME and A records resolving to private IPs for maximum security. Regional services (Lakebase, Zerobus, Files API, Delta Sharing) resolve through `service-direct.psc` within the same `psc.gcp.databricks.com` zone, so no additional zone is needed
 - **Non-PSC Workspaces**: Use forwarding zones to public DNS for simpler setup with public internet connectivity
 - **Implementation**: Choose between Terraform (Infrastructure as Code) or gcloud CLI (imperative commands)
 - **Verification**: Use `dig`, `nslookup`, and `gcloud` commands to validate DNS configuration

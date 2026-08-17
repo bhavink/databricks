@@ -181,6 +181,21 @@ create_psc_dns() {
         print_warning "A record may already exist (continuing...)"
     fi
 
+    # Add A record: region.service-direct.psc.gcp.databricks.com → Frontend Private IP
+    # Regional services (Lakebase, Zerobus, Files API, Delta Sharing) resolve here.
+    # Same databricks-psc-webapp zone, same frontend PSC endpoint IP as the workspace intermediate.
+    print_info "Adding A record for ${REGION}.service-direct.psc.gcp.databricks.com..."
+    if gcloud dns record-sets create "${REGION}.service-direct.psc.gcp.databricks.com." \
+        --zone="databricks-psc-webapp" \
+        --type=A \
+        --ttl=300 \
+        --rrdatas="$FRONTEND_PRIVATE_IP" \
+        --project="$PROJECT_ID" 2>/dev/null; then
+        print_success "PSC service-direct A record created (IP: ${FRONTEND_PRIVATE_IP})"
+    else
+        print_warning "A record may already exist (continuing...)"
+    fi
+
     # Zone 3: Auth Callback Zone - psc-auth.gcp.databricks.com
     print_info "Creating PSC auth zone (psc-auth.gcp.databricks.com)..."
     if gcloud dns managed-zones create databricks-psc-webapp-auth \
@@ -344,11 +359,13 @@ test_dns_resolution() {
         echo -e "${YELLOW}# Test PSC workspace DNS resolution:${NC}"
         echo "dig @169.254.169.254 ${WORKSPACE_ID}.gcp.databricks.com"
         echo "dig @169.254.169.254 ${REGION}.psc.gcp.databricks.com"
+        echo "dig @169.254.169.254 ${REGION}.service-direct.psc.gcp.databricks.com"
         echo "dig @169.254.169.254 tunnel.${REGION}.gcp.databricks.com"
         echo ""
         echo -e "${YELLOW}# Expected results:${NC}"
         echo "- ${WORKSPACE_ID}.gcp.databricks.com should return CNAME: ${REGION}.psc.gcp.databricks.com"
         echo "- ${REGION}.psc.gcp.databricks.com should return A: ${FRONTEND_PRIVATE_IP}"
+        echo "- ${REGION}.service-direct.psc.gcp.databricks.com should return A: ${FRONTEND_PRIVATE_IP} (Lakebase, Zerobus, etc.)"
         echo "- tunnel.${REGION}.gcp.databricks.com should return A: ${BACKEND_PRIVATE_IP}"
     fi
 
@@ -386,6 +403,7 @@ print_cleanup_instructions() {
         echo "gcloud dns managed-zones delete databricks-main --project=${PROJECT_ID}"
         echo ""
         echo "gcloud dns record-sets delete ${REGION}.psc.gcp.databricks.com. --type=A --zone=databricks-psc-webapp --project=${PROJECT_ID}"
+        echo "gcloud dns record-sets delete ${REGION}.service-direct.psc.gcp.databricks.com. --type=A --zone=databricks-psc-webapp --project=${PROJECT_ID}"
         echo "gcloud dns managed-zones delete databricks-psc-webapp --project=${PROJECT_ID}"
         echo ""
         echo "gcloud dns record-sets delete ${REGION}.psc-auth.gcp.databricks.com. --type=A --zone=databricks-psc-webapp-auth --project=${PROJECT_ID}"
