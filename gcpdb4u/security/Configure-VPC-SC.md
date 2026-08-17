@@ -42,6 +42,7 @@ graph TB
             WS[Databricks Workspace]
             GCS[DBFS Storage<br/>Cloud Storage]
             GCE[Compute Clusters<br/>GCE Instances]
+            ComputeSA[Compute SA<br/>databricks-compute@...]
         end
     end
 
@@ -54,8 +55,9 @@ graph TB
     ConsumerSA -->|Ingress: Create/Manage| GCS
     DelegateSA -->|Egress: Launch Clusters| GCE
     LogSA -->|Ingress: Deliver Logs| GCS
+    GCE -->|Attached identity| ComputeSA
     GCE -->|Egress: Pull Images| GAR
-    GCE -->|Egress: Access Storage| APIs
+    ComputeSA -->|Egress: Logging and Metrics| APIs
 
     style CP fill:#FFE6E6
     style ConsumerSA fill:#E6F3FF
@@ -64,7 +66,10 @@ graph TB
     style WS fill:#E6FFE6
     style GCS fill:#E6FFE6
     style GCE fill:#E6FFE6
+    style ComputeSA fill:#FFF4E6
 ```
+
+> **Two distinct cluster identities**: `delegate-sa` is Databricks-owned and lives in the regional control plane project. It launches and manages the GCE instances. `databricks-compute` is customer-project-resident and is the identity **attached to** those instances. Both matter for VPC-SC, and they are not interchangeable. See [Cluster Identities: Delegate SA vs Compute SA](#cluster-identities-delegate-sa-vs-compute-sa).
 
 ---
 
@@ -136,7 +141,8 @@ Before configuring VPC-SC, it's essential to understand the various identities a
 |------|-------------|---------|--------------|
 | **Workspace Creator** | Customer-owned identity (User or Service Account) used to create workspace | `admin@company.com` or `ws-creator@project.iam.gserviceaccount.com` | Before workspace creation |
 | **Consumer SA** | Databricks-created per-workspace service account in control plane project | `db-1030565636556919@prod-gcp-us-central1.iam.gserviceaccount.com` | During workspace creation |
-| **Delegate SA** | Databricks regional service account for launching GCE clusters | `delegate-sa@prod-gcp-us-central1.iam.gserviceaccount.com` | Pre-existing (regional) |
+| **Delegate SA** | Databricks-owned regional service account. Impersonates the workspace service account and launches/manages GCE clusters | `delegate-sa@prod-gcp-us-central1.iam.gserviceaccount.com` | Pre-existing (regional) |
+| **Compute SA** | Default service account **attached to** every cluster VM when no custom GSA is specified. Lives in the customer workspace project. Minimal permissions, limited to logging and metrics | `databricks-compute@<workspace-project>.iam.gserviceaccount.com` | During workspace creation (or pre-created by customer) |
 | **Log Delivery SA** | Databricks service account for delivering audit logs | `log-delivery@databricks-prod-master.iam.gserviceaccount.com` | Pre-existing |
 | **Unity Catalog SA** | Databricks-created service account for Unity Catalog storage access | `db-uc-storage-UUID@uc-useast4.iam.gserviceaccount.com` | During Unity Catalog initialization |
 
@@ -152,12 +158,13 @@ Before configuring VPC-SC, it's essential to understand the various identities a
 
 ### Service Account Naming Patterns
 
-Databricks uses several service accounts to manage resources in customer projects:
+Databricks uses several service accounts to manage resources in customer projects. Note the ownership split: all but one live in **Databricks-owned** projects. `databricks-compute` is the only one resident in **your** project.
 
-| Service Account | Purpose | Workspace Type | When Used |
-|-----------------|---------|----------------|-----------|
-| `delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com` | Launch and manage GCE-based clusters | Classic (GCE-based) | **Current** - GCE-based clusters |
-| `db-[WORKSPACEID]@[databricks-project].iam.gserviceaccount.com` | Per-workspace resource management | All workspace types | **Always** - Created at workspace creation |
+| Service Account | Resides In | Purpose | Workspace Type | When Used |
+|-----------------|-----------|---------|----------------|-----------|
+| `delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com` | Databricks regional control plane | Impersonate the workspace SA; launch and manage GCE-based clusters | Classic (GCE-based) | **Current** - GCE-based clusters |
+| `databricks-compute@[WORKSPACE-PROJECT].iam.gserviceaccount.com` | **Customer workspace project** | Default identity attached to cluster VMs with no custom GSA. Logging and metrics only | Classic (GCE-based) | **Always** - every cluster without a custom GSA |
+| `db-[WORKSPACEID]@[databricks-project].iam.gserviceaccount.com` | Databricks regional control plane | Per-workspace resource management | All workspace types | **Always** - Created at workspace creation |
 | `log-delivery@databricks-prod-master.iam.gserviceaccount.com` | Deliver audit logs to customer storage | All (if audit logs enabled) | When audit logging configured |
 | `db-uc-storage-UUID@<uc-regional-project>.iam.gserviceaccount.com` | Unity Catalog storage access | Unity Catalog workspaces | When Unity Catalog initialized |
 
@@ -177,8 +184,43 @@ Understanding which identities are used for ingress (calls into customer project
 |----------|------|---------|----------|-------------------|---------------------|
 | **Workspace Creator** | User or SA | `admin@company.com` | Workspace creation | **Ingress** into customer project | Must be allowed in Access Level |
 | **Consumer SA** | SA | `db-WORKSPACEID@prod-gcp-us-central1.iam.gserviceaccount.com` | Workspace operation, DBFS management | **Ingress** into customer project | Created at WS creation - use ANY_IDENTITY |
-| **Delegate SA** | SA | `delegate-sa@prod-gcp-us-central1.iam.gserviceaccount.com` | Launch GCE clusters | **Egress** from customer project | Must be in egress policy |
+| **Delegate SA** | SA | `delegate-sa@prod-gcp-us-central1.iam.gserviceaccount.com` | Impersonate workspace SA; launch GCE clusters | **Egress** from customer project | Must be in egress policy |
+| **Compute SA** | SA | `databricks-compute@<workspace-project>.iam.gserviceaccount.com` | Identity attached to cluster VMs; logging and metrics | **Inside** perimeter (already resident) | Not an ingress/egress identity by default. Becomes egress-relevant if a workload uses it to reach resources outside the perimeter |
 | **Log Delivery SA** | SA | `log-delivery@databricks-prod-master.iam.gserviceaccount.com` | Deliver audit logs | **Ingress** into customer project | Must be in ingress policy |
+
+---
+
+## Cluster Identities: Delegate SA vs Compute SA
+
+Cluster launch involves two different service accounts. Conflating them is a common source of VPC-SC misconfiguration, so it is worth being explicit.
+
+| | **Delegate SA** | **Compute SA** |
+|---|---|---|
+| **Name** | `delegate-sa@prod-gcp-[GEO]-[REGION].iam.gserviceaccount.com` | `databricks-compute@[WORKSPACE-PROJECT].iam.gserviceaccount.com` |
+| **Owned by** | Databricks | Customer |
+| **Resides in** | Databricks regional control plane project | Customer workspace project (inside the perimeter) |
+| **Role** | Acts *on* the cluster: impersonates the workspace SA, launches and manages GCE instances | Runs *as* the cluster: the identity attached to each VM |
+| **Default permissions** | Control plane privileges to manage compute in your project | Minimal, limited to logging and metrics |
+| **VPC-SC treatment** | Must be listed in **egress** rules | Resident inside the perimeter; add to egress rules only if a workload needs to reach outside it |
+
+### Where the Compute SA comes from
+
+Databricks creates this service account during workspace creation, which is why the account-level permission set includes `iam.serviceAccounts.create`, documented as "Create the Databricks-compute service account used by all clusters," and `iam.serviceAccounts.get` to "check if the required Databricks-compute service account used by all clusters in the workspace exists." See [Google Cloud permissions](https://docs.databricks.com/gcp/en/admin/cloud-configurations/gcp/permissions).
+
+You can also **pre-create** it, which is the preferred approach in least-privilege deployments because it lets you drop `iam.serviceAccounts.create` from the workspace creator's role. The name must be exactly `databricks-compute` for the workspace to pick it up automatically. See:
+
+- [`infra4db/service_accounts.tf`](../templates/terraform-scripts/infra4db/service_accounts.tf) pre-creates the SA with `logging.logWriter` and `monitoring.metricWriter`
+- [`lpw/modules/prereqs/service-account.tf`](../templates/terraform-scripts/lpw/modules/prereqs/service-account.tf) is the least-privilege variant, with read-only `monitoring.viewer`
+
+### Granting the Compute SA access to data
+
+Because the Compute SA has no data permissions, workloads that need GCS or BigQuery access should have it **impersonate** a separate privileged target SA rather than having privileges attached directly. That keeps authorization per-target instead of project-wide. See [Short-Lived GCP Tokens via GSA Impersonation](../integrate-gcp-services/GSA-Impersonation-For-Short-Lived-Tokens.md).
+
+Under VPC-SC, if the impersonation target reaches resources **outside** the perimeter, the Compute SA (and the target SA) must be added to an egress rule covering those resources.
+
+### Attaching a custom GSA instead
+
+Clusters can override the default by specifying a custom Google service account. Attaching a service account to a cluster requires `Projects.SetIamPolicy` on `cloudresourcemanager.googleapis.com`, which the operational ingress policy already allows. See [INGRESS RULE 1](../templates/vpcsc-policy/ingress.yaml) and [Configure compute](https://docs.databricks.com/gcp/en/compute/configure#google-service-account).
 
 ---
 
@@ -531,6 +573,9 @@ gcloud logging read "protoPayload.metadata.securityPolicyInfo.vpcServiceControls
 | **Cluster launch fails** | Cluster stuck in PENDING state | Egress policy not allowing access to Control Plane | Add egress policy with delegate-sa identity and Control Plane project |
 | **Runtime image pull fails** | Cluster fails with image download error | Egress policy not allowing Artifact Registry access | Add `artifactregistry.googleapis.com` to egress operations |
 | **Log delivery fails** | Audit logs not appearing in bucket | Log Delivery SA not in ingress policy | Add `log-delivery@databricks-prod-master.iam.gserviceaccount.com` to ingress identities |
+| **Workspace creation fails on SA creation** | Error creating `databricks-compute` service account | Workspace creator lacks `iam.serviceAccounts.create` | Grant the permission, or pre-create the SA named exactly `databricks-compute` in the workspace project |
+| **Custom GSA attach fails** | Cluster fails when a custom Google service account is specified | `Projects.SetIamPolicy` missing from ingress operations | Add `Projects.SetIamPolicy` on `cloudresourcemanager.googleapis.com` to ingress policy |
+| **Cluster workload cannot reach GCS/BigQuery** | Cluster starts, but data access is denied | Compute SA has logging/metrics permissions only, and target may be outside the perimeter | Use GSA impersonation for data access, and add the identities to an egress rule if the target sits outside the perimeter |
 | **Policy update fails** | "Cannot update enforced perimeter" | Trying to update enforced policy directly | Use dry-run mode first: `--dry-run`, test, then enforce |
 
 ### Debug Commands
