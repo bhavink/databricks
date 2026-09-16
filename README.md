@@ -1,5 +1,7 @@
 I design and implement secure, production-grade Data and AI platforms across **Azure**, **AWS**, and **GCP**. Specializing in **Databricks architecture**, **zero-trust security**, and **infrastructure automation**.
 
+> **Rendered site:** [bhavink.github.io/databricks](https://bhavink.github.io/databricks/). Browse the guides and deployment patterns as a site. All projects: [bhavink.github.io](https://bhavink.github.io/).
+
 ### 🎯 What I Do
 
 - 🏗️ **Build secure data lakehouses** with Private Link, Unity Catalog, and data exfiltration protection
