@@ -45,6 +45,24 @@ Some Databricks services carry the region in the hostname and resolve through a 
 - Resolves through `service-direct.psc` and lands on the same frontend PSC endpoint private IP as the workspace URL
 - `service-direct.psc.gcp.databricks.com` is a subdomain of `psc.gcp.databricks.com`, so it lives in the existing `databricks-psc-webapp` zone and needs no new zone
 
+#### Databricks Apps DNS Chain (PSC) — Gated
+
+> ⚠️ **Gated / preview feature.** Automatic CNAME resolution for Databricks Apps on GCP depends on Google Cloud DNS **CNAME chasing** (recursive resolution of a CNAME whose target lives in another private zone) reaching **GA on Google's side**, which is not expected to be feasible until **January 2027**. Until then this configuration is gated — enable it only for testing, and do not rely on it for production apps.
+
+Databricks Apps use a **separate domain** — `gcp.databricksapps.com`, *not* `gcp.databricks.com`. Each app hostname is region-less and CNAME-chases into the same `psc` intermediate as the workspace URL, landing on the workspace's **frontend PSC endpoint** (most often a single regional PSC endpoint shared with the workspace URL).
+
+```
+cname-chase-3427055105935131.gcp.databricksapps.com    [app URL]
+→ us-east4.psc.gcp.databricks.com                       [intermediate PSC DNS — same frontend PSC endpoint as the workspace]
+→ 10.27.0.7                                             [resolves to frontend private IP in VPC]
+```
+
+**Key Characteristics**:
+- App URLs live under `gcp.databricksapps.com`, a **distinct zone** from the workspace `gcp.databricks.com` zone — this is the record set that closes the previously uncovered apps gap
+- A single **wildcard CNAME**, `*.gcp.databricksapps.com` → `<region>.psc.gcp.databricks.com`, covers every app in the workspace's region — no per-app record is needed
+- Resolves through the **existing** `psc` intermediate (in the `databricks-psc-webapp` zone) to the same frontend PSC endpoint private IP as the workspace URL, so **no new PSC endpoint** is required
+- Depends on Google Cloud DNS CNAME chasing being enabled to follow the wildcard CNAME across zones (gated — see above)
+
 #### Non-PSC Workspace DNS Chain
 ```
 3987547239507508.8.gcp.databricks.com         [workspace URL]
@@ -213,9 +231,12 @@ All DNS records are configured in **private DNS zones**. Records resolve to **pr
 | **Frontend DNS (Intermediate)** | `databricks-psc-webapp` | `psc.gcp.databricks.com.` | Private | A | `us-east1.psc.gcp.databricks.com` → Frontend Private IP | Frontend Private IP | Same as workspace URL private IP |
 | **Regional Service DNS (Lakebase, Zerobus, Files API, Delta Sharing)** | `databricks-psc-webapp` | `psc.gcp.databricks.com.` | Private | A | `us-east1.service-direct.psc.gcp.databricks.com` → Frontend Private IP | Frontend Private IP | Same zone as the intermediate; region-carrying service URLs resolve here. Same private IP as workspace URL. Created automatically by the Terraform and gcloud templates below. |
 | **Auth Callback DNS** | `databricks-psc-webapp-auth` | `psc-auth.gcp.databricks.com.` | Private | A | `us-east1.psc-auth.gcp.databricks.com` → Frontend Private IP | Frontend Private IP | Browser sign-in / SSO callback. Same private IP as workspace URL. Not needed for REST API-only access. |
+| **Databricks Apps DNS** *(Gated — see note)* | `databricksapps` | `gcp.databricksapps.com.` | Private | CNAME (wildcard) | `*.gcp.databricksapps.com` → `us-east4.psc.gcp.databricks.com` (TTL 300) | Frontend Private IP (via CNAME chase to the `psc` intermediate) | **Separate domain** from `gcp.databricks.com`. One wildcard CNAME covers all apps in the region; chases into the existing `databricks-psc-webapp` zone and lands on the same frontend PSC endpoint as the workspace URL. Requires Google Cloud DNS CNAME chasing (gated; GA on GCP not expected until Jan 2027). |
 | **Backend (Tunnel) DNS** | `databricks-psc-backend-<region>` | `tunnel.<region>.gcp.databricks.com.` | Private | A | `tunnel.us-east1.gcp.databricks.com` → Backend Private PSC Endpoint IP | Backend Private PSC Endpoint IP | Region-specific private DNS zone |
 
 > **Two kinds of URLs, and a scaling tip.** Region-less URLs (workspace URL, apps) resolve through the `psc` intermediate; region-carrying URLs (Lakebase, Zerobus, Files API, Delta Sharing) resolve through `service-direct.psc`. Region-carrying URLs can be covered with a single wildcard A record per region, `*.<region>.gcp.databricks.com` → Frontend Private IP, so new regional endpoints need no additional records. Where Google Cloud DNS CNAME chasing is enabled, region-less URLs can likewise share one `<region>.psc` override instead of a per-workspace record.
+>
+> **Apps live on a separate domain.** Databricks Apps are *not* served under `gcp.databricks.com` — they use `gcp.databricksapps.com`, which needs its own private zone (`databricksapps`) with a single wildcard CNAME, `*.gcp.databricksapps.com` → `<region>.psc.gcp.databricks.com`. This CNAME-chases into the existing `psc` intermediate and terminates on the same frontend PSC endpoint as the workspace, so no new endpoint or per-app record is required. **This is a gated feature** — it relies on Google Cloud DNS CNAME chasing, which GCP is not expected to make GA until **January 2027**.
 
 #### Non-PSC Workspace DNS Configuration
 
@@ -236,6 +257,8 @@ Required for **both PSC and Non-PSC workspaces**:
 | **Accounts Console** | `databricks-account-console` | `accounts.gcp.databricks.com.` | Forwarding | 8.8.8.8, 8.8.4.4 | Resolves using Google's or your preferred public DNS service |
 
 ### Implementation Options
+
+> **Note — Databricks Apps zone is not yet templated.** The `dns-extend.tf` and `dns-extend-gcloud` templates below create the standard PSC zones (`databricks-main`, `databricks-psc-webapp`, `databricks-psc-webapp-auth`, `databricks-psc-backend-<region>`). They do **not** create the gated `databricksapps` zone, because it depends on Google Cloud DNS CNAME chasing (GA on GCP not expected until January 2027). To trial it, add the zone manually — a private zone for `gcp.databricksapps.com.` with a single wildcard CNAME `*.gcp.databricksapps.com` → `<region>.psc.gcp.databricks.com` (TTL 300), attached to the same VPC. It reuses the existing `databricks-psc-webapp` A record, so no new PSC endpoint is needed.
 
 #### Option 1: Terraform Configuration
 
@@ -344,6 +367,30 @@ sequenceDiagram
     Note over Client,Control: All traffic within VPC<br/>No public internet exposure
 ```
 
+#### Databricks Apps DNS Resolution (PSC) — Gated
+
+> ⚠️ Gated feature — depends on Google Cloud DNS CNAME chasing (GA on GCP not expected until January 2027).
+
+```mermaid
+sequenceDiagram
+    participant Client as Client/VM
+    participant AppsDNS as Private DNS<br/>gcp.databricksapps.com
+    participant PSCDNS as Private DNS<br/>psc.gcp.databricks.com
+    participant Frontend as Frontend PSC Endpoint<br/>(Private IP)
+    participant Control as Databricks Control Plane
+
+    Client->>AppsDNS: Query: cname-chase-3427055105935131.gcp.databricksapps.com
+    AppsDNS-->>Client: CNAME (wildcard): us-east4.psc.gcp.databricks.com
+    Client->>PSCDNS: Query: us-east4.psc.gcp.databricks.com
+    PSCDNS-->>Client: A Record: 10.27.0.7 (Private IP)
+    Client->>Frontend: Connect to 10.27.0.7
+    Frontend->>Control: Private Connection via PSC
+    Control-->>Frontend: Response
+    Frontend-->>Client: Response
+
+    Note over Client,Control: Wildcard CNAME chases into the same psc intermediate<br/>and frontend PSC endpoint as the workspace URL
+```
+
 #### Non-PSC Workspace DNS Resolution
 
 ```mermaid
@@ -393,6 +440,7 @@ sequenceDiagram
 - **Workspace URL**: `workspace_id.gcp.databricks.com` → private DNS → CNAME to `region.psc.gcp.databricks.com` → A record to private frontend IP → PSC Endpoint → Databricks Control Plane
 - **Workspace Auth**: `region.psc-auth.gcp.databricks.com` → private DNS → A record to private frontend IP → PSC Endpoint → Databricks Control Plane (browser sign-in / SSO only)
 - **Regional Services** (Lakebase, Zerobus, Files API, Delta Sharing): `<name>.<service>.region.gcp.databricks.com` → private DNS → CNAME to `region.service-direct.psc.gcp.databricks.com` → A record to private frontend IP → PSC Endpoint → Databricks
+- **Databricks Apps** *(gated; requires Cloud DNS CNAME chasing, GA on GCP ~Jan 2027)*: `<app>.gcp.databricksapps.com` → private DNS (`databricksapps` zone) → wildcard CNAME to `region.psc.gcp.databricks.com` → A record to private frontend IP → PSC Endpoint → Databricks (same frontend PSC endpoint as the workspace URL)
 - **Tunnel DNS**: `tunnel.region.gcp.databricks.com` → private DNS → A record to private backend IP → PSC Endpoint → Databricks Control Plane
 
 #### Non-PSC Flow
@@ -432,6 +480,10 @@ dig @169.254.169.254 311716749948597.7.gcp.databricks.com
 
 ## Alternative test using nslookup
 nslookup 311716749948597.7.gcp.databricks.com 169.254.169.254
+
+## Verify a Databricks App URL CNAME-chases to the frontend PSC endpoint (gated feature)
+## Expect: CNAME to <region>.psc.gcp.databricks.com, then A record to the frontend private IP
+nslookup cname-chase-3427055105935131.gcp.databricksapps.com 169.254.169.254
 ```
 
 #### Expected Outputs
@@ -441,6 +493,7 @@ nslookup 311716749948597.7.gcp.databricks.com 169.254.169.254
 - `region.psc.gcp.databricks.com` should resolve to private IP (A record, e.g., 10.10.10.10)
 - `region.psc-auth.gcp.databricks.com` should resolve to private IP (A record, same as above; browser sign-in / SSO only)
 - `<name>.<service>.region.gcp.databricks.com` (e.g., Lakebase, Zerobus) should resolve via `region.service-direct.psc.gcp.databricks.com` to the frontend private IP
+- `<app>.gcp.databricksapps.com` *(gated)* should resolve via the wildcard CNAME `region.psc.gcp.databricks.com` to the frontend private IP — e.g. `cname-chase-3427055105935131.gcp.databricksapps.com` → `us-east4.psc.gcp.databricks.com` → 10.27.0.7
 - `tunnel.region.gcp.databricks.com` should resolve to private backend IP (A record, e.g., 10.10.10.20)
 
 **Non-PSC Workspace**:
@@ -645,6 +698,7 @@ gcloud compute forwarding-rules describe <psc-endpoint-name> \
 This guide covers DNS setup for both PSC and Non-PSC Databricks workspaces on GCP:
 
 - **PSC Workspaces**: Require 4 private DNS zones with CNAME and A records resolving to private IPs for maximum security. Regional services (Lakebase, Zerobus, Files API, Delta Sharing) resolve through `service-direct.psc` within the same `psc.gcp.databricks.com` zone, so no additional zone is needed
+- **Databricks Apps** *(gated)*: Served on a separate `gcp.databricksapps.com` domain, covered by a dedicated `databricksapps` private zone with a single wildcard CNAME (`*.gcp.databricksapps.com` → `<region>.psc.gcp.databricks.com`) that CNAME-chases into the existing `psc` intermediate and the same frontend PSC endpoint as the workspace. Requires Google Cloud DNS CNAME chasing — a gated feature pending GCP GA, not expected until January 2027
 - **Non-PSC Workspaces**: Use forwarding zones to public DNS for simpler setup with public internet connectivity
 - **Implementation**: Choose between Terraform (Infrastructure as Code) or gcloud CLI (imperative commands)
 - **Verification**: Use `dig`, `nslookup`, and `gcloud` commands to validate DNS configuration
