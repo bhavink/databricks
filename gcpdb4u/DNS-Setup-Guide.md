@@ -47,7 +47,7 @@ Some Databricks services carry the region in the hostname and resolve through a 
 
 #### Databricks Apps DNS Chain (PSC) — Gated
 
-> ⚠️ **Gated / preview feature.** Automatic CNAME resolution for Databricks Apps on GCP depends on Google Cloud DNS **CNAME chasing** (recursive resolution of a CNAME whose target lives in another private zone) reaching **GA on Google's side**, which is not expected to be feasible until **January 2027**. Until then this configuration is gated — enable it only for testing, and do not rely on it for production apps.
+> ⚠️ **Gated / preview feature.** Automatic CNAME resolution for Databricks Apps on GCP depends on Google Cloud DNS **CNAME chasing** (recursive resolution of a CNAME whose target lives in another private zone) reaching **GA on Google's side**, which is not expected to be feasible until **January 2027**. Until then this configuration is gated.
 
 Databricks Apps use a **separate domain** — `gcp.databricksapps.com`, *not* `gcp.databricks.com`. Each app hostname is region-less and CNAME-chases into the same `psc` intermediate as the workspace URL, landing on the workspace's **frontend PSC endpoint** (most often a single regional PSC endpoint shared with the workspace URL).
 
