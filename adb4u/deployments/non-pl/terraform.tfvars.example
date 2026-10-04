@@ -182,7 +182,8 @@ enable_ip_access_lists = false
 # Enable SEP to restrict VNet egress to only allow-listed storage accounts
 # Applies to: Classic compute only (not serverless)
 # Security: Prevents data exfiltration via unauthorized storage access
-enable_service_endpoint_policy = false
+# Set once, in the "Service Endpoint Policy (Security)" section above
+# (a variable may only be assigned once per tfvars file).
 
 # IMPORTANT: Workspace Requirement for SEP
 # -----------------------------------------
@@ -240,3 +241,19 @@ tags = {
   CostCenter  = "Engineering"
   Owner       = "data-platform-team@company.com"
 }
+
+# ==============================================
+# Diagnostic Logs (Optional, recommended)
+# ==============================================
+# Exports all workspace diagnostic log categories (discovered from Azure).
+# enable_diagnostic_settings            = true
+# diagnostic_log_analytics_workspace_id = "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.OperationalInsights/workspaces/<law>"
+
+# ==============================================
+# Serverless Egress Control (Optional, recommended)
+# ==============================================
+# Restricts serverless egress to the listed destinations. Use DRY_RUN first to
+# review denials, then ENFORCED. DRY_RUN does not block anything.
+# enable_network_policy                    = true
+# network_policy_enforcement_mode          = "ENFORCED"
+# serverless_allowed_internet_destinations = ["pypi.org", "files.pythonhosted.org"]

@@ -49,7 +49,7 @@ adb4u/
 │   ├── private-endpoints/     # Private Link endpoints
 │   ├── service-endpoint-policy/ # Service Endpoint Policies
 │   ├── security/              # Security modules (CMK, IP access lists)
-│   └── monitoring/            # Monitoring and observability
+│   └── monitoring/            # Diagnostic settings (workspace audit logs)
 │
 └── archive/                   # Legacy content and templates
     └── LEGACY-CONTENT.md      # Historical reference
@@ -100,6 +100,9 @@ adb4u/
 - ✅ **Customer-Managed Keys (CMK)**: Optional encryption control
 - ✅ **Private Link Support**: Full private connectivity option
 - ✅ **BYOR Support**: Integrate with existing infrastructure
+- ✅ **Diagnostic Logs** (opt-in): every workspace log category to Log Analytics / Storage / Event Hub (`enable_diagnostic_settings`)
+- ✅ **Workspace Storage Firewall** (opt-in, Full Private): `enable_default_storage_firewall` with a dedicated access connector — read the caveats in `modules/workspace/variables.tf`
+- ✅ **Serverless Egress Control** (opt-in): restricted, enforced network policy via `enable_network_policy`
 - ✅ **Modular Design**: Reusable, composable components
 - ✅ **Well-Documented**: Comprehensive guides in `/docs`
 

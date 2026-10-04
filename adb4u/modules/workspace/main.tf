@@ -2,6 +2,30 @@
 # Azure Databricks Workspace
 # ==============================================
 
+# Dedicated access connector for the workspace storage firewall. Must live
+# outside the managed resource group; kept separate from the Unity Catalog
+# connector so the workspace does not depend on the unity-catalog module.
+resource "azurerm_databricks_access_connector" "storage_firewall" {
+  count = var.enable_default_storage_firewall && var.storage_firewall_access_connector_id == "" ? 1 : 0
+
+  name                = "${var.workspace_prefix}-storage-fw-ac"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  tags                = var.tags
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+locals {
+  storage_firewall_access_connector_id = (
+    var.storage_firewall_access_connector_id != ""
+    ? var.storage_firewall_access_connector_id
+    : try(azurerm_databricks_access_connector.storage_firewall[0].id, null)
+  )
+}
+
 resource "azurerm_databricks_workspace" "this" {
   name                        = var.workspace_name
   resource_group_name         = var.resource_group_name
@@ -33,6 +57,10 @@ resource "azurerm_databricks_workspace" "this" {
   managed_disk_cmk_key_vault_key_id                   = var.enable_cmk_managed_disks ? var.cmk_key_vault_key_id : null
   managed_disk_cmk_rotation_to_latest_version_enabled = var.enable_cmk_managed_disks ? true : null
 
+  # Workspace storage firewall (optional; Full Private pattern)
+  default_storage_firewall_enabled = var.enable_default_storage_firewall ? true : null
+  access_connector_id              = var.enable_default_storage_firewall ? local.storage_firewall_access_connector_id : null
+
   # VNet injection with Secure Cluster Connectivity (NPIP)
   custom_parameters {
     # NPIP/SCC always enabled - no public IPs on cluster VMs
@@ -57,6 +85,10 @@ resource "azurerm_databricks_workspace" "this" {
   tags = var.tags
 
   lifecycle {
+    precondition {
+      condition     = !var.enable_default_storage_firewall || var.enable_private_link
+      error_message = "enable_default_storage_firewall requires enable_private_link = true (dfs + blob private endpoints to the workspace storage account)."
+    }
     ignore_changes = [
       # Databricks manages these automatically in certain scenarios
       custom_parameters[0].storage_account_name

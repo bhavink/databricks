@@ -266,3 +266,29 @@ tags = {
 # - Library management: https://learn.microsoft.com/en-us/azure/databricks/libraries/
 #
 # ==============================================
+
+# ==============================================
+# Diagnostic Logs (Optional, recommended)
+# ==============================================
+# Exports all workspace diagnostic log categories (discovered from Azure).
+# enable_diagnostic_settings            = true
+# diagnostic_log_analytics_workspace_id = "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.OperationalInsights/workspaces/<law>"
+
+# ==============================================
+# Serverless Egress Control (Optional, recommended)
+# ==============================================
+# Restricts serverless egress to the listed destinations. Use DRY_RUN first to
+# review denials, then ENFORCED. DRY_RUN does not block anything.
+# enable_network_policy                    = true
+# network_policy_enforcement_mode          = "ENFORCED"
+# serverless_allowed_internet_destinations = ["pypi.org", "files.pythonhosted.org"]
+
+# ==============================================
+# Workspace Storage Firewall (Optional)
+# ==============================================
+# Blocks public access to the workspace (DBFS root) storage account. Uses the
+# dfs/blob private endpoints this deployment creates.
+# WARNING: removes the access connector in the managed resource group
+# (irreversible); remap external locations that used it. Cloud Fetch and the
+# Power BI service need private access to the storage account.
+# enable_default_storage_firewall = true

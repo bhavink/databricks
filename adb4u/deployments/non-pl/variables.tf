@@ -273,3 +273,65 @@ variable "tags" {
     Pattern   = "Non-PL"
   }
 }
+
+# ==============================================
+# Diagnostic Logs (Optional)
+# ==============================================
+
+variable "enable_diagnostic_settings" {
+  description = "Export workspace diagnostic (audit) logs. Requires at least one destination below."
+  type        = bool
+  default     = false
+}
+
+variable "diagnostic_log_analytics_workspace_id" {
+  description = "Log Analytics workspace resource ID for diagnostic logs"
+  type        = string
+  default     = ""
+}
+
+variable "diagnostic_storage_account_id" {
+  description = "Storage account resource ID for diagnostic log archival"
+  type        = string
+  default     = ""
+}
+
+variable "diagnostic_eventhub_authorization_rule_id" {
+  description = "Event Hub authorization rule ID for streaming diagnostic logs to a SIEM"
+  type        = string
+  default     = ""
+}
+
+variable "diagnostic_eventhub_name" {
+  description = "Event Hub name for diagnostic logs (optional)"
+  type        = string
+  default     = ""
+}
+
+# ==============================================
+# Serverless Egress Control (Optional)
+# ==============================================
+
+variable "enable_network_policy" {
+  description = "Assign a restricted serverless network policy to the workspace (requires NCC module)"
+  type        = bool
+  default     = false
+}
+
+variable "network_policy_enforcement_mode" {
+  description = "ENFORCED blocks disallowed serverless egress; DRY_RUN only logs denials"
+  type        = string
+  default     = "ENFORCED"
+}
+
+variable "serverless_allowed_internet_destinations" {
+  description = "FQDNs serverless compute may reach when the network policy is enabled"
+  type        = list(string)
+  default     = []
+}
+
+variable "serverless_allowed_storage_accounts" {
+  description = "Azure storage account names serverless compute may reach when the network policy is enabled"
+  type        = list(string)
+  default     = []
+}
