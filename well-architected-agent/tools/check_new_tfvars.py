@@ -3,11 +3,13 @@ Terraform root and resolve to the baseline's value when layered as the run book
 layers it (inputs.tfvars, then each stage). Needs `terraform` and git; no
 cloud access.
 
-Repo deployments are checked in place (initialize them first). External
+Values are evaluated against the root's variable definitions only (types and
+validation rules), in a scratch root with no providers or modules: no `init`,
+no provider downloads, and no provider auth that could stall in CI. External
 sources (the official Databricks SRA) are cloned at the pinned commit, and the
 catalog's copy of their variables must match the source exactly.
 
-    python tools/check_new_tfvars.py /path/to/initialized/adb4u/copy
+    python tools/check_new_tfvars.py /path/to/adb4u
 """
 
 import json
@@ -19,7 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from wa_agent import catalog  # noqa: E402
-from wa_agent.new import deployment_variables, generate  # noqa: E402
+from wa_agent.new import _variable_blocks, deployment_variables, generate  # noqa: E402
 
 # Sample value for every REPLACE_ME_<name> placeholder the catalog emits. A new
 # placeholder without a sample fails the check, so this list stays complete.
@@ -45,7 +47,7 @@ SAMPLES = {
 ENV = {"TF_VAR_databricks_account_id": "00000000-0000-0000-0000-000000000000",
        "TF_VAR_subscription_id": "00000000-0000-0000-0000-000000000000",
        "TF_INPUT": "0"}  # never prompt: a missing value must fail, not hang CI
-TIMEOUT = 600
+TIMEOUT = 120
 
 
 def fill(text: str) -> str:
@@ -82,11 +84,7 @@ def external_root(src: dict, tmp: Path, cache: dict) -> tuple[Path | None, str |
                 cache[key] = (None, f"cannot fetch {src['repo']}@{src['ref']}: {proc.stderr.strip()}")
                 break
         else:
-            root = clone / src["path"]
-            # -test-directory: the SRA's own tests are not ours to load; skip them.
-            proc = run(["terraform", "init", "-backend=false", "-input=false", "-no-color",
-                        "-test-directory=.wa-agent-no-tests"], root)
-            cache[key] = (root, None) if proc.returncode == 0 else (None, f"init failed: {proc.stderr.strip()[-400:]}")
+            cache[key] = (clone / src["path"], None)
     root, err = cache[key]
     if err:
         return None, err
@@ -97,6 +95,15 @@ def external_root(src: dict, tmp: Path, cache: dict) -> tuple[Path | None, str |
         return None, (f"catalog copy of {src['path']} variables is stale: missing {sorted(set(declared) - want_vars)}, "
                       f"extra {sorted(want_vars - set(declared))}, required {sorted(got_req)} vs {sorted(want_req)}")
     return root, None
+
+
+def variables_only(root: Path, scratch: Path) -> Path:
+    """Scratch root holding just the variable blocks of `root`."""
+    scratch.mkdir(parents=True)
+    blocks = [f'variable "{name}" {{{body}}}\n' for tf in sorted(root.glob("*.tf"))
+              for name, body in _variable_blocks(tf.read_text(encoding="utf-8"))]
+    (scratch / "variables.tf").write_text("\n".join(blocks), encoding="utf-8")
+    return scratch
 
 
 def main(adb4u_copy: str) -> int:
@@ -113,7 +120,7 @@ def main(adb4u_copy: str) -> int:
                 dep, err = external_root(build["source"], tmp, cache)
                 where = f"{build['source']['repo']}@{build['source']['ref'][:7]}/{build['source']['path']}"
                 if err:
-                    print(f"FAIL {b['id']}: {err}")
+                    print(f"FAIL {b['id']}: {err}", flush=True)
                     failures += 1
                     continue
             out = tmp / b["id"]
@@ -127,9 +134,11 @@ def main(adb4u_copy: str) -> int:
             for stage in build["stages"]:
                 expected.update(stage["tfvars"])
             expr = "jsonencode({" + ", ".join(f"{k} = var.{k}" for k in sorted(expected)) + "})"
-            proc = run(["terraform", "console", "-no-color", *var_files], dep, input=expr)
-            if proc.returncode != 0:
-                print(f"FAIL {b['id']}: {proc.stderr.strip().splitlines()[-1] if proc.stderr else proc.stdout}")
+            scratch = variables_only(dep, tmp / f"vars-{b['id']}")
+            proc = run(["terraform", "console", "-no-color", *var_files], scratch, input=expr)
+            # console exits 0 even when a validation rule rejects a value
+            if proc.returncode != 0 or "Error:" in proc.stderr:
+                print(f"FAIL {b['id']}: {proc.stderr.strip() or proc.stdout}", flush=True)
                 failures += 1
                 continue
             got = json.loads(json.loads(proc.stdout.strip().splitlines()[-1]))
@@ -137,10 +146,11 @@ def main(adb4u_copy: str) -> int:
             want = {k: v for k, v in expected.items() if "REPLACE_ME_" not in json.dumps(v)}
             got = {k: got[k] for k in want}
             if got != want:
-                print(f"FAIL {b['id']}: {json.dumps({k: (got[k], want[k]) for k in got if got[k] != want[k]})}")
+                print(f"FAIL {b['id']}: {json.dumps({k: (got[k], want[k]) for k in got if got[k] != want[k]})}", flush=True)
                 failures += 1
             else:
-                print(f"ok   {b['id']}: {len(expected)} tfvars accepted, {len(want)} resolve as intended in {where}")
+                print(f"ok   {b['id']}: {len(expected)} tfvars accepted, {len(want)} resolve as intended in {where}",
+                      flush=True)
     return 1 if failures else 0
 
 
