@@ -30,6 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      - name: Lockfile uses public PyPI only
+        run: "! grep -E 'https://' uv.lock | grep -vE 'https://(pypi\\.org|files\\.pythonhosted\\.org)/'"
       - name: Install (same path users take)
         run: uv sync
       - name: Demo runs with no cloud access
