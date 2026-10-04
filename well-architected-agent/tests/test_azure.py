@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from conftest import full_private_plan, non_pl_plan, rc
+from conftest import serverless_plan, full_private_plan, non_pl_plan, rc
 from wa_agent import report
 from wa_agent.cli import main
 from wa_agent.clouds.azure import live as azure_live, tfplan as azure_tfplan
@@ -258,7 +258,7 @@ def test_baseline_report_flags_compute_mode_mismatch(azure_catalog):
 def test_every_baseline_maps_to_existing_repo_path(azure_catalog):
     repo = __import__("pathlib").Path(__file__).resolve().parents[2]
     for b in azure_catalog["baselines"]:
-        assert (repo / b["deployment"]).exists(), b["deployment"]
+        assert b["deployment"].startswith("https://github.com/databricks/") or (repo / b["deployment"]).exists(), b["deployment"]
 
 
 @pytest.mark.parametrize("args", [
@@ -339,42 +339,137 @@ def test_every_build_tfvar_is_a_declared_deployment_variable(azure_catalog):
     from wa_agent.new import check_build
 
     built = [b for b in azure_catalog["baselines"] if b.get("build")]
-    assert {b["id"] for b in built} == {"classic-standard", "classic-private-link",
-                                        "classic-full-private", "classic-high-security"}
+    assert {b["id"] for b in built} == {b["id"] for b in azure_catalog["baselines"]}
     for b in built:
         check_build(b)
 
 
-def test_new_generates_staged_run_book(azure_catalog, tmp_path):
+def test_new_bundles_tested_terraform_with_inputs_and_stages(azure_catalog, tmp_path):
     from wa_agent.new import generate
 
     out = tmp_path / "ws"
-    generate(azure_catalog, "classic-high-security", str(out), ref="abc1234")
-    assert sorted(p.name for p in out.iterdir()) == [".gitignore", "README.md", "baseline.json",
-                                                    "stage-1-deploy.tfvars", "stage-2-lockdown.tfvars"]
+    generate(azure_catalog, "classic-high-security", str(out), {"location": "eastus2", "tag_owner": "me@example.com"})
+    assert sorted(p.name for p in out.iterdir()) == [".gitignore", "README.md", "baseline.json", "inputs.tfvars",
+                                                    "stage-1-deploy.tfvars", "stage-2-lockdown.tfvars", "terraform"]
     lockdown = (out / "stage-2-lockdown.tfvars").read_text(encoding="utf-8")
     assert 'network_policy_enforcement_mode          = "ENFORCED"' in lockdown
     assert "enable_public_network_access             = false" in lockdown
+    inputs = (out / "inputs.tfvars").read_text(encoding="utf-8")
+    assert 'location            = "eastus2"' in inputs and '"REPLACE_ME_workspace_prefix"' in inputs
+    assert "databricks_account_id =" not in inputs  # env only, never written
+    dep = out / "terraform" / "adb4u" / "deployments" / "full-private"
+    assert (dep / "main.tf").is_file() and (out / "terraform" / "adb4u" / "modules" / "ncc" / "main.tf").is_file()
     readme = (out / "README.md").read_text(encoding="utf-8")
-    assert "git checkout abc1234" in readme
-    book = out.resolve().as_posix()
-    assert (f"-var-file=terraform.tfvars -var-file={book}/stage-1-deploy.tfvars "
-            f"-var-file={book}/stage-2-lockdown.tfvars") in readme
+    assert "cd terraform/adb4u/deployments/full-private" in readme
+    assert ("-var-file=../../../../inputs.tfvars -var-file=../../../../stage-1-deploy.tfvars "
+            "-var-file=../../../../stage-2-lockdown.tfvars") in readme
+    for i in (1, 2):  # the relative var-files resolve from the deployment directory
+        assert (dep / "../../../.." / f"stage-{i}-{['deploy', 'lockdown'][i - 1]}.tfvars").resolve().is_file()
     assert "$env:TF_VAR_databricks_account_id" in readme  # PowerShell equivalent
     assert "wa-agent verify --tf-json state.json --baseline classic-high-security" in readme
     meta = json.loads((out / "baseline.json").read_text(encoding="utf-8"))
-    assert meta["placeholders"] == ["allowed_ip_ranges", "diagnostic_log_analytics_workspace_id"]
+    assert meta["placeholders"] == ["allowed_ip_ranges", "diagnostic_log_analytics_workspace_id",
+                                    "resource_group_name", "tag_keepuntil", "workspace_prefix"]
+    assert all(len(h) == 64 for h in meta["files"].values())
+    assert not [p for p in out.rglob("*") if p.name.endswith((".tfstate", ".tfvars")) and "terraform" in p.parts]
+
+
+def test_bundle_never_copies_state_tfvars_or_provider_cache(tmp_path):
+    from wa_agent.new import bundle_files
+
+    dep = tmp_path / "adb4u" / "deployments" / "x"
+    mod = tmp_path / "adb4u" / "modules" / "m"
+    for d in (dep / ".terraform" / "modules", mod / "tests"):
+        d.mkdir(parents=True)
+    (dep / "main.tf").write_text('module "m" {\n  source = "../../modules/m"\n}\n', encoding="utf-8")
+    for name in ("terraform.tfvars", "terraform.tfstate", "terraform.tfstate.backup", ".terraform.lock.hcl",
+                 "terraform.tfvars.example", "README.md"):
+        (dep / name).write_text("x", encoding="utf-8")
+    (dep / ".terraform" / "modules" / "leak.tf").write_text("x", encoding="utf-8")
+    (mod / "main.tf").write_text("", encoding="utf-8")
+    (mod / "tests" / "m.tftest.hcl").write_text("", encoding="utf-8")
+    assert bundle_files("adb4u/deployments/x", tmp_path) == [
+        "adb4u/deployments/x/README.md", "adb4u/deployments/x/main.tf", "adb4u/deployments/x/terraform.tfvars.example",
+        "adb4u/modules/m/main.tf", "adb4u/modules/m/tests/m.tftest.hcl"]
+
+
+def test_new_for_official_sra_source_pins_commit_and_selects_spoke(azure_catalog, tmp_path):
+    from wa_agent.new import generate
+
+    out = tmp_path / "dep"
+    generate(azure_catalog, "classic-exfiltration-protection", str(out), {"location": "eastus2"})
+    assert not (out / "terraform").exists()  # external: cloned at the pinned commit, not copied
+    readme = (out / "README.md").read_text(encoding="utf-8")
+    assert "git clone https://github.com/databricks/terraform-databricks-sra.git sra" in readme
+    assert "git checkout bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4" in readme
+    assert "--workspace module.spoke_workspace.azurerm_databricks_workspace.this" in readme
+    assert "export TF_VAR_subscription_id" in readme and "`AZ-OPS-001`" in readme
+    inputs = (out / "inputs.tfvars").read_text(encoding="utf-8")
+    assert "subscription_id =" not in inputs and '"REPLACE_ME_resource_suffix"' in inputs
+    stage = (out / "stage-1-deploy.tfvars").read_text(encoding="utf-8")
+    assert 'workspace_vnet      = { cidr = "REPLACE_ME_spoke_vnet_cidr" }' in stage
+
+
+def test_new_answers_are_validated(azure_catalog, tmp_path):
+    from wa_agent.new import parse_answer, render
+
+    assert parse_answer('["10.0.0.0/24"]') == ["10.0.0.0/24"] and parse_answer("true") is True
+    assert parse_answer("eastus2") == "eastus2"
+    with pytest.raises(ValueError, match="not a variable"):
+        render(azure_catalog, "serverless", {"no_such_variable": 1})
+    with pytest.raises(ValueError, match="TF_VAR_databricks_account_id"):
+        render(azure_catalog, "serverless", {"databricks_account_id": "x"})
 
 
 def test_new_refuses_without_tested_deployment_and_never_overwrites(azure_catalog, tmp_path):
     from wa_agent.new import generate
 
+    cat = copy.deepcopy(azure_catalog)
+    cat["baselines"].append({"id": "untested", "name": "x", "use_case": "x", "pattern": "az-serverless",
+                             "deployment": "adb4u/README.md"})
     with pytest.raises(ValueError, match="no tested deployment"):
-        generate(azure_catalog, "classic-exfiltration-protection", str(tmp_path / "a"))
+        generate(cat, "untested", str(tmp_path / "a"))
     (tmp_path / "b").mkdir()
     with pytest.raises(ValueError, match="never overwrites"):
         generate(azure_catalog, "classic-standard", str(tmp_path / "b"))
     assert not (tmp_path / "a").exists()
+
+
+def test_external_sources_must_be_official_and_pinned(azure_catalog):
+    from wa_agent.catalog import CatalogError, validate_baselines
+
+    for change, message in ((lambda s: s.update(ref="main"), "full commit SHA"),
+                            (lambda s: s.update(repo="https://github.com/someone/fork"), "official Databricks")):
+        baselines = copy.deepcopy(azure_catalog["baselines"])
+        change(next(b for b in baselines if "source" in (b.get("build") or {}))["build"]["source"])
+        with pytest.raises(CatalogError, match=message):
+            validate_baselines(baselines, azure_catalog["patterns"], azure_catalog["checks"])
+
+
+def test_serverless_workspace_from_official_module_is_detected_and_verifies(azure_catalog):
+    facts = azure_tfplan.collect(serverless_plan())
+    assert facts["workspace"]["compute_mode"] == "serverless"
+    assert facts["workspace"]["public_network_access_enabled"] is True
+    assert facts["_evidence"]["workspace.compute_mode"] == ["terraform:module.workspace.azapi_resource.this"]
+    result = assess(azure_catalog, facts, baseline_id="serverless")
+    assert result.score["conformant"], statuses(result)
+    high = statuses(assess(azure_catalog, facts, baseline_id="serverless-high-security"))
+    assert high["AZ-ENC-001"] == FAIL and high["AZ-WS-001"] == FAIL and high["AZ-SRV-003"] == FAIL
+    secured = azure_tfplan.collect(serverless_plan(cmk=True, leak_features_off=True, storage_pe=True))
+    assert assess(azure_catalog, secured, baseline_id="serverless-high-security").score["conformant"]
+
+
+def test_plan_with_several_workspaces_needs_a_selection(azure_catalog):
+    plan = full_private_plan()
+    plan["resource_changes"] += serverless_plan()["resource_changes"][:1]  # e.g. SRA hub + spoke
+    with pytest.raises(ValueError, match="choose one with --workspace"):
+        azure_tfplan.collect(plan)
+    spoke = azure_tfplan.collect(plan, workspace="module.workspace.azurerm_databricks_workspace.this")
+    assert spoke["workspace"]["compute_mode"] == "classic"
+    hub = azure_tfplan.collect(plan, workspace="srvtest-workspace")  # by name
+    assert hub["workspace"]["compute_mode"] == "serverless"
+    with pytest.raises(ValueError, match="no single workspace"):
+        azure_tfplan.collect(plan, workspace="nope")
 
 
 def test_every_check_maps_to_a_phase_and_control(azure_catalog):
@@ -487,3 +582,14 @@ def test_doctor_redacts_by_default(monkeypatch, capsys):
     assert "issues/new?template=wa-agent-problem.yml" in out
     doctor.run(show_ids=True)
     assert "Contoso-Prod-Subscription" in capsys.readouterr().out
+
+
+def test_one_reviewed_sra_commit_everywhere(azure_catalog):
+    import re
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[2]
+    refs = {b["build"]["source"]["ref"] for b in azure_catalog["baselines"] if "source" in (b.get("build") or {})}
+    main_tf = (repo / "adb4u/deployments/serverless/main.tf").read_text(encoding="utf-8")
+    refs |= set(re.findall(r"terraform-databricks-sra\.git//[^?]+\?ref=([0-9a-f]{40})", main_tf))
+    assert len(refs) == 1, refs

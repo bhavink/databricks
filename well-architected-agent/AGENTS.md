@@ -33,7 +33,7 @@ wa-agent baselines
 wa-agent collect live --cloud azure --workspace <arm-id> --profile <ws> --account-profile <acct> -o out/ws.facts.json
 wa-agent assess --facts out/ws.facts.json --baseline <baseline-id> -o out/ws.report.md
 wa-agent verify --tf-json state.json --baseline <baseline-id>
-wa-agent new --baseline <baseline-id> --out <new-dir> --ref <commit>   # run book; the user runs Terraform
+wa-agent new --baseline <baseline-id> --out <new-dir> --set name=value   # tested Terraform + run book; the user runs it
 ```
 
 Relay fix caveats (`⚠️ Before you apply`) and maturity labels verbatim.
@@ -46,6 +46,9 @@ baseline id; list them first.
 
 - A new check needs an official doc in `sources` (the loader enforces this) and
   a collector that emits its facts, with provenance in `_evidence`.
+- `new` only uses tested Terraform: a repo deployment with mock-provider tests,
+  or an official Databricks repository pinned to a full commit SHA. Never
+  generate Terraform, and never write account or subscription IDs to files.
 - A new live command must be a read and must be added to `READ_ONLY_COMMANDS`.
   Never add a write verb.
 - Keep output deterministic: no timestamps, no randomness, sorted output.

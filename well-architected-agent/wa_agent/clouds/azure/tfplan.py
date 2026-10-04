@@ -5,10 +5,18 @@ adb4u deployments, or your own). If network or account-level resources
 live in a different root, collect each plan and pass all of them to
 `assess` — facts are merged.
 
+Workspaces are read from `azurerm_databricks_workspace` and from
+`azapi_resource` of type `Microsoft.Databricks/workspaces` (how the
+Databricks SRA creates serverless workspaces: `computeMode = "Serverless"`).
+A plan with several workspaces (e.g. the SRA hub and spoke) needs
+`workspace=` set to the address or name of the one to assess.
+
 Plan-time limits (documented, deterministic): resource IDs are unknown
 before apply, so correlation is by resource type and count, and DBFS
-private endpoints are recognised by address name ("dbfs"). Use the live
-collector for exact correlation.
+private endpoints are recognised by address name ("dbfs"). Network,
+private endpoint and serverless facts come from the whole plan, not only
+the selected workspace's module. Use the live collector for exact
+correlation.
 """
 
 from __future__ import annotations
@@ -70,7 +78,8 @@ def _is_set(value) -> bool:
     return value not in (None, "", [], {})
 
 
-_WS = ("azurerm_databricks_workspace",)
+_WS = ("azurerm_databricks_workspace", "azapi_resource")
+AZAPI_WORKSPACE = "Microsoft.Databricks/workspaces"
 _SUBNETS = ("azurerm_subnet",)
 _SERVERLESS = ("databricks_mws_ncc_binding", "databricks_mws_workspaces")
 PROVENANCE = {
@@ -113,21 +122,75 @@ def _provenance(facts: dict, rs: list[dict]) -> dict:
     return evidence
 
 
-def collect(doc: dict) -> dict:
-    facts = _collect(doc)
-    facts[EVIDENCE] = _provenance(facts, resources(doc))
+def collect(doc: dict, workspace: str | None = None) -> dict:
+    rs = resources(doc)
+    facts = _collect(doc, rs, workspace)
+    selected = facts.pop("_workspace_address", None)
+    facts[EVIDENCE] = _provenance(facts, rs)
+    if selected:
+        for path in facts[EVIDENCE]:
+            if path.startswith("workspace.") and path != "workspace.cmk_dbfs_root":
+                facts[EVIDENCE][path] = [f"terraform:{selected}"]
     return facts
 
 
-def _collect(doc: dict) -> dict:
-    rs = resources(doc)
+def _workspaces(rs) -> list[dict]:
+    return [r for r in rs if r["type"] == "azurerm_databricks_workspace"
+            or (r["type"] == "azapi_resource"
+                and str(r["values"].get("type", "")).split("@")[0] == AZAPI_WORKSPACE)]
+
+
+def select_workspace(rs, workspace: str | None) -> dict | None:
+    candidates = _workspaces(rs)
+    if workspace:
+        chosen = [r for r in candidates if workspace in (r["address"], r["values"].get("name"))]
+        if len(chosen) != 1:
+            raise ValueError(f"no single workspace matching {workspace!r}; candidates: "
+                             f"{[r['address'] for r in candidates]}")
+        return chosen[0]
+    if len(candidates) > 1:
+        raise ValueError("plan contains more than one Databricks workspace; choose one with --workspace: "
+                         f"{[r['address'] for r in candidates]}")
+    return candidates[0] if candidates else None
+
+
+def _azapi_workspace(values: dict) -> dict:
+    body = values.get("body") if isinstance(values.get("body"), dict) else {}
+    props = body.get("properties") if isinstance(body.get("properties"), dict) else {}
+    params = props.get("parameters") if isinstance(props.get("parameters"), dict) else {}
+    entities = _first(props.get("encryption")).get("entities") or {}
+
+    def param(name):
+        p = params.get(name)
+        return p.get("value") if isinstance(p, dict) else p
+
+    serverless = props.get("computeMode") == "Serverless"
+    return {
+        "name": values.get("name"),
+        "sku": _first(body.get("sku")).get("name"),
+        "compute_mode": "serverless" if serverless else "classic",
+        "vnet_injected": _is_set(param("customVirtualNetworkId")),
+        "no_public_ip": param("enableNoPublicIp"),
+        "public_network_access_enabled": None if props.get("publicNetworkAccess") is None
+        else props.get("publicNetworkAccess") != "Disabled",
+        "required_nsg_rules": props.get("requiredNsgRules"),
+        "cmk_managed_services": _is_set(entities.get("managedServices")),
+        "cmk_managed_disks": _is_set(entities.get("managedDisk")),
+        "cmk_dbfs_root": _is_set(param("encryption")),
+        "default_storage_firewall_enabled": props.get("defaultStorageFirewall") == "Enabled",
+    }
+
+
+def _collect(doc: dict, rs: list[dict], workspace: str | None = None) -> dict:
     facts: dict = {"cloud": "azure", "source": "terraform-plan" if "resource_changes" in doc else "terraform-state"}
 
-    workspaces = _of_type(rs, "azurerm_databricks_workspace")
-    if len(workspaces) > 1:
-        raise ValueError("plan contains more than one azurerm_databricks_workspace; scan one workspace per plan")
-    if workspaces:
-        ws = workspaces[0]["values"]
+    selected = select_workspace(rs, workspace)
+    if selected and selected["type"] == "azapi_resource":
+        facts["workspace"] = _azapi_workspace(selected["values"])
+        facts["_workspace_address"] = selected["address"]
+    elif selected:
+        facts["_workspace_address"] = selected["address"]
+        ws = selected["values"]
         cp = _first(ws.get("custom_parameters"))
         facts["workspace"] = {
             "name": ws.get("name"),

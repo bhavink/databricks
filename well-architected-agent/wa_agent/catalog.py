@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import yaml
@@ -104,6 +105,30 @@ def validate_baselines(baselines: list[dict], patterns: dict, checks: list[dict]
         for ref in b.get("require") or []:
             if ref not in check_ids:
                 raise CatalogError(f"baseline {b['id']}: references unknown check {ref}")
+        if b.get("build"):
+            _validate_build(b["id"], b["build"], check_ids)
+
+
+def _validate_build(bid: str, build: dict, check_ids: set) -> None:
+    where = f"baseline {bid} build"
+    if ("deployment" in build) == ("source" in build):
+        raise CatalogError(f"{where}: needs exactly one of deployment (repo) or source (external)")
+    if "source" in build:
+        src = build["source"]
+        for key in ("repo", "ref", "path", "variables", "required"):
+            if key not in src:
+                raise CatalogError(f"{where}: source missing {key}")
+        if not re.fullmatch(r"[0-9a-f]{40}", src["ref"]):
+            raise CatalogError(f"{where}: source.ref must be a full commit SHA (reviewed, immutable)")
+        if not src["repo"].startswith("https://github.com/databricks/"):
+            raise CatalogError(f"{where}: external sources must be official Databricks repositories")
+        if set(src["required"]) - set(src["variables"]):
+            raise CatalogError(f"{where}: required lists undeclared variables")
+    if not build.get("stages"):
+        raise CatalogError(f"{where}: needs at least one stage")
+    for gap in build.get("known_gaps") or []:
+        if gap.get("check") not in check_ids or not gap.get("reason"):
+            raise CatalogError(f"{where}: known_gaps entries need a known check and a reason")
 
 
 def load_controls(root: Path = CATALOG_ROOT) -> dict:

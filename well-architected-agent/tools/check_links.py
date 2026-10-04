@@ -30,8 +30,12 @@ def references(cat: dict) -> dict[str, list[str]]:
             refs.setdefault(cloud_guide + phase["slug"], []).append(f"phase:{phase['slug']}")
     for b in cat["baselines"]:
         refs.setdefault(b["deployment"], []).append(b["id"])
-        if b.get("build"):
-            refs.setdefault(b["build"]["deployment"], []).append(b["id"])
+        build = b.get("build") or {}
+        if "deployment" in build:
+            refs.setdefault(build["deployment"], []).append(b["id"])
+        if "source" in build:
+            src = build["source"]
+            refs.setdefault(f"{src['repo']}/tree/{src['ref']}/{src['path']}", []).append(b["id"])
     return refs
 
 

@@ -254,24 +254,34 @@ Statuses, simply:
 
 ```mermaid
 flowchart LR
-  B["1. Pick a baseline"] -->|"maps to"| T["2. Tested deployment<br/>in bhavink/databricks"]
-  T -->|"you fill tfvars,<br/>you run plan"| P["3. assess the plan"]
+  B["1. Pick a baseline"] -->|"maps to"| T["2. Tested Terraform<br/>(this repo or official SRA)"]
+  T -->|"you answer inputs,<br/>you run plan"| P["3. assess the plan"]
   P -->|"you run apply"| S["4. terraform show -json"]
   S -->|"verify --baseline"| V["5. PASS / FAIL<br/>with evidence"]
 ```
 
 ```bash
-wa-agent new --baseline classic-full-private --out ./my-ws --ref <commit-or-tag>
+wa-agent new --baseline classic-full-private --out ./my-ws --set location=eastus2
 ```
 
-That creates `./my-ws/` with a step-by-step README and one tfvars file per
-stage (for full private: *deploy*, then *lockdown* from inside your
-network). Each stage is: `terraform plan` → `wa-agent assess` on the plan →
-`terraform apply` (you run it) → after the last stage, `wa-agent verify` on
-the state. The final stage must verify as **PASS**.
+That creates `./my-ws/` with everything needed:
 
-If a baseline has no tested deployment in the repo yet (serverless,
-hub-spoke), `new` says so and points you to the docs instead of guessing.
+| File | What it is |
+|---|---|
+| `terraform/` | The tested Terraform, copied from this repo (for hub-spoke: the README clones the official Databricks SRA at a reviewed commit instead) |
+| `inputs.tfvars` | The required settings. Your `--set` answers; anything unanswered is a `REPLACE_ME_*` |
+| `stage-N-*.tfvars` | What the baseline turns on, one file per stage (for full private: *deploy*, then *lockdown* from inside your network) |
+| `README.md` | Every command, in order |
+| `baseline.json` | What was used: baseline, commit, and a checksum of every copied file |
+
+Each stage is: `terraform plan` → `wa-agent assess` on the plan →
+`terraform apply` (you run it) → after the last stage, `wa-agent verify` on
+the state. The final stage must verify as **PASS**; if the Terraform used
+can't cover a check (the SRA has no diagnostic settings), the README names it
+up front.
+
+Account and subscription IDs are set as `TF_VAR_*` environment variables and
+are never written to the folder.
 
 ## FAQ
 

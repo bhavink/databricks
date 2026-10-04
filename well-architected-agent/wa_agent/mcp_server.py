@@ -66,9 +66,11 @@ def list_patterns(cloud: str = "azure") -> list[dict]:
 
 
 @server.tool(annotations=READ_ONLY)
-def collect_tfplan(tf_json_path: str, cloud: str = "azure") -> dict:
-    """Read facts from a `terraform show -json` file (plan or state). Reads the file only."""
-    return collector(cloud, "tfplan").collect(json.loads(Path(tf_json_path).read_text(encoding="utf-8")))
+def collect_tfplan(tf_json_path: str, cloud: str = "azure", workspace: str | None = None) -> dict:
+    """Read facts from a `terraform show -json` file (plan or state). Reads the file only.
+    workspace: address or name, required when the plan has several workspaces (e.g. the SRA)."""
+    return collector(cloud, "tfplan").collect(json.loads(Path(tf_json_path).read_text(encoding="utf-8")),
+                                              workspace=workspace)
 
 
 @server.tool(annotations=READ_ONLY_REMOTE)
@@ -107,11 +109,13 @@ def assess(facts: list[dict], baseline: str | None = None, target: str | None = 
 
 
 @server.tool(annotations=READ_ONLY)
-def verify(tf_json_path: str, baseline: str, cloud: str = "azure", format: str = "md") -> dict:
+def verify(tf_json_path: str, baseline: str, cloud: str = "azure", format: str = "md",
+           workspace: str | None = None) -> dict:
     """Post-apply validation: score a `terraform show -json` state (or plan) against
     the baseline it was meant to build. Returns verdict, score and report."""
     cat = catalog_mod.load(cloud)
-    facts = collector(cloud, "tfplan").collect(json.loads(Path(tf_json_path).read_text(encoding="utf-8")))
+    facts = collector(cloud, "tfplan").collect(json.loads(Path(tf_json_path).read_text(encoding="utf-8")),
+                                               workspace=workspace)
     result = run_assess(cat, facts, baseline_id=baseline)
     return {
         "verdict": "PASS" if result.score["conformant"] else "FAIL",
@@ -122,13 +126,19 @@ def verify(tf_json_path: str, baseline: str, cloud: str = "azure", format: str =
 
 
 @server.tool(annotations=READ_ONLY)
-def new_workspace(baseline: str, ref: str = "master", cloud: str = "azure") -> dict:
-    """Run book for a brand-new workspace: staged tfvars for the baseline's tested
-    repo deployment plus step-by-step README (plan -> assess -> apply -> verify).
-    Returns file contents; writes nothing. The user saves the files and runs Terraform."""
+def new_workspace(baseline: str, inputs: dict | None = None, cloud: str = "azure") -> dict:
+    """Deployment for a brand-new workspace from the baseline's tested Terraform (this repo's
+    deployment, or the official Databricks SRA pinned to a reviewed commit): inputs.tfvars from
+    `inputs` (Terraform variable -> value; unanswered required ones become REPLACE_ME_*), staged
+    tfvars and a step-by-step README (plan -> assess -> apply -> verify). Returns file contents
+    and the list of Terraform files to bundle; writes nothing. To write the folder with the
+    Terraform included, the user runs `wa-agent new --baseline <id> --out <dir>`."""
     from .new import render
 
-    return {"files": render(catalog_mod.load(cloud), baseline, ref)}
+    files = render(catalog_mod.load(cloud), baseline, inputs)
+    manifest = json.loads(files["baseline.json"])
+    return {"files": files, "bundle": sorted(manifest.get("files", {})),
+            "write_with": f"wa-agent new --baseline {baseline} --out <new-dir>"}
 
 
 def main() -> None:

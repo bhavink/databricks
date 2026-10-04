@@ -6,7 +6,7 @@
   python -m wa_agent patterns --cloud azure
   python -m wa_agent collect tfplan --cloud azure --plan plan.json -o facts.json
   python -m wa_agent collect live --cloud azure --workspace <arm id> [--profile P] [--account-profile A] -o facts.json
-  python -m wa_agent new --baseline classic-high-security --out ./my-ws --ref <commit>
+  python -m wa_agent new --baseline classic-high-security --out ./my-ws --set location=eastus2
   python -m wa_agent verify --tf-json state.json --baseline classic-full-private
   python -m wa_agent assess --cloud azure --facts facts.json [--facts more.json] \
       [--set workspace.compute_mode=serverless] [--baseline classic-high-security] \
@@ -57,7 +57,7 @@ def cmd_baselines(args) -> int:
 def cmd_collect(args) -> int:
     module = collector(args.cloud, args.source)
     if args.source == "tfplan":
-        facts = module.collect(json.loads(Path(args.plan).read_text(encoding="utf-8")))
+        facts = module.collect(json.loads(Path(args.plan).read_text(encoding="utf-8")), workspace=args.workspace)
     else:
         facts = module.collect(args.workspace, databricks_profile=args.profile, account_profile=args.account_profile)
     _write(canonical(facts), args.output)
@@ -83,7 +83,7 @@ def cmd_verify(args) -> int:
     """Post-apply validation: did the deployment do what the baseline requires?"""
     cat = catalog_mod.load(args.cloud)
     doc = json.loads(Path(args.tf_json).read_text(encoding="utf-8"))
-    facts = collector(args.cloud, "tfplan").collect(doc)
+    facts = collector(args.cloud, "tfplan").collect(doc, workspace=args.workspace)
     for path in args.facts or []:
         facts = merge(facts, json.loads(Path(path).read_text(encoding="utf-8")))
     result = assess(cat, facts, baseline_id=args.baseline)
@@ -99,10 +99,16 @@ def cmd_verify(args) -> int:
 
 
 def cmd_new(args) -> int:
-    from .new import generate
+    from .new import generate, parse_answer
 
     cat = catalog_mod.load(args.cloud)
-    written = generate(cat, args.baseline, args.out, args.ref)
+    answers = {}
+    for assignment in args.set or []:
+        name, sep, raw = assignment.partition("=")
+        if not sep or not name:
+            raise ValueError(f"--set {assignment!r}: expected name=value")
+        answers[name.strip()] = parse_answer(raw)
+    written = generate(cat, args.baseline, args.out, answers)
     for path in written:
         print(path)
     print(f"next: read {args.out}/README.md — you run Terraform; the agent changes nothing", file=sys.stderr)
@@ -157,7 +163,8 @@ def main(argv=None) -> int:
     c.add_argument("source", choices=["tfplan", "live"])
     c.add_argument("--cloud", default="azure", choices=CLOUDS)
     c.add_argument("--plan", help="terraform show -json output (tfplan)")
-    c.add_argument("--workspace", help="workspace to scan (live): name, URL, numeric id or ARM resource id")
+    c.add_argument("--workspace", help="live: name, URL, numeric id or ARM id; tfplan: address or name "
+                   "when the plan has several workspaces")
     c.add_argument("--profile", help="Databricks CLI workspace profile (default: auto-match by host)")
     c.add_argument("--account-profile", help="Databricks CLI account profile (default: auto-match if unique)")
     c.add_argument("-o", "--output")
@@ -179,15 +186,17 @@ def main(argv=None) -> int:
     v.add_argument("--tf-json", required=True, help="terraform show -json output (state after apply, or a plan)")
     v.add_argument("--baseline", required=True, help="baseline the deployment was meant to build")
     v.add_argument("--facts", action="append", help="extra facts to merge (e.g. live account-level facts)")
+    v.add_argument("--workspace", help="workspace address or name, when the state has several workspaces")
     v.add_argument("--format", choices=["md", "json"], default="md")
     v.add_argument("-o", "--output")
     v.set_defaults(func=cmd_verify)
 
-    n = sub.add_parser("new", help="run book for a new workspace from a baseline's tested deployment")
+    n = sub.add_parser("new", help="deployment folder for a new workspace from a baseline's tested Terraform")
     n.add_argument("--cloud", default="azure", choices=CLOUDS)
     n.add_argument("--baseline", required=True)
     n.add_argument("--out", required=True, help="new directory to create (must not exist)")
-    n.add_argument("--ref", default="master", help="git ref of bhavink/databricks to pin (tag or commit recommended)")
+    n.add_argument("--set", action="append", metavar="NAME=VALUE",
+                   help="answer a Terraform variable (repeatable); JSON values for lists/booleans")
     n.set_defaults(func=cmd_new)
 
     d = sub.add_parser("doctor", help="check prerequisites; with --workspace, preflight a real scan (read-only)")
