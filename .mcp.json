@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "databricks-wa": {
+      "command": "uv",
+      "args": ["run", "--quiet", "--project", "well-architected-agent", "wa-agent-mcp"]
+    }
+  }
+}
