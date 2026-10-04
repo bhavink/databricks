@@ -53,6 +53,8 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "~1.15"
+          # The wrapper does not pass stdin through; `terraform console` reads it.
+          terraform_wrapper: false
       - run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
       - name: Format
         run: terraform fmt -check -recursive adb4u/modules adb4u/deployments/non-pl adb4u/deployments/full-private adb4u/deployments/serverless
