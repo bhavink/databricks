@@ -429,7 +429,7 @@ def test_doctor_only_runs_read_commands_and_prints_registration(monkeypatch, cap
 
 def test_project_mcp_configs_point_at_the_agent():
     repo = __import__("pathlib").Path(__file__).resolve().parents[2]
-    for rel, key in ((".mcp.json", "mcpServers"), (".cursor/mcp.json", "mcpServers"), (".vscode/mcp.json", "servers")):
+    for rel, key in ((".mcp.json", "mcpServers"), (".cursor/mcp.json", "mcpServers")):  # committed configs
         server = json.loads((repo / rel).read_text(encoding="utf-8"))[key]["databricks-wa"]
         assert server["command"] == "uv" and server["args"][-1] == "wa-agent-mcp", rel
 

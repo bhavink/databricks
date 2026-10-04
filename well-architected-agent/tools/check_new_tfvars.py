@@ -35,7 +35,7 @@ def fill(text: str) -> str:
 
 
 def main(adb4u_copy: str) -> int:
-    root = Path(adb4u_copy)
+    root = Path(adb4u_copy).resolve()
     cat = catalog.load("azure")
     failures = 0
     with tempfile.TemporaryDirectory() as tmp:
