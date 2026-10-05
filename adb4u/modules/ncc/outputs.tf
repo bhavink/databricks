@@ -26,3 +26,8 @@ output "workspace_id_numeric" {
   description = "Workspace ID that NCC is bound to"
   value       = databricks_mws_ncc_binding.this.workspace_id
 }
+
+output "network_policy_id" {
+  description = "Serverless network policy assigned to the workspace (null when not managed here)"
+  value       = var.enable_network_policy ? databricks_account_network_policy.this[0].network_policy_id : null
+}

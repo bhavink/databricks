@@ -47,3 +47,46 @@ resource "databricks_mws_ncc_binding" "this" {
     create_before_destroy = false
   }
 }
+
+# ==============================================
+# Serverless Network Policy (Optional)
+# ==============================================
+# Restricts serverless egress. Each workspace has exactly one network policy
+# (default: "default-policy", full access); this assigns a restricted one.
+
+resource "databricks_account_network_policy" "this" {
+  count    = var.enable_network_policy ? 1 : 0
+  provider = databricks.account
+
+  network_policy_id = "${var.workspace_prefix}-restricted"
+
+  egress = {
+    network_access = {
+      restriction_mode = "RESTRICTED_ACCESS"
+      allowed_internet_destinations = [
+        for d in var.allowed_internet_destinations : {
+          destination               = d
+          internet_destination_type = "DNS_NAME"
+        }
+      ]
+      allowed_storage_destinations = [
+        for a in var.allowed_storage_accounts : {
+          azure_storage_account    = a
+          azure_storage_service    = "dfs"
+          storage_destination_type = "AZURE_STORAGE"
+        }
+      ]
+      policy_enforcement = {
+        enforcement_mode = var.network_policy_enforcement_mode
+      }
+    }
+  }
+}
+
+resource "databricks_workspace_network_option" "this" {
+  count    = var.enable_network_policy ? 1 : 0
+  provider = databricks.account
+
+  workspace_id      = var.workspace_id_numeric
+  network_policy_id = databricks_account_network_policy.this[0].network_policy_id
+}

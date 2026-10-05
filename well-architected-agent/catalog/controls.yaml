@@ -1,0 +1,89 @@
+# Cloud-neutral controls, organized by the Databricks production planning
+# guide (10 phases, identical on AWS, Azure and GCP) and tagged with Well-
+# Architected Lakehouse pillars.
+#
+# A control states WHAT must be true. Each cloud's checks.yaml states HOW it
+# is checked on that cloud (`control: <id>` on every check). The same
+# control id therefore means the same posture on every cloud.
+
+version: "2026.10.0"
+
+guide:
+  azure: https://learn.microsoft.com/en-us/azure/databricks/lakehouse-architecture/deployment-guide/
+  aws: https://docs.databricks.com/aws/en/lakehouse-architecture/deployment-guide/
+  gcp: https://docs.databricks.com/gcp/en/lakehouse-architecture/deployment-guide/
+
+phases:
+  1: {name: Account, slug: account-setup}
+  2: {name: Workspace strategy, slug: workspace-strategy}
+  3: {name: Unity Catalog, slug: unity-catalog}
+  4: {name: Network, slug: network}
+  5: {name: Storage, slug: storage}
+  6: {name: Delta Lake, slug: delta-lake}
+  7: {name: IaC, slug: iac}
+  8: {name: Compute, slug: compute}
+  9: {name: Observability, slug: observability}
+  10: {name: High availability & DR, slug: ha-dr}
+
+controls:
+  # ---------------------------------------------------------- 3 Unity Catalog
+  - {id: GOV.UC_METASTORE, phase: 3, pillar: data_ai_governance,
+     title: Workspace is attached to a Unity Catalog metastore}
+  - {id: GOV.MANAGED_IDENTITY_STORAGE_ACCESS, phase: 3, pillar: data_ai_governance,
+     title: Storage access uses a cloud managed identity, not secrets}
+
+  # ---------------------------------------------------------------- 4 Network
+  - {id: NET.CUSTOMER_MANAGED_NETWORK, phase: 4, pillar: security,
+     title: Classic compute runs in a customer-managed network}
+  - {id: NET.SECURE_CLUSTER_CONNECTIVITY, phase: 4, pillar: security,
+     title: Secure cluster connectivity (no public IPs, no inbound ports)}
+  - {id: NET.COMPUTE_SUBNETS, phase: 4, pillar: reliability,
+     title: Dedicated compute subnets are configured for Databricks}
+  - {id: NET.SUBNET_SIZING, phase: 4, pillar: reliability,
+     title: Compute subnets are sized for expected cluster growth}
+  - {id: NET.SUBNET_SECURITY_GROUPS, phase: 4, pillar: security,
+     title: Compute subnets are protected by security groups}
+  - {id: NET.EXPLICIT_EGRESS, phase: 4, pillar: reliability,
+     title: Classic compute egress uses an explicit, stable path (NAT or firewall)}
+  - {id: NET.EGRESS_FIREWALL, phase: 4, pillar: security,
+     title: Classic compute egress is inspected and allowlisted by a firewall}
+  - {id: NET.PRIVATE_PATH_TO_CLOUD_STORAGE, phase: 4, pillar: performance_efficiency,
+     title: Storage traffic stays on the cloud backbone}
+  - {id: NET.STORAGE_EGRESS_POLICY, phase: 4, pillar: security,
+     title: Storage egress is limited to approved accounts}
+  - {id: NET.PRIVATE_LINK_BACKEND, phase: 4, pillar: security,
+     title: Compute reaches the control plane over Private Link}
+  - {id: NET.BACKEND_PRIVATE_ONLY, phase: 4, pillar: security,
+     title: Compute-to-control-plane traffic is restricted to the private path}
+  - {id: NET.PRIVATE_LINK_FRONTEND, phase: 4, pillar: security,
+     title: Users reach the workspace over Private Link (including SSO)}
+  - {id: NET.PUBLIC_ACCESS_DISABLED, phase: 4, pillar: security,
+     title: Public access to the workspace front-end is disabled}
+  - {id: NET.PRIVATE_DNS, phase: 4, pillar: reliability,
+     title: Private DNS resolves workspace endpoints to private IPs}
+  - {id: NET.IP_ACCESS_LISTS, phase: 4, pillar: security,
+     title: IP access lists restrict any public front-end}
+  - {id: NET.DATA_LEAK_FEATURES, phase: 4, pillar: security,
+     title: Workspace features that could leak data are disabled}
+  - {id: NET.SERVERLESS_NCC, phase: 4, pillar: security,
+     title: Serverless connectivity is governed by a network connectivity configuration}
+  - {id: NET.SERVERLESS_EGRESS_POLICY, phase: 4, pillar: security,
+     title: Serverless egress is restricted by an enforced network policy}
+  - {id: NET.SERVERLESS_PRIVATE_ENDPOINTS, phase: 4, pillar: security,
+     title: Serverless reaches customer storage over private endpoints}
+
+  # ---------------------------------------------------------------- 5 Storage
+  - {id: STO.WORKSPACE_STORAGE_PRIVATE, phase: 5, pillar: security,
+     title: Workspace storage is reachable over private endpoints}
+  - {id: STO.WORKSPACE_STORAGE_FIREWALL, phase: 5, pillar: security,
+     title: Workspace storage blocks public network access}
+  - {id: STO.CMK_MANAGED_SERVICES, phase: 5, pillar: security,
+     title: Customer-managed key encrypts control-plane managed services}
+  - {id: STO.CMK_COMPUTE_DISKS, phase: 5, pillar: security,
+     title: Customer-managed key encrypts classic compute disks}
+  - {id: STO.CMK_WORKSPACE_STORAGE, phase: 5, pillar: security,
+     title: Customer-managed key encrypts workspace storage}
+
+  # ---------------------------------------------------------- 9 Observability
+  - {id: OPS.AUDIT_LOG_DELIVERY, phase: 9, pillar: operational_excellence,
+     title: Audit logs are delivered to a durable destination}

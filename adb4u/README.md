@@ -38,7 +38,8 @@ adb4u/
 │   ├── non-pl/                # ✅ Non-Private Link (Ready)
 │   ├── full-private/          # ✅ Full Private (Ready)
 │   ├── byor/                  # ✅ Bring Your Own Resources (Ready)
-│   └── hub-spoke/             # 🚧 Hub-Spoke (Future)
+│   ├── serverless/            # ✅ Serverless workspace (official SRA module)
+│   └── hub-spoke/             # ➡️ Use the official Databricks SRA (see below)
 │
 ├── modules/                   # Reusable Terraform modules
 │   ├── networking/            # VNet, subnets, NSG, NAT
@@ -49,7 +50,7 @@ adb4u/
 │   ├── private-endpoints/     # Private Link endpoints
 │   ├── service-endpoint-policy/ # Service Endpoint Policies
 │   ├── security/              # Security modules (CMK, IP access lists)
-│   └── monitoring/            # Monitoring and observability
+│   └── monitoring/            # Diagnostic settings (workspace audit logs)
 │
 └── archive/                   # Legacy content and templates
     └── LEGACY-CONTENT.md      # Historical reference
@@ -87,8 +88,17 @@ adb4u/
 
 👉 **[BYOR Documentation →](./deployments/byor/README.md)**
 
-#### 4. **Hub-Spoke with Firewall** 🚧 Future
-- Enterprise-scale multi-workspace deployments
+#### 4. **Serverless** ✅ Validated
+- **Compute**: Serverless only (`computeMode = Serverless`); no customer VNet for compute
+- **Workspace**: Created by the official [Databricks SRA `serverless_workspace` module](https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/azure/tf/modules/serverless_workspace), pinned
+- **Egress**: Serverless network policy (restricted and enforced, or full access)
+- **Storage**: NCC private endpoint rules to your storage accounts
+
+👉 **[Serverless Deployment →](./deployments/serverless/README.md)**
+
+#### 5. **Hub-Spoke with Firewall (Data Exfiltration Protection)**
+- Use the official [Databricks Security Reference Architecture](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf): hub with Azure Firewall, spoke workspace with Private Link, CMK
+- The [Well-Architected Agent](../well-architected-agent) generates a run book for it pinned to a reviewed commit (`classic-exfiltration-protection` baseline)
 
 ### ✨ Key Features
 
@@ -100,6 +110,9 @@ adb4u/
 - ✅ **Customer-Managed Keys (CMK)**: Optional encryption control
 - ✅ **Private Link Support**: Full private connectivity option
 - ✅ **BYOR Support**: Integrate with existing infrastructure
+- ✅ **Diagnostic Logs** (opt-in): every workspace log category to Log Analytics / Storage / Event Hub (`enable_diagnostic_settings`)
+- ✅ **Workspace Storage Firewall** (opt-in, Full Private): `enable_default_storage_firewall` with a dedicated access connector — read the caveats in `modules/workspace/variables.tf`
+- ✅ **Serverless Egress Control** (opt-in): restricted, enforced network policy via `enable_network_policy`
 - ✅ **Modular Design**: Reusable, composable components
 - ✅ **Well-Documented**: Comprehensive guides in `/docs`
 

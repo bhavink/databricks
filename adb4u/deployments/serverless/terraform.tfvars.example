@@ -1,0 +1,33 @@
+# Serverless workspace — copy to terraform.tfvars and edit.
+# Set the account ID with: export TF_VAR_databricks_account_id=<account-id>
+
+workspace_prefix    = "srvless"                     # lowercase alphanumeric, max 12 chars
+location            = "eastus2"
+resource_group_name = "rg-databricks-serverless-eastus2"
+metastore_id        = "00000000-0000-0000-0000-000000000000" # existing regional Unity Catalog metastore
+
+# Private endpoint network (browser authentication; front-end when public access is off)
+vnet_address_space                = ["10.180.0.0/24"]
+privatelink_subnet_address_prefix = ["10.180.0.0/27"]
+
+# Front-end
+enable_public_network_access = true
+enable_ip_access_lists       = true
+allowed_ip_ranges            = ["203.0.113.0/24"] # example: corporate egress
+
+# Encryption (optional)
+# managed_services_cmk_key_id = "https://my-keyvault.vault.azure.net/keys/databricks-cmk/<version>"
+
+# Serverless egress (optional)
+# enable_network_policy                    = true
+# network_policy_enforcement_mode          = "ENFORCED"
+# serverless_allowed_internet_destinations = ["pypi.org"]
+# serverless_allowed_storage_accounts      = ["mystorageaccount"]
+
+# Diagnostic logs (optional)
+# enable_diagnostic_settings            = true
+# diagnostic_log_analytics_workspace_id = "/subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.OperationalInsights/workspaces/<law>"
+
+tags = {
+  Environment = "Dev"
+}

@@ -164,6 +164,9 @@ module "workspace" {
   enable_private_link               = true                    # Full Private pattern
   dbfs_storage_name                 = local.dbfs_storage_name # Custom DBFS name
 
+  # Workspace storage firewall (optional; uses the DBFS private endpoints below)
+  enable_default_storage_firewall = var.enable_default_storage_firewall
+
   # Customer-Managed Keys (enabled by default for Full Private)
   enable_cmk_managed_services = var.enable_cmk_managed_services
   enable_cmk_managed_disks    = var.enable_cmk_managed_disks
@@ -334,6 +337,12 @@ module "ncc" {
   workspace_prefix     = var.workspace_prefix
   location             = var.location
 
+  # Serverless egress control (optional)
+  enable_network_policy           = var.enable_network_policy
+  network_policy_enforcement_mode = var.network_policy_enforcement_mode
+  allowed_internet_destinations   = var.serverless_allowed_internet_destinations
+  allowed_storage_accounts        = var.serverless_allowed_storage_accounts
+
   depends_on = [module.workspace]
 }
 
@@ -470,3 +479,28 @@ resource "null_resource" "apply_sep_to_private_subnet" {
   ]
 }
 
+# ==============================================
+# Diagnostic Logs (Optional)
+# ==============================================
+
+module "monitoring" {
+  count  = var.enable_diagnostic_settings ? 1 : 0
+  source = "../../modules/monitoring"
+
+  workspace_id                   = module.workspace.workspace_id
+  log_analytics_workspace_id     = var.diagnostic_log_analytics_workspace_id
+  storage_account_id             = var.diagnostic_storage_account_id
+  eventhub_authorization_rule_id = var.diagnostic_eventhub_authorization_rule_id
+  eventhub_name                  = var.diagnostic_eventhub_name
+}
+
+# The serverless network policy is managed by the NCC module; fail loudly
+# instead of silently skipping it when NCC is disabled.
+resource "terraform_data" "network_policy_requires_ncc" {
+  lifecycle {
+    precondition {
+      condition     = !var.enable_network_policy || var.enable_ncc
+      error_message = "enable_network_policy = true requires enable_ncc = true."
+    }
+  }
+}

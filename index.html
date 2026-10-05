@@ -24,12 +24,13 @@
             --bg-card:    #fafafa;
             --bg-card-h:  #f5f5f5;
             --muted:      #777777;
-            --azure:      #0078d4;
-            --aws:        #cc7700;
-            --gcp:        #2d6fcc;
-            --teal:       #0d7d6c;
-            --purple:     #7744aa;
-            --green:      #2d8a3e;
+            /* Design rule: three colors only. Legacy per-brand variables resolve to ink. */
+            --azure:      var(--ink);
+            --aws:        var(--ink);
+            --gcp:        var(--ink);
+            --teal:       var(--ink);
+            --purple:     var(--ink);
+            --green:      var(--ink);
         }
 
         html { scroll-behavior: smooth; }
@@ -521,6 +522,54 @@
 
         .hero > * { animation: fadeUp 0.5s ease both; }
         .hero > *:nth-child(2) { animation-delay: 0.1s; }
+
+        /* ─── DESIGN RULES: SWISS MODERN SAMURAI ──────────────
+           Default for every page in this repo. Three colors only:
+           white (60) · ink (30) · vermillion (10). No gradients, no tinted
+           chips, no shadows, square corners, 1px rules. Vermillion marks one
+           thing at a time: the primary action, the featured item, hover,
+           or a single accent mark. These rules take precedence over the
+           component styles above. */
+        :root { --rule: #d6d6d6; }
+
+        nav { background: var(--white); backdrop-filter: none; border-bottom: 1px solid var(--ink); }
+        .nav-links a { border-radius: 0; }
+        .nav-links a:hover { background: transparent; color: var(--ink); box-shadow: inset 0 -2px 0 var(--vermillion); }
+        .nav-github { border-radius: 0; }
+
+        .hero { grid-template-columns: 1fr !important; padding-bottom: 56px; }
+        .hero-badge { background: transparent; border: 0; padding: 0; color: var(--ink); letter-spacing: 0.14em; }
+        .hero-badge::before { content: ""; width: 8px; height: 8px; background: var(--vermillion); display: inline-block; }
+        .hero h1 { font-size: clamp(2.6rem, 6vw, 4.6rem); letter-spacing: -0.05em; }
+        .hero h1 .gradient { color: var(--ink); -webkit-text-fill-color: var(--ink); }
+        .hero h1 .gradient::after { content: "."; color: var(--vermillion); -webkit-text-fill-color: var(--vermillion); }
+        .hero-desc { color: var(--ink-light); max-width: 640px; }
+        .btn-primary, .btn-ghost { border-radius: 0; }
+        .btn-ghost { border-color: var(--ink); color: var(--ink); background: transparent; }
+        .btn-ghost:hover { background: var(--ink); color: var(--white); }
+
+        .section-header { border-bottom-color: var(--ink); }
+        .section-icon, .section-icon .iconify { color: var(--ink) !important; }
+        .section-header .pill { background: transparent; border: 1px solid var(--ink); color: var(--ink); border-radius: 0; }
+
+        .card { background: var(--white); border: 1px solid var(--rule); border-radius: 0; box-shadow: none; }
+        .card:hover { border-color: var(--ink); box-shadow: inset 0 3px 0 var(--vermillion); transform: none; background: var(--white); }
+        .card-icon .iconify,
+        .cloud-card-azure .card-icon .iconify, .cloud-card-aws .card-icon .iconify, .cloud-card-gcp .card-icon .iconify { color: var(--ink); }
+        .cloud-card-azure:hover, .cloud-card-aws:hover, .cloud-card-gcp:hover { border-color: var(--ink); }
+        .card:hover .card-icon .iconify,
+        .cloud-card-azure:hover .card-icon .iconify, .cloud-card-aws:hover .card-icon .iconify,
+        .cloud-card-gcp:hover .card-icon .iconify { color: var(--vermillion); }
+        .card-footer { border-top-color: var(--rule); }
+
+        .tag, .tag-azure, .tag-aws, .tag-gcp, .tag-ai, .tag-iac, .tag-python, .tag-multi, .tag-health {
+            background: transparent !important; color: var(--ink-light) !important;
+            border: 1px solid var(--rule); border-radius: 0; letter-spacing: 0.08em;
+        }
+
+        .card-featured { background: var(--white); border: 1px solid var(--rule); border-left: 4px solid var(--vermillion); }
+        .card-featured:hover { border-color: var(--ink); border-left-color: var(--vermillion); }
+        .card-featured .card-footer { border-top-color: var(--rule); }
     </style>
 </head>
 <body>
@@ -533,6 +582,7 @@
     </a>
     <ul class="nav-links">
         <li><a href="#clouds">Clouds</a></li>
+        <li><a href="#agent">WA Agent</a></li>
         <li><a href="#ai">AI Governance</a></li>
         <li><a href="#guides">Guides</a></li>
         <li><a href="#connectors">Connectors</a></li>
@@ -552,7 +602,7 @@
         <p class="hero-desc">
             Production-ready infrastructure templates, AI governance patterns, and security architectures
             for Databricks on Azure, AWS, and GCP — built by
-            <a href="https://www.linkedin.com/in/bhavink/" target="_blank" style="color:var(--vermillion); text-decoration:none; font-weight:600;">Bhavin Kukadia</a>.
+            <a href="https://www.linkedin.com/in/bhavink/" target="_blank" style="color:var(--ink); text-decoration:none; font-weight:600; border-bottom:2px solid var(--vermillion);">Bhavin Kukadia</a>.
         </p>
         <div class="hero-ctas">
             <a href="https://github.com/bhavink/databricks/blob/master/adb4u/docs/01-QUICKSTART.md" target="_blank" class="btn-primary">
@@ -567,24 +617,6 @@
                 <span class="iconify" data-icon="tabler:book"></span>
                 Cross-Cloud Guides
             </a>
-        </div>
-    </div>
-    <div class="hero-stats">
-        <div class="stat-box">
-            <div class="stat-num">200+</div>
-            <div class="stat-label">Terraform Files</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-num">127+</div>
-            <div class="stat-label">Docs Pages</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-num">3</div>
-            <div class="stat-label">Cloud Providers</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-num">13+</div>
-            <div class="stat-label">Blog Articles</div>
         </div>
     </div>
 </section>
@@ -649,6 +681,57 @@
             <div class="card-footer">
                 <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
                     <span class="tag tag-gcp">GCP</span>
+                    <span class="tag tag-iac">Terraform</span>
+                </div>
+                <span class="card-arrow"><span class="iconify" data-icon="tabler:arrow-right"></span></span>
+            </div>
+        </a>
+
+    </div>
+</section>
+
+<!-- WELL-ARCHITECTED AGENT -->
+<section class="section" id="agent">
+    <div class="section-header">
+        <span class="section-icon"><span class="iconify" data-icon="tabler:shield-check"></span></span>
+        <h2>Well-Architected Agent</h2>
+        <span class="pill">Cloud-agnostic · Read-only</span>
+    </div>
+    <div class="cards cards-2">
+
+        <a href="https://github.com/bhavink/databricks/blob/master/well-architected-agent/GUIDE.md" target="_blank" class="card">
+            <div class="card-icon">
+                <span class="iconify" data-icon="tabler:clipboard-check"></span>
+            </div>
+            <h3>Assess any workspace</h3>
+            <p>
+                Deterministic, evidence-backed assessments against use-case baselines, organized by the
+                Databricks production planning guide. Self-contained and runs on your machine: no hosted
+                service, no telemetry, read-only by design. You decide what to apply.
+            </p>
+            <div class="card-footer">
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                    <span class="tag tag-multi">Multi-cloud</span>
+                    <span class="tag tag-ai">MCP</span>
+                    <span class="tag tag-python">Runs locally</span>
+                </div>
+                <span class="card-arrow"><span class="iconify" data-icon="tabler:arrow-right"></span></span>
+            </div>
+        </a>
+
+        <a href="https://github.com/bhavink/databricks/tree/master/well-architected-agent" target="_blank" class="card">
+            <div class="card-icon">
+                <span class="iconify" data-icon="tabler:rocket"></span>
+            </div>
+            <h3>Build &amp; verify new workspaces</h3>
+            <p>
+                Pick a baseline (standard, Private Link, full private, high security), get a staged run book
+                for the matching tested deployment, run Terraform yourself, then verify the resulting state.
+                Works from Claude Code, Codex, Cursor and other MCP clients.
+            </p>
+            <div class="card-footer">
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                    <span class="tag tag-azure">Azure</span>
                     <span class="tag tag-iac">Terraform</span>
                 </div>
                 <span class="card-arrow"><span class="iconify" data-icon="tabler:arrow-right"></span></span>

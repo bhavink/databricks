@@ -1,0 +1,397 @@
+[
+ {
+  "args": [
+   "az",
+   "databricks",
+   "workspace",
+   "show",
+   "--ids",
+   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/ws1-rg/providers/Microsoft.Databricks/workspaces/ws1",
+   "-o",
+   "json"
+  ],
+  "response": {
+   "computeMode": "Hybrid",
+   "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/ws1-rg/providers/Microsoft.Databricks/workspaces/ws1",
+   "managedResourceGroupId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/ws1-managed-rg",
+   "name": "ws1",
+   "parameters": {
+    "customPrivateSubnetName": {
+     "type": "String",
+     "value": "ws1-private"
+    },
+    "customPublicSubnetName": {
+     "type": "String",
+     "value": "ws1-public"
+    },
+    "customVirtualNetworkId": {
+     "type": "String",
+     "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/ws1-rg/providers/Microsoft.Network/virtualNetworks/ws1-vnet"
+    },
+    "enableNoPublicIp": {
+     "type": "Bool",
+     "value": true
+    },
+    "storageAccountName": {
+     "type": "String",
+     "value": "ws1dbfs"
+    }
+   },
+   "privateEndpointConnections": [
+    {
+     "properties": {
+      "groupIds": [
+       "browser_authentication"
+      ],
+      "privateLinkServiceConnectionState": {
+       "status": "Approved"
+      }
+     }
+    },
+    {
+     "properties": {
+      "groupIds": [
+       "databricks_ui_api"
+      ],
+      "privateLinkServiceConnectionState": {
+       "status": "Approved"
+      }
+     }
+    }
+   ],
+   "publicNetworkAccess": "Enabled",
+   "requiredNsgRules": "AllRules",
+   "sku": {
+    "name": "premium"
+   },
+   "workspaceId": "1111111111111111",
+   "workspaceUrl": "adb-1111111111111111.2.azuredatabricks.net"
+  }
+ },
+ {
+  "args": [
+   "az",
+   "network",
+   "vnet",
+   "subnet",
+   "show",
+   "--ids",
+   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/ws1-rg/providers/Microsoft.Network/virtualNetworks/ws1-vnet/subnets/ws1-public",
+   "-o",
+   "json"
+  ],
+  "response": {
+   "addressPrefix": "10.0.0.0/23",
+   "defaultOutboundAccess": true,
+   "delegations": [
+    {
+     "name": "databricks",
+     "provisioningState": "Succeeded",
+     "resourceGroup": "ws1-rg",
+     "serviceName": "Microsoft.Databricks/workspaces",
+     "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+    }
+   ],
+   "networkSecurityGroup": {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/ws1-rg/providers/Microsoft.Network/networkSecurityGroups/ws1-nsg",
+    "resourceGroup": "ws1-rg"
+   },
+   "serviceEndpoints": [
+    {
+     "locations": [
+      "*"
+     ],
+     "provisioningState": "Succeeded",
+     "service": "Microsoft.Storage.Global"
+    }
+   ]
+  }
+ },
+ {
+  "args": [
+   "az",
+   "network",
+   "vnet",
+   "subnet",
+   "show",
+   "--ids",
+   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/ws1-rg/providers/Microsoft.Network/virtualNetworks/ws1-vnet/subnets/ws1-private",
+   "-o",
+   "json"
+  ],
+  "response": {
+   "addressPrefix": "10.0.0.0/23",
+   "defaultOutboundAccess": true,
+   "delegations": [
+    {
+     "name": "databricks",
+     "provisioningState": "Succeeded",
+     "resourceGroup": "ws1-rg",
+     "serviceName": "Microsoft.Databricks/workspaces",
+     "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+    }
+   ],
+   "networkSecurityGroup": {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/ws1-rg/providers/Microsoft.Network/networkSecurityGroups/ws1-nsg",
+    "resourceGroup": "ws1-rg"
+   },
+   "serviceEndpoints": [
+    {
+     "locations": [
+      "*"
+     ],
+     "provisioningState": "Succeeded",
+     "service": "Microsoft.Storage.Global"
+    }
+   ]
+  }
+ },
+ {
+  "args": [
+   "az",
+   "storage",
+   "account",
+   "show",
+   "-g",
+   "ws1-managed-rg",
+   "-n",
+   "ws1dbfs",
+   "-o",
+   "json"
+  ],
+  "response": {
+   "networkRuleSet": {
+    "defaultAction": "Allow"
+   },
+   "privateEndpointConnections": [],
+   "publicNetworkAccess": null
+  }
+ },
+ {
+  "args": [
+   "az",
+   "network",
+   "private-dns",
+   "zone",
+   "list",
+   "-o",
+   "json"
+  ],
+  "response": [
+   {
+    "name": "privatelink.azuredatabricks.net",
+    "resourceGroup": "ws1-rg"
+   }
+  ]
+ },
+ {
+  "args": [
+   "az",
+   "network",
+   "private-dns",
+   "link",
+   "vnet",
+   "list",
+   "-g",
+   "ws1-rg",
+   "-z",
+   "privatelink.azuredatabricks.net",
+   "-o",
+   "json"
+  ],
+  "response": [
+   {
+    "virtualNetwork": {
+     "id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/ws1-rg/providers/Microsoft.Network/virtualNetworks/ws1-vnet"
+    }
+   }
+  ]
+ },
+ {
+  "args": [
+   "az",
+   "monitor",
+   "diagnostic-settings",
+   "list",
+   "--resource",
+   "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/ws1-rg/providers/Microsoft.Databricks/workspaces/ws1",
+   "-o",
+   "json"
+  ],
+  "response": []
+ },
+ {
+  "args": [
+   "databricks",
+   "-o",
+   "json",
+   "--profile",
+   "ws1-profile",
+   "workspace-conf",
+   "get-status",
+   "enableIpAccessLists"
+  ],
+  "response": {
+   "enableIpAccessLists": ""
+  }
+ },
+ {
+  "args": [
+   "databricks",
+   "-o",
+   "json",
+   "--profile",
+   "ws1-profile",
+   "ip-access-lists",
+   "list"
+  ],
+  "response": []
+ },
+ {
+  "args": [
+   "databricks",
+   "-o",
+   "json",
+   "--profile",
+   "ws1-profile",
+   "workspace-conf",
+   "get-status",
+   "enableExportNotebook,enableResultsDownloading,enableNotebookTableClipboard"
+  ],
+  "response": {
+   "enableExportNotebook": "",
+   "enableNotebookTableClipboard": "",
+   "enableResultsDownloading": ""
+  }
+ },
+ {
+  "args": [
+   "databricks",
+   "-o",
+   "json",
+   "--profile",
+   "ws1-profile",
+   "metastores",
+   "current"
+  ],
+  "response": {
+   "metastore_id": "00000000-0000-0000-0000-000000000000"
+  }
+ },
+ {
+  "args": [
+   "az",
+   "resource",
+   "list",
+   "-g",
+   "ws1-rg",
+   "--resource-type",
+   "Microsoft.Databricks/accessConnectors",
+   "-o",
+   "json"
+  ],
+  "response": [
+   {
+    "type": "Microsoft.Databricks/accessConnectors"
+   },
+   {
+    "type": "Microsoft.Databricks/accessConnectors"
+   },
+   {
+    "type": "Microsoft.Databricks/accessConnectors"
+   }
+  ]
+ },
+ {
+  "args": [
+   "databricks",
+   "-o",
+   "json",
+   "--profile",
+   "account-profile",
+   "account",
+   "workspaces",
+   "get",
+   "1111111111111111"
+  ],
+  "response": {
+   "network_connectivity_config_id": "00000000-0000-0000-0000-000000000000"
+  }
+ },
+ {
+  "args": [
+   "databricks",
+   "-o",
+   "json",
+   "--profile",
+   "account-profile",
+   "account",
+   "network-connectivity",
+   "get-network-connectivity-configuration",
+   "00000000-0000-0000-0000-000000000000"
+  ],
+  "response": {
+   "egress_config": {
+    "target_rules": {
+     "azure_private_endpoint_rules": [
+      {
+       "connection_state": "ESTABLISHED",
+       "group_id": "dfs"
+      },
+      {
+       "connection_state": "ESTABLISHED",
+       "group_id": "blob"
+      },
+      {
+       "connection_state": "ESTABLISHED",
+       "group_id": "blob"
+      },
+      {
+       "connection_state": "ESTABLISHED",
+       "group_id": "dfs"
+      }
+     ]
+    }
+   }
+  }
+ },
+ {
+  "args": [
+   "databricks",
+   "-o",
+   "json",
+   "--profile",
+   "account-profile",
+   "account",
+   "workspace-network-configuration",
+   "get-workspace-network-option-rpc",
+   "1111111111111111"
+  ],
+  "response": {
+   "network_policy_id": "restricted-policy"
+  }
+ },
+ {
+  "args": [
+   "databricks",
+   "-o",
+   "json",
+   "--profile",
+   "account-profile",
+   "account",
+   "network-policies",
+   "get-network-policy-rpc",
+   "restricted-policy"
+  ],
+  "response": {
+   "egress": {
+    "network_access": {
+     "policy_enforcement": {
+      "enforcement_mode": "DRY_RUN"
+     },
+     "restriction_mode": "RESTRICTED_ACCESS"
+    }
+   }
+  }
+ }
+]

@@ -80,3 +80,8 @@ output "workspace" {
   value       = azurerm_databricks_workspace.this
   sensitive   = true
 }
+
+output "storage_firewall_access_connector_id" {
+  description = "Access connector used by the workspace storage firewall (null when disabled)"
+  value       = var.enable_default_storage_firewall ? local.storage_firewall_access_connector_id : null
+}

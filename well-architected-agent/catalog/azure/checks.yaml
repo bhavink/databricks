@@ -1,0 +1,774 @@
+# Azure Databricks Well-Architected checks.
+#
+# Each check is a deterministic rule over normalized facts (see
+# docs/FACTS.md). A missing fact evaluates to UNKNOWN — the report lists
+# exactly which fact is missing and how to collect it; it never guesses.
+#
+# Fields:
+#   id, control (catalog/controls.yaml; sets the deployment-guide phase)
+#   title, pillar (must match the control), severity (critical|high|medium|low)
+#   when:        optional applicability rule; false -> NOT_APPLICABLE
+#   rule:        the control; true -> PASS, false -> FAIL
+#   rationale:   why the control matters
+#   sources:     repo paths (relative to bhavink/databricks) or URLs
+#   remediation: fix_type (in_place|recreate|additive|manual), summary,
+#                module (repo path), terraform (snippet), cli (optional)
+#
+# Pillars follow the Databricks Well-Architected Lakehouse framework:
+#   data_ai_governance, interoperability_usability, operational_excellence,
+#   security, reliability, performance_efficiency, cost_optimization
+
+checks:
+  # ---------------------------------------------------------------- network
+  - id: AZ-NET-001
+    control: NET.CUSTOMER_MANAGED_NETWORK
+    title: Workspace is VNet-injected (customer-managed VNet)
+    pillar: security
+    severity: critical
+    when: {fact: workspace.compute_mode, op: equals, value: classic}
+    rule: {fact: workspace.vnet_injected, op: equals, value: true}
+    rationale: >-
+      Without VNet injection you cannot control egress, routing, NSGs or
+      private endpoints for classic compute. Every proven Azure pattern
+      (Non-PL, Full Private, DEP hub-spoke) starts here.
+    sources:
+      - adb4u/modules/networking/main.tf
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject
+    remediation:
+      fix_type: recreate
+      summary: >-
+        VNet injection cannot be added to an existing workspace. Deploy a new
+        workspace from a reference pattern and migrate workloads.
+      module: adb4u/deployments/non-pl
+      terraform: |
+        module "networking" {
+          source                        = "../../modules/networking"
+          vnet_address_space            = ["10.100.0.0/16"]
+          public_subnet_address_prefix  = ["10.100.1.0/24"]
+          private_subnet_address_prefix = ["10.100.2.0/24"]
+          # ...
+        }
+
+  - id: AZ-NET-002
+    control: NET.SECURE_CLUSTER_CONNECTIVITY
+    title: Secure cluster connectivity (no public IP) is enabled
+    pillar: security
+    severity: critical
+    when: {fact: workspace.compute_mode, op: equals, value: classic}
+    rule: {fact: workspace.no_public_ip, op: equals, value: true}
+    rationale: >-
+      SCC removes public IPs from cluster nodes and closes inbound ports; the
+      compute plane reaches the control plane through the outbound SCC relay.
+    sources:
+      - adb4u/modules/workspace/main.tf
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/secure-cluster-connectivity
+    remediation:
+      fix_type: in_place
+      summary: Set no_public_ip = true on the workspace custom_parameters.
+      module: adb4u/modules/workspace
+      terraform: |
+        resource "azurerm_databricks_workspace" "this" {
+          custom_parameters {
+            no_public_ip = true
+          }
+        }
+      cli: az databricks workspace update --name <ws> --resource-group <rg> --enable-no-public-ip true
+
+  - id: AZ-NET-003
+    control: NET.SUBNET_SECURITY_GROUPS
+    title: Both Databricks subnets have an NSG associated
+    pillar: security
+    severity: high
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+    rule: {fact: network.all_subnets_have_nsg, op: equals, value: true}
+    rationale: >-
+      VNet injection requires an NSG on the host and container subnets; it is
+      the enforcement point for Databricks-managed and custom rules.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject
+      - adb4u/modules/networking/nsg-rules.tf
+    remediation:
+      fix_type: in_place
+      summary: Associate an NSG with both delegated subnets.
+      module: adb4u/modules/networking
+      terraform: |
+        resource "azurerm_subnet_network_security_group_association" "public" {
+          subnet_id                 = azurerm_subnet.public.id
+          network_security_group_id = azurerm_network_security_group.this.id
+        }
+        resource "azurerm_subnet_network_security_group_association" "private" {
+          subnet_id                 = azurerm_subnet.private.id
+          network_security_group_id = azurerm_network_security_group.this.id
+        }
+
+  - id: AZ-NET-004
+    control: NET.COMPUTE_SUBNETS
+    title: Databricks subnets are delegated to Microsoft.Databricks/workspaces
+    pillar: reliability
+    severity: high
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+    rule: {fact: network.delegated_subnet_count, op: gte, value: 2}
+    rationale: >-
+      Host and container subnets must be delegated; one subnet pair per
+      workspace. Missing delegation fails workspace creation or updates.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject
+      - adb4u/modules/networking/main.tf
+    remediation:
+      fix_type: in_place
+      summary: Add the Microsoft.Databricks/workspaces delegation to both subnets.
+      module: adb4u/modules/networking
+      terraform: |
+        delegation {
+          name = "databricks-delegation"
+          service_delegation {
+            name = "Microsoft.Databricks/workspaces"
+          }
+        }
+
+  - id: AZ-NET-005
+    control: NET.EXPLICIT_EGRESS
+    title: Stable explicit egress (NAT Gateway or firewall)
+    pillar: reliability
+    severity: high
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+        - {fact: workspace.no_public_ip, op: equals, value: true}
+    rule:
+      any_of:
+        - {fact: network.nat_gateway_attached, op: equals, value: true}
+        - {fact: network.default_route_to_appliance, op: equals, value: true}
+    rationale: >-
+      SCC clusters need an explicit outbound path. Azure retired default
+      outbound access for new VNets; use a NAT Gateway (Non-PL) or a UDR to a
+      firewall (DEP) for a stable, allowlistable egress IP.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/secure-cluster-connectivity
+      - adb4u/docs/patterns/01-NON-PL.md
+      - https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/default-outbound-access
+    remediation:
+      fix_type: additive
+      summary: Attach a NAT Gateway to both Databricks subnets.
+      module: adb4u/modules/networking
+      terraform: |
+        module "networking" {
+          source             = "../../modules/networking"
+          enable_nat_gateway = true
+        }
+
+  - id: AZ-NET-006
+    control: NET.EGRESS_FIREWALL
+    title: Default route (0.0.0.0/0) from Databricks subnets goes to a firewall
+    pillar: security
+    severity: critical
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+    rule: {fact: network.default_route_to_appliance, op: equals, value: true}
+    rationale: >-
+      Data exfiltration protection requires all compute egress to be
+      inspected and FQDN-allowlisted. Route host and container subnets
+      0.0.0.0/0 to Azure Firewall (or an NVA) in the hub.
+    sources:
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/udr
+    remediation:
+      fix_type: additive
+      summary: >-
+        Create a route table with 0.0.0.0/0 -> VirtualAppliance (firewall
+        private IP), associate it with both subnets, and allowlist the
+        Databricks control-plane FQDNs/IPs for your region on the firewall.
+      module: adb4u/modules/networking
+      terraform: |
+        resource "azurerm_route_table" "databricks" {
+          name                = "${var.workspace_prefix}-rt"
+          location            = var.location
+          resource_group_name = var.resource_group_name
+          route {
+            name                   = "default-to-firewall"
+            address_prefix         = "0.0.0.0/0"
+            next_hop_type          = "VirtualAppliance"
+            next_hop_in_ip_address = var.firewall_private_ip
+          }
+        }
+        resource "azurerm_subnet_route_table_association" "public" {
+          subnet_id      = module.networking.subnet_ids["public"]
+          route_table_id = azurerm_route_table.databricks.id
+        }
+        resource "azurerm_subnet_route_table_association" "private" {
+          subnet_id      = module.networking.subnet_ids["private"]
+          route_table_id = azurerm_route_table.databricks.id
+        }
+
+  - id: AZ-NET-007
+    control: NET.PRIVATE_PATH_TO_CLOUD_STORAGE
+    title: Storage service endpoint enabled on Databricks subnets
+    pillar: performance_efficiency
+    severity: medium
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+    rule: {fact: network.storage_service_endpoint, op: equals, value: true}
+    rationale: >-
+      Microsoft.Storage service endpoints keep storage traffic on the Azure
+      backbone, bypass the firewall/NAT for artifact, log and UC storage, and
+      are a prerequisite for service endpoint policies.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/service-endpoints
+      - adb4u/modules/networking/main.tf
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+    remediation:
+      fix_type: in_place
+      summary: Add Microsoft.Storage to service_endpoints on both subnets.
+      module: adb4u/modules/networking
+      terraform: |
+        service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault"]
+
+  - id: AZ-NET-008
+    control: NET.STORAGE_EGRESS_POLICY
+    title: Service endpoint policy restricts storage egress
+    pillar: security
+    severity: medium
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+    rule: {fact: network.service_endpoint_policy, op: equals, value: true}
+    rationale: >-
+      Service endpoints alone allow any storage account in the region. A
+      service endpoint policy limits egress to DBFS, UC and approved storage
+      accounts plus Databricks-managed artifact/log/system-table storage.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/service-endpoints
+      - adb4u/modules/service-endpoint-policy/main.tf
+      - adb4u/docs/modules/06-SEP.md
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+    remediation:
+      fix_type: additive
+      summary: Deploy the service-endpoint-policy module and attach it to both subnets.
+      module: adb4u/modules/service-endpoint-policy
+      terraform: |
+        module "service_endpoint_policy" {
+          source                           = "../../modules/service-endpoint-policy"
+          dbfs_storage_resource_id         = module.workspace.dbfs_storage_account_id
+          uc_metastore_storage_resource_id = module.unity_catalog.metastore_storage_account_id
+          # ...
+        }
+
+  # ----------------------------------------------------------- private link
+  - id: AZ-PL-001
+    control: NET.PRIVATE_LINK_BACKEND
+    title: Private endpoint for workspace UI/API (databricks_ui_api)
+    pillar: security
+    severity: critical
+    rule: {fact: private_link.ui_api, op: equals, value: true}
+    rationale: >-
+      The databricks_ui_api private endpoint carries back-end (compute to
+      control plane, SCC relay) and front-end (user to workspace) traffic
+      privately.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link-standard
+      - adb4u/modules/private-endpoints/main.tf
+      - adb4u/docs/patterns/02-FULL-PRIVATE.md
+    remediation:
+      fix_type: additive
+      summary: Deploy the private-endpoints module (databricks_ui_api sub-resource).
+      module: adb4u/modules/private-endpoints
+      terraform: |
+        resource "azurerm_private_endpoint" "databricks_ui_api" {
+          subnet_id = var.privatelink_subnet_id
+          private_service_connection {
+            private_connection_resource_id = var.workspace_id
+            subresource_names              = ["databricks_ui_api"]
+            is_manual_connection           = false
+          }
+        }
+
+  - id: AZ-PL-002
+    control: NET.PRIVATE_LINK_FRONTEND
+    title: Browser authentication private endpoint exists
+    pillar: security
+    severity: high
+    rule: {fact: private_link.browser_authentication, op: equals, value: true}
+    rationale: >-
+      SSO login callbacks for Private Link workspaces need a
+      browser_authentication private endpoint (one per region, per DNS zone).
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link
+      - adb4u/modules/private-endpoints/main.tf
+    remediation:
+      fix_type: additive
+      summary: Add a browser_authentication private endpoint in the private link subnet.
+      module: adb4u/modules/private-endpoints
+      terraform: |
+        resource "azurerm_private_endpoint" "browser_authentication" {
+          private_service_connection {
+            subresource_names = ["browser_authentication"]
+          }
+        }
+
+  - id: AZ-PL-003
+    control: NET.BACKEND_PRIVATE_ONLY
+    title: Databricks-managed NSG rules disabled when back-end Private Link is used
+    pillar: security
+    severity: medium
+    when: {fact: private_link.ui_api, op: equals, value: true}
+    rule: {fact: workspace.required_nsg_rules, op: equals, value: NoAzureDatabricksRules}
+    rationale: >-
+      With back-end Private Link, the compute plane does not need the
+      AzureDatabricks service-tag outbound rules; NoAzureDatabricksRules keeps
+      control-plane traffic on the private endpoint.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link-standard
+      - adb4u/modules/workspace/main.tf
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+    remediation:
+      fix_type: in_place
+      summary: Set network_security_group_rules_required = "NoAzureDatabricksRules".
+      module: adb4u/modules/workspace
+      terraform: |
+        network_security_group_rules_required = "NoAzureDatabricksRules"
+
+  - id: AZ-PL-004
+    control: NET.PUBLIC_ACCESS_DISABLED
+    title: Public network access to the workspace is disabled
+    pillar: security
+    severity: high
+    when: {fact: private_link.ui_api, op: equals, value: true}
+    rule: {fact: workspace.public_network_access_enabled, op: equals, value: false}
+    rationale: >-
+      Full Private requires the front-end to be reachable only through the
+      private endpoint (VPN / ExpressRoute / Bastion).
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link
+      - adb4u/deployments/full-private
+      - adb4u/modules/workspace/variables.tf
+    remediation:
+      fix_type: in_place
+      summary: Set public_network_access_enabled = false (after private access is verified).
+      module: adb4u/modules/workspace
+      terraform: |
+        module "workspace" {
+          enable_public_network_access = false
+        }
+
+  - id: AZ-DNS-001
+    control: NET.PRIVATE_DNS
+    title: privatelink.azuredatabricks.net private DNS zone is linked
+    pillar: reliability
+    severity: high
+    when: {fact: private_link.ui_api, op: equals, value: true}
+    rule: {fact: dns.azuredatabricks_zone_linked, op: equals, value: true}
+    rationale: >-
+      Private endpoints only work if the workspace FQDN resolves to the
+      private IP from the VNets (and on-prem resolvers) that use it.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link
+      - adb4u/docs/patterns/02-FULL-PRIVATE.md
+    remediation:
+      fix_type: additive
+      summary: Create privatelink.azuredatabricks.net and link it to the workspace (and hub) VNet.
+      module: adb4u/modules/private-endpoints
+      terraform: |
+        resource "azurerm_private_dns_zone" "databricks" {
+          name                = "privatelink.azuredatabricks.net"
+          resource_group_name = var.resource_group_name
+        }
+        resource "azurerm_private_dns_zone_virtual_network_link" "databricks" {
+          private_dns_zone_name = azurerm_private_dns_zone.databricks.name
+          virtual_network_id    = var.vnet_id
+          resource_group_name   = var.resource_group_name
+          name                  = "databricks-dns-link"
+        }
+
+  # ---------------------------------------------------------------- storage
+  - id: AZ-STO-001
+    control: STO.WORKSPACE_STORAGE_PRIVATE
+    title: Private endpoints for workspace (DBFS) storage — dfs and blob
+    pillar: security
+    severity: high
+    when: {fact: workspace.compute_mode, op: equals, value: classic}
+    rule:
+      all_of:
+        - {fact: private_link.dbfs_dfs, op: equals, value: true}
+        - {fact: private_link.dbfs_blob, op: equals, value: true}
+    rationale: >-
+      Private DBFS keeps workspace storage traffic off public endpoints; both
+      dfs and blob sub-resources are needed.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/storage/firewall-support
+      - adb4u/modules/private-endpoints/main.tf
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+    remediation:
+      fix_type: additive
+      summary: Add dfs and blob private endpoints for the DBFS storage account.
+      module: adb4u/modules/private-endpoints
+      terraform: |
+        # see adb4u/modules/private-endpoints/main.tf (dbfs_dfs, dbfs_blob)
+
+  - id: AZ-STO-002
+    control: STO.WORKSPACE_STORAGE_FIREWALL
+    title: Workspace storage firewall is enabled
+    pillar: security
+    severity: high
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+        - {fact: workspace.no_public_ip, op: equals, value: true}
+    rule: {fact: workspace.default_storage_firewall_enabled, op: equals, value: true}
+    rationale: >-
+      By default the workspace storage account (DBFS root, job output, logs)
+      accepts authenticated connections from all networks. The firewall blocks
+      public access; classic compute reaches it over dfs + blob private
+      endpoints and serverless over service endpoints or NCC private endpoints.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/storage/firewall-support
+      - adb4u/modules/workspace/main.tf
+      - adb4u/deployments/full-private
+    remediation:
+      fix_type: in_place
+      maturity: validated
+      summary: >-
+        Enable the workspace storage firewall with an access connector outside
+        the managed resource group, after the dfs + blob private endpoints exist.
+      module: adb4u/modules/workspace
+      terraform: |
+        module "workspace" {
+          enable_private_link             = true
+          enable_default_storage_firewall = true
+          # storage_firewall_access_connector_id = "<existing connector>"  # else a dedicated one is created
+        }
+      cli: >-
+        az databricks workspace update --resource-group <rg> --name <ws>
+        --default-storage-firewall Enabled
+        --access-connector '{"id":"<access-connector-id>","identity-type":"SystemAssigned"}'
+      caveats:
+        - >-
+          Irreversible: enabling it deletes the access connector in the managed
+          resource group. Note the external locations mapped to it and remap them
+          to a replacement connector afterwards.
+        - Requires a separate private endpoint subnet (/28 minimum) and dfs + blob private endpoints to the workspace storage account.
+        - Cloud Fetch (ODBC/JDBC) and the Power BI service need private access to the storage account, e.g. a VNet or on-premises data gateway.
+        - Stop running compute before creating the private endpoints.
+
+  # ------------------------------------------------------------- serverless
+  - id: AZ-SRV-001
+    control: NET.SERVERLESS_NCC
+    title: Network Connectivity Configuration (NCC) is bound to the workspace
+    pillar: security
+    severity: high
+    rule: {fact: serverless.ncc_bound, op: equals, value: true}
+    rationale: >-
+      NCC governs serverless compute connectivity to your Azure resources
+      (stable subnets for storage firewalls, or private endpoint rules).
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/
+      - adb4u/modules/ncc/main.tf
+      - adb4u/docs/modules/04-NCC.md
+    remediation:
+      fix_type: additive
+      summary: Create an NCC in the workspace region and bind it.
+      module: adb4u/modules/ncc
+      terraform: |
+        module "ncc" {
+          source               = "../../modules/ncc"
+          location             = var.location
+          workspace_prefix     = var.workspace_prefix
+          workspace_id_numeric = module.workspace.workspace_id_numeric
+        }
+
+  - id: AZ-SRV-002
+    control: NET.SERVERLESS_EGRESS_POLICY
+    title: Serverless egress is restricted by an enforced network policy
+    pillar: security
+    severity: high
+    rule: {fact: serverless.egress_restricted, op: equals, value: true}
+    rationale: >-
+      Serverless compute does not traverse your firewall. A network policy in
+      RESTRICTED_ACCESS mode with ENFORCED enforcement is the exfiltration
+      control for serverless. DRY_RUN only logs denials and does not count;
+      the default-policy allows all egress.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/network-policies
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+      - adb4u/modules/ncc/main.tf
+    remediation:
+      fix_type: additive
+      maturity: validated
+      summary: Assign a RESTRICTED_ACCESS, ENFORCED network policy to the workspace with explicit allowed destinations.
+      module: adb4u/modules/ncc
+      terraform: |
+        module "ncc" {
+          enable_network_policy           = true
+          network_policy_enforcement_mode = "ENFORCED"   # stage with "DRY_RUN" first
+          allowed_internet_destinations   = ["pypi.org", "files.pythonhosted.org"]
+        }
+      caveats:
+        - Serverless workloads lose access to any destination not allowed (package indexes, external APIs). Run DRY_RUN first and review denials.
+        - Each workspace has exactly one network policy; this replaces default-policy for the workspace.
+
+  - id: AZ-SRV-003
+    control: NET.SERVERLESS_PRIVATE_ENDPOINTS
+    title: NCC private endpoint rules reach customer storage privately
+    pillar: security
+    severity: medium
+    rule: {fact: serverless.ncc_private_endpoint_rules, op: gte, value: 1}
+    rationale: >-
+      With storage public access disabled, serverless reaches ADLS through
+      NCC private endpoint rules (approved on the storage account).
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/serverless-private-link
+      - adb4u/docs/guides/01-SERVERLESS-SETUP.md
+    remediation:
+      fix_type: additive
+      summary: Add NCC private endpoint rules for UC storage (dfs, blob) and approve them.
+      module: adb4u/modules/ncc
+      terraform: |
+        resource "databricks_mws_ncc_private_endpoint_rule" "uc_dfs" {
+          provider                       = databricks.account
+          network_connectivity_config_id = module.ncc.ncc_id
+          resource_id                    = var.uc_storage_account_id
+          group_id                       = "dfs"
+        }
+
+  # ---------------------------------------------------------------- ingress
+  - id: AZ-ING-001
+    control: NET.IP_ACCESS_LISTS
+    title: IP access lists restrict the public front-end
+    pillar: security
+    severity: high
+    when: {fact: workspace.public_network_access_enabled, op: equals, value: true}
+    rule:
+      all_of:
+        - {fact: access.ip_access_lists_enabled, op: equals, value: true}
+        - {fact: access.ip_access_list_count, op: gte, value: 1}
+    rationale: >-
+      When the workspace is publicly reachable, IP access lists limit UI/API
+      access to corporate egress ranges.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/front-end/ip-access-list
+      - adb4u/modules/workspace/variables.tf
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+    remediation:
+      fix_type: in_place
+      summary: Enable IP access lists and add an ALLOW list of corporate ranges.
+      module: adb4u/modules/workspace
+      terraform: |
+        module "workspace" {
+          enable_ip_access_lists = true
+          allowed_ip_ranges      = ["203.0.113.0/24"]
+        }
+
+  # ------------------------------------------------------------- encryption
+  - id: AZ-ENC-001
+    control: STO.CMK_MANAGED_SERVICES
+    title: Customer-managed key for managed services
+    pillar: security
+    severity: medium
+    rule: {fact: workspace.cmk_managed_services, op: equals, value: true}
+    rationale: Encrypts notebooks, secrets and queries in the control plane with your key.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/keys/cmk-managed-services-azure/customer-managed-key-managed-services-azure
+      - adb4u/docs/modules/05-CMK.md
+    remediation:
+      fix_type: in_place
+      summary: Enable managed services CMK with a Key Vault key.
+      module: adb4u/modules/workspace
+      terraform: |
+        module "workspace" {
+          enable_cmk_managed_services = true
+          cmk_key_vault_key_id        = module.key_vault.key_id
+        }
+
+  - id: AZ-ENC-002
+    control: STO.CMK_COMPUTE_DISKS
+    title: Customer-managed key for managed disks
+    pillar: security
+    severity: medium
+    when: {fact: workspace.compute_mode, op: equals, value: classic}
+    rule: {fact: workspace.cmk_managed_disks, op: equals, value: true}
+    rationale: Encrypts classic cluster managed data disks with your key.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/keys/cmk-managed-disks-azure
+      - adb4u/docs/modules/05-CMK.md
+    remediation:
+      fix_type: in_place
+      summary: Enable managed disk CMK (with auto-rotation).
+      module: adb4u/modules/workspace
+      terraform: |
+        module "workspace" {
+          enable_cmk_managed_disks = true
+        }
+
+  - id: AZ-ENC-003
+    control: STO.CMK_WORKSPACE_STORAGE
+    title: Customer-managed key for DBFS root
+    pillar: security
+    severity: medium
+    when: {fact: workspace.compute_mode, op: equals, value: classic}
+    rule: {fact: workspace.cmk_dbfs_root, op: equals, value: true}
+    rationale: Encrypts the workspace root storage account with your key.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/keys/customer-managed-keys
+      - adb4u/docs/modules/05-CMK.md
+    remediation:
+      fix_type: in_place
+      summary: Enable DBFS root CMK.
+      module: adb4u/modules/workspace
+      terraform: |
+        module "workspace" {
+          enable_cmk_dbfs_root = true
+        }
+
+  # ------------------------------------------------------------- governance
+  - id: AZ-UC-001
+    control: GOV.UC_METASTORE
+    title: Unity Catalog metastore is assigned
+    pillar: data_ai_governance
+    severity: critical
+    rule: {fact: governance.metastore_assigned, op: equals, value: true}
+    rationale: >-
+      Unity Catalog is the governance boundary for data and AI assets and a
+      prerequisite for serverless, ABAC, lineage and system tables.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/
+      - adb4u/modules/unity-catalog/main.tf
+      - adb4u/docs/modules/03-UNITY-CATALOG.md
+    remediation:
+      fix_type: additive
+      summary: Assign the regional metastore to the workspace.
+      module: adb4u/modules/unity-catalog
+      terraform: |
+        resource "databricks_metastore_assignment" "this" {
+          workspace_id = module.workspace.workspace_id_numeric
+          metastore_id = var.metastore_id
+        }
+
+  - id: AZ-UC-002
+    control: GOV.MANAGED_IDENTITY_STORAGE_ACCESS
+    title: Access connector (managed identity) is used for storage access
+    pillar: data_ai_governance
+    severity: high
+    rule: {fact: governance.access_connector, op: equals, value: true}
+    rationale: >-
+      UC storage credentials should use an Azure Databricks access connector
+      managed identity — no secrets, scoped role assignments.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/connect/unity-catalog/cloud-storage/azure-managed-identities
+      - adb4u/modules/unity-catalog/main.tf
+    remediation:
+      fix_type: additive
+      summary: Create an access connector and grant it Storage Blob Data Contributor on UC storage.
+      module: adb4u/modules/unity-catalog
+      terraform: |
+        resource "azurerm_databricks_access_connector" "this" {
+          name                = "${var.workspace_prefix}-ac"
+          resource_group_name = var.resource_group_name
+          location            = var.location
+          identity { type = "SystemAssigned" }
+        }
+
+  # ------------------------------------------------------------- operations
+  - id: AZ-OPS-001
+    control: OPS.AUDIT_LOG_DELIVERY
+    title: Diagnostic logs are exported from the workspace
+    pillar: operational_excellence
+    severity: medium
+    rule: {fact: operations.diagnostic_settings, op: equals, value: true}
+    rationale: >-
+      Diagnostic settings deliver workspace audit logs to Log Analytics,
+      storage or Event Hub for retention and SIEM; they complement the
+      system.access.audit system table.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-log-delivery
+      - adb4u/modules/monitoring/main.tf
+    remediation:
+      fix_type: additive
+      maturity: validated
+      summary: Add a diagnostic setting that exports every workspace log category to your SIEM destination.
+      module: adb4u/modules/monitoring
+      terraform: |
+        module "monitoring" {
+          source                     = "../../modules/monitoring"
+          workspace_id               = module.workspace.workspace_id
+          log_analytics_workspace_id = var.log_analytics_workspace_id
+        }
+
+  - id: AZ-NET-009
+    control: NET.SUBNET_SIZING
+    title: Compute subnets are /23 or larger
+    pillar: reliability
+    severity: medium
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+    rule: {fact: network.smallest_subnet_prefix_length, op: lte, value: 23}
+    rationale: >-
+      Each cluster node uses two private IPs from the workspace VNet. The
+      production planning guide: "Subnets must be at least /26, but most use
+      cases require at least /23." Undersized subnets cap cluster capacity and
+      cause launch failures under load.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/lakehouse-architecture/deployment-guide/network
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject
+      - adb4u/modules/networking/variables.tf
+    remediation:
+      fix_type: manual
+      summary: >-
+        Size the host and container subnets at /23 or larger for production
+        workspaces (two IPs per node; Azure reserves five per subnet).
+      module: adb4u/modules/networking
+      terraform: |
+        module "networking" {
+          vnet_address_space            = ["10.100.0.0/20"]
+          public_subnet_address_prefix  = ["10.100.0.0/23"]
+          private_subnet_address_prefix = ["10.100.2.0/23"]
+        }
+      caveats:
+        - Changing the subnets of an existing workspace is a network update of the workspace; plan it as a maintenance change, or apply the sizing to new workspaces.
+
+  - id: AZ-WS-001
+    control: NET.DATA_LEAK_FEATURES
+    title: Notebook export, results download and table clipboard are disabled
+    pillar: security
+    severity: medium
+    rule:
+      all_of:
+        - {fact: access.notebook_export_enabled, op: equals, value: false}
+        - {fact: access.results_download_enabled, op: equals, value: false}
+        - {fact: access.table_clipboard_enabled, op: equals, value: false}
+    rationale: >-
+      Network controls constrain where workloads connect; users can still move
+      data out through the UI. The production planning guide recommends
+      disabling workspace features that could leak data, such as notebook
+      export and data download buttons, for sensitive workspaces.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/lakehouse-architecture/deployment-guide/network
+      - adb4u/modules/workspace/main.tf
+    remediation:
+      fix_type: in_place
+      summary: Disable notebook export, results download and the notebook table clipboard in the workspace settings.
+      module: adb4u/modules/workspace
+      terraform: |
+        module "workspace" {
+          additional_workspace_config = {
+            enableExportNotebook         = "false"
+            enableResultsDownloading     = "false"
+            enableNotebookTableClipboard = "false"
+          }
+        }
+      caveats:
+        - Users can no longer export notebooks or download query results from the UI; agree exceptions (for example a separate, less restricted workspace) first.

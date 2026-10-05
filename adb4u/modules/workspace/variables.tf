@@ -114,6 +114,29 @@ variable "enable_public_network_access" {
 }
 
 # ==============================================
+# Workspace Storage Firewall (Optional)
+# ==============================================
+# Blocks public access to the workspace (DBFS root) storage account.
+# Requires VNet injection, SCC, Premium, and dfs + blob private endpoints to
+# the workspace storage account (created by the private-endpoints module).
+# WARNING: enabling it removes the access connector in the managed resource
+# group (irreversible); external locations mapped to that connector must be
+# remapped. Cloud Fetch / Power BI service clients need private access.
+# See: https://learn.microsoft.com/en-us/azure/databricks/security/network/storage/firewall-support
+
+variable "enable_default_storage_firewall" {
+  description = "Enable the workspace storage account firewall (requires enable_private_link = true)"
+  type        = bool
+  default     = false
+}
+
+variable "storage_firewall_access_connector_id" {
+  description = "Existing access connector (outside the managed resource group) for the storage firewall. Empty = create a dedicated one."
+  type        = string
+  default     = ""
+}
+
+# ==============================================
 # IP Access Lists (Optional)
 # ==============================================
 

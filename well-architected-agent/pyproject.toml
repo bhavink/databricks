@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "databricks-well-architected-agent"
+version = "0.1.0"
+description = "Deterministic, read-only Well-Architected assessments for Databricks deployments"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["pyyaml>=6.0", "mcp>=2.2,<3"]
+
+[project.scripts]
+wa-agent = "wa_agent.cli:main"
+wa-agent-mcp = "wa_agent.mcp_server:main"
+
+[tool.setuptools]
+packages = ["wa_agent", "wa_agent.clouds", "wa_agent.clouds.azure"]

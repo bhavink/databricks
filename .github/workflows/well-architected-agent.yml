@@ -1,0 +1,78 @@
+# Well-Architected Agent: correctness and drift checks.
+# No cloud credentials are used: Terraform tests use mock providers and
+# validation needs no backend. The weekly run catches official docs that move.
+name: well-architected-agent
+
+on:
+  pull_request:
+    paths: ["well-architected-agent/**", "adb4u/modules/**", "adb4u/deployments/**", ".github/workflows/well-architected-agent.yml"]
+  push:
+    branches: [master]
+    paths: ["well-architected-agent/**", "adb4u/modules/**", "adb4u/deployments/**"]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  agent:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+        working-directory: well-architected-agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Lockfile uses public PyPI only
+        run: "! grep -E 'https://' uv.lock | grep -vE 'https://(pypi\\.org|files\\.pythonhosted\\.org)/'"
+      - name: Install (same path users take)
+        run: uv sync --locked
+      - name: Demo runs with no cloud access
+        run: uv run wa-agent demo -o "$RUNNER_TEMP/demo.md" && grep -q "## Prescription" "$RUNNER_TEMP/demo.md"
+      - name: Unit, replay and MCP tests
+        run: uv run --with pytest pytest -q
+      - name: Official docs and repo paths resolve
+        if: matrix.os == 'ubuntu-latest'
+        run: uv run python tools/check_links.py
+
+  terraform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.tf-plugin-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.15"
+          # The wrapper does not pass stdin through; `terraform console` reads it.
+          terraform_wrapper: false
+      - run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
+      - name: Format
+        run: terraform fmt -check -recursive adb4u/modules adb4u/deployments/non-pl adb4u/deployments/full-private adb4u/deployments/serverless
+      - name: Module tests (mock providers)
+        run: |
+          for m in modules/monitoring modules/ncc modules/workspace deployments/serverless; do
+            (cd adb4u/$m && terraform init -backend=false -input=false && terraform test)
+          done
+      - name: Validate deployments
+        run: |
+          for d in non-pl full-private serverless; do
+            (cd adb4u/deployments/$d && terraform init -backend=false -input=false && terraform validate)
+          done
+      - uses: astral-sh/setup-uv@v6
+      - name: Generated tfvars resolve in the real deployments
+        run: uv run --locked --project well-architected-agent python well-architected-agent/tools/check_new_tfvars.py adb4u
+      - name: Generated deployment folder is self-contained
+        run: |
+          uv run --locked --project well-architected-agent wa-agent new --baseline classic-standard --out "$RUNNER_TEMP/book"
+          cd "$RUNNER_TEMP/book/terraform/adb4u/deployments/non-pl"
+          terraform init -backend=false -input=false && terraform validate

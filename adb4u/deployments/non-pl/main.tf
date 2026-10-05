@@ -376,9 +376,30 @@ module "ncc" {
   workspace_prefix     = var.workspace_prefix
   location             = var.location
 
+  # Serverless egress control (optional)
+  enable_network_policy           = var.enable_network_policy
+  network_policy_enforcement_mode = var.network_policy_enforcement_mode
+  allowed_internet_destinations   = var.serverless_allowed_internet_destinations
+  allowed_storage_accounts        = var.serverless_allowed_storage_accounts
+
   # NCC configuration (empty - no PE rules)
   # PE rules for serverless storage access are created manually by customer
   # See docs/SERVERLESS-SETUP.md for setup instructions
 
   depends_on = [module.unity_catalog]
+}
+
+# ==============================================
+# Diagnostic Logs (Optional)
+# ==============================================
+
+module "monitoring" {
+  count  = var.enable_diagnostic_settings ? 1 : 0
+  source = "../../modules/monitoring"
+
+  workspace_id                   = module.workspace.workspace_id
+  log_analytics_workspace_id     = var.diagnostic_log_analytics_workspace_id
+  storage_account_id             = var.diagnostic_storage_account_id
+  eventhub_authorization_rule_id = var.diagnostic_eventhub_authorization_rule_id
+  eventhub_name                  = var.diagnostic_eventhub_name
 }
