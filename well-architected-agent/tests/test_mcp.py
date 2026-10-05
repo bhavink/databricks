@@ -32,8 +32,8 @@ def test_every_tool_is_declared_read_only():
         return (await session.list_tools()).tools
 
     tools = anyio.run(_session_run, go)
-    assert {t.name for t in tools} == {"list_baselines", "list_patterns", "collect_tfplan",
-                                      "collect_live", "assess", "verify", "new_workspace", "preflight"}
+    assert {t.name for t in tools} == {"list_baselines", "describe_baseline", "list_patterns", "collect_tfplan",
+                                      "collect_live", "assess", "verify", "new_workspace", "preflight", "diagram"}
     for t in tools:
         assert t.annotations.read_only_hint is True and t.annotations.destructive_hint is False, t.name
 
@@ -51,9 +51,15 @@ def test_assess_and_verify_over_mcp(tmp_path):
         verdict = _payload(await session.call_tool("verify", {"tf_json_path": str(state),
                                                               "baseline": "classic-full-private"}))
         book = _payload(await session.call_tool("new_workspace", {"baseline": "classic-full-private"}))
-        return baselines, md, verdict, book
+        shown = _payload(await session.call_tool("describe_baseline", {"baseline": "classic-standard"}))
+        arch = _payload(await session.call_tool("diagram", {"tf_json_path": str(state)}))
+        patterns = _payload(await session.call_tool("list_patterns", {}))
+        return baselines, md, verdict, book, shown, arch, patterns
 
-    baselines, md, verdict, book = anyio.run(_session_run, go)
+    baselines, md, verdict, book, shown, arch, patterns = anyio.run(_session_run, go)
+    assert "| Required | Stable explicit egress (NAT Gateway or firewall) | `AZ-NET-005` |" in shown["markdown"]
+    assert "```mermaid" in arch and "## Manifest" in arch
+    assert all(set(c) == {"check", "control", "area"} for p in patterns for c in p["required"])
     assert set(book["files"]) == {"inputs.tfvars", "stage-1-deploy.tfvars", "stage-2-lockdown.tfvars",
                                   "README.md", "baseline.json", ".gitignore"}
     assert "adb4u/deployments/full-private/main.tf" in book["bundle"]

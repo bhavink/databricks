@@ -208,17 +208,20 @@ uv run wa-agent doctor    # prints the exact registration command for each assis
 
 | Assistant | Register the MCP server |
 |---|---|
-| Claude Code | `claude mcp add databricks-wa -- uv run --quiet --project /abs/path/well-architected-agent wa-agent-mcp` (or open the repo: `.mcp.json` is included) |
-| Codex CLI | `codex mcp add databricks-wa -- uv run --quiet --project /abs/path/well-architected-agent wa-agent-mcp` |
-| Cursor | Open the repo (`.cursor/mcp.json` is included), or in `~/.cursor/mcp.json`: `{"mcpServers": {"databricks-wa": {"command": "uv", "args": ["run", "--quiet", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
+| Claude Code | `claude mcp add databricks-wa -- uv run --quiet --frozen --project /abs/path/well-architected-agent wa-agent-mcp` (or open the repo: `.mcp.json` is included) |
+| Codex CLI | `codex mcp add databricks-wa -- uv run --quiet --frozen --project /abs/path/well-architected-agent wa-agent-mcp` |
+| Cursor | Open the repo (`.cursor/mcp.json` is included), or in `~/.cursor/mcp.json`: `{"mcpServers": {"databricks-wa": {"command": "uv", "args": ["run", "--quiet", "--frozen", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
 | Gemini CLI | `~/.gemini/settings.json`: the same `mcpServers` block as Cursor |
-| VS Code (Copilot) | `.vscode/mcp.json`: `{"servers": {"databricks-wa": {"type": "stdio", "command": "uv", "args": ["run", "--quiet", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
+| VS Code (Copilot) | `.vscode/mcp.json`: `{"servers": {"databricks-wa": {"type": "stdio", "command": "uv", "args": ["run", "--quiet", "--frozen", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
 
 `/abs/path/well-architected-agent` is the full path to this folder in your clone
 (on Windows, e.g. `C:/Users/you/databricks/well-architected-agent`).
 
-Tools: `list_baselines`, `list_patterns`, `preflight`, `collect_tfplan`,
-`collect_live`, `assess`, `verify`, `new_workspace`. Assistants that read
+Tools: `list_baselines`, `describe_baseline`, `list_patterns`, `preflight`,
+`collect_tfplan`, `collect_live`, `assess`, `verify`, `diagram`, `new_workspace`.
+
+`--frozen` makes the server use the committed lockfile as-is. Keep it: without it,
+a machine configured for a private package mirror rewrites `uv.lock` at every launch. Assistants that read
 [`AGENTS.md`](AGENTS.md) (Codex, Cursor, and others; `CLAUDE.md` points
 there) also get the three rules as instructions.
 
@@ -276,6 +279,10 @@ That creates `./my-ws/` with everything needed:
 | `stage-N-*.tfvars` | What the baseline turns on, one file per stage (for full private: *deploy*, then *lockdown* from inside your network) |
 | `README.md` | Every command, in order |
 | `baseline.json` | What was used: baseline, commit, and a checksum of every copied file |
+
+After each `terraform plan`, the README also runs `wa-agent diagram` to draw what
+that stage deploys (`stageN.architecture.md`), and once more on the final state
+(`architecture.md`).
 
 Each stage is: `terraform plan` → `wa-agent assess` on the plan →
 `terraform apply` (you run it) → after the last stage, `wa-agent verify` on

@@ -43,26 +43,54 @@ def _render(result, cat, facts, fmt: str) -> str:
     return report.to_json(result, cat, facts) if fmt == "json" else report.to_markdown(result, cat, facts)
 
 
+def _titled(cat: dict, ids: list[str]) -> list[dict]:
+    checks = {c["id"]: c for c in cat["checks"]}
+    return [{"check": i, "control": checks[i]["title"], "area": checks[i]["phase_name"]} for i in ids]
+
+
 @server.tool(annotations=READ_ONLY)
 def list_baselines(cloud: str = "azure") -> list[dict]:
-    """List use-case baselines: id, name, use case, reference pattern, and the tested deployment that builds it."""
+    """List use-case baselines: id, name, use case, reference pattern, and the tested Terraform that
+    builds it. Use describe_baseline to show a baseline's controls; present controls by their
+    titles, not by check ids alone."""
     cat = catalog_mod.load(cloud)
     return [
         {"id": b["id"], "name": b["name"], "use_case": b["use_case"].strip(), "pattern": b["pattern"],
-         "deployment": b["deployment"], "extra_required_checks": b.get("require") or []}
+         "deployment": b["deployment"], "extra_required_controls": _titled(cat, b.get("require") or [])}
         for b in cat["baselines"]
     ]
 
 
 @server.tool(annotations=READ_ONLY)
+def describe_baseline(baseline: str, cloud: str = "azure") -> dict:
+    """What a baseline (or pattern) requires, in plain language: every control with its area of the
+    production planning guide (Network, Storage, Unity Catalog, ...), level (required/recommended)
+    and check id as a reference. Show the markdown to the user as-is."""
+    from .describe import controls, to_markdown
+
+    cat = catalog_mod.load(cloud)
+    return {"markdown": to_markdown(cat, baseline), "controls": controls(cat, baseline)}
+
+
+@server.tool(annotations=READ_ONLY)
 def list_patterns(cloud: str = "azure") -> list[dict]:
-    """List reference architecture patterns with their required and recommended checks."""
+    """List reference architecture patterns with their required and recommended controls (titled)."""
     cat = catalog_mod.load(cloud)
     return [
         {"id": p["id"], "name": p["name"], "tier": p["tier"], "compute_mode": p["compute_mode"],
-         "summary": p["summary"].strip(), "required": p["required"], "recommended": p["recommended"]}
+         "summary": p["summary"].strip(), "required": _titled(cat, p["required"]),
+         "recommended": _titled(cat, p["recommended"])}
         for p in cat["patterns"]["patterns"]
     ]
+
+
+@server.tool(annotations=READ_ONLY)
+def diagram(tf_json_path: str, workspace: str | None = None) -> str:
+    """Architecture diagram (Mermaid) and resource manifest of what a `terraform show -json` plan or
+    state deploys. Reads the file only. Show the Markdown to the user as-is."""
+    from .diagram import to_markdown
+
+    return to_markdown(json.loads(Path(tf_json_path).read_text(encoding="utf-8")), workspace)
 
 
 @server.tool(annotations=READ_ONLY)

@@ -518,7 +518,7 @@ def test_doctor_only_runs_read_commands_and_prints_registration(monkeypatch, cap
     assert [c[:2] for c in issued] == [["az", "account"], ["az", "extension"], ["databricks", "--version"],
                                       ["databricks", "auth"], ["terraform", "version"], ["uv", "--version"]]
     out = capsys.readouterr().out
-    assert "claude mcp add databricks-wa -- uv run --quiet --project" in out
+    assert "claude mcp add databricks-wa -- uv run --quiet --frozen --project" in out
     assert "codex mcp add databricks-wa" in out
 
 
@@ -527,6 +527,7 @@ def test_project_mcp_configs_point_at_the_agent():
     for rel, key in ((".mcp.json", "mcpServers"), (".cursor/mcp.json", "mcpServers")):  # committed configs
         server = json.loads((repo / rel).read_text(encoding="utf-8"))[key]["databricks-wa"]
         assert server["command"] == "uv" and server["args"][-1] == "wa-agent-mcp", rel
+        assert "--frozen" in server["args"], rel  # never relock through a private index at launch
 
 
 def test_workspace_resolves_from_name_url_or_id_and_profiles_auto_match():
@@ -593,3 +594,59 @@ def test_one_reviewed_sra_commit_everywhere(azure_catalog):
     main_tf = (repo / "adb4u/deployments/serverless/main.tf").read_text(encoding="utf-8")
     refs |= set(re.findall(r"terraform-databricks-sra\.git//[^?]+\?ref=([0-9a-f]{40})", main_tf))
     assert len(refs) == 1, refs
+
+
+def test_baselines_read_as_titled_controls_by_area(azure_catalog):
+    from wa_agent.describe import controls, to_markdown
+
+    rows = controls(azure_catalog, "classic-high-security")
+    assert [r["phase"] for r in rows] == sorted(r["phase"] for r in rows)
+    promoted = {r["check"]: r["level"] for r in rows}
+    assert promoted["AZ-ENC-001"] == "required"  # baseline `require` promotes recommended controls
+    md = to_markdown(azure_catalog, "classic-standard")
+    assert "## Network" in md and "| Required | Workspace is VNet-injected (customer-managed VNet) | `AZ-NET-001` |" in md
+    assert to_markdown(azure_catalog, "az-classic-non-pl").startswith("# Classic — VNet-injected, Non-Private Link")
+    with pytest.raises(ValueError, match="unknown baseline or pattern"):
+        to_markdown(azure_catalog, "nope")
+
+
+def test_report_lists_controls_by_title_not_bare_ids(azure_catalog):
+    facts = azure_tfplan.collect(non_pl_plan())
+    md = report.to_markdown(assess(azure_catalog, facts, baseline_id="classic-high-security"), azure_catalog, facts)
+    assert "- Customer-managed key for managed services (`AZ-ENC-001`)" in md
+
+
+def test_diagram_is_drawn_from_the_plan_and_deterministic():
+    from wa_agent.diagram import to_markdown
+
+    classic = to_markdown(non_pl_plan())
+    assert classic == to_markdown(non_pl_plan())
+    assert 'VNET -->|"outbound via NAT gateway"| NET["Internet"]' in classic
+    assert 'USERS -->|"HTTPS over internet · IP access list"| WS' in classic
+    assert "| Network | `azurerm_subnet` | 2 |" in classic and "class WS focus" in classic
+    private = to_markdown(full_private_plan())
+    assert 'USERS -->|"HTTPS via private endpoint only"| WS' in private and "over Private Link" in private
+    serverless = to_markdown(serverless_plan(cmk=True, storage_pe=True))
+    assert "VNET" not in serverless and "egress restricted and enforced" in serverless
+    assert '-->|"encrypts managed services"| WS' in serverless
+    for line in classic.splitlines():  # every Mermaid arrow carries a label
+        if "-->" in line:
+            assert "-->|" in line, line
+
+
+def test_cli_show_and_diagram(tmp_path, capsys):
+    plan = tmp_path / "plan.json"
+    plan.write_text(json.dumps(non_pl_plan()), encoding="utf-8")
+    assert main(["show", "classic-standard"]) == 0
+    assert "## Observability" in capsys.readouterr().out
+    out = tmp_path / "architecture.md"
+    assert main(["diagram", "--tf-json", str(plan), "-o", str(out)]) == 0
+    assert out.read_text(encoding="utf-8").startswith("# Architecture — ws-demo")
+
+
+def test_run_book_draws_each_stage_and_the_result(azure_catalog):
+    from wa_agent.new import render
+
+    readme = render(azure_catalog, "classic-full-private")["README.md"]
+    assert "wa-agent diagram --tf-json stage1.plan.json -o stage1.architecture.md" in readme
+    assert "wa-agent diagram --tf-json state.json -o architecture.md" in readme

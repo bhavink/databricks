@@ -7,6 +7,7 @@ import json
 
 from .engine import FAIL, NOT_APPLICABLE, PASS, UNKNOWN, Assessment
 from .clouds import collection_hints
+from .describe import label
 from .facts import digest
 
 REPO_URL = "https://github.com/bhavink/databricks/blob/master/"
@@ -161,7 +162,7 @@ def to_markdown(assessment: Assessment, catalog: dict, facts: dict) -> str:
         lines += [f"Baseline: {assessment.baseline['use_case'].strip()}", ""]
         extra = assessment.baseline.get("require") or []
         if extra:
-            lines += ["Baseline adds required controls: " + ", ".join(f"`{c}`" for c in extra), ""]
+            lines += ["Baseline adds required controls:", ""] + [f"- {label(catalog, c)}" for c in extra] + [""]
     if assessment.detected and assessment.detected["id"] != target["id"]:
         lines += [f"Detected `{assessment.detected['id']}`; scoring against the declared target `{target['id']}`.", ""]
     if assessment.detected and assessment.detected["compute_mode"] != target["compute_mode"]:
@@ -241,7 +242,8 @@ def to_markdown(assessment: Assessment, catalog: dict, facts: dict) -> str:
     if data["upgrade_path"]:
         lines += ["", "## Upgrade path", "", "| Pattern | Tier | Required controls not yet passing |", "|---|---|---|"]
         for row in data["upgrade_path"]:
-            lines.append(f"| {row['name']} (`{row['id']}`) | {row['tier']} | {', '.join(row['blocking']) or 'none'} |")
+            blocking = "<br>".join(label(catalog, c) for c in row["blocking"]) or "none"
+            lines.append(f"| {row['name']} (`{row['id']}`) | {row['tier']} | {blocking} |")
     lines += ["", "## Coverage by production planning phase", "",
               "Phases of the Databricks production planning guide and what this assessment checks in each. "
               "Phases with no checks are not covered by the agent yet; review them with the guide.", "",

@@ -50,8 +50,8 @@ def _probe(cmd: list[str]) -> tuple[bool, str]:
 
 
 def registration(project: Path = PROJECT) -> dict[str, str]:
-    launch = f"uv run --quiet --project {project} wa-agent-mcp"
-    args = json.dumps(["run", "--quiet", "--project", project.as_posix(), "wa-agent-mcp"])
+    launch = f"uv run --quiet --frozen --project {project} wa-agent-mcp"
+    args = json.dumps(["run", "--quiet", "--frozen", "--project", project.as_posix(), "wa-agent-mcp"])
     return {
         "Claude Code": f"claude mcp add databricks-wa -- {launch}   (or open the repo: .mcp.json is included)",
         "Codex CLI": f"codex mcp add databricks-wa -- {launch}",

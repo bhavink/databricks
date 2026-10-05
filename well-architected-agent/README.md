@@ -171,7 +171,16 @@ controls mandatory, and links to the deployment that builds it.
 
 ```bash
 uv run wa-agent baselines
+uv run wa-agent show classic-high-security        # its controls in plain language, by area
 uv run wa-agent assess --facts out/ws.facts.json --baseline classic-high-security
+```
+
+**Architecture diagram and manifest** of what any Terraform plan or state deploys
+(this repo's deployments, the SRA, or your own): a Mermaid diagram drawn from the
+same facts the assessment uses, plus every resource by area.
+
+```bash
+uv run wa-agent diagram --tf-json plan.json -o architecture.md
 ```
 
 With no `--baseline`, the workspace is scored against the pattern it is
@@ -194,17 +203,20 @@ uv run wa-agent doctor    # prints the exact registration command for each assis
 
 | Assistant | Register the MCP server |
 |---|---|
-| Claude Code | `claude mcp add databricks-wa -- uv run --quiet --project /abs/path/well-architected-agent wa-agent-mcp` (or open the repo: `.mcp.json` is included) |
-| Codex CLI | `codex mcp add databricks-wa -- uv run --quiet --project /abs/path/well-architected-agent wa-agent-mcp` |
-| Cursor | Open the repo (`.cursor/mcp.json` is included), or in `~/.cursor/mcp.json`: `{"mcpServers": {"databricks-wa": {"command": "uv", "args": ["run", "--quiet", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
+| Claude Code | `claude mcp add databricks-wa -- uv run --quiet --frozen --project /abs/path/well-architected-agent wa-agent-mcp` (or open the repo: `.mcp.json` is included) |
+| Codex CLI | `codex mcp add databricks-wa -- uv run --quiet --frozen --project /abs/path/well-architected-agent wa-agent-mcp` |
+| Cursor | Open the repo (`.cursor/mcp.json` is included), or in `~/.cursor/mcp.json`: `{"mcpServers": {"databricks-wa": {"command": "uv", "args": ["run", "--quiet", "--frozen", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
 | Gemini CLI | `~/.gemini/settings.json`: the same `mcpServers` block as Cursor |
-| VS Code (Copilot) | `.vscode/mcp.json`: `{"servers": {"databricks-wa": {"type": "stdio", "command": "uv", "args": ["run", "--quiet", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
+| VS Code (Copilot) | `.vscode/mcp.json`: `{"servers": {"databricks-wa": {"type": "stdio", "command": "uv", "args": ["run", "--quiet", "--frozen", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
 
 `/abs/path/well-architected-agent` is the full path to this folder in your clone
 (on Windows, e.g. `C:/Users/you/databricks/well-architected-agent`).
 
-Tools: `list_baselines`, `list_patterns`, `preflight`, `collect_tfplan`,
-`collect_live`, `assess`, `verify`, `new_workspace`. Assistants that read
+Tools: `list_baselines`, `describe_baseline`, `list_patterns`, `preflight`,
+`collect_tfplan`, `collect_live`, `assess`, `verify`, `diagram`, `new_workspace`.
+
+`--frozen` makes the server use the committed lockfile as-is. Keep it: without it,
+a machine configured for a private package mirror rewrites `uv.lock` at every launch. Assistants that read
 [`AGENTS.md`](AGENTS.md) (Codex, Cursor, and others; `CLAUDE.md` points
 there) also get the three rules as instructions.
 

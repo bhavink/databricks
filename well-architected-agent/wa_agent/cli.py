@@ -51,6 +51,21 @@ def cmd_baselines(args) -> int:
         extra = f"  +{len(b['require'])} required" if b.get("require") else ""
         print(f"{b['id']:<34} {b['pattern']:<26} {b['deployment']}{extra}")
         print(f"{'':<34} {b['use_case'].strip()}")
+    print("\nDetails: wa-agent show <baseline>", file=sys.stderr)
+    return 0
+
+
+def cmd_show(args) -> int:
+    from .describe import to_markdown
+
+    _write(to_markdown(catalog_mod.load(args.cloud), args.baseline), args.output)
+    return 0
+
+
+def cmd_diagram(args) -> int:
+    from .diagram import to_markdown
+
+    _write(to_markdown(json.loads(Path(args.tf_json).read_text(encoding="utf-8")), args.workspace), args.output)
     return 0
 
 
@@ -158,6 +173,18 @@ def main(argv=None) -> int:
     b = sub.add_parser("baselines", help="list use-case baselines")
     b.add_argument("--cloud", default="azure", choices=CLOUDS)
     b.set_defaults(func=cmd_baselines)
+
+    s = sub.add_parser("show", help="what a baseline (or pattern) requires, in plain language")
+    s.add_argument("baseline", help="baseline or pattern id (see `baselines`, `patterns`)")
+    s.add_argument("--cloud", default="azure", choices=CLOUDS)
+    s.add_argument("-o", "--output")
+    s.set_defaults(func=cmd_show)
+
+    g = sub.add_parser("diagram", help="architecture diagram + resource manifest from a Terraform plan or state")
+    g.add_argument("--tf-json", required=True, help="terraform show -json output (plan or state)")
+    g.add_argument("--workspace", help="workspace address or name, when there are several")
+    g.add_argument("-o", "--output")
+    g.set_defaults(func=cmd_diagram)
 
     c = sub.add_parser("collect", help="collect normalized facts (read-only)")
     c.add_argument("source", choices=["tfplan", "live"])
