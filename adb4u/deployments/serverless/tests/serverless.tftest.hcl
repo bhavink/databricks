@@ -28,6 +28,7 @@ mock_provider "databricks" {}
 mock_provider "databricks" {
   alias = "workspace"
 }
+mock_provider "time" {}
 
 override_resource {
   target = azapi_resource.workspace
@@ -64,6 +65,10 @@ run "serverless_compute_mode_and_defaults" {
   assert {
     condition     = databricks_account_network_policy.this.egress.network_access.restriction_mode == "FULL_ACCESS"
     error_message = "network policy must default to full access"
+  }
+  assert {
+    condition     = time_sleep.account_detach.destroy_duration == "5m"
+    error_message = "destroy must wait for the account to detach the NCC and network policy"
   }
   assert {
     condition     = length(databricks_ip_access_list.allowed) == 0 && length(module.monitoring) == 0

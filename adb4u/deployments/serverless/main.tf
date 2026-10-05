@@ -39,6 +39,9 @@ resource "azurerm_resource_group" "this" {
 # ==============================================
 
 resource "azapi_resource" "workspace" {
+  # Created after (and so destroyed before) the destroy-time wait below.
+  depends_on = [time_sleep.account_detach]
+
   type      = "Microsoft.Databricks/workspaces@2026-01-01"
   name      = "${var.workspace_prefix}-workspace"
   parent_id = azurerm_resource_group.this.id
@@ -128,6 +131,16 @@ resource "databricks_account_network_policy" "this" {
       }
     }
   }
+}
+
+# On destroy, the Databricks account takes a few minutes to notice the deleted
+# workspace; until then it refuses to delete the NCC and network policy
+# ("attached to running workspace"). Destroy order is workspace -> this wait
+# -> NCC and policy. Create is not slowed.
+resource "time_sleep" "account_detach" {
+  destroy_duration = var.account_detach_wait
+
+  depends_on = [databricks_mws_network_connectivity_config.this, databricks_account_network_policy.this]
 }
 
 resource "databricks_workspace_network_option" "this" {

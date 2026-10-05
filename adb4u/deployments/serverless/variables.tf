@@ -166,3 +166,18 @@ variable "serverless_private_endpoint_storage_account_ids" {
   description = "Storage account resource IDs serverless compute reaches over private endpoints (dfs). Each endpoint must be approved on the storage account."
   default     = []
 }
+
+# ==============================================
+# Destroy
+# ==============================================
+
+variable "account_detach_wait" {
+  type        = string
+  description = "How long destroy waits after deleting the workspace before deleting the NCC and network policy, while the Databricks account detaches them (e.g. 5m)"
+  default     = "5m"
+
+  validation {
+    condition     = can(regex("^[0-9]+[smh]$", var.account_detach_wait))
+    error_message = "account_detach_wait must be a duration like 300s, 5m or 1h."
+  }
+}

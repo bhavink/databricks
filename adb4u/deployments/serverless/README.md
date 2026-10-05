@@ -85,9 +85,12 @@ the same `az login` (the identity must be a Databricks account admin), or set
   ([docs](https://learn.microsoft.com/en-us/azure/databricks/security/keys/cmk-managed-services-azure/)).
 - **NCC private endpoint rules** start pending. Approve each on the storage
   account after apply.
-- **Destroy:** the Databricks account detaches the NCC and network policy a few
-  minutes after the workspace is deleted. If `terraform destroy` fails with
-  "attached to … running workspace(s)", wait a few minutes and run it again.
+- **Destroy waits for the account.** The Databricks account detaches the NCC and
+  network policy a few minutes after the workspace is deleted; until then it
+  refuses to delete them ("attached to … running workspace(s)"). `destroy`
+  therefore waits `account_detach_wait` (default `5m`) between the workspace and
+  the NCC and policy. If it still fails, wait a few minutes and run `destroy`
+  again, or raise `account_detach_wait`.
 
 ## Tests
 
