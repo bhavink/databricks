@@ -3,6 +3,7 @@ server with each assistant. Runs only the fixed read-only commands below."""
 
 from __future__ import annotations
 
+import json
 import platform
 import shutil
 import subprocess
@@ -50,13 +51,14 @@ def _probe(cmd: list[str]) -> tuple[bool, str]:
 
 def registration(project: Path = PROJECT) -> dict[str, str]:
     launch = f"uv run --quiet --project {project} wa-agent-mcp"
+    args = json.dumps(["run", "--quiet", "--project", project.as_posix(), "wa-agent-mcp"])
     return {
         "Claude Code": f"claude mcp add databricks-wa -- {launch}   (or open the repo: .mcp.json is included)",
         "Codex CLI": f"codex mcp add databricks-wa -- {launch}",
         "Cursor": "open the repo (.cursor/mcp.json is included), then enable it in Settings → MCP",
-        "VS Code (Copilot)": "open the repo (.vscode/mcp.json is included)",
-        "Gemini CLI": f'~/.gemini/settings.json: "mcpServers": {{"databricks-wa": {{"command": "uv", "args": '
-                      f'["run", "--quiet", "--project", "{project}", "wa-agent-mcp"]}}}}',
+        "VS Code (Copilot)": f'.vscode/mcp.json: {{"servers": {{"databricks-wa": {{"type": "stdio", "command": "uv", '
+                             f'"args": {args}}}}}}}',
+        "Gemini CLI": f'~/.gemini/settings.json: {{"mcpServers": {{"databricks-wa": {{"command": "uv", "args": {args}}}}}}}',
     }
 
 

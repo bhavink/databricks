@@ -11,7 +11,7 @@ I design and implement secure, production-grade Data and AI platforms across **A
 
 ### 📚 Recent Work
 
-**Latest Articles** (13+ published on [Databricks Blog](https://www.databricks.com/blog/author/bhavin-kukadia)):
+**Latest Articles** on the [Databricks Blog](https://www.databricks.com/blog/author/bhavin-kukadia):
 - [A Unified Approach to Data Exfiltration Protection on Databricks](https://www.databricks.com/blog/unified-approach-data-exfiltration-protection-databricks) (Aug 2025)
 - [BigQuery adds first-party support for Delta Lake](https://www.databricks.com/blog/bigquery-adds-first-party-support-delta-lake) (Jun 2024)
 - [How Delta Sharing Enables Secure End-to-End Collaboration](https://www.databricks.com/blog/how-delta-sharing-enables-secure-end-end-collaboration) (May 2024)
@@ -207,6 +207,6 @@ This repository follows the licensing described in the project. Please see the `
 
 ## 🔗 Additional Resources
 
-- **Databricks Blog Articles**: [All 13+ Articles](https://www.databricks.com/blog/author/bhavin-kukadia)
+- **Databricks Blog Articles**: [All articles](https://www.databricks.com/blog/author/bhavin-kukadia)
 
 

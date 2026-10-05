@@ -211,39 +211,6 @@
             color: var(--ink);
         }
 
-        /* Stats panel */
-        .hero-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            min-width: 240px;
-            padding-top: 0.5rem;
-        }
-
-        .stat-box {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .stat-num {
-            font-size: 1.6rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            line-height: 1;
-            margin-bottom: 0.25rem;
-            color: var(--vermillion);
-        }
-
-        .stat-label {
-            font-size: 0.72rem;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            font-weight: 600;
-        }
 
         /* ─── SECTIONS ────────────────────────────────────── */
         .section {
@@ -498,8 +465,6 @@
         /* ─── RESPONSIVE ──────────────────────────────────── */
         @media (max-width: 900px) {
             .hero { grid-template-columns: 1fr; }
-            .hero-stats { display: flex; flex-wrap: wrap; }
-            .stat-box { flex: 1; min-width: 100px; }
             .cards-3 { grid-template-columns: repeat(2, 1fr); }
         }
 
@@ -636,9 +601,9 @@
             </div>
             <h3>Azure Databricks</h3>
             <p>
-                Modular Terraform templates for Non-PL, Full Private (air-gapped),
-                and Hub-Spoke patterns. 8 reusable modules covering networking,
-                workspace, Unity Catalog, Key Vault, private endpoints, and monitoring.
+                Modular Terraform templates for Non-PL, Full Private (air-gapped)
+                and Serverless; hub-spoke via the official Databricks SRA. Reusable modules
+                for networking, workspace, Unity Catalog, Key Vault, private endpoints and monitoring.
             </p>
             <div class="card-footer">
                 <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
@@ -1027,7 +992,7 @@
 
         <a href="https://www.databricks.com/blog/author/bhavin-kukadia" target="_blank" class="article-item" style="border-color:rgba(204,51,17,0.25);">
             <span class="article-icon"><span class="iconify" data-icon="tabler:external-link"></span></span>
-            <span class="article-title" style="color:var(--vermillion); font-weight:600;">View all 13+ articles on Databricks Blog</span>
+            <span class="article-title" style="color:var(--vermillion); font-weight:600;">View all articles on the Databricks Blog</span>
             <span class="article-meta"></span>
         </a>
 

@@ -208,13 +208,16 @@ uv run wa-agent doctor    # prints the exact registration command for each assis
 
 | Assistant | Register the MCP server |
 |---|---|
-| Claude Code | `claude mcp add databricks-wa -- /abs/path/.venv/bin/wa-agent-mcp` |
-| Codex CLI | `~/.codex/config.toml`: `[mcp_servers.databricks-wa]` then `command = "/abs/path/.venv/bin/wa-agent-mcp"` |
-| Cursor | `.cursor/mcp.json`: `{"mcpServers": {"databricks-wa": {"command": "/abs/path/.venv/bin/wa-agent-mcp"}}}` |
-| Gemini CLI | `~/.gemini/settings.json`: same `mcpServers` block as Cursor |
-| VS Code (Copilot) | `.vscode/mcp.json`: `{"servers": {"databricks-wa": {"type": "stdio", "command": "/abs/path/.venv/bin/wa-agent-mcp"}}}` |
+| Claude Code | `claude mcp add databricks-wa -- uv run --quiet --project /abs/path/well-architected-agent wa-agent-mcp` (or open the repo: `.mcp.json` is included) |
+| Codex CLI | `codex mcp add databricks-wa -- uv run --quiet --project /abs/path/well-architected-agent wa-agent-mcp` |
+| Cursor | Open the repo (`.cursor/mcp.json` is included), or in `~/.cursor/mcp.json`: `{"mcpServers": {"databricks-wa": {"command": "uv", "args": ["run", "--quiet", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
+| Gemini CLI | `~/.gemini/settings.json`: the same `mcpServers` block as Cursor |
+| VS Code (Copilot) | `.vscode/mcp.json`: `{"servers": {"databricks-wa": {"type": "stdio", "command": "uv", "args": ["run", "--quiet", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
 
-Tools: `list_baselines`, `list_patterns`, `collect_tfplan`,
+`/abs/path/well-architected-agent` is the full path to this folder in your clone
+(on Windows, e.g. `C:/Users/you/databricks/well-architected-agent`).
+
+Tools: `list_baselines`, `list_patterns`, `preflight`, `collect_tfplan`,
 `collect_live`, `assess`, `verify`, `new_workspace`. Assistants that read
 [`AGENTS.md`](AGENTS.md) (Codex, Cursor, and others; `CLAUDE.md` points
 there) also get the three rules as instructions.
