@@ -38,8 +38,8 @@ adb4u/
 │   ├── non-pl/                # ✅ Non-Private Link (Ready)
 │   ├── full-private/          # ✅ Full Private (Ready)
 │   ├── byor/                  # ✅ Bring Your Own Resources (Ready)
-│   ├── serverless/            # ✅ Serverless workspace (official SRA module)
-│   └── hub-spoke/             # ➡️ Use the official Databricks SRA (see below)
+│   ├── serverless/            # ✅ Serverless workspace (no VNet needed)
+│   └── hub-spoke/             # 🚧 Planned
 │
 ├── modules/                   # Reusable Terraform modules
 │   ├── networking/            # VNet, subnets, NSG, NAT
@@ -90,15 +90,15 @@ adb4u/
 
 #### 4. **Serverless** ✅ Validated
 - **Compute**: Serverless only (`computeMode = Serverless`); no customer VNet for compute
-- **Workspace**: Created by the official [Databricks SRA `serverless_workspace` module](https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/azure/tf/modules/serverless_workspace), pinned
+- **Workspace**: ARM `computeMode = Serverless` via AzAPI, the same call as the official [SRA `serverless_workspace` module](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf/modules/serverless_workspace); no VNet unless you choose a private front-end
 - **Egress**: Serverless network policy (restricted and enforced, or full access)
 - **Storage**: NCC private endpoint rules to your storage accounts
 
 👉 **[Serverless Deployment →](./deployments/serverless/README.md)**
 
 #### 5. **Hub-Spoke with Firewall (Data Exfiltration Protection)**
-- Use the official [Databricks Security Reference Architecture](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf): hub with Azure Firewall, spoke workspace with Private Link, CMK
-- The [Well-Architected Agent](../well-architected-agent) generates a run book for it pinned to a reviewed commit (`classic-exfiltration-protection` baseline)
+- 🚧 Planned in this repo. Until then, see the [Azure data exfiltration protection blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks) and the [Databricks SRA](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf) for reference
+- The [Well-Architected Agent](../well-architected-agent) already assesses hub-spoke workspaces (`classic-exfiltration-protection` baseline)
 
 ### ✨ Key Features
 

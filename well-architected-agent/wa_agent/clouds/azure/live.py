@@ -401,10 +401,11 @@ def _dns(run: Runner, vnet_id: str) -> dict:
 
 def _databricks(run: Runner, ws: dict, profile: str | None, account_profile: str | None) -> dict:
     out: dict = {}
-    host = ws.get("workspaceUrl")
-    base = ["databricks", "-o", "json"] + (["--profile", profile] if profile else [])
-    if host and not profile:
-        base += ["--host", f"https://{host}"]
+    if not profile:
+        # No login for this workspace: leave workspace-level facts unknown (the report says how to
+        # log in). Never fall back to the CLI's default profile, which may be another workspace.
+        return out | _account(run, ws, account_profile)
+    base = ["databricks", "-o", "json", "--profile", profile]
 
     governance: dict = {}
     conf = run(base + ["workspace-conf", "get-status", "enableIpAccessLists"])

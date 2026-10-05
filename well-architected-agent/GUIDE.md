@@ -260,7 +260,7 @@ Statuses, simply:
 
 ```mermaid
 flowchart LR
-  B["1. Pick a baseline"] -->|"maps to"| T["2. Tested Terraform<br/>(this repo or official SRA)"]
+  B["1. Pick a baseline"] -->|"maps to"| T["2. Tested Terraform<br/>in this repo"]
   T -->|"you answer inputs,<br/>you run plan"| P["3. assess the plan"]
   P -->|"you run apply"| S["4. terraform show -json"]
   S -->|"verify --baseline"| V["5. PASS / FAIL<br/>with evidence"]
@@ -274,7 +274,7 @@ That creates `./my-ws/` with everything needed:
 
 | File | What it is |
 |---|---|
-| `terraform/` | The tested Terraform, copied from this repo (for hub-spoke: the README clones the official Databricks SRA at a reviewed commit instead) |
+| `terraform/` | The tested Terraform, copied from this repo |
 | `inputs.tfvars` | The required settings. Your `--set` answers; anything unanswered is a `REPLACE_ME_*` |
 | `stage-N-*.tfvars` | What the baseline turns on, one file per stage (for full private: *deploy*, then *lockdown* from inside your network) |
 | `README.md` | Every command, in order |
@@ -287,8 +287,7 @@ that stage deploys (`stageN.architecture.md`), and once more on the final state
 Each stage is: `terraform plan` → `wa-agent assess` on the plan →
 `terraform apply` (you run it) → after the last stage, `wa-agent verify` on
 the state. The final stage must verify as **PASS**; if the Terraform used
-can't cover a check (the SRA has no diagnostic settings), the README names it
-up front.
+can't cover a check, the README names it up front.
 
 Account and subscription IDs are set as `TF_VAR_*` environment variables and
 are never written to the folder.

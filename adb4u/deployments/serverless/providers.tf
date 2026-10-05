@@ -14,16 +14,14 @@ provider "azurerm" {
   }
 }
 
-# The workspace itself is created through the ARM API (azapi), because
-# azurerm_databricks_workspace cannot set computeMode = "Serverless".
+# The workspace is created through the ARM API (azapi): azurerm_databricks_workspace
+# cannot set computeMode = "Serverless" yet.
 provider "azapi" {}
 
 # ==============================================
 # Databricks Account Provider (default)
 # ==============================================
-# The official serverless_workspace module uses the default databricks
-# provider for account-level resources: metastore assignment, NCC binding
-# and network policy assignment.
+# Account-level resources: metastore assignment, NCC, binding, network policy.
 # Requires DATABRICKS_CLIENT_ID, DATABRICKS_CLIENT_SECRET and
 # DATABRICKS_AZURE_TENANT_ID (or ARM_TENANT_ID).
 
@@ -41,5 +39,5 @@ provider "databricks" {
 
 provider "databricks" {
   alias = "workspace"
-  host  = try("https://${module.workspace.workspace_url}", "https://placeholder.azuredatabricks.net")
+  host  = try("https://${local.workspace_url}", "https://placeholder.azuredatabricks.net")
 }

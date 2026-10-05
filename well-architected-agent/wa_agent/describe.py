@@ -64,8 +64,4 @@ def to_markdown(catalog: dict, ref: str) -> str:
 
 def _where(baseline: dict) -> str:
     build = baseline.get("build") or {}
-    if "deployment" in build:
-        return f"`{build['deployment']}`"
-    if "source" in build:
-        return f"official Databricks SRA `{build['source']['path']}` @ `{build['source']['ref'][:7]}`"
-    return f"`{baseline['deployment']}`"
+    return f"`{build.get('deployment') or baseline['deployment']}`"

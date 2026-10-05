@@ -3,6 +3,7 @@ import json
 import random
 
 import pytest
+from pathlib import Path
 
 from conftest import serverless_plan, full_private_plan, non_pl_plan, rc
 from wa_agent import report
@@ -129,7 +130,8 @@ def test_markdown_contains_fix_and_sources(azure_catalog):
     assert "## Upgrade path" in md
     assert "## Prescription" in md and report.READ_ONLY_NOTICE in md
     assert "from `terraform: no azurerm_monitor_diagnostic_setting in plan`" in md
-    assert "**Ground-truth repo (validated (terraform validate + mock tests); not yet apply-tested):**" in md
+    assert "**Ground-truth repo (tested):**" in md
+    assert "validated" not in md  # everything in the repo is battle-tested
     beyond = md.split("## Beyond target")[1].split("## Not evaluable")[0]
     assert "AZ-NET-006" in beyond and "```hcl" not in beyond
 
@@ -171,7 +173,7 @@ def test_live_collector_with_fake_cli(azure_catalog):
                 return value
         return None
 
-    facts = azure_live.collect(ws_id, run=fake)
+    facts = azure_live.collect(ws_id, run=fake, databricks_profile="ws")
     result = assess(azure_catalog, facts)
     s = statuses(result)
     assert result.detected["id"] == "az-classic-non-pl"
@@ -258,7 +260,7 @@ def test_baseline_report_flags_compute_mode_mismatch(azure_catalog):
 def test_every_baseline_maps_to_existing_repo_path(azure_catalog):
     repo = __import__("pathlib").Path(__file__).resolve().parents[2]
     for b in azure_catalog["baselines"]:
-        assert b["deployment"].startswith("https://github.com/databricks/") or (repo / b["deployment"]).exists(), b["deployment"]
+        assert b["deployment"].startswith("https://www.databricks.com/blog/") or (repo / b["deployment"]).exists(), b["deployment"]
 
 
 @pytest.mark.parametrize("args", [
@@ -339,7 +341,7 @@ def test_every_build_tfvar_is_a_declared_deployment_variable(azure_catalog):
     from wa_agent.new import check_build
 
     built = [b for b in azure_catalog["baselines"] if b.get("build")]
-    assert {b["id"] for b in built} == {b["id"] for b in azure_catalog["baselines"]}
+    assert {b["id"] for b in built} == {b["id"] for b in azure_catalog["baselines"]} - {"classic-exfiltration-protection"}
     for b in built:
         check_build(b)
 
@@ -393,21 +395,6 @@ def test_bundle_never_copies_state_tfvars_or_provider_cache(tmp_path):
         "adb4u/modules/m/main.tf", "adb4u/modules/m/tests/m.tftest.hcl"]
 
 
-def test_new_for_official_sra_source_pins_commit_and_selects_spoke(azure_catalog, tmp_path):
-    from wa_agent.new import generate
-
-    out = tmp_path / "dep"
-    generate(azure_catalog, "classic-exfiltration-protection", str(out), {"location": "eastus2"})
-    assert not (out / "terraform").exists()  # external: cloned at the pinned commit, not copied
-    readme = (out / "README.md").read_text(encoding="utf-8")
-    assert "git clone https://github.com/databricks/terraform-databricks-sra.git sra" in readme
-    assert "git checkout bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4" in readme
-    assert "--workspace module.spoke_workspace.azurerm_databricks_workspace.this" in readme
-    assert "export TF_VAR_subscription_id" in readme and "`AZ-OPS-001`" in readme
-    inputs = (out / "inputs.tfvars").read_text(encoding="utf-8")
-    assert "subscription_id =" not in inputs and '"REPLACE_ME_resource_suffix"' in inputs
-    stage = (out / "stage-1-deploy.tfvars").read_text(encoding="utf-8")
-    assert 'workspace_vnet      = { cidr = "REPLACE_ME_spoke_vnet_cidr" }' in stage
 
 
 def test_new_answers_are_validated(azure_catalog, tmp_path):
@@ -435,22 +422,13 @@ def test_new_refuses_without_tested_deployment_and_never_overwrites(azure_catalo
     assert not (tmp_path / "a").exists()
 
 
-def test_external_sources_must_be_official_and_pinned(azure_catalog):
-    from wa_agent.catalog import CatalogError, validate_baselines
-
-    for change, message in ((lambda s: s.update(ref="main"), "full commit SHA"),
-                            (lambda s: s.update(repo="https://github.com/someone/fork"), "official Databricks")):
-        baselines = copy.deepcopy(azure_catalog["baselines"])
-        change(next(b for b in baselines if "source" in (b.get("build") or {}))["build"]["source"])
-        with pytest.raises(CatalogError, match=message):
-            validate_baselines(baselines, azure_catalog["patterns"], azure_catalog["checks"])
 
 
 def test_serverless_workspace_from_official_module_is_detected_and_verifies(azure_catalog):
     facts = azure_tfplan.collect(serverless_plan())
     assert facts["workspace"]["compute_mode"] == "serverless"
     assert facts["workspace"]["public_network_access_enabled"] is True
-    assert facts["_evidence"]["workspace.compute_mode"] == ["terraform:module.workspace.azapi_resource.this"]
+    assert facts["_evidence"]["workspace.compute_mode"] == ["terraform:azapi_resource.workspace"]
     result = assess(azure_catalog, facts, baseline_id="serverless")
     assert result.score["conformant"], statuses(result)
     high = statuses(assess(azure_catalog, facts, baseline_id="serverless-high-security"))
@@ -585,15 +563,6 @@ def test_doctor_redacts_by_default(monkeypatch, capsys):
     assert "Contoso-Prod-Subscription" in capsys.readouterr().out
 
 
-def test_one_reviewed_sra_commit_everywhere(azure_catalog):
-    import re
-    from pathlib import Path
-
-    repo = Path(__file__).resolve().parents[2]
-    refs = {b["build"]["source"]["ref"] for b in azure_catalog["baselines"] if "source" in (b.get("build") or {})}
-    main_tf = (repo / "adb4u/deployments/serverless/main.tf").read_text(encoding="utf-8")
-    refs |= set(re.findall(r"terraform-databricks-sra\.git//[^?]+\?ref=([0-9a-f]{40})", main_tf))
-    assert len(refs) == 1, refs
 
 
 def test_baselines_read_as_titled_controls_by_area(azure_catalog):
@@ -650,3 +619,50 @@ def test_run_book_draws_each_stage_and_the_result(azure_catalog):
     readme = render(azure_catalog, "classic-full-private")["README.md"]
     assert "wa-agent diagram --tf-json stage1.plan.json -o stage1.architecture.md" in readme
     assert "wa-agent diagram --tf-json state.json -o architecture.md" in readme
+
+
+def test_answers_override_stage_settings_instead_of_being_shadowed(azure_catalog):
+    from wa_agent.new import render
+
+    files = render(azure_catalog, "serverless", {"allowed_ip_ranges": ["198.51.100.7/32"],
+                                                 "enable_diagnostic_settings": False, "location": "eastus2"})
+    stage = {line.split("=")[0].strip(): line.split("=", 1)[1].strip()
+             for line in files["stage-1-deploy.tfvars"].splitlines() if "=" in line and not line.startswith("#")}
+    assert stage["allowed_ip_ranges"] == '["198.51.100.7/32"]'
+    assert stage["enable_diagnostic_settings"] == "false"
+    assert "allowed_ip_ranges" not in files["inputs.tfvars"] and 'location            = "eastus2"' in files["inputs.tfvars"]
+    assert "allowed_ip_ranges" not in json.loads(files["baseline.json"])["placeholders"]
+
+
+def test_live_scan_without_workspace_profile_never_calls_the_workspace_api():
+    calls = []
+
+    def run(args):
+        calls.append(args)
+        return None
+
+    azure_live._databricks(run, {"workspaceUrl": "adb-1.2.azuredatabricks.net", "workspaceId": "1"}, None, None)
+    assert not [a for a in calls if a[:1] == ["databricks"] and "--profile" not in a and "account" not in a]
+    assert not [a for a in calls if "--host" in a]
+
+
+
+def test_this_repo_is_the_only_source_of_terraform(azure_catalog):
+    import copy
+
+    from wa_agent.catalog import CatalogError, validate_baselines
+
+    baselines = copy.deepcopy(azure_catalog["baselines"])
+    b = next(b for b in baselines if b.get("build"))
+    b["build"] = {"source": {"repo": "https://github.com/databricks/terraform-databricks-sra"}, "stages": b["build"]["stages"]}
+    with pytest.raises(CatalogError, match="deployment in this repo"):
+        validate_baselines(baselines, azure_catalog["patterns"], azure_catalog["checks"])
+    for path in Path(__file__).resolve().parents[2].glob("adb4u/deployments/*/*.tf"):
+        assert "git::" not in path.read_text(encoding="utf-8"), path  # no external module sources
+
+
+def test_hub_spoke_is_assessed_but_not_generated_until_the_repo_has_it(azure_catalog, tmp_path):
+    from wa_agent.new import generate
+
+    with pytest.raises(ValueError, match="no tested deployment"):
+        generate(azure_catalog, "classic-exfiltration-protection", str(tmp_path / "x"))

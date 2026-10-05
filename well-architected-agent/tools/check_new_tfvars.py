@@ -1,13 +1,11 @@
 """Release check: every tfvar `wa-agent new` emits must be accepted by the real
 Terraform root and resolve to the baseline's value when layered as the run book
-layers it (inputs.tfvars, then each stage). Needs `terraform` and git; no
-cloud access.
+layers it (inputs.tfvars, then each stage). Needs `terraform`; no cloud
+access.
 
-Values are evaluated against the root's variable definitions only (types and
-validation rules), in a scratch root with no providers or modules: no `init`,
-no provider downloads, and no provider auth that could stall in CI. External
-sources (the official Databricks SRA) are cloned at the pinned commit, and the
-catalog's copy of their variables must match the source exactly.
+Values are evaluated against the deployment's variable definitions only (types
+and validation rules), in a scratch root with no providers or modules: no
+`init`, no provider downloads, and no provider auth that could stall in CI.
 
     python tools/check_new_tfvars.py /path/to/adb4u
 """
@@ -28,8 +26,6 @@ from wa_agent.new import _variable_blocks, deployment_variables, generate  # noq
 SAMPLES = {
     "corporate_egress_cidr": "203.0.113.0/24",
     "terraform_runner_egress_cidr": "203.0.113.0/24",
-    "hub_vnet_cidr": "10.0.0.0/22",
-    "spoke_vnet_cidr": "10.0.4.0/22",
     "log_analytics_workspace_resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg"
                                            "/providers/Microsoft.OperationalInsights/workspaces/law",
     "managed_services_cmk_key_uri": "https://kv-wacheck.vault.azure.net/keys/cmk/0123456789abcdef0123456789abcdef",
@@ -41,11 +37,8 @@ SAMPLES = {
     "metastore_id": "00000000-0000-0000-0000-000000000001",
     "tag_owner": "owner@example.com",
     "tag_keepuntil": "12/31/2030",
-    "resource_suffix": "wacheck",
-    "hub_resource_suffix": "wacheckhub",
 }
 ENV = {"TF_VAR_databricks_account_id": "00000000-0000-0000-0000-000000000000",
-       "TF_VAR_subscription_id": "00000000-0000-0000-0000-000000000000",
        "TF_INPUT": "0"}  # never prompt: a missing value must fail, not hang CI
 TIMEOUT = 120
 
@@ -72,31 +65,6 @@ def run(cmd, cwd, **kw):
         return subprocess.CompletedProcess(cmd, 1, "", f"timed out after {TIMEOUT}s: {' '.join(cmd[:3])}")
 
 
-def external_root(src: dict, tmp: Path, cache: dict) -> tuple[Path | None, str | None]:
-    key = (src["repo"], src["ref"])
-    if key not in cache:
-        clone = tmp / f"src-{len(cache)}"
-        for cmd in (["git", "init", "-q", str(clone)],
-                    ["git", "-C", str(clone), "fetch", "-q", "--depth", "1", src["repo"], src["ref"]],
-                    ["git", "-C", str(clone), "checkout", "-q", "FETCH_HEAD"]):
-            proc = run(cmd, tmp)
-            if proc.returncode != 0:
-                cache[key] = (None, f"cannot fetch {src['repo']}@{src['ref']}: {proc.stderr.strip()}")
-                break
-        else:
-            cache[key] = (clone / src["path"], None)
-    root, err = cache[key]
-    if err:
-        return None, err
-    declared = deployment_variables(root)
-    want_vars, want_req = set(src["variables"]), set(src["required"])
-    got_req = {n for n, v in declared.items() if v["required"]}
-    if set(declared) != want_vars or got_req != want_req:
-        return None, (f"catalog copy of {src['path']} variables is stale: missing {sorted(set(declared) - want_vars)}, "
-                      f"extra {sorted(want_vars - set(declared))}, required {sorted(got_req)} vs {sorted(want_req)}")
-    return root, None
-
-
 def variables_only(root: Path, scratch: Path) -> Path:
     """Scratch root holding just the variable blocks of `root`."""
     scratch.mkdir(parents=True)
@@ -111,18 +79,10 @@ def main(adb4u_copy: str) -> int:
     cat = catalog.load("azure")
     failures = 0
     with tempfile.TemporaryDirectory() as tmp_name:
-        tmp, cache = Path(tmp_name), {}
+        tmp = Path(tmp_name)
         for b in [b for b in cat["baselines"] if b.get("build")]:
             build = b["build"]
-            if "deployment" in build:
-                dep, where = root / build["deployment"].removeprefix("adb4u/"), build["deployment"]
-            else:
-                dep, err = external_root(build["source"], tmp, cache)
-                where = f"{build['source']['repo']}@{build['source']['ref'][:7]}/{build['source']['path']}"
-                if err:
-                    print(f"FAIL {b['id']}: {err}", flush=True)
-                    failures += 1
-                    continue
+            dep, where = root / build["deployment"].removeprefix("adb4u/"), build["deployment"]
             out = tmp / b["id"]
             generate(cat, b["id"], str(out))
             var_files, expected = [], {}

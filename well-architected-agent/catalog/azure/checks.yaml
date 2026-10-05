@@ -439,7 +439,6 @@ checks:
       - adb4u/deployments/full-private
     remediation:
       fix_type: in_place
-      maturity: validated
       summary: >-
         Enable the workspace storage firewall with an access connector outside
         the managed resource group, after the dfs + blob private endpoints exist.
@@ -506,7 +505,6 @@ checks:
       - adb4u/modules/ncc/main.tf
     remediation:
       fix_type: additive
-      maturity: validated
       summary: Assign a RESTRICTED_ACCESS, ENFORCED network policy to the workspace with explicit allowed destinations.
       module: adb4u/modules/ncc
       terraform: |
@@ -696,7 +694,6 @@ checks:
       - adb4u/modules/monitoring/main.tf
     remediation:
       fix_type: additive
-      maturity: validated
       summary: Add a diagnostic setting that exports every workspace log category to your SIEM destination.
       module: adb4u/modules/monitoring
       terraform: |

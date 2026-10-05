@@ -8,15 +8,14 @@
 #   python -m wa_agent assess --facts f.json --baseline classic-high-security
 #
 # `build` (optional) is how `wa-agent new` turns a baseline into a deployment:
-# tested Terraform plus tfvars per stage, layered on top of inputs.tfvars
-# (the root's required variables, answered with --set). The Terraform is
-# either a repo deployment (`deployment`, copied into the output) or an
-# external official root (`source`: the Databricks SRA, pinned to a reviewed
-# commit; `variables`/`required` are verified against it in CI). `env` lists
-# variables set with TF_VAR_* and never written to files; `workspace` picks
-# the workspace when the plan has several; `known_gaps` are checks the
-# Terraform does not cover. Baselines without tested Terraform have no
-# `build` block, and `new` refuses rather than improvise.
+# a deployment in this repo (copied into the output) plus tfvars per stage,
+# layered on top of inputs.tfvars (the root's required variables, answered
+# with --set). This repo is the only source of Terraform; other repositories
+# (e.g. the Databricks SRA) may be cited as references, never built from.
+# `env` lists variables set with TF_VAR_* and never written to files;
+# `workspace` picks the workspace when the plan has several; `known_gaps` are
+# checks the Terraform does not cover. Baselines without a deployment here have
+# no `build` block, and `new` refuses rather than improvise.
 #
 # With no --baseline, the workspace is scored against the pattern it is
 # detected as. BYOR (adb4u/deployments/byor) is a delivery model, not a
@@ -204,44 +203,8 @@ baselines:
       Hub-spoke with all compute egress inspected and FQDN-allowlisted by a
       firewall, Private Link front-end and back-end, CMK.
     pattern: az-classic-dep-hub-spoke
-    deployment: https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/azure/tf
+    deployment: https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
     require:
       - AZ-ENC-001
       - AZ-ENC-002
       - AZ-ENC-003
-    build:
-      source:
-        repo: https://github.com/databricks/terraform-databricks-sra
-        ref: bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4
-        path: azure/tf
-        required: [databricks_account_id, location, resource_suffix, subscription_id]
-        variables: [azure_environment, databricks_account_id, databricks_metastore_id, location, create_hub,
-                    hub_vnet_cidr, existing_hub_vnet, hub_resource_suffix, allowed_fqdns, hub_allowed_urls,
-                    create_workspace_resource_group, existing_resource_group_name, resource_suffix,
-                    create_workspace_vnet, workspace_vnet, existing_workspace_vnet, existing_ncc_id,
-                    existing_ncc_name, existing_network_policy_id, existing_cmk_ids, cmk_enabled,
-                    workspace_security_compliance, workspace_name_overrides, tags, subscription_id,
-                    sat_configuration, sat_service_principal, sat_force_destroy, metastore_force_destroy,
-                    catalog_force_destroy, create_spoke_firewall_rules, existing_firewall_policy_id,
-                    create_spoke_network_policy]
-      env: [databricks_account_id, subscription_id]
-      workspace: module.spoke_workspace.azurerm_databricks_workspace.this
-      known_gaps:
-        - check: AZ-OPS-001
-          reason: >-
-            The SRA does not configure workspace diagnostic settings. Add them, e.g. with
-            adb4u/modules/monitoring or Azure Policy, and re-run verify.
-      stages:
-        - name: deploy
-          note: >-
-            The official Databricks Security Reference Architecture: hub with Azure Firewall (FQDN
-            allowlist), Unity Catalog metastore and a serverless web-auth workspace, peered to a spoke
-            workspace with Private Link and private DBFS, CMK and an enforced serverless network
-            policy. allowed_fqdns starts empty: add the destinations classic compute needs.
-          tfvars:
-            create_hub: true
-            hub_resource_suffix: "REPLACE_ME_hub_resource_suffix"
-            hub_vnet_cidr: "REPLACE_ME_hub_vnet_cidr"
-            workspace_vnet: {cidr: "REPLACE_ME_spoke_vnet_cidr"}
-            cmk_enabled: true
-            allowed_fqdns: []

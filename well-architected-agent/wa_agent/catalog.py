@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import yaml
@@ -111,19 +110,8 @@ def validate_baselines(baselines: list[dict], patterns: dict, checks: list[dict]
 
 def _validate_build(bid: str, build: dict, check_ids: set) -> None:
     where = f"baseline {bid} build"
-    if ("deployment" in build) == ("source" in build):
-        raise CatalogError(f"{where}: needs exactly one of deployment (repo) or source (external)")
-    if "source" in build:
-        src = build["source"]
-        for key in ("repo", "ref", "path", "variables", "required"):
-            if key not in src:
-                raise CatalogError(f"{where}: source missing {key}")
-        if not re.fullmatch(r"[0-9a-f]{40}", src["ref"]):
-            raise CatalogError(f"{where}: source.ref must be a full commit SHA (reviewed, immutable)")
-        if not src["repo"].startswith("https://github.com/databricks/"):
-            raise CatalogError(f"{where}: external sources must be official Databricks repositories")
-        if set(src["required"]) - set(src["variables"]):
-            raise CatalogError(f"{where}: required lists undeclared variables")
+    if "deployment" not in build or "source" in build:
+        raise CatalogError(f"{where}: builds must use a deployment in this repo (deployment: <path>)")
     if not build.get("stages"):
         raise CatalogError(f"{where}: needs at least one stage")
     for gap in build.get("known_gaps") or []:

@@ -108,7 +108,7 @@ def azure_catalog():
 
 
 def serverless_plan(cmk=False, leak_features_off=False, storage_pe=False):
-    """Shaped like adb4u/deployments/serverless (official SRA serverless_workspace module)."""
+    """Shaped like adb4u/deployments/serverless: no network for a public serverless workspace."""
     properties = {"computeMode": "Serverless", "publicNetworkAccess": "Enabled"}
     if cmk:
         properties["encryption"] = {"entities": {"managedServices": {
@@ -118,20 +118,16 @@ def serverless_plan(cmk=False, leak_features_off=False, storage_pe=False):
     if leak_features_off:
         conf.update(enableExportNotebook="false", enableResultsDownloading="false", enableNotebookTableClipboard="false")
     changes = [
-        rc("module.workspace.azapi_resource.this", "azapi_resource",
+        rc("azapi_resource.workspace", "azapi_resource",
            {"type": "Microsoft.Databricks/workspaces@2026-01-01", "name": "srvtest-workspace",
             "body": {"sku": {"name": "premium"}, "properties": properties}}),
-        pe("webauth", "browser_authentication") | {"address": "module.workspace.azurerm_private_endpoint.webauth"},
-        rc("azurerm_private_dns_zone.databricks", "azurerm_private_dns_zone", {"name": "privatelink.azuredatabricks.net"}),
-        rc("azurerm_private_dns_zone_virtual_network_link.databricks", "azurerm_private_dns_zone_virtual_network_link",
-           {"private_dns_zone_name": "privatelink.azuredatabricks.net"}),
         rc("databricks_mws_network_connectivity_config.this", "databricks_mws_network_connectivity_config", {}),
-        rc("module.workspace.databricks_mws_ncc_binding.this", "databricks_mws_ncc_binding", {}),
+        rc("databricks_mws_ncc_binding.this", "databricks_mws_ncc_binding", {}),
         rc("databricks_account_network_policy.this", "databricks_account_network_policy",
            {"egress": {"network_access": {"restriction_mode": "RESTRICTED_ACCESS",
                                           "policy_enforcement": {"enforcement_mode": "ENFORCED"}}}}),
-        rc("module.workspace.databricks_workspace_network_option.this", "databricks_workspace_network_option", {}),
-        rc("module.workspace.databricks_metastore_assignment.this", "databricks_metastore_assignment", {}),
+        rc("databricks_workspace_network_option.this", "databricks_workspace_network_option", {}),
+        rc("databricks_metastore_assignment.this", "databricks_metastore_assignment", {}),
         rc("databricks_workspace_conf.this[0]", "databricks_workspace_conf", {"custom_config": conf}),
         rc("databricks_ip_access_list.allowed[0]", "databricks_ip_access_list", {"list_type": "ALLOW", "enabled": True}),
         rc("module.monitoring[0].azurerm_monitor_diagnostic_setting.workspace", "azurerm_monitor_diagnostic_setting", {}),

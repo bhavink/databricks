@@ -46,9 +46,10 @@ baseline id; list them first.
 
 - A new check needs an official doc in `sources` (the loader enforces this) and
   a collector that emits its facts, with provenance in `_evidence`.
-- `new` only uses tested Terraform: a repo deployment with mock-provider tests,
-  or an official Databricks repository pinned to a full commit SHA. Never
-  generate Terraform, and never write account or subscription IDs to files.
+- `new` only uses tested Terraform from this repo; it is the definitive source.
+  Other repositories (e.g. the Databricks SRA) may be cited as references, never
+  built from. Never generate Terraform, and never write account or subscription
+  IDs to files.
 - A new live command must be a read and must be added to `READ_ONLY_COMMANDS`.
   Never add a write verb.
 - Keep output deterministic: no timestamps, no randomness, sorted output.

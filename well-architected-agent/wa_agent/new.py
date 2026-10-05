@@ -2,9 +2,7 @@
 
 The output is a new directory holding:
 
-- the tested Terraform, copied from this repo (`terraform/`), or for an
-  external source (the official Databricks SRA) clone instructions pinned to a
-  reviewed commit;
+- the tested Terraform, copied from this repo (`terraform/`);
 - `inputs.tfvars`: the deployment's required variables, filled from
   `--set name=value` answers (unanswered ones are `REPLACE_ME_*`);
 - one tfvars file per stage, layered on top of `inputs.tfvars`;
@@ -65,12 +63,8 @@ def declared_variables(deployment: str, repo_root: Path = REPO_ROOT) -> set[str]
 
 
 def build_variables(build: dict, repo_root: Path = REPO_ROOT) -> dict[str, dict]:
-    """Variables of the build's Terraform root: parsed from the repo, or the
-    catalog's CI-verified copy for an external source."""
-    if "deployment" in build:
-        return deployment_variables(repo_root / build["deployment"])
-    src = build["source"]
-    return {name: {"required": name in src["required"], "description": ""} for name in src["variables"]}
+    """Variables of the build's Terraform root in this repo."""
+    return deployment_variables(repo_root / build["deployment"])
 
 
 # ---------------------------------------------------------------- rendering
@@ -123,9 +117,20 @@ def resolve_inputs(baseline: dict, answers: dict | None, repo_root: Path = REPO_
             raise ValueError(f"--set {name}: not a variable of {_where(build)}")
         if name in env:
             raise ValueError(f"--set {name}: set it with TF_VAR_{name} instead; it is never written to files")
+    staged = {key for stage in build["stages"] for key in stage["tfvars"]}
     values = {name: f"{PLACEHOLDER}_{name}" for name, v in variables.items() if v["required"] and name not in env}
     values.update(answers)
-    return values
+    # An answer for a setting a stage also sets is written into that stage instead
+    # (see apply_answers): later -var-file arguments win, so inputs.tfvars could not override it.
+    return {k: v for k, v in values.items() if k not in staged}
+
+
+def apply_answers(build: dict, answers: dict | None) -> dict:
+    """The build with answered settings replacing the stage values for the same variable."""
+    answers = answers or {}
+    stages = [{**stage, "tfvars": {k: answers.get(k, v) for k, v in stage["tfvars"].items()}}
+              for stage in build["stages"]]
+    return {**build, "stages": stages}
 
 
 def placeholders(build: dict, inputs: dict | None = None) -> list[str]:
@@ -140,10 +145,7 @@ def placeholders(build: dict, inputs: dict | None = None) -> list[str]:
 
 
 def _where(build: dict) -> str:
-    if "deployment" in build:
-        return build["deployment"]
-    src = build["source"]
-    return f"{src['repo']}/tree/{src['ref']}/{src['path']}"
+    return build["deployment"]
 
 
 def check_build(baseline: dict, repo_root: Path = REPO_ROOT) -> None:
@@ -220,18 +222,10 @@ def render_readme(baseline: dict, inputs: dict, commit: str, book_dir: str = "<r
     build = baseline["build"]
     stages = build["stages"]
     env = list(build.get("env", DEFAULT_ENV))
-    bundled = "deployment" in build
-    if bundled:
-        dep = build["deployment"]
-        workdir = f"terraform/{dep}"
-        up = "/".join([".."] * (len(PurePosixPath(dep).parts) + 1))
-        book = up  # relative, so the folder can be moved
-        origin = f"[`{dep}`]({REPO_URL}/tree/{commit}/{dep}) at `{commit}`, copied into `terraform/`"
-    else:
-        src = build["source"]
-        workdir = None
-        book = book_dir
-        origin = f"[`{src['path']}`]({src['repo']}/tree/{src['ref']}/{src['path']}) (official) at `{src['ref']}`"
+    dep = build["deployment"]
+    workdir = f"terraform/{dep}"
+    book = "/".join([".."] * (len(PurePosixPath(dep).parts) + 1))  # relative, so the folder can be moved
+    origin = f"[`{dep}`]({REPO_URL}/tree/{commit}/{dep}) at `{commit}`, copied into `terraform/`"
     workspace = f" --workspace {build['workspace']}" if build.get("workspace") else ""
 
     lines = [
@@ -247,16 +241,11 @@ def render_readme(baseline: dict, inputs: dict, commit: str, book_dir: str = "<r
         "",
         "```bash",
     ]
-    if bundled:
-        lines += [f"cd {workdir}"]
-    else:
-        src = build["source"]
-        lines += [
-            f"git clone {src['repo']}.git sra && cd sra && git checkout {src['ref']}",
-            f"cd {src['path']}",
-        ]
-    lines += [f"export TF_VAR_{name}=<{name}>   # bash/zsh; never commit it" for name in env]
-    lines += [f"# PowerShell: $env:TF_VAR_{name} = \"<{name}>\"" for name in env]
+    lines += [f"cd {workdir}"]
+    # Comments on their own lines: interactive zsh does not treat a trailing `#` as a comment.
+    lines += ["# bash/zsh (never commit these values):"]
+    lines += [f"export TF_VAR_{name}=<{name}>" for name in env]
+    lines += ["# PowerShell:"] + [f"# $env:TF_VAR_{name} = \"<{name}>\"" for name in env]
     lines += ["terraform init", "```", ""]
 
     todo = placeholders(build, inputs)
@@ -264,7 +253,7 @@ def render_readme(baseline: dict, inputs: dict, commit: str, book_dir: str = "<r
         lines += ["Replace every `REPLACE_ME_*` value in `inputs.tfvars` and the stage files: "
                   + ", ".join(f"`{k}`" for k in todo) + ".", ""]
     lines += ["Optional settings (CIDRs, tags, CMK, …): add them to `inputs.tfvars`; see the deployment's",
-              "`variables.tf`" + (" and `terraform.tfvars.example`." if bundled else "."), ""]
+              "`variables.tf` and `terraform.tfvars.example`.", ""]
 
     var_files = [f"-var-file={book}/inputs.tfvars"]
     for i, stage in enumerate(stages, 1):
@@ -278,7 +267,7 @@ def render_readme(baseline: dict, inputs: dict, commit: str, book_dir: str = "<r
             f"terraform show -json stage{i}.plan > stage{i}.plan.json",
             f"wa-agent collect tfplan --cloud azure --plan stage{i}.plan.json{workspace} -o stage{i}.facts.json",
             f"wa-agent assess --facts stage{i}.facts.json --baseline {baseline['id']} -o stage{i}.report.md",
-            f"wa-agent diagram --tf-json stage{i}.plan.json{workspace} -o stage{i}.architecture.md   # what this stage deploys",
+            f"wa-agent diagram --tf-json stage{i}.plan.json{workspace} -o stage{i}.architecture.md",
             f"terraform apply stage{i}.plan",
             "```",
             "",
@@ -293,7 +282,7 @@ def render_readme(baseline: dict, inputs: dict, commit: str, book_dir: str = "<r
         "```bash",
         "terraform show -json > state.json",
         f"wa-agent verify --tf-json state.json{workspace} --baseline {baseline['id']} -o verify.md",
-        f"wa-agent diagram --tf-json state.json{workspace} -o architecture.md   # as deployed",
+        f"wa-agent diagram --tf-json state.json{workspace} -o architecture.md",
         "# optional, from a network the workspace allows:",
         "wa-agent collect live --cloud azure --workspace <arm-id> --profile <ws> --account-profile <acct> -o live.facts.json",
         f"wa-agent verify --tf-json state.json{workspace} --facts live.facts.json --baseline {baseline['id']} -o verify-live.md",
@@ -325,6 +314,7 @@ def render(catalog: dict, baseline_id: str, answers: dict | None = None, repo_ro
         raise ValueError(f"unknown baseline {baseline_id!r}; choose from {sorted(baselines)}")
     baseline = baselines[baseline_id]
     check_build(baseline, repo_root)
+    baseline = {**baseline, "build": apply_answers(baseline["build"], answers)}
     build = baseline["build"]
     commit = commit or source_commit(repo_root)
     inputs = resolve_inputs(baseline, answers, repo_root)
@@ -341,13 +331,10 @@ def render(catalog: dict, baseline_id: str, answers: dict | None = None, repo_ro
         "catalog_version": catalog["version"],
         "placeholders": placeholders(build, inputs),
     }
-    if "deployment" in build:
-        paths = bundle_files(build["deployment"], repo_root)
-        manifest.update(deployment=build["deployment"], source=REPO_URL, commit=commit,
-                        matches_commit=matches_commit(paths, repo_root),
-                        files={p: hashlib.sha256((repo_root / p).read_bytes()).hexdigest() for p in paths})
-    else:
-        manifest.update(source=build["source"])
+    paths = bundle_files(build["deployment"], repo_root)
+    manifest.update(deployment=build["deployment"], source=REPO_URL, commit=commit,
+                    matches_commit=matches_commit(paths, repo_root),
+                    files={p: hashlib.sha256((repo_root / p).read_bytes()).hexdigest() for p in paths})
     files["baseline.json"] = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
     files[".gitignore"] = "*.plan\n*.plan.json\n*.facts.json\nstate.json\n*.tfstate*\n.terraform/\ninputs.tfvars\n"
     return files
@@ -355,21 +342,19 @@ def render(catalog: dict, baseline_id: str, answers: dict | None = None, repo_ro
 
 def generate(catalog: dict, baseline_id: str, out_dir: str, answers: dict | None = None,
              repo_root: Path = REPO_ROOT) -> list[Path]:
-    """Write the run book (and, for repo deployments, the Terraform) into a new directory."""
+    """Write the run book and the Terraform it uses into a new directory."""
     out = Path(out_dir)
     files = render(catalog, baseline_id, answers, repo_root, book_dir=out.resolve().as_posix())
     if out.exists():
         raise ValueError(f"{out_dir} already exists; the agent never overwrites, choose a new directory")
-    build = {b["id"]: b for b in catalog["baselines"]}[baseline_id]["build"]
     out.mkdir(parents=True)
     written = []
     for name, content in files.items():
         (out / name).write_text(content, encoding="utf-8")
         written.append(out / name)
-    if "deployment" in build:
-        for rel in json.loads(files["baseline.json"])["files"]:
-            target = out / "terraform" / rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes((repo_root / rel).read_bytes())
-            written.append(target)
+    for rel in json.loads(files["baseline.json"])["files"]:
+        target = out / "terraform" / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((repo_root / rel).read_bytes())
+        written.append(target)
     return written

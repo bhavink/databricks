@@ -150,8 +150,8 @@ Classic workspaces also run serverless SQL, notebooks and jobs, so the
 | `az-classic-non-pl` | 1 | [`adb4u/deployments/non-pl`](../adb4u/deployments/non-pl), [01-NON-PL.md](../adb4u/docs/patterns/01-NON-PL.md) |
 | `az-classic-backend-pl` | 2 | [Azure Private Link](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link): back-end private endpoint, public front-end with IP access lists |
 | `az-classic-full-private` | 3 | [`adb4u/deployments/full-private`](../adb4u/deployments/full-private), [02-FULL-PRIVATE.md](../adb4u/docs/patterns/02-FULL-PRIVATE.md) |
-| `az-classic-dep-hub-spoke` | 3 | [Azure DEP blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks), [Databricks SRA](https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/azure/tf) |
-| `az-serverless` | 2 | [`adb4u/deployments/serverless`](../adb4u/deployments/serverless) (official SRA module), [setup guide](../adb4u/docs/guides/01-SERVERLESS-SETUP.md) |
+| `az-classic-dep-hub-spoke` | 3 | [Azure DEP blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks), [Databricks SRA](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf) (reference) |
+| `az-serverless` | 2 | [`adb4u/deployments/serverless`](../adb4u/deployments/serverless) (no VNet), [setup guide](../adb4u/docs/guides/01-SERVERLESS-SETUP.md) |
 
 ## Baselines — pick what the workspace is supposed to be
 
@@ -167,7 +167,7 @@ controls mandatory, and links to the deployment that builds it.
 | `classic-private-link` | Back-end Private Link, public front-end | `az-classic-backend-pl` | [`full-private`](../adb4u/deployments/full-private) with public access on |
 | `classic-full-private` | No public access, private storage, no internet egress | `az-classic-full-private` | [`full-private`](../adb4u/deployments/full-private) |
 | `classic-high-security` | Full private + CMK everywhere, storage firewall, enforced serverless egress, SEP | `az-classic-full-private` | [`full-private`](../adb4u/deployments/full-private) |
-| `classic-exfiltration-protection` | Hub-spoke, firewall-inspected egress, CMK | `az-classic-dep-hub-spoke` | [Databricks SRA](https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/azure/tf) (official, pinned) |
+| `classic-exfiltration-protection` | Hub-spoke, firewall-inspected egress, CMK | `az-classic-dep-hub-spoke` | Assess only for now; references: [DEP blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks), [Databricks SRA](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf) |
 
 ```bash
 uv run wa-agent baselines
@@ -176,7 +176,7 @@ uv run wa-agent assess --facts out/ws.facts.json --baseline classic-high-securit
 ```
 
 **Architecture diagram and manifest** of what any Terraform plan or state deploys
-(this repo's deployments, the SRA, or your own): a Mermaid diagram drawn from the
+(this repo's deployments or your own): a Mermaid diagram drawn from the
 same facts the assessment uses, plus every resource by area.
 
 ```bash
@@ -248,22 +248,22 @@ uv run wa-agent new --baseline classic-high-security --out ./my-ws \
 # README: plan → assess → apply (you run it) → verify
 ```
 
-`new` only uses tested Terraform (`build` in `baselines.yaml`), never
-generated code:
+`new` only uses tested Terraform from this repo (`build` in `baselines.yaml`),
+never generated code. This repo is the definitive source; other repositories
+such as the Databricks SRA are cited as references only.
 
 | Baselines | Terraform |
 |---|---|
 | `classic-*` | This repo's [`non-pl`](../adb4u/deployments/non-pl) / [`full-private`](../adb4u/deployments/full-private), copied into the folder |
-| `serverless`, `serverless-high-security` | [`adb4u/deployments/serverless`](../adb4u/deployments/serverless), built on the official [SRA `serverless_workspace` module](https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/azure/tf/modules/serverless_workspace), copied into the folder |
-| `classic-exfiltration-protection` | The official [Databricks SRA](https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/azure/tf), cloned at a reviewed commit |
+| `serverless`, `serverless-high-security` | [`adb4u/deployments/serverless`](../adb4u/deployments/serverless): the same ARM call as the official [SRA `serverless_workspace` module](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf/modules/serverless_workspace), without its VNet; copied into the folder |
+| `classic-exfiltration-protection` | Not yet: `new` refuses until this repo has a hub-spoke deployment; the baseline is used for assessments |
 
 Required variables become `inputs.tfvars`: answer them with `--set name=value`
 (JSON for lists and booleans); anything unanswered is a `REPLACE_ME_*`.
 Account and subscription IDs stay in `TF_VAR_*` and are never written. In CI,
 every emitted value is resolved through `terraform console` against the real
-Terraform (`tools/check_new_tfvars.py`), the generated folder is initialized
-and validated, and the catalog's copy of the SRA's variables must match the
-pinned commit.
+Terraform (`tools/check_new_tfvars.py`), and the generated folder is
+initialized and validated.
 
 **Pre-deployment (Terraform plan):**
 
@@ -321,10 +321,9 @@ Each fix states how proven its repo implementation is:
 | Label | Meaning |
 |---|---|
 | `tested` | Deployed and verified by the repo owner (default) |
-| `validated` | `terraform validate` + mock-provider `terraform test` only; not yet applied. Today: diagnostic logs (`AZ-OPS-001`), storage firewall (`AZ-STO-002`), serverless network policy (`AZ-SRV-002`) |
+| `validated` | `terraform validate` + mock-provider `terraform test` only; not yet applied. Use for new Terraform until it has been deployed |
 
-Promote a fix to `tested` (drop `maturity: validated`) after a real apply
-and a passing `verify`.
+Everything in this repo today is `tested`.
 
 ## Known limits (Phase 0)
 

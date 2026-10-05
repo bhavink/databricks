@@ -28,11 +28,9 @@ mock_provider "databricks" {}
 mock_provider "databricks" {
   alias = "workspace"
 }
-mock_provider "null" {}
-mock_provider "time" {}
 
 override_resource {
-  target = module.workspace.azapi_resource.this
+  target = azapi_resource.workspace
   values = {
     id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Databricks/workspaces/test-workspace"
     output = {
@@ -56,16 +54,16 @@ run "serverless_compute_mode_and_defaults" {
   command = apply
 
   assert {
-    condition     = module.workspace.id != ""
-    error_message = "workspace must be created by the official module"
+    condition     = azapi_resource.workspace.body.properties.computeMode == "Serverless"
+    error_message = "workspace must be serverless"
+  }
+  assert {
+    condition     = length(azurerm_virtual_network.this) == 0 && length(azurerm_private_endpoint.frontend) == 0
+    error_message = "a public serverless workspace needs no network"
   }
   assert {
     condition     = databricks_account_network_policy.this.egress.network_access.restriction_mode == "FULL_ACCESS"
     error_message = "network policy must default to full access"
-  }
-  assert {
-    condition     = length(azurerm_private_endpoint.ui_api) == 0
-    error_message = "no front-end private endpoint while public access is enabled"
   }
   assert {
     condition     = length(databricks_ip_access_list.allowed) == 0 && length(module.monitoring) == 0
@@ -92,8 +90,16 @@ run "high_security" {
   }
 
   assert {
-    condition     = length(azurerm_private_endpoint.ui_api) == 1
-    error_message = "front-end private endpoint required when public access is disabled"
+    condition     = toset(keys(azurerm_private_endpoint.frontend)) == toset(["databricks_ui_api", "browser_authentication"])
+    error_message = "private front-end needs UI/API and browser-authentication endpoints"
+  }
+  assert {
+    condition     = azapi_resource.workspace.body.properties.publicNetworkAccess == "Disabled"
+    error_message = "public access must be disabled"
+  }
+  assert {
+    condition     = azapi_resource.workspace.body.properties.encryption.entities.managedServices.keyVaultProperties.keyName == "cmk"
+    error_message = "CMK key URI must map to the ARM encryption block"
   }
   assert {
     condition = (

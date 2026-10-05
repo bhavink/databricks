@@ -1,16 +1,16 @@
 output "workspace_id" {
   description = "Azure resource ID of the workspace"
-  value       = module.workspace.id
+  value       = azapi_resource.workspace.id
 }
 
 output "workspace_url" {
   description = "Workspace URL"
-  value       = "https://${module.workspace.workspace_url}"
+  value       = "https://${local.workspace_url}"
 }
 
 output "databricks_workspace_id" {
   description = "Numeric workspace ID (account console)"
-  value       = module.workspace.workspace_id
+  value       = local.workspace_id
 }
 
 output "ncc_id" {

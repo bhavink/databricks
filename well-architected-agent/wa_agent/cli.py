@@ -99,12 +99,12 @@ def cmd_verify(args) -> int:
     cat = catalog_mod.load(args.cloud)
     doc = json.loads(Path(args.tf_json).read_text(encoding="utf-8"))
     facts = collector(args.cloud, "tfplan").collect(doc, workspace=args.workspace)
+    kind = "state" if facts["source"] == "terraform-state" else "plan"  # before extra facts are merged
     for path in args.facts or []:
         facts = merge(facts, json.loads(Path(path).read_text(encoding="utf-8")))
     result = assess(cat, facts, baseline_id=args.baseline)
     render = report.to_json if args.format == "json" else report.to_markdown
     _write(render(result, cat, facts), args.output)
-    kind = "state" if facts["source"] == "terraform-state" else "plan"
     score = result.score
     verdict = "PASS" if score["conformant"] else "FAIL"
     print(f"verify {verdict}: Terraform {kind} vs baseline {args.baseline} — "

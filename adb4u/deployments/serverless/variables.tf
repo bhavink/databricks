@@ -19,7 +19,7 @@ variable "location" {
 
 variable "resource_group_name" {
   type        = string
-  description = "Resource group to create for the workspace and its network"
+  description = "Resource group to create for the workspace (and, for a private front-end, its private endpoints)"
 }
 
 variable "databricks_account_id" {
@@ -39,21 +39,20 @@ variable "tags" {
 }
 
 # ==============================================
-# Network (private endpoint subnet only)
+# Private front-end network (only when enable_public_network_access = false)
 # ==============================================
-# Serverless compute runs in Databricks' account, not in this VNet. The VNet
-# holds the private endpoints: browser authentication (always created by the
-# official module) and the front-end endpoint when public access is disabled.
+# Serverless compute runs in the Databricks account; no VNet is needed for it.
+# These are used only to host the front-end private endpoints.
 
 variable "vnet_address_space" {
   type        = list(string)
-  description = "Address space of the private endpoint VNet"
+  description = "Address space of the private front-end VNet (unused while public access is enabled)"
   default     = ["10.180.0.0/24"]
 }
 
 variable "privatelink_subnet_address_prefix" {
   type        = list(string)
-  description = "Address prefix of the private endpoint subnet"
+  description = "Address prefix of the private endpoint subnet (unused while public access is enabled)"
   default     = ["10.180.0.0/27"]
 }
 
@@ -63,7 +62,7 @@ variable "privatelink_subnet_address_prefix" {
 
 variable "enable_public_network_access" {
   type        = bool
-  description = "Allow access to the workspace from the internet. When false, users connect through the front-end private endpoint."
+  description = "Allow access to the workspace from the internet. When false, a VNet with UI/API and browser-authentication private endpoints is created."
   default     = true
 }
 
