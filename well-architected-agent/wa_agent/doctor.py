@@ -53,7 +53,7 @@ def registration(project: Path = PROJECT) -> dict[str, str]:
     launch = f"uv run --quiet --frozen --project {project} wa-agent-mcp"
     args = json.dumps(["run", "--quiet", "--frozen", "--project", project.as_posix(), "wa-agent-mcp"])
     return {
-        "Claude Code": f"claude mcp add databricks-wa -- {launch}   (or open the repo: .mcp.json is included)",
+        "Claude Code": f"claude mcp add --scope user databricks-wa -- {launch}   (or open the repo: .mcp.json is included)",
         "Codex CLI": f"codex mcp add databricks-wa -- {launch}",
         "Cursor": "open the repo (.cursor/mcp.json is included), then enable it in Settings → MCP",
         "VS Code (Copilot)": f'.vscode/mcp.json: {{"servers": {{"databricks-wa": {{"type": "stdio", "command": "uv", '

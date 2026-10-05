@@ -198,34 +198,20 @@ sequenceDiagram
 ## Use it from any AI assistant
 
 The agent has no LLM inside, so it works the same under any provider. Your
-assistant calls its tools over MCP (or runs the CLI) and relays the
-deterministic report. Every MCP tool is marked `readOnlyHint: true`,
-`destructiveHint: false`, and none of them write files.
+assistant calls its tools over MCP and relays the deterministic report; every
+tool is read-only and none of them write files.
 
 ```bash
-uv run wa-agent doctor    # prints the exact registration command for each assistant
+uv run wa-agent doctor    # prints the exact registration line for your assistant
 ```
 
-| Assistant | Register the MCP server |
-|---|---|
-| Claude Code | `claude mcp add databricks-wa -- uv run --quiet --frozen --project /abs/path/well-architected-agent wa-agent-mcp` (or open the repo: `.mcp.json` is included) |
-| Codex CLI | `codex mcp add databricks-wa -- uv run --quiet --frozen --project /abs/path/well-architected-agent wa-agent-mcp` |
-| Cursor | Open the repo (`.cursor/mcp.json` is included), or in `~/.cursor/mcp.json`: `{"mcpServers": {"databricks-wa": {"command": "uv", "args": ["run", "--quiet", "--frozen", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
-| Gemini CLI | `~/.gemini/settings.json`: the same `mcpServers` block as Cursor |
-| VS Code (Copilot) | `.vscode/mcp.json`: `{"servers": {"databricks-wa": {"type": "stdio", "command": "uv", "args": ["run", "--quiet", "--frozen", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
+Register it once, start a new session, then just ask, e.g. *"What does
+`classic-high-security` require?"* or *"Preflight workspace `<name>`, then
+assess it against `classic-private-link`."*
 
-`/abs/path/well-architected-agent` is the full path to this folder in your clone
-(on Windows, e.g. `C:/Users/you/databricks/well-architected-agent`).
-
-Tools: `list_baselines`, `describe_baseline`, `list_patterns`, `preflight`,
-`collect_tfplan`, `collect_live`, `assess`, `verify`, `diagram`, `new_workspace`.
-
-`--frozen` makes the server use the committed lockfile as-is. Keep it: without it,
-a machine configured for a private package mirror rewrites `uv.lock` at every launch. Assistants that read
-[`AGENTS.md`](AGENTS.md) (Codex, Cursor, and others; `CLAUDE.md` points
-there) also get the three rules as instructions.
-
-Then just ask: *"Assess workspace `<arm-id>` against `classic-high-security`."*
+Full steps are in the README: [register and check it's connected](README.md#use-it-from-your-ai-assistant),
+[all 10 tools](README.md#use-it-from-your-ai-assistant), [more example prompts](README.md#use-it-from-your-ai-assistant),
+and [everything it can do, MCP and CLI side by side](README.md#what-it-can-do).
 
 ```mermaid
 flowchart LR

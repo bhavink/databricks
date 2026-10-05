@@ -58,6 +58,36 @@ The workspace can be given as a name, URL, numeric id or Azure resource id;
 matching Databricks CLI profiles are picked automatically. Anything the agent
 can't see is reported as *not evaluable* with the exact fix.
 
+## Two ways to use it
+
+Both run the same deterministic core on your machine and give the same answers.
+
+| | In your AI assistant (MCP) | From the terminal (CLI) |
+|---|---|---|
+| **You** | Ask in plain English | Run `uv run wa-agent <command>` |
+| **Good for** | Exploring, explaining findings, chaining steps ("preflight, then assess, then draw it") | Scripts, CI gates, exact repeatable runs |
+| **Set up** | Register once: [Use it from your AI assistant](#use-it-from-your-ai-assistant) | Nothing beyond *Start here* |
+| **Writes files** | Never; it returns results to the assistant | Only to the `-o` / `--out` paths you give |
+
+## What it can do
+
+| Task | MCP tool | CLI command |
+|---|---|---|
+| See a sample report, no setup or cloud access | — | `wa-agent demo` |
+| Check tools and logins; get the MCP registration line | — | `wa-agent doctor` |
+| List the use-case baselines | `list_baselines` | `wa-agent baselines` |
+| See what a baseline requires, in plain language | `describe_baseline` | `wa-agent show <baseline>` |
+| List the reference architecture patterns | `list_patterns` | `wa-agent patterns` |
+| Before a scan: what is reachable and how to fix the rest | `preflight` | `wa-agent doctor --workspace <ws>` |
+| Read a deployed workspace (read-only) | `collect_live` | `wa-agent collect live --workspace <ws>` |
+| Read a Terraform plan or state | `collect_tfplan` | `wa-agent collect tfplan --plan <json>` |
+| Score against a baseline: prescription, evidence, docs | `assess` | `wa-agent assess --facts <json> --baseline <id>` |
+| Check a deployment does what its baseline requires | `verify` | `wa-agent verify --tf-json <json> --baseline <id>` |
+| Draw the architecture and list every resource | `diagram` | `wa-agent diagram --tf-json <json>` |
+| Get a ready-to-run folder for a new workspace | `new_workspace` (returns the files) | `wa-agent new --baseline <id> --out <dir>` (writes the folder) |
+
+Every command has `--help`.
+
 ## Self-contained · runs locally · secure
 
 - **Runs on your machine.** No hosted service, no server to deploy, no account to create. Works the same on macOS, Windows and Linux.
@@ -190,37 +220,67 @@ between them means a new workspace. BYOR (`adb4u/deployments/byor`) is a
 delivery model, not a posture, so it can sit under any classic baseline.
 Add a baseline in `catalog/azure/baselines.yaml`.
 
-## Use it from any AI assistant
+## Use it from your AI assistant
 
-The agent has no LLM inside, so it works the same under any provider. Your
-assistant calls its tools over MCP (or runs the CLI) and relays the
-deterministic report. Every MCP tool is marked `readOnlyHint: true`,
-`destructiveHint: false`, and none of them write files.
+The agent has no LLM inside, so it works the same under any provider: your
+assistant calls its tools over MCP and relays the deterministic report. Every
+tool is marked `readOnlyHint: true`, `destructiveHint: false`, and none of
+them write files.
 
-```bash
-uv run wa-agent doctor    # prints the exact registration command for each assistant
-```
+**1. Register it** (once). `uv run wa-agent doctor` prints these lines with
+your path filled in.
 
 | Assistant | Register the MCP server |
 |---|---|
-| Claude Code | `claude mcp add databricks-wa -- uv run --quiet --frozen --project /abs/path/well-architected-agent wa-agent-mcp` (or open the repo: `.mcp.json` is included) |
+| Claude Code | `claude mcp add --scope user databricks-wa -- uv run --quiet --frozen --project /abs/path/well-architected-agent wa-agent-mcp` (or open the repo: `.mcp.json` is included) |
 | Codex CLI | `codex mcp add databricks-wa -- uv run --quiet --frozen --project /abs/path/well-architected-agent wa-agent-mcp` |
 | Cursor | Open the repo (`.cursor/mcp.json` is included), or in `~/.cursor/mcp.json`: `{"mcpServers": {"databricks-wa": {"command": "uv", "args": ["run", "--quiet", "--frozen", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
 | Gemini CLI | `~/.gemini/settings.json`: the same `mcpServers` block as Cursor |
 | VS Code (Copilot) | `.vscode/mcp.json`: `{"servers": {"databricks-wa": {"type": "stdio", "command": "uv", "args": ["run", "--quiet", "--frozen", "--project", "/abs/path/well-architected-agent", "wa-agent-mcp"]}}}` |
 
 `/abs/path/well-architected-agent` is the full path to this folder in your clone
-(on Windows, e.g. `C:/Users/you/databricks/well-architected-agent`).
+(on Windows, e.g. `C:/Users/you/databricks/well-architected-agent`). Keep
+`--frozen`: it uses the committed lockfile as-is, so a machine configured for a
+private package mirror doesn't rewrite `uv.lock` at every launch.
 
-Tools: `list_baselines`, `describe_baseline`, `list_patterns`, `preflight`,
-`collect_tfplan`, `collect_live`, `assess`, `verify`, `diagram`, `new_workspace`.
+**2. Check it's connected**, and that it lists 10 tools.
 
-`--frozen` makes the server use the committed lockfile as-is. Keep it: without it,
-a machine configured for a private package mirror rewrites `uv.lock` at every launch. Assistants that read
-[`AGENTS.md`](AGENTS.md) (Codex, Cursor, and others; `CLAUDE.md` points
-there) also get the three rules as instructions.
+| Assistant | Check |
+|---|---|
+| Claude Code | `claude mcp list` (shows ✔ Connected), then `/mcp` in a session |
+| Codex CLI | `codex mcp list` |
+| Cursor | Settings → MCP: `databricks-wa` is green |
+| Gemini CLI | `/mcp` in a session |
+| VS Code (Copilot) | Command palette → **MCP: List Servers** |
 
-Then just ask: *"Assess workspace `<arm-id>` against `classic-high-security`."*
+Start a new session after registering; tools load at session start.
+
+**3. The tools**
+
+| Tool | What it does |
+|---|---|
+| `list_baselines` | The use-case baselines (serverless, classic standard, private link, full private, high security, …) and the Terraform that builds each |
+| `describe_baseline` | What one baseline requires, in plain language: every control by area (Network, Storage, Unity Catalog, …), required or recommended |
+| `list_patterns` | The reference architecture patterns and their controls |
+| `preflight` | Before a live scan: resolves the workspace, matches your CLI logins, tries each data source read-only, and says how to fix what's missing |
+| `collect_live` | Reads a deployed workspace with allow-listed read commands only |
+| `collect_tfplan` | Reads a `terraform show -json` plan or state file |
+| `assess` | Scores collected facts against a baseline: PASS/FAIL/UNKNOWN with evidence, official docs, and the fix from this repo |
+| `verify` | After `terraform apply`: does the state do what the baseline requires? |
+| `diagram` | Architecture diagram (Mermaid) and resource manifest of a plan or state |
+| `new_workspace` | The files for a new workspace from a baseline's tested Terraform (inputs, staged settings, step-by-step README) |
+
+Assistants that read [`AGENTS.md`](AGENTS.md) (Codex, Cursor, and others;
+`CLAUDE.md` points there) also get the three operating rules as instructions.
+
+**4. Ask.** For example:
+
+- *"Which Well-Architected baselines are there, and which fits a regulated workload?"*
+- *"What does `classic-high-security` require?"*
+- *"Preflight workspace `<name>`, then assess it against `classic-private-link` and list the required gaps."*
+- *"Assess `./tf.plan.json` against `serverless` before I apply, and draw what it deploys."*
+- *"Verify `./state.json` against `classic-full-private`."*
+- *"Set up a new `serverless` workspace in `eastus2` with prefix `demo`."* (the assistant shows the files; `wa-agent new` writes the folder)
 
 ```mermaid
 flowchart LR
@@ -231,13 +291,9 @@ flowchart LR
   AI -->|"relays the report unchanged"| USER
 ```
 
-## Usage
+## Use it from the terminal
 
-```bash
-cd well-architected-agent
-
-uv run wa-agent patterns
-```
+The full command list is in [What it can do](#what-it-can-do); worked examples below.
 
 **New workspace (baseline → tested deployment → verify):**
 
@@ -293,9 +349,10 @@ uv run wa-agent collect live --cloud azure \
 uv run wa-agent assess --facts out/ws.facts.json
 ```
 
-The live collector reads `computeMode` from ARM (`Hybrid` → classic,
-`Serverless` → serverless). For a Terraform plan of a serverless workspace,
-add `--set workspace.compute_mode=serverless`.
+Classic and serverless are detected automatically: live scans read
+`computeMode` from ARM, and plans or states read it from the workspace resource
+(`azurerm_databricks_workspace`, or `azapi_resource` with `computeMode = "Serverless"`).
+When a plan holds several workspaces, pick one with `--workspace <address-or-name>`.
 
 Permissions: Reader on the workspace resource group, plus the VNet and the
 private DNS zones if they live elsewhere; a workspace admin profile for IP

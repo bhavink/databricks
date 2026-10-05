@@ -496,7 +496,7 @@ def test_doctor_only_runs_read_commands_and_prints_registration(monkeypatch, cap
     assert [c[:2] for c in issued] == [["az", "account"], ["az", "extension"], ["databricks", "--version"],
                                       ["databricks", "auth"], ["terraform", "version"], ["uv", "--version"]]
     out = capsys.readouterr().out
-    assert "claude mcp add databricks-wa -- uv run --quiet --frozen --project" in out
+    assert "claude mcp add --scope user databricks-wa -- uv run --quiet --frozen --project" in out
     assert "codex mcp add databricks-wa" in out
 
 
