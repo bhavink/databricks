@@ -63,7 +63,7 @@ def test_assess_and_verify_over_mcp(tmp_path):
     assert set(book["files"]) == {"inputs.tfvars", "stage-1-deploy.tfvars", "stage-2-lockdown.tfvars",
                                   "README.md", "baseline.json", ".gitignore"}
     assert "adb4u/deployments/full-private/main.tf" in book["bundle"]
-    assert book["write_with"].startswith("wa-agent new --baseline classic-full-private")
+    assert book["write_with"].startswith("wa-agent new --cloud azure --baseline classic-full-private")
     assert "classic-high-security" in {b["id"] for b in baselines}
     assert "## Prescription" in md and "AZ-OPS-001" in md
     assert verdict["verdict"] == "PASS" and verdict["input"] == "terraform-state"

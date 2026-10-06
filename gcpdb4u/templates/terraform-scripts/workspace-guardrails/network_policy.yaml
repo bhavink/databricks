@@ -1,0 +1,13 @@
+# Serverless egress allow-list. Used when enable_network_policy = true.
+# Everything not listed is denied (RESTRICTED_ACCESS) while enforcement is
+# ENFORCED; DRY_RUN only logs denials. Replace the examples.
+#
+# internet_destinations: DNS names serverless compute may reach.
+# storage_destinations:  GCS buckets serverless compute may reach.
+
+internet_destinations:
+  - pypi.org
+  - files.pythonhosted.org
+
+storage_destinations:
+  # - my-data-bucket

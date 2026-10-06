@@ -364,13 +364,13 @@ def test_new_bundles_tested_terraform_with_inputs_and_stages(azure_catalog, tmp_
     dep = out / "terraform" / "adb4u" / "deployments" / "full-private"
     assert (dep / "main.tf").is_file() and (out / "terraform" / "adb4u" / "modules" / "ncc" / "main.tf").is_file()
     readme = (out / "README.md").read_text(encoding="utf-8")
-    assert "cd terraform/adb4u/deployments/full-private" in readme
-    assert ("-var-file=../../../../inputs.tfvars -var-file=../../../../stage-1-deploy.tfvars "
-            "-var-file=../../../../stage-2-lockdown.tfvars") in readme
-    for i in (1, 2):  # the relative var-files resolve from the deployment directory
-        assert (dep / "../../../.." / f"stage-{i}-{['deploy', 'lockdown'][i - 1]}.tfvars").resolve().is_file()
-    assert "$env:TF_VAR_databricks_account_id" in readme  # PowerShell equivalent
-    assert "wa-agent verify --tf-json state.json --baseline classic-high-security" in readme
+    assert 'export BOOK="$(pwd)"' in readme and 'cd "$BOOK/terraform/adb4u/deployments/full-private"' in readme
+    assert ("-var-file=$BOOK/inputs.tfvars -var-file=$BOOK/stage-1-deploy.tfvars "
+            "-var-file=$BOOK/stage-2-lockdown.tfvars") in readme
+    assert readme.count("terraform init") == 1  # one root, initialized once
+    assert "$env:BOOK" in readme and "$env:TF_VAR_<name>" in readme  # PowerShell equivalent
+    assert "az login" in readme and "--cloud azure" in readme
+    assert "wa-agent verify --cloud azure --tf-json state.json --baseline classic-high-security" in readme
     meta = json.loads((out / "baseline.json").read_text(encoding="utf-8"))
     assert meta["placeholders"] == ["allowed_ip_ranges", "diagnostic_log_analytics_workspace_id",
                                     "resource_group_name", "tag_keepuntil", "workspace_prefix"]
@@ -495,7 +495,7 @@ def test_doctor_only_runs_read_commands_and_prints_registration(monkeypatch, cap
     issued = []
     monkeypatch.setattr(doctor, "_probe", lambda cmd: (issued.append(cmd) or (True, "ok")))
     assert doctor.run() == 0
-    assert [c[:2] for c in issued] == [["az", "account"], ["az", "extension"], ["databricks", "--version"],
+    assert [c[:2] for c in issued] == [["az", "account"], ["az", "extension"], ["gcloud", "config"], ["databricks", "--version"],
                                       ["databricks", "auth"], ["terraform", "version"], ["uv", "--version"]]
     out = capsys.readouterr().out
     assert "claude mcp add --scope user databricks-wa -- uv run --quiet --frozen --project" in out

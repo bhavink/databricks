@@ -31,16 +31,20 @@ Use the MCP server (`wa-agent-mcp`) if it is configured; otherwise use the CLI:
 ```bash
 wa-agent baselines
 wa-agent collect live --cloud azure --workspace <arm-id> --profile <ws> --account-profile <acct> -o out/ws.facts.json
+wa-agent collect live --cloud gcp --workspace <name-or-url> --account-profile <gcp-acct> -o out/gcp.facts.json
 wa-agent assess --facts out/ws.facts.json --baseline <baseline-id> -o out/ws.report.md
 wa-agent verify --tf-json state.json --baseline <baseline-id>
 wa-agent new --baseline <baseline-id> --out <new-dir> --set name=value   # tested Terraform + run book; the user runs it
+wa-agent new --cloud gcp --baseline <id> --build <lpw|new-vpc|existing-vpc> --out <new-dir>
 ```
 
 Relay fix caveats (**Before you apply**) and maturity labels verbatim.
 
 Run `preflight` (MCP) or `wa-agent doctor --workspace <name>` before a live scan and relay its fixes.
 Ask the user which baseline applies if they haven't said. Never invent a
-baseline id; list them first.
+baseline id; list them first. Pass `--cloud gcp` (or `cloud: "gcp"` in MCP) for Google Cloud.
+When a baseline offers several builds, they are equals: show each one's `for` text and
+let the user choose; never pick one for them.
 
 ## Changing this codebase
 

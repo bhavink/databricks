@@ -124,6 +124,9 @@ graph TB
 | **[end2end/](end2end/)** | Workspace + Unity Catalog + Policies | Complete production deployment |
 | **[lpw/](lpw/)** | **Least Privilege Workspace (2-phase)** | Maximum security: least-privilege IAM, CMK, PSC (front + back end), NCC, account groups + UC metastore binding. 2-phase deploy. |
 | **[uc/](uc/)** | Unity Catalog only | Add UC to existing workspace |
+| **[workspace-guardrails/](workspace-guardrails/)** | IP access lists, NCC, enforced serverless network policy | Bare-minimum controls after any `byovpc-*` workspace (`lpw` has them built in) |
+
+The [Well-Architected Agent](../../../well-architected-agent) builds new workspaces from these folders as-is (`lpw`, `infra4db` → `byovpc-*`, or `byovpc-*` alone, plus `workspace-guardrails`) and assesses existing ones, including VPC Service Controls against [`vpcsc-policy`](../vpcsc-policy).
 
 ### 2. Prerequisites
 

@@ -1,0 +1,98 @@
+# Credential-free tests (mock providers): terraform init -backend=false && terraform test
+
+mock_provider "databricks" {
+  alias = "accounts"
+  override_data {
+    target = data.databricks_mws_workspaces.all
+    values = {
+      ids = { "labs-ws1" = 1111111111111111 }
+    }
+  }
+}
+mock_provider "databricks" {
+  alias = "workspace"
+}
+
+variables {
+  databricks_account_id        = "00000000-0000-0000-0000-000000000000"
+  google_service_account_email = "automation-sa@project.iam.gserviceaccount.com"
+  databricks_workspace_name    = "labs-ws1"
+  workspace_url                = "https://1111111111111111.1.gcp.databricks.com"
+  google_region                = "us-central1"
+}
+
+run "bare_minimum_by_default" {
+  command = apply
+
+  assert {
+    condition     = local.workspace_id == 1111111111111111
+    error_message = "workspace must be found by name"
+  }
+  assert {
+    condition     = databricks_workspace_conf.ip_acl[0].custom_config["enableIpAccessLists"] == "true"
+    error_message = "IP access lists must be enabled by default"
+  }
+  assert {
+    condition     = toset(keys(databricks_ip_access_list.this)) == toset(["office-allow"])
+    error_message = "IP access lists come from ip_access_list.yaml"
+  }
+  assert {
+    condition = (
+      databricks_account_network_policy.this[0].egress.network_access.restriction_mode == "RESTRICTED_ACCESS"
+      && databricks_account_network_policy.this[0].egress.network_access.policy_enforcement.enforcement_mode == "ENFORCED"
+    )
+    error_message = "serverless egress must be restricted and enforced by default"
+  }
+  assert {
+    condition     = length(databricks_account_network_policy.this[0].egress.network_access.allowed_internet_destinations) == 2
+    error_message = "allowed destinations come from network_policy.yaml"
+  }
+  assert {
+    condition     = length(databricks_mws_ncc_binding.this) == 1 && length(databricks_workspace_network_option.this) == 1
+    error_message = "NCC and network policy must be bound to the workspace"
+  }
+}
+
+run "shared_policy_is_bound_not_created" {
+  command = apply
+
+  variables {
+    shared_network_policy_id = "org-serverless-policy"
+  }
+
+  assert {
+    condition     = length(databricks_account_network_policy.this) == 0
+    error_message = "no per-workspace policy when a shared one is given"
+  }
+  assert {
+    condition     = databricks_workspace_network_option.this[0].network_policy_id == "org-serverless-policy"
+    error_message = "the shared policy must be bound"
+  }
+}
+
+run "controls_can_be_turned_off" {
+  command = apply
+
+  variables {
+    enable_ip_access_list = false
+    enable_network_policy = false
+    enable_ncc            = false
+  }
+
+  assert {
+    condition = (length(databricks_ip_access_list.this) == 0 && length(databricks_account_network_policy.this) == 0
+    && length(databricks_workspace_network_option.this) == 0 && length(databricks_mws_ncc_binding.this) == 0)
+    error_message = "everything off means nothing created"
+  }
+}
+
+run "rejects_bad_inputs" {
+  command = plan
+
+  variables {
+    workspace_url                   = "adb-1.gcp.databricks.com"
+    network_policy_enforcement_mode = "OFF"
+  }
+
+  expect_failures = [var.workspace_url, var.network_policy_enforcement_mode]
+}

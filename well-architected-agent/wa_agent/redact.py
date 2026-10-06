@@ -18,6 +18,8 @@ _PATTERNS = [
     (re.compile(r"(?i)/resourceGroups/[^/\s'\"]+"), "/resourceGroups/<rg>"),
     (re.compile(r"(?i)/(workspaces|virtualNetworks|subnets|accessConnectors|storageAccounts)/[^/\s'\"]+"), r"/\1/<name>"),
     (re.compile(r"\badb-\d+\.\d+\.azuredatabricks\.net\b"), "adb-<id>.azuredatabricks.net"),
+    (re.compile(r"\b\d{6,}\.\d+\.gcp\.databricks\.com\b"), "<id>.gcp.databricks.com"),
+    (re.compile(r"\b[a-z][a-z0-9-]{4,28}[a-z0-9]\.iam\.gserviceaccount\.com\b"), "<project>.iam.gserviceaccount.com"),
     (re.compile(r"\b\d{15,16}\b"), "<workspace-id>"),
 ]
 

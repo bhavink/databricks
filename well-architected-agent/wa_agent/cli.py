@@ -123,7 +123,7 @@ def cmd_new(args) -> int:
         if not sep or not name:
             raise ValueError(f"--set {assignment!r}: expected name=value")
         answers[name.strip()] = parse_answer(raw)
-    written = generate(cat, args.baseline, args.out, answers)
+    written = generate(cat, args.baseline, args.out, answers, build_id=args.build)
     for path in written:
         print(path)
     print(f"next: read {args.out}/README.md — you run Terraform; the agent changes nothing", file=sys.stderr)
@@ -222,6 +222,7 @@ def main(argv=None) -> int:
     n.add_argument("--cloud", default="azure", choices=CLOUDS)
     n.add_argument("--baseline", required=True)
     n.add_argument("--out", required=True, help="new directory to create (must not exist)")
+    n.add_argument("--build", help="which build, when the baseline offers several (see `show <baseline>`)")
     n.add_argument("--set", action="append", metavar="NAME=VALUE",
                    help="answer a Terraform variable (repeatable); JSON values for lists/booleans")
     n.set_defaults(func=cmd_new)

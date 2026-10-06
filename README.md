@@ -52,7 +52,7 @@ This repository contains **production-ready infrastructure templates**, ready-to
 |-------|-------------|------|
 | **Guides** | Cross-cloud guides (authentication, networking, troubleshooting) | [guides](./guides/) |
 | **AI Governance** | Authentication & authorization for Agent Bricks, Genie, Databricks Apps | [applied-ai-governance](https://github.com/bhavink/applied-ai-governance) |
-| **Well-Architected Agent** | Cloud-agnostic, deterministic, read-only assessments and new-workspace verification, organized by the Databricks production planning guide (Azure today; GCP, AWS next) | [well-architected-agent](./well-architected-agent/) |
+| **Well-Architected Agent** | Cloud-agnostic, deterministic, read-only assessments and new-workspace verification, organized by the Databricks production planning guide (Azure and GCP; AWS next) | [well-architected-agent](./well-architected-agent/) |
 | **Azure** | Production-ready security & modular Terraform deployment patterns | [adb4u](./adb4u/) |
 | **AWS** | Private Link workspace templates with DEP controls | [awsdb4u](./awsdb4u/) |
 | **GCP** | VPC-SC, Private Service Connect, CMEK implementations | [gcpdb4u](./gcpdb4u/) |

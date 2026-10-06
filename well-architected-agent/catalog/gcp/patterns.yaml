@@ -1,0 +1,166 @@
+# Databricks on Google Cloud reference patterns.
+#
+# Same model as catalog/azure/patterns.yaml: detection by `signature` in
+# `detection_order`, scoring by `required` / `recommended`. Grounded in
+# gcpdb4u (battle-tested) and the GCP data exfiltration protection guide.
+
+catalog_version: "2026.10.0"
+cloud: gcp
+
+# Bare minimum for every pattern and baseline, whatever else is used: an IP
+# access list on any public front-end and an enforced serverless egress policy.
+minimum_required:
+  - GCP-ING-001
+  - GCP-SRV-002
+
+detection_order:
+  - gcp-classic-managed-vpc
+  - gcp-classic-dep
+  - gcp-classic-psc-private
+  - gcp-classic-psc
+  - gcp-classic-byovpc
+
+patterns:
+  - id: gcp-classic-managed-vpc
+    name: Classic — Databricks-managed VPC (anti-pattern)
+    compute_mode: classic
+    tier: 0
+    summary: >-
+      Databricks creates and manages the VPC. No control over subnets,
+      firewall, egress or Private Service Connect; migrate to a
+      customer-managed VPC.
+    signature: {fact: workspace.customer_managed_vpc, op: equals, value: false}
+    references:
+      - https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc
+    required:
+      - GCP-NET-001
+      - GCP-UC-001
+    recommended: []
+
+  - id: gcp-classic-dep
+    name: Classic — data exfiltration protection (VPC Service Controls)
+    compute_mode: classic
+    tier: 3
+    summary: >-
+      Customer-managed VPC with front-end and back-end Private Service
+      Connect and no public access, a VPC Service Controls perimeter,
+      Google APIs over restricted.googleapis.com, deny-by-default egress,
+      customer-managed keys.
+    signature:
+      all_of:
+        - {fact: workspace.customer_managed_vpc, op: equals, value: true}
+        - {fact: network.service_perimeter, op: equals, value: true}
+    references:
+      - https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection
+      - gcpdb4u/security/Configure-VPC-SC.md
+      - gcpdb4u/templates/vpcsc-policy
+    required:
+      - GCP-NET-001
+      - GCP-NET-003
+      - GCP-NET-005
+      - GCP-NET-006
+      - GCP-NET-007
+      - GCP-PL-001
+      - GCP-PL-002
+      - GCP-PL-003
+      - GCP-DNS-001
+      - GCP-ENC-001
+      - GCP-ENC-002
+      - GCP-UC-001
+      - GCP-OPS-001
+      - GCP-SRV-001
+    recommended:
+      - GCP-NET-002
+      - GCP-NET-004
+      - GCP-PL-004
+      - GCP-WS-001
+
+  - id: gcp-classic-psc-private
+    name: Classic — Private Service Connect, no public access
+    compute_mode: classic
+    tier: 3
+    summary: >-
+      Customer-managed VPC with front-end and back-end Private Service
+      Connect; public access disabled, private DNS, Private Google Access.
+    signature:
+      all_of:
+        - {fact: workspace.customer_managed_vpc, op: equals, value: true}
+        - {fact: private_link.frontend_psc, op: equals, value: true}
+        - {fact: workspace.public_access_enabled, op: equals, value: false}
+    references:
+      - https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
+      - gcpdb4u/templates/terraform-scripts/byovpc-psc-cmek-ws
+    required:
+      - GCP-NET-001
+      - GCP-NET-003
+      - GCP-PL-001
+      - GCP-PL-002
+      - GCP-PL-003
+      - GCP-DNS-001
+      - GCP-UC-001
+      - GCP-OPS-001
+      - GCP-SRV-001
+    recommended:
+      - GCP-NET-002
+      - GCP-NET-004
+      - GCP-NET-005
+      - GCP-PL-004
+      - GCP-ENC-001
+      - GCP-ENC-002
+      - GCP-WS-001
+
+  - id: gcp-classic-psc
+    name: Classic — Private Service Connect, public front-end
+    compute_mode: classic
+    tier: 2
+    summary: >-
+      Customer-managed VPC with back-end Private Service Connect (and
+      optionally front-end); users may also reach the workspace over the
+      internet, restricted by IP access lists.
+    signature:
+      all_of:
+        - {fact: workspace.customer_managed_vpc, op: equals, value: true}
+        - {fact: private_link.backend_psc, op: equals, value: true}
+    references:
+      - https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
+      - gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
+    required:
+      - GCP-NET-001
+      - GCP-NET-003
+      - GCP-NET-004
+      - GCP-PL-001
+      - GCP-UC-001
+      - GCP-OPS-001
+      - GCP-SRV-001
+    recommended:
+      - GCP-NET-002
+      - GCP-PL-002
+      - GCP-DNS-001
+      - GCP-ENC-001
+      - GCP-ENC-002
+      - GCP-WS-001
+
+  - id: gcp-classic-byovpc
+    name: Classic — customer-managed VPC
+    compute_mode: classic
+    tier: 1
+    summary: >-
+      Customer-managed (optionally shared) VPC with Private Google Access and
+      Cloud NAT; public front-end restricted by IP access lists.
+    signature: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    references:
+      - https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc
+      - gcpdb4u/templates/terraform-scripts/byovpc-ws
+    required:
+      - GCP-NET-001
+      - GCP-NET-003
+      - GCP-NET-004
+      - GCP-UC-001
+      - GCP-OPS-001
+    recommended:
+      - GCP-NET-002
+      - GCP-SRV-001
+      - GCP-PL-001
+      - GCP-ENC-001
+      - GCP-ENC-002
+      - GCP-WS-001

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import importlib
 
-CLOUDS = ("azure",)
+CLOUDS = ("azure", "gcp")
 SOURCES = ("tfplan", "live")
 
 

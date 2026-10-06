@@ -6,6 +6,7 @@ every managed resource. Deterministic: same input, same Markdown."""
 from __future__ import annotations
 
 from .clouds.azure import tfplan
+from .clouds.gcp import tfplan as gcp_tfplan
 from .facts import COMPUTED
 
 # First matching prefix wins; order matters.
@@ -23,6 +24,16 @@ AREAS = (
     ("Keys & identity", ("azurerm_key_vault", "azurerm_role_assignment", "azurerm_user_assigned_identity",
                          "azurerm_disk_encryption_set")),
     ("Observability", ("azurerm_monitor",)),
+    # Databricks on Google Cloud
+    ("Workspace", ("databricks_mws_workspaces", "databricks_mws_permission_assignment", "databricks_user")),
+    ("Private Link & DNS", ("databricks_mws_vpc_endpoint", "databricks_mws_private_access_settings",
+                            "google_compute_forwarding_rule", "google_compute_address", "google_dns")),
+    ("Network", ("google_compute_network", "google_compute_subnetwork", "google_compute_router",
+                 "google_compute_firewall", "google_compute_route", "databricks_mws_networks",
+                 "google_access_context_manager")),
+    ("Keys & identity", ("google_kms", "databricks_mws_customer_managed_keys", "google_service_account",
+                         "google_project_iam", "google_compute_subnetwork_iam")),
+    ("Observability", ("databricks_mws_log_delivery", "google_logging")),
 )
 WORKSPACE_TYPES = ("azapi_resource",)  # azapi workspaces are classified by their ARM type
 
@@ -129,14 +140,76 @@ def mermaid(facts: dict) -> list[str]:
     return lines
 
 
+def cloud_of(rs: list[dict]) -> str:
+    gcp = any(r["type"].startswith(("google_", "databricks_mws_networks", "databricks_mws_vpc_endpoint"))
+              for r in rs)
+    azure = any(r["type"].startswith(("azurerm_", "azapi_")) for r in rs)
+    return "gcp" if gcp and not azure else "azure"
+
+
+def gcp_mermaid(facts: dict) -> list[str]:
+    ws = facts.get("workspace") or {}
+    net = facts.get("network") or {}
+    pl = facts.get("private_link") or {}
+    srv = facts.get("serverless") or {}
+    acc = facts.get("access") or {}
+    lines = [
+        "```mermaid",
+        '%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Space Grotesk, Helvetica, Arial, sans-serif", '
+        '"lineColor": "#1a1a1a", "edgeLabelBackground": "#ffffff", "primaryTextColor": "#1a1a1a"}}}%%',
+        "flowchart LR",
+        f'  WS["Databricks workspace<br/>{ws.get("name") or "workspace"} · classic"]',
+        '  USERS["Users and tools"]',
+    ]
+    if _on(pl.get("frontend_psc")) and ws.get("public_access_enabled") is False:
+        lines.append('  USERS -->|"HTTPS via PSC endpoint only"| WS')
+    elif _on(pl.get("frontend_psc")):
+        lines.append('  USERS -->|"HTTPS via PSC endpoint or internet"| WS')
+    elif ws or acc:
+        acl = "IP access list" if _on(acc.get("ip_access_lists_enabled")) else "no IP access list"
+        lines.append(f'  USERS -->|"HTTPS over internet · {acl}"| WS')
+    if ws.get("customer_managed_vpc") or net:
+        size = net.get("smallest_subnet_prefix_length")
+        pga = " · Private Google Access" if _on(net.get("private_google_access")) else ""
+        lines.append(f'  VPC["Your VPC: classic compute<br/>subnet{" /" + str(size) if size else ""}{pga}"]')
+        lines.append('  WS -->|"runs clusters in"| VPC')
+        path = "over PSC" if _on(pl.get("backend_psc")) else "over the internet"
+        lines.append(f'  VPC -->|"secure cluster connectivity · {path}"| CP["Databricks control plane"]')
+        if _on(net.get("egress_deny_default")):
+            lines.append('  VPC -->|"deny-by-default egress · allow rules only"| NET["Internet"]')
+        elif _on(net.get("cloud_nat")):
+            lines.append('  VPC -->|"outbound via Cloud NAT"| NET["Internet"]')
+        endpoint = net.get("google_apis_endpoint")
+        if endpoint:
+            lines.append(f'  VPC -->|"Google APIs via {endpoint}.googleapis.com"| GAPI["Cloud Storage, Artifact Registry"]')
+        if _on(net.get("service_perimeter")):
+            lines.append('  PER["VPC Service Controls perimeter"] -->|"guards Google APIs for"| VPC')
+    if srv:
+        policy = "egress restricted and enforced" if _on(srv.get("egress_restricted")) else "egress not restricted"
+        lines.append('  SRV["Serverless compute<br/>Databricks account"]')
+        lines.append(f'  WS -->|"serverless workloads · NCC {"bound" if _on(srv.get("ncc_bound")) else "not bound"}"| SRV')
+        lines.append(f'  SRV -->|"{policy}"| SNET["Internet"]')
+    if _on((facts.get("governance") or {}).get("metastore_assigned")):
+        lines.append('  WS -->|"metastore assignment"| UC["Unity Catalog metastore"]')
+    keys = [label for k, label in (("cmk_managed_services", "managed services"), ("cmk_storage", "storage and disks"))
+            if _on(ws.get(k))]
+    if keys:
+        lines.append(f'  KMS["Cloud KMS<br/>customer-managed keys"] -->|"encrypts {", ".join(keys)}"| WS')
+    lines += ["  classDef default fill:#ffffff,stroke:#1a1a1a,color:#1a1a1a",
+              "  classDef focus fill:#ffffff,stroke:#cc3311,stroke-width:2px,color:#1a1a1a",
+              "  class WS focus", "```"]
+    return lines
+
+
 def to_markdown(doc: dict, workspace: str | None = None) -> str:
-    facts = tfplan.collect(doc, workspace=workspace)
     rs = tfplan.resources(doc)
+    gcp = cloud_of(rs) == "gcp"
+    facts = (gcp_tfplan if gcp else tfplan).collect(doc, workspace=workspace)
     kind = "plan" if facts["source"] == "terraform-plan" else "state"
     ws = facts.get("workspace") or {}
     lines = [f"# Architecture — {ws.get('name') or 'Terraform ' + kind}", "",
              f"Generated from a Terraform {kind} ({len(rs)} managed resources). The agent changed nothing.", ""]
-    lines += mermaid(facts)
+    lines += gcp_mermaid(facts) if gcp else mermaid(facts)
 
     groups: dict[str, list[dict]] = {}
     for r in rs:

@@ -107,16 +107,29 @@ def validate_baselines(baselines: list[dict], patterns: dict, checks: list[dict]
         for ref in b.get("require") or []:
             if ref not in check_ids:
                 raise CatalogError(f"baseline {b['id']}: references unknown check {ref}")
+        if b.get("build") and b.get("builds"):
+            raise CatalogError(f"baseline {b['id']}: use either build or builds, not both")
         if b.get("build"):
             _validate_build(b["id"], b["build"], check_ids)
+        ids = [x.get("id") for x in b.get("builds") or []]
+        if len(ids) != len(set(ids)) or None in ids:
+            raise CatalogError(f"baseline {b['id']}: every build needs a unique id")
+        for x in b.get("builds") or []:
+            if not x.get("for"):
+                raise CatalogError(f"baseline {b['id']} build {x['id']}: say who it is for (`for`)")
+            _validate_build(f"{b['id']}:{x['id']}", x, check_ids)
 
 
 def _validate_build(bid: str, build: dict, check_ids: set) -> None:
     where = f"baseline {bid} build"
-    if "deployment" not in build or "source" in build:
+    if "source" in build or not (build.get("deployment") or all(st.get("deployment") for st in build.get("stages") or [])):
         raise CatalogError(f"{where}: builds must use a deployment in this repo (deployment: <path>)")
     if not build.get("stages"):
         raise CatalogError(f"{where}: needs at least one stage")
+    for i, stage in enumerate(build["stages"], 1):
+        for var, src in (stage.get("outputs") or {}).items():
+            if not isinstance(src, dict) or not 1 <= src.get("stage", 0) < i or not src.get("output"):
+                raise CatalogError(f"{where} stage {i}: output {var} must come from an earlier stage")
     for gap in build.get("known_gaps") or []:
         if gap.get("check") not in check_ids or not gap.get("reason"):
             raise CatalogError(f"{where}: known_gaps entries need a known check and a reason")

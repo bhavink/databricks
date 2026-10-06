@@ -30,9 +30,10 @@ def references(cat: dict) -> dict[str, list[str]]:
             refs.setdefault(cloud_guide + phase["slug"], []).append(f"phase:{phase['slug']}")
     for b in cat["baselines"]:
         refs.setdefault(b["deployment"], []).append(b["id"])
-        build = b.get("build") or {}
-        if "deployment" in build:
-            refs.setdefault(build["deployment"], []).append(b["id"])
+        for build in ([b["build"]] if b.get("build") else []) + (b.get("builds") or []):
+            for root in [build.get("deployment")] + [st.get("deployment") for st in build.get("stages") or []]:
+                if root:
+                    refs.setdefault(root, []).append(b["id"])
     return refs
 
 
@@ -60,7 +61,9 @@ def url_ok(url: str, attempts: int = 3) -> tuple[bool, str]:
 
 def main() -> int:
     failures = 0
-    for cloud in ("azure",):
+    from wa_agent.clouds import CLOUDS
+
+    for cloud in CLOUDS:
         for ref, users in sorted(references(catalog.load(cloud)).items()):
             ok, detail = url_ok(ref) if ref.startswith("http") else ((REPO_ROOT / ref).exists(), "missing path")
             if not ok:

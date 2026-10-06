@@ -60,7 +60,7 @@ class ReadOnlyViolation(RuntimeError):
     pass
 
 
-def command_verb(args: list[str]) -> tuple[str, ...]:
+def command_verb(args: list[str], allowed: set | None = None) -> tuple[str, ...]:
     """The command path without flags and positional values."""
     if args[:1] == ["databricks"]:
         rest, i = [], 1
@@ -78,17 +78,19 @@ def command_verb(args: list[str]) -> tuple[str, ...]:
                 break
             flagless.append(a)
         candidates = [tuple(flagless[:n]) for n in range(1, len(flagless) + 1)]
-    return next((c for c in reversed(candidates) if c in READ_ONLY_COMMANDS), tuple(args[:4]))
+    allowed = READ_ONLY_COMMANDS if allowed is None else allowed
+    return next((c for c in reversed(candidates) if c in allowed), tuple(args[:4]))
 
 
-def assert_read_only(args: list[str]) -> None:
-    if command_verb(args) not in READ_ONLY_COMMANDS:
+def assert_read_only(args: list[str], allowed: set | None = None) -> None:
+    allowed = READ_ONLY_COMMANDS if allowed is None else allowed
+    if command_verb(args, allowed) not in allowed:
         raise ReadOnlyViolation(f"refusing to run non-allowlisted command: {' '.join(args[:5])}")
 
 
-def guarded(run: Runner) -> Runner:
+def guarded(run: Runner, allowed: set | None = None) -> Runner:
     def _run(args: list[str]):
-        assert_read_only(args)
+        assert_read_only(args, allowed)
         return run(args)
     return _run
 
@@ -166,14 +168,15 @@ def resolve_workspace(ref: str, run: Runner) -> str:
     return ids[0]
 
 
-def match_profiles(workspace_url: str | None, run: Runner) -> tuple[str | None, str | None]:
+def match_profiles(workspace_url: str | None, run: Runner,
+                   account_host: str = "accounts.azuredatabricks.net") -> tuple[str | None, str | None]:
     """Valid Databricks CLI profiles for this workspace and (if unambiguous) its account."""
     data = run(["databricks", "auth", "profiles", "-o", "json"]) or {}
     profiles = [p for p in (data.get("profiles", []) if isinstance(data, dict) else []) if p.get("valid")]
     host = (workspace_url or "").lower()
     workspace = next((p["name"] for p in sorted(profiles, key=lambda p: p["name"])
                       if host and host in str(p.get("host", "")).lower()), None)
-    accounts = sorted(p["name"] for p in profiles if "accounts.azuredatabricks.net" in str(p.get("host", "")))
+    accounts = sorted(p["name"] for p in profiles if account_host in str(p.get("host", "")))
     return workspace, (accounts[0] if len(accounts) == 1 else None)
 
 

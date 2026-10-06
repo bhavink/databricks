@@ -293,7 +293,9 @@ enforced. Run from an allowed network to see their contents.
 **Does an LLM decide the findings?** No. Findings come from rules in
 `catalog/`. Same input, same output.
 
-**Which clouds?** Azure today. GCP, then AWS, are next.
+**Which clouds?** Azure and Google Cloud (`--cloud gcp`). AWS is next.
+
+**On GCP, which build should I pick?** Each GCP baseline offers three, as equals: `lpw` (one root, creates everything), `new-vpc` (`infra4db` for the network, then the workspace) and `existing-vpc` (your own VPC). `wa-agent new` asks you to choose with `--build`.
 
 ---
 

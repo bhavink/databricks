@@ -5,10 +5,10 @@ name: well-architected-agent
 
 on:
   pull_request:
-    paths: ["well-architected-agent/**", "adb4u/modules/**", "adb4u/deployments/**", ".github/workflows/well-architected-agent.yml"]
+    paths: ["well-architected-agent/**", "adb4u/modules/**", "adb4u/deployments/**", "gcpdb4u/templates/**", ".github/workflows/well-architected-agent.yml"]
   push:
     branches: [master]
-    paths: ["well-architected-agent/**", "adb4u/modules/**", "adb4u/deployments/**"]
+    paths: ["well-architected-agent/**", "adb4u/modules/**", "adb4u/deployments/**", "gcpdb4u/templates/**"]
   schedule:
     - cron: "0 6 * * 1"
   workflow_dispatch:
@@ -57,20 +57,20 @@ jobs:
           terraform_wrapper: false
       - run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
       - name: Format
-        run: terraform fmt -check -recursive adb4u/modules adb4u/deployments/non-pl adb4u/deployments/full-private adb4u/deployments/serverless
+        run: terraform fmt -check -recursive adb4u/modules adb4u/deployments/non-pl adb4u/deployments/full-private adb4u/deployments/serverless gcpdb4u/templates/terraform-scripts/workspace-guardrails
       - name: Module tests (mock providers)
         run: |
-          for m in modules/monitoring modules/ncc modules/workspace deployments/serverless; do
-            (cd adb4u/$m && terraform init -backend=false -input=false && terraform test)
+          for m in adb4u/modules/monitoring adb4u/modules/ncc adb4u/modules/workspace adb4u/deployments/serverless gcpdb4u/templates/terraform-scripts/workspace-guardrails; do
+            (cd $m && terraform init -backend=false -input=false && terraform test)
           done
       - name: Validate deployments
         run: |
-          for d in non-pl full-private serverless; do
-            (cd adb4u/deployments/$d && terraform init -backend=false -input=false && terraform validate)
+          for d in adb4u/deployments/non-pl adb4u/deployments/full-private adb4u/deployments/serverless gcpdb4u/templates/terraform-scripts/workspace-guardrails; do
+            (cd $d && terraform init -backend=false -input=false && terraform validate)
           done
       - uses: astral-sh/setup-uv@v6
       - name: Generated tfvars resolve in the real deployments
-        run: uv run --locked --project well-architected-agent python well-architected-agent/tools/check_new_tfvars.py adb4u
+        run: uv run --locked --project well-architected-agent python well-architected-agent/tools/check_new_tfvars.py .
       - name: Generated deployment folder is self-contained
         run: |
           uv run --locked --project well-architected-agent wa-agent new --baseline classic-standard --out "$RUNNER_TEMP/book"

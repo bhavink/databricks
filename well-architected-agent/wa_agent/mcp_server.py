@@ -50,13 +50,16 @@ def _titled(cat: dict, ids: list[str]) -> list[dict]:
 
 @server.tool(annotations=READ_ONLY)
 def list_baselines(cloud: str = "azure") -> list[dict]:
-    """List use-case baselines: id, name, use case, reference pattern, and the tested Terraform that
-    builds it. Use describe_baseline to show a baseline's controls; present controls by their
-    titles, not by check ids alone."""
+    """List use-case baselines (cloud: azure or gcp): id, name, use case, reference pattern, and the
+    builds that create it (several builds are peers: ask the user which one fits). Use
+    describe_baseline to show a baseline's controls; present controls by their titles, not by ids."""
+    from .new import builds
+
     cat = catalog_mod.load(cloud)
     return [
         {"id": b["id"], "name": b["name"], "use_case": b["use_case"].strip(), "pattern": b["pattern"],
-         "deployment": b["deployment"], "extra_required_controls": _titled(cat, b.get("require") or [])}
+         "deployment": b["deployment"], "extra_required_controls": _titled(cat, b.get("require") or []),
+         "builds": [{"id": x["id"], "for": x.get("for", "").strip()} for x in builds(b)]}
         for b in cat["baselines"]
     ]
 
@@ -154,19 +157,21 @@ def verify(tf_json_path: str, baseline: str, cloud: str = "azure", format: str =
 
 
 @server.tool(annotations=READ_ONLY)
-def new_workspace(baseline: str, inputs: dict | None = None, cloud: str = "azure") -> dict:
+def new_workspace(baseline: str, inputs: dict | None = None, cloud: str = "azure", build: str | None = None) -> dict:
     """Deployment for a brand-new workspace from the baseline's tested Terraform (this repo's
     deployment, or the official Databricks SRA pinned to a reviewed commit): inputs.tfvars from
     `inputs` (Terraform variable -> value; unanswered required ones become REPLACE_ME_*), staged
-    tfvars and a step-by-step README (plan -> assess -> apply -> verify). Returns file contents
+    tfvars and a step-by-step README (plan -> assess -> apply -> verify). When the baseline offers
+    several builds, pass `build` (list_baselines shows them); builds are peers with no default. Returns file contents
     and the list of Terraform files to bundle; writes nothing. To write the folder with the
     Terraform included, the user runs `wa-agent new --baseline <id> --out <dir>`."""
     from .new import render
 
-    files = render(catalog_mod.load(cloud), baseline, inputs)
+    files = render(catalog_mod.load(cloud), baseline, inputs, build_id=build)
     manifest = json.loads(files["baseline.json"])
     return {"files": files, "bundle": sorted(manifest.get("files", {})),
-            "write_with": f"wa-agent new --baseline {baseline} --out <new-dir>"}
+            "write_with": f"wa-agent new --cloud {cloud} --baseline {baseline}"
+                          + (f" --build {build}" if build else "") + " --out <new-dir>"}
 
 
 def main() -> None:

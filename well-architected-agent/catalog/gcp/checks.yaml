@@ -1,0 +1,496 @@
+# Databricks on Google Cloud checks.
+#
+# Same structure as catalog/azure/checks.yaml. Ground truth is gcpdb4u
+# (battle-tested, used as-is); hub-style data exfiltration protection is
+# grounded in "Databricks on GCP: a practitioner's guide on data
+# exfiltration protection" and the gcpdb4u/security guides.
+
+checks:
+  # ------------------------------------------------------------------ network
+  - id: GCP-NET-001
+    control: NET.CUSTOMER_MANAGED_NETWORK
+    title: Workspace uses a customer-managed VPC
+    pillar: security
+    severity: high
+    rule: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rationale: >-
+      A customer-managed (optionally shared) VPC puts subnets, routes,
+      firewall rules, Cloud NAT and Private Service Connect under your
+      control; it is the base for every other network control.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc
+      - gcpdb4u/templates/terraform-scripts/infra4db
+      - gcpdb4u/Workspace-Provisioning.md
+    remediation:
+      fix_type: recreate
+      summary: >-
+        Create the VPC and subnet (infra4db, or lpw with create_vpc = true) and a new workspace
+        with a network configuration that references it; the network of an existing workspace
+        cannot be changed.
+      module: gcpdb4u/templates/terraform-scripts/infra4db
+      terraform: |
+        resource "databricks_mws_networks" "this" {
+          provider     = databricks.accounts
+          account_id   = var.databricks_account_id
+          network_name = "${var.databricks_workspace_name}-network"
+          gcp_network_info {
+            network_project_id = var.google_shared_vpc_project
+            vpc_id             = var.google_vpc_id
+            subnet_id          = var.node_subnet
+            subnet_region      = var.google_region
+          }
+        }
+
+  - id: GCP-NET-002
+    control: NET.SUBNET_SIZING
+    title: Workspace subnet is /24 or larger
+    pillar: reliability
+    severity: low
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: network.smallest_subnet_prefix_length, op: lte, value: 24}
+    rationale: >-
+      Subnets can range from /29 to /9 and can't be resized after the
+      workspace is created. A /24 supports about 120 nodes; /26 (30 nodes)
+      suits only small dev/test workspaces.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc
+      - gcpdb4u/Workspace-Provisioning.md
+    remediation:
+      fix_type: recreate
+      summary: Size the workspace subnet for expected concurrency (/24 or larger) when creating the workspace.
+      module: gcpdb4u/templates/terraform-scripts/infra4db
+      terraform: |
+        subnet_configs = {
+          us-central1 = { region = "us-central1", cidr = "10.0.0.0/24" }
+        }
+
+  - id: GCP-NET-003
+    control: NET.PRIVATE_PATH_TO_CLOUD_STORAGE
+    title: Private Google Access is enabled on the workspace subnet
+    pillar: performance_efficiency
+    severity: high
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: network.private_google_access, op: equals, value: true}
+    rationale: >-
+      Private Google Access keeps compute traffic to Google APIs (Cloud
+      Storage, Artifact Registry, BigQuery) on Google's network instead of
+      the internet.
+    sources:
+      - https://cloud.google.com/vpc/docs/configure-private-google-access
+      - https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection
+      - gcpdb4u/security/Configure-PrivateGoogleAccess.md
+      - gcpdb4u/templates/terraform-scripts/infra4db/subnets.tf
+    remediation:
+      fix_type: in_place
+      summary: Turn on Private Google Access on the workspace subnet.
+      module: gcpdb4u/templates/terraform-scripts/infra4db
+      terraform: |
+        resource "google_compute_subnetwork" "subnets" {
+          # ...
+          private_ip_google_access = true
+        }
+
+  - id: GCP-NET-004
+    control: NET.EXPLICIT_EGRESS
+    title: Compute egress uses Cloud NAT
+    pillar: reliability
+    severity: medium
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: network.cloud_nat, op: equals, value: true}
+    rationale: >-
+      Without public IPs, compute needs an explicit, stable egress path for
+      anything not reached privately; Databricks recommends Cloud NAT.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc
+      - gcpdb4u/templates/terraform-scripts/infra4db/nat.tf
+    remediation:
+      fix_type: additive
+      summary: Add a Cloud Router and Cloud NAT for the workspace subnet's region.
+      module: gcpdb4u/templates/terraform-scripts/infra4db
+      terraform: |
+        resource "google_compute_router" "router" {
+          name    = "${var.network_name}-router"
+          network = var.network_name
+          region  = var.google_region
+        }
+        resource "google_compute_router_nat" "nat" {
+          name                               = "${var.network_name}-nat"
+          router                             = google_compute_router.router.name
+          region                             = var.google_region
+          nat_ip_allocate_option             = "AUTO_ONLY"
+          source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+        }
+
+  - id: GCP-NET-005
+    control: NET.EGRESS_FIREWALL
+    title: Compute egress is denied by default, with explicit allow rules
+    pillar: security
+    severity: high
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: network.egress_deny_default, op: equals, value: true}
+    rationale: >-
+      A deny-all egress firewall rule (with higher-priority allow rules for
+      the Databricks control plane, Google APIs and approved destinations)
+      stops compute from reaching anything you haven't approved.
+    sources:
+      - https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection
+      - https://docs.databricks.com/gcp/en/security/network/classic/firewall
+      - gcpdb4u/security/LockDown-VPC-Firewall-Rules.md
+      - gcpdb4u/templates/terraform-scripts/infra4db/firewall.tf
+    remediation:
+      fix_type: additive
+      summary: >-
+        Add a low-priority deny-all egress rule and higher-priority allow rules for the regional
+        Databricks control plane, Google APIs and approved destinations.
+      module: gcpdb4u/templates/terraform-scripts/infra4db
+      caveats:
+        - Add the allow rules first; a deny-all rule without them breaks cluster startup.
+      terraform: |
+        resource "google_compute_firewall" "deny_egress_all" {
+          name               = "deny-egress-all"
+          network            = var.network_name
+          direction          = "EGRESS"
+          priority           = 1100
+          destination_ranges = ["0.0.0.0/0"]
+          deny {
+            protocol = "all"
+          }
+        }
+
+  - id: GCP-NET-006
+    control: NET.RESTRICTED_SERVICE_ENDPOINTS
+    title: Google APIs resolve to restricted.googleapis.com
+    pillar: security
+    severity: high
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: network.google_apis_endpoint, op: equals, value: restricted}
+    rationale: >-
+      With VPC Service Controls, compute should reach Google APIs through
+      restricted.googleapis.com (199.36.153.4/30), which only serves
+      perimeter-supported services. private.googleapis.com keeps traffic
+      private but isn't enforced by the perimeter.
+    sources:
+      - https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection
+      - https://cloud.google.com/vpc/docs/configure-private-google-access
+      - gcpdb4u/security/Configure-PrivateGoogleAccess.md
+      - gcpdb4u/templates/terraform-scripts/infra4db/dns.tf
+    remediation:
+      fix_type: in_place
+      summary: Point *.googleapis.com at restricted.googleapis.com in the private googleapis.com zone.
+      module: gcpdb4u/templates/terraform-scripts/infra4db
+      terraform: |
+        resource "google_dns_record_set" "googleapis_cname" {
+          name         = "*.googleapis.com."
+          managed_zone = google_dns_managed_zone.private_googleapis.name
+          type         = "CNAME"
+          ttl          = 300
+          rrdatas      = ["restricted.googleapis.com."]
+        }
+
+  - id: GCP-NET-007
+    control: NET.SERVICE_PERIMETER
+    title: Workspace projects are inside a VPC Service Controls perimeter
+    pillar: security
+    severity: critical
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: network.service_perimeter, op: equals, value: true}
+    rationale: >-
+      A VPC Service Controls perimeter around the workspace (compute and
+      storage) projects stops data leaving through Google APIs, with
+      ingress and egress rules for the Databricks control plane only.
+    sources:
+      - https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection
+      - https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
+      - https://cloud.google.com/vpc-service-controls/docs/overview
+      - gcpdb4u/security/Configure-VPC-SC.md
+      - gcpdb4u/templates/vpcsc-policy
+    remediation:
+      fix_type: additive
+      summary: >-
+        Create a perimeter around the workspace projects in dry-run mode, apply the ingress and
+        egress policies from gcpdb4u/templates/vpcsc-policy (least-privilege-workspaces/ for LPW),
+        then enforce it.
+      module: gcpdb4u/templates/vpcsc-policy
+      caveats:
+        - Start in dry-run and review violations; an enforced perimeter with missing rules blocks workspace creation and cluster startup.
+        - Use the Databricks project numbers for your region from the IP addresses and domains page.
+
+  # -------------------------------------------------- Private Service Connect
+  - id: GCP-PL-001
+    control: NET.PRIVATE_LINK_BACKEND
+    title: Compute reaches the control plane over Private Service Connect (back-end)
+    pillar: security
+    severity: high
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: private_link.backend_psc, op: equals, value: true}
+    rationale: >-
+      Back-end PSC endpoints (secure cluster connectivity relay and REST API)
+      keep compute-to-control-plane traffic on private IPs.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
+      - gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
+      - gcpdb4u/templates/terraform-scripts/infra4db/psc.tf
+    remediation:
+      fix_type: recreate
+      summary: >-
+        Create the relay and workspace PSC endpoints, register them as VPC endpoints and reference
+        them in the workspace's network configuration (byovpc-psc-ws, or lpw with
+        enable_private_access = true).
+      module: gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
+
+  - id: GCP-PL-002
+    control: NET.PRIVATE_LINK_FRONTEND
+    title: Users reach the workspace over Private Service Connect (front-end)
+    pillar: security
+    severity: high
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: private_link.frontend_psc, op: equals, value: true}
+    rationale: >-
+      A front-end PSC endpoint and private access settings let users and
+      tools reach the web app and APIs over private IPs.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
+      - gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
+    remediation:
+      fix_type: recreate
+      summary: Create private access settings and a front-end PSC endpoint and attach them to the workspace.
+      module: gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
+      terraform: |
+        resource "databricks_mws_private_access_settings" "pas" {
+          provider                     = databricks.accounts
+          private_access_settings_name = "${var.databricks_workspace_name}-pas"
+          region                       = var.google_region
+          public_access_enabled        = false
+          private_access_level         = "ACCOUNT"
+        }
+
+  - id: GCP-PL-003
+    control: NET.PUBLIC_ACCESS_DISABLED
+    title: Public access to the workspace is disabled
+    pillar: security
+    severity: high
+    when: {fact: private_link.frontend_psc, op: equals, value: true}
+    rule: {fact: workspace.public_access_enabled, op: equals, value: false}
+    rationale: >-
+      With a front-end endpoint in place, public_access_enabled = false
+      locks the workspace to your private network. It can't be changed after
+      the private access settings are created.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
+      - https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection
+      - gcpdb4u/templates/terraform-scripts/byovpc-psc-cmek-ws
+    remediation:
+      fix_type: recreate
+      summary: Create private access settings with public_access_enabled = false and attach them to the workspace.
+      module: gcpdb4u/templates/terraform-scripts/byovpc-psc-cmek-ws
+
+  - id: GCP-PL-004
+    control: NET.BACKEND_PRIVATE_ONLY
+    title: Private access is limited to this workspace's registered endpoints
+    pillar: security
+    severity: low
+    when: {fact: private_link.frontend_psc, op: equals, value: true}
+    rule: {fact: workspace.private_access_level, op: equals, value: ENDPOINT}
+    rationale: >-
+      private_access_level = ENDPOINT accepts only the VPC endpoints you list
+      for this workspace, rather than any endpoint registered in the account.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
+    remediation:
+      fix_type: in_place
+      summary: Set private_access_level = "ENDPOINT" and list the allowed VPC endpoint IDs.
+      module: gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
+
+  - id: GCP-DNS-001
+    control: NET.PRIVATE_DNS
+    title: Private DNS resolves the workspace to its PSC endpoint
+    pillar: reliability
+    severity: high
+    when: {fact: private_link.frontend_psc, op: equals, value: true}
+    rule: {fact: dns.workspace_private_zone, op: equals, value: true}
+    rationale: >-
+      A private gcp.databricks.com zone with A records for the workspace and
+      its dp- and psc-auth domains sends traffic to the PSC endpoint IPs.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
+      - gcpdb4u/DNS-Setup-Guide.md
+      - gcpdb4u/templates/terraform-scripts/infra4db/dns.tf
+    remediation:
+      fix_type: additive
+      summary: Create the private gcp.databricks.com zone and A records for the workspace domains.
+      module: gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
+
+  # ---------------------------------------------------------------- inbound
+  - id: GCP-ING-001
+    control: NET.IP_ACCESS_LISTS
+    title: IP access lists restrict the public front-end
+    pillar: security
+    severity: high
+    when: {fact: workspace.public_access_enabled, op: equals, value: true}
+    rule:
+      all_of:
+        - {fact: access.ip_access_lists_enabled, op: equals, value: true}
+        - {fact: access.ip_access_list_count, op: gte, value: 1}
+    rationale: >-
+      Bare minimum for any workspace reachable from the internet: only your
+      corporate and automation networks can reach the UI and APIs.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/front-end/ip-access-list
+      - gcpdb4u/templates/terraform-scripts/workspace-guardrails
+      - gcpdb4u/templates/terraform-scripts/lpw/ip-access-list.tf
+    remediation:
+      maturity: validated
+      fix_type: additive
+      summary: >-
+        Enable IP access lists with your allowed ranges: lpw (enable_ip_access_list), or
+        workspace-guardrails after any other workspace root.
+      module: gcpdb4u/templates/terraform-scripts/workspace-guardrails
+      caveats:
+        - Include the IP you run Terraform from, or Terraform locks itself out of the workspace.
+
+  # ------------------------------------------------------------- serverless
+  - id: GCP-SRV-001
+    control: NET.SERVERLESS_NCC
+    title: Network connectivity config is bound to the workspace
+    pillar: security
+    severity: medium
+    rule: {fact: serverless.ncc_bound, op: equals, value: true}
+    rationale: >-
+      The NCC governs how serverless compute reaches your resources
+      (private endpoint rules, stable egress).
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/serverless-network-security
+      - gcpdb4u/templates/terraform-scripts/workspace-guardrails
+    remediation:
+      maturity: validated
+      fix_type: additive
+      summary: Create an NCC in the workspace region and bind it (lpw enable_ncc, or workspace-guardrails).
+      module: gcpdb4u/templates/terraform-scripts/workspace-guardrails
+
+  - id: GCP-SRV-002
+    control: NET.SERVERLESS_EGRESS_POLICY
+    title: Serverless egress is restricted by an enforced network policy
+    pillar: security
+    severity: high
+    rule: {fact: serverless.egress_restricted, op: equals, value: true}
+    rationale: >-
+      Bare minimum for any workspace: serverless compute runs in the
+      Databricks account, outside your firewall, so only an enforced
+      RESTRICTED_ACCESS network policy limits where it can send data.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/network/serverless-network-security/network-policies
+      - gcpdb4u/templates/terraform-scripts/workspace-guardrails
+      - gcpdb4u/templates/terraform-scripts/lpw/network-policy.tf
+    remediation:
+      maturity: validated
+      fix_type: in_place
+      summary: >-
+        Bind a RESTRICTED_ACCESS network policy in ENFORCED mode with the destinations workloads
+        need (network_policy.yaml): lpw (enable_network_policy), or workspace-guardrails.
+      module: gcpdb4u/templates/terraform-scripts/workspace-guardrails
+      caveats:
+        - An empty allowlist blocks package installs from serverless; start in DRY_RUN to see what would be blocked.
+
+  # ------------------------------------------------------------- encryption
+  - id: GCP-ENC-001
+    control: STO.CMK_MANAGED_SERVICES
+    title: Customer-managed key for managed services
+    pillar: security
+    severity: medium
+    rule: {fact: workspace.cmk_managed_services, op: equals, value: true}
+    rationale: Encrypts notebooks, secrets and queries in the control plane with your Cloud KMS key.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
+      - gcpdb4u/templates/terraform-scripts/byovpc-cmek-ws
+    remediation:
+      fix_type: in_place
+      summary: Register a Cloud KMS key for MANAGED_SERVICES and attach it to the workspace.
+      module: gcpdb4u/templates/terraform-scripts/byovpc-cmek-ws
+      terraform: |
+        resource "databricks_mws_customer_managed_keys" "this" {
+          provider   = databricks.accounts
+          account_id = var.databricks_account_id
+          gcp_key_info {
+            kms_key_id = var.cmek_resource_id
+          }
+          use_cases = ["STORAGE", "MANAGED_SERVICES"]
+        }
+
+  - id: GCP-ENC-002
+    control: STO.CMK_WORKSPACE_STORAGE
+    title: Customer-managed key for workspace storage and compute disks
+    pillar: security
+    severity: medium
+    rule: {fact: workspace.cmk_storage, op: equals, value: true}
+    rationale: >-
+      The STORAGE key encrypts the workspace's GCS bucket and the boot and
+      persistent disks of compute nodes.
+    sources:
+      - https://docs.databricks.com/gcp/en/security/keys/customer-managed-keys
+      - gcpdb4u/templates/terraform-scripts/byovpc-cmek-ws
+    remediation:
+      fix_type: recreate
+      summary: Create the workspace with a STORAGE customer-managed key (byovpc-cmek-ws, byovpc-psc-cmek-ws or lpw).
+      module: gcpdb4u/templates/terraform-scripts/byovpc-cmek-ws
+
+  # --------------------------------------------------- governance & audit
+  - id: GCP-UC-001
+    control: GOV.UC_METASTORE
+    title: Unity Catalog metastore is assigned
+    pillar: data_ai_governance
+    severity: high
+    rule: {fact: governance.metastore_assigned, op: equals, value: true}
+    rationale: Unity Catalog governs data access, lineage and audit for every workload.
+    sources:
+      - https://docs.databricks.com/gcp/en/data-governance/unity-catalog/
+      - gcpdb4u/templates/terraform-scripts/uc
+    remediation:
+      fix_type: additive
+      summary: Assign the region's metastore to the workspace (lpw metastore_name, or the uc root).
+      module: gcpdb4u/templates/terraform-scripts/uc
+
+  - id: GCP-OPS-001
+    control: OPS.AUDIT_LOG_DELIVERY
+    title: Audit logs are delivered to a Cloud Storage bucket
+    pillar: operational_excellence
+    severity: medium
+    rule: {fact: operations.audit_log_delivery, op: equals, value: true}
+    rationale: >-
+      Audit log delivery writes workspace and account audit events to your
+      GCS bucket for retention and SIEM; the system.access.audit table is
+      the in-platform view.
+    sources:
+      - https://docs.databricks.com/gcp/en/admin/account-settings/audit-log-delivery
+      - https://docs.databricks.com/gcp/en/admin/system-tables/audit-logs
+    remediation:
+      fix_type: additive
+      summary: Configure account audit log delivery to a GCS bucket you own (account console or the Account API).
+
+  - id: GCP-WS-001
+    control: NET.DATA_LEAK_FEATURES
+    title: Notebook export, results download and table clipboard are disabled
+    pillar: security
+    severity: medium
+    rule:
+      all_of:
+        - {fact: access.notebook_export_enabled, op: equals, value: false}
+        - {fact: access.results_download_enabled, op: equals, value: false}
+        - {fact: access.table_clipboard_enabled, op: equals, value: false}
+    rationale: >-
+      These workspace settings are the simplest user-driven exfiltration
+      paths; regulated workspaces turn them off.
+    sources:
+      - https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection
+      - https://docs.databricks.com/gcp/en/security/network/front-end/ip-access-list
+    remediation:
+      fix_type: in_place
+      summary: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to false.
+      terraform: |
+        resource "databricks_workspace_conf" "leak" {
+          provider = databricks.workspace
+          custom_config = {
+            enableExportNotebook         = "false"
+            enableResultsDownloading     = "false"
+            enableNotebookTableClipboard = "false"
+          }
+        }

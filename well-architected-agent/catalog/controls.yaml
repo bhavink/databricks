@@ -71,6 +71,10 @@ controls:
      title: Serverless egress is restricted by an enforced network policy}
   - {id: NET.SERVERLESS_PRIVATE_ENDPOINTS, phase: 4, pillar: security,
      title: Serverless reaches customer storage over private endpoints}
+  - {id: NET.SERVICE_PERIMETER, phase: 4, pillar: security,
+     title: Cloud service APIs are reachable only inside a service perimeter}
+  - {id: NET.RESTRICTED_SERVICE_ENDPOINTS, phase: 4, pillar: security,
+     title: Cloud API traffic uses restricted, perimeter-enforced endpoints}
 
   # ---------------------------------------------------------------- 5 Storage
   - {id: STO.WORKSPACE_STORAGE_PRIVATE, phase: 5, pillar: security,
