@@ -2,16 +2,16 @@
 
 Production-ready Terraform configurations for deploying secure Databricks workspaces on AWS with Private Link, Unity Catalog, and customer-managed encryption.
 
-🔑 **[Authentication Setup Guide →](../guides/authentication.md)** - Stuck on AWS/Databricks authentication? Start here!
+**[Authentication Setup Guide →](../guides/authentication.md)** - Stuck on AWS/Databricks authentication? Start here!
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 awsdb4u/
 ├── aws-pl-ws/                          # Databricks Private Link workspace deployments
-│   ├── databricks-aws-production/      # ✨ Production-ready deployment (Recommended)
+│   ├── databricks-aws-production/      # Production-ready deployment (Recommended)
 │   │   ├── modules/                    # 7 modular Terraform modules
 │   │   ├── docs/                       # Visual-first documentation
 │   │   ├── terraform.tfvars.example    # Configuration template
@@ -22,28 +22,28 @@ awsdb4u/
 
 ---
 
-## 🚀 Available Deployments
+## Available Deployments
 
 ### **databricks-aws-production** (Recommended)
 
 **Production-ready**, fully modularized Terraform deployment with comprehensive documentation and enterprise features.
 
 **Key Features:**
-- ✅ **AWS PrivateLink** - Secure private connectivity (VPC endpoints)
-- ✅ **Unity Catalog** - Data governance and management
-- ✅ **Customer-Managed Keys (CMK)** - Full encryption control (S3 + Workspace)
-- ✅ **3-Tier VPC Architecture** - Public, Private, PrivateLink subnets
-- ✅ **High Availability** - Multi-AZ deployment with NAT gateways
-- ✅ **Visual Documentation** - Mermaid diagrams, architecture flows
-- ✅ **Quick Start Guide** - Deploy in 5 minutes
-- ✅ **Comprehensive Troubleshooting** - Common issues & solutions
+- **AWS PrivateLink** - Secure private connectivity (VPC endpoints)
+- **Unity Catalog** - Data governance and management
+- **Customer-Managed Keys (CMK)** - Full encryption control (S3 + Workspace)
+- **3-Tier VPC Architecture** - Public, Private, PrivateLink subnets
+- **High Availability** - Multi-AZ deployment with NAT gateways
+- **Visual Documentation** - Mermaid diagrams, architecture flows
+- **Quick Start Guide** - Deploy in 5 minutes
+- **Comprehensive Troubleshooting** - Common issues & solutions
 
 **Documentation:**
-- 📖 [Complete Documentation](aws-pl-ws/databricks-aws-production/docs/)
-- ⚡ [Quick Start Guide](aws-pl-ws/databricks-aws-production/docs/04-QUICK-START.md)
-- 📐 [Architecture Overview](aws-pl-ws/databricks-aws-production/docs/01-ARCHITECTURE.md)
-- 🔐 [IAM & Security](aws-pl-ws/databricks-aws-production/docs/02-IAM-SECURITY.md)
-- 🛡️ [Network & Encryption](aws-pl-ws/databricks-aws-production/docs/03-NETWORK-ENCRYPTION.md)
+- [Complete Documentation](aws-pl-ws/databricks-aws-production/docs/)
+- [Quick Start Guide](aws-pl-ws/databricks-aws-production/docs/04-QUICK-START.md)
+- [Architecture Overview](aws-pl-ws/databricks-aws-production/docs/01-ARCHITECTURE.md)
+- [IAM & Security](aws-pl-ws/databricks-aws-production/docs/02-IAM-SECURITY.md)
+- [Network & Encryption](aws-pl-ws/databricks-aws-production/docs/03-NETWORK-ENCRYPTION.md)
 
 **Quick Deploy:**
 ```bash
@@ -68,48 +68,48 @@ Original modular version - **deprecated in favor of databricks-aws-production**.
 
 ---
 
-## 📋 Comparison
+## Comparison
 
 | Feature | databricks-aws-production | modular-version (legacy) |
 |---------|---------------------------|--------------------------|
-| **Status** | ✅ Active | ⚠️ Deprecated |
+| **Status** | Active | Deprecated |
 | **Documentation** | Visual-first, comprehensive | Basic README |
 | **Quick Start** | 5-minute guide | Manual configuration |
-| **Architecture Diagrams** | ✅ Mermaid diagrams | ❌ None |
-| **Troubleshooting** | ✅ Detailed guide | ❌ Limited |
-| **CMK Support** | ✅ Dual-layer (S3 + Workspace) | ✅ Basic |
-| **BYOR Support** | ❌ Removed (CREATE only) | ❌ N/A |
+| **Architecture Diagrams** | Mermaid diagrams | None |
+| **Troubleshooting** | Detailed guide | Limited |
+| **CMK Support** | Dual-layer (S3 + Workspace) | Basic |
+| **BYOR Support** | Removed (CREATE only) | N/A |
 | **Module Count** | 7 modules | 7 modules |
 | **Configuration** | `.tfvars.example` template | Manual setup |
 
 ---
 
-## 🎯 Which Deployment Should I Use?
+## Which Deployment Should I Use?
 
 ### Choose `databricks-aws-production` if you want:
-- ✅ Production-ready deployment with best practices
-- ✅ Visual documentation and architecture diagrams
-- ✅ Quick start with guided configuration
-- ✅ Comprehensive troubleshooting guide
-- ✅ Active maintenance and updates
-- ✅ Clean, modular codebase
+- Production-ready deployment with best practices
+- Visual documentation and architecture diagrams
+- Quick start with guided configuration
+- Comprehensive troubleshooting guide
+- Active maintenance and updates
+- Clean, modular codebase
 
 ### Use `modular-version` if you:
-- ⚠️ Have an existing deployment to maintain
-- ⚠️ Need backward compatibility (consider migrating)
+- Have an existing deployment to maintain
+- Need backward compatibility (consider migrating)
 
 ---
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 Both deployments create a **secure, production-ready Databricks workspace** with:
 
-- ✅ **Backend Private Link** (VPC endpoints for control plane and data plane)
-- ✅ **Unity Catalog** for data governance
-- ✅ **Customer-Managed VPC** with private and public subnets
-- ✅ **Optional Customer-Managed Keys** (CMK) for encryption
-- ✅ **Dedicated PrivateLink subnets** for VPC endpoints
-- ✅ **IP Access Lists** (optional) for additional security
+- **Backend Private Link** (VPC endpoints for control plane and data plane)
+- **Unity Catalog** for data governance
+- **Customer-Managed VPC** with private and public subnets
+- **Optional Customer-Managed Keys** (CMK) for encryption
+- **Dedicated PrivateLink subnets** for VPC endpoints
+- **IP Access Lists** (optional) for additional security
 
 ### Architecture Diagram
 
@@ -167,15 +167,15 @@ graph TB
 
 ---
 
-## 📚 Detailed Documentation
+## Detailed Documentation
 
 For detailed technical documentation, architecture, and configuration guides, see:
 
-👉 **[databricks-aws-production Documentation](aws-pl-ws/databricks-aws-production/docs/)**
+**[databricks-aws-production Documentation](aws-pl-ws/databricks-aws-production/docs/)**
 
 ---
 
-## 🚦 Getting Started
+## Getting Started
 
 ### Prerequisites (5 minutes)
 
@@ -212,7 +212,7 @@ For detailed technical documentation, architecture, and configuration guides, se
 
 ---
 
-## 🚀 Quick Deployment
+## Quick Deployment
 
 ### 1. Choose Your Deployment
 
@@ -248,13 +248,13 @@ terraform plan
 terraform apply
 ```
 
-⏱️ **Deployment Time:** ~15-20 minutes
+**Deployment Time:** ~15-20 minutes
 
 **Full Guide:** [Quick Start Documentation](aws-pl-ws/databricks-aws-production/docs/04-QUICK-START.md)
 
 ---
 
-## 📖 Documentation Index
+## Documentation Index
 
 ### databricks-aws-production
 
@@ -269,7 +269,7 @@ terraform apply
 
 ---
 
-## 🔧 Configuration Examples
+## Configuration Examples
 
 ### Minimal Configuration (Default Security)
 
@@ -313,7 +313,7 @@ unity_catalog_external_bucket_name      = "mycompany-dbx-uc-external"
 
 ---
 
-## 🛠️ What Gets Deployed?
+## What Gets Deployed?
 
 ### AWS Resources (65-70 resources)
 
@@ -356,7 +356,7 @@ unity_catalog_external_bucket_name      = "mycompany-dbx-uc-external"
 
 ---
 
-## 🔍 Key Features Explained
+## Key Features Explained
 
 ### Private Link Architecture
 
@@ -370,10 +370,10 @@ Databricks Control Plane
 ```
 
 **Benefits:**
-- ✅ No data traverses public internet
-- ✅ Reduced attack surface
-- ✅ Compliance-friendly (HIPAA, PCI-DSS)
-- ✅ Lower latency
+- No data traverses public internet
+- Reduced attack surface
+- Compliance-friendly (HIPAA, PCI-DSS)
+- Lower latency
 
 ### Dual-Layer Encryption
 
@@ -408,7 +408,7 @@ Single Unity Catalog Metastore
 
 ---
 
-## ⚙️ Advanced Configuration
+## Advanced Configuration
 
 ### Reuse Existing Resources
 
@@ -448,7 +448,7 @@ availability_zones = ["us-west-1a", "us-west-1c"]
 
 ---
 
-## 🧹 Cleanup
+## Cleanup
 
 ### Safe Destroy
 
@@ -461,7 +461,7 @@ terraform destroy
 
 ---
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 Common issues and solutions:
 
@@ -477,14 +477,14 @@ Common issues and solutions:
 
 ---
 
-## 📞 Support & Resources
+## Support & Resources
 
 ### Documentation
-- 📖 [Databricks AWS Docs](https://docs.databricks.com/aws/en/)
-- 🔒 [Private Link Guide](https://docs.databricks.com/aws/en/security/network/classic/privatelink.html)
-- 🏛️ [Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/)
-- 🔑 [Customer-Managed Keys](https://docs.databricks.com/aws/en/security/keys/)
-- 🏗️ [Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
+- [Databricks AWS Docs](https://docs.databricks.com/aws/en/)
+- [Private Link Guide](https://docs.databricks.com/aws/en/security/network/classic/privatelink.html)
+- [Unity Catalog](https://docs.databricks.com/aws/en/data-governance/unity-catalog/)
+- [Customer-Managed Keys](https://docs.databricks.com/aws/en/security/keys/)
+- [Terraform Provider](https://registry.terraform.io/providers/databricks/databricks/latest/docs)
 
 ### Getting Help
 1. Check [Troubleshooting Guide](aws-pl-ws/databricks-aws-production/docs/05-TROUBLESHOOTING.md)
@@ -494,16 +494,16 @@ Common issues and solutions:
 
 ---
 
-## 📝 Version History
+## Version History
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| `databricks-aws-production` | ✅ Active | Production-ready, recommended |
-| `modular-version` | ⚠️ Deprecated | Legacy version, migrate to production |
+| `databricks-aws-production` | Active | Production-ready, recommended |
+| `modular-version` | Deprecated | Legacy version, migrate to production |
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Improvements and bug fixes are welcome:
 1. Follow visual-first documentation pattern
@@ -513,13 +513,13 @@ Improvements and bug fixes are welcome:
 
 ---
 
-## 📄 License
+## License
 
 This configuration is provided as-is for reference purposes.
 
 ---
 
-**Ready to Deploy?** → [Quick Start Guide](aws-pl-ws/databricks-aws-production/docs/04-QUICK-START.md) ⚡
+**Ready to Deploy?** → [Quick Start Guide](aws-pl-ws/databricks-aws-production/docs/04-QUICK-START.md)
 
 ### 1. AWS Provider
 
@@ -613,12 +613,12 @@ VPC CIDR: 10.0.0.0/22 (1024 total IPs - optimized for single workspace)
 
 | Aspect | 2 NAT Gateways (HA) | 1 NAT Gateway (Cost) |
 |--------|---------------------|----------------------|
-| **Availability** | ✅ If one AZ fails, other continues | ❌ Single point of failure |
+| **Availability** | If one AZ fails, other continues | Single point of failure |
 | **Cost** | ~$64/month | ~$32/month (50% savings) |
-| **Cross-AZ Charges** | ✅ No extra cost | ❌ $0.01/GB transfer fee |
-| **Production Ready** | ✅ Recommended | ❌ Dev/test only |
+| **Cross-AZ Charges** | No extra cost | $0.01/GB transfer fee |
+| **Production Ready** | Recommended | Dev/test only |
 
-💡 **Cost Optimization:** For dev/test environments, you can use a single NAT gateway to save ~$32/month. Update `nat_gateway_count = 1` in the networking module configuration. However, **two NAT gateways are strongly recommended for production** to ensure high availability.
+**Cost Optimization:** For dev/test environments, you can use a single NAT gateway to save ~$32/month. Update `nat_gateway_count = 1` in the networking module configuration. However, **two NAT gateways are strongly recommended for production** to ensure high availability.
 
 ---
 
@@ -659,20 +659,20 @@ resource "databricks_mws_vpc_endpoint" "workspace_vpce" {
 
 **Ingress Rules:**
 ```
-✅ TCP 0-65535 from self (cluster-to-cluster communication)
-✅ UDP 0-65535 from self (cluster-to-cluster communication)
+TCP 0-65535 from self (cluster-to-cluster communication)
+UDP 0-65535 from self (cluster-to-cluster communication)
 ```
 
 **Egress Rules:**
 ```
-✅ TCP 0-65535 to self (cluster-to-cluster)
-✅ UDP 0-65535 to self (cluster-to-cluster)
-✅ TCP 443 to VPC Endpoint SG (HTTPS to control plane via Private Link)
-✅ TCP 443 to 0.0.0.0/0 (library downloads, external APIs, S3 access)
-✅ TCP 3306 to 0.0.0.0/0 (external metastore - optional)
-✅ TCP 6666 to VPC Endpoint SG (Secure Cluster Connectivity)
-✅ TCP 8443-8451 to VPC Endpoint SG (Unity Catalog, control plane)
-✅ TCP/UDP 53 to 0.0.0.0/0 (DNS resolution)
+TCP 0-65535 to self (cluster-to-cluster)
+UDP 0-65535 to self (cluster-to-cluster)
+TCP 443 to VPC Endpoint SG (HTTPS to control plane via Private Link)
+TCP 443 to 0.0.0.0/0 (library downloads, external APIs, S3 access)
+TCP 3306 to 0.0.0.0/0 (external metastore - optional)
+TCP 6666 to VPC Endpoint SG (Secure Cluster Connectivity)
+TCP 8443-8451 to VPC Endpoint SG (Unity Catalog, control plane)
+TCP/UDP 53 to 0.0.0.0/0 (DNS resolution)
 ```
 
 **Important Notes:**
@@ -684,14 +684,14 @@ resource "databricks_mws_vpc_endpoint" "workspace_vpce" {
 
 **Ingress Rules:**
 ```
-✅ TCP 443 from Workspace SG (HTTPS from clusters)
-✅ TCP 6666 from Workspace SG (SCC from clusters)
-✅ TCP 8443-8451 from Workspace SG (Unity Catalog, control plane)
+TCP 443 from Workspace SG (HTTPS from clusters)
+TCP 6666 from Workspace SG (SCC from clusters)
+TCP 8443-8451 from Workspace SG (Unity Catalog, control plane)
 ```
 
 **Egress Rules:**
 ```
-✅ ALL to 0.0.0.0/0 (to Databricks control plane)
+ALL to 0.0.0.0/0 (to Databricks control plane)
 ```
 
 ---
@@ -763,9 +763,9 @@ When `enable_workspace_cmk = true`:
 **Key Policy:**
 ```hcl
 Permissions:
-  ✅ Account root (key administration)
-  ✅ Databricks cross-account role (encrypt/decrypt)
-  ✅ EC2 service (EBS volume encryption via workspace VPCE)
+  Account root (key administration)
+  Databricks cross-account role (encrypt/decrypt)
+  EC2 service (EBS volume encryption via workspace VPCE)
 ```
 
 **Policy Conditions:**
@@ -1159,7 +1159,7 @@ terraform apply
 
 ### Step 5: Wait for Backend Private Link
 
-⚠️ **IMPORTANT:** Wait **20 minutes** after workspace creation before creating clusters.
+**IMPORTANT:** Wait **20 minutes** after workspace creation before creating clusters.
 
 This allows the backend Private Link connection to fully stabilize.
 

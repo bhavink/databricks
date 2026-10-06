@@ -5,9 +5,9 @@
 ## Quick Reference
 
 ```
-📦 7 Terraform Modules → 65-70 AWS/Databricks Resources
-⏱️  15-20 minutes deployment time
-🔒 Private Link + Unity Catalog + CMK Encryption
+7 Terraform Modules → 65-70 AWS/Databricks Resources
+ 15-20 minutes deployment time
+Private Link + Unity Catalog + CMK Encryption
 ```
 
 ---
@@ -296,7 +296,7 @@ VPC Endpoints (6):
 Regional Endpoint Benefits:
 ├── Lower latency (direct regional connections)
 ├── Reduced cost (no cross-region data transfer)
-└── Better security (traffic stays in region) ✅
+└── Better security (traffic stays in region)
 
 Security Groups (8):
 ├── Workspace SG + 6 rules
@@ -468,8 +468,8 @@ flowchart LR
 
 ## Next Steps
 
-✅ Architecture understood → [02-IAM-SECURITY.md](02-IAM-SECURITY.md) - IAM roles and policies
+Architecture understood → [02-IAM-SECURITY.md](02-IAM-SECURITY.md) - IAM roles and policies
 
-✅ Ready to deploy → [04-QUICK-START.md](04-QUICK-START.md) - 5-minute deployment
+Ready to deploy → [04-QUICK-START.md](04-QUICK-START.md) - 5-minute deployment
 
 **Docs**: [Databricks AWS Architecture](https://docs.databricks.com/aws/en/getting-started/overview.html)

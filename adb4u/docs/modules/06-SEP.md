@@ -11,21 +11,21 @@ The Service Endpoint Policy module restricts storage access from your Databricks
 ### What It Does
 
 **Security Control:**
-- ✅ **Allow** access to DBFS root storage
-- ✅ **Allow** access to Unity Catalog storage
-- ✅ **Allow** access to customer storage accounts (via allow-list)
-- ✅ **Allow** access to Databricks system storage (via alias)
-- ❌ **Block** access to all other storage accounts
+- **Allow** access to DBFS root storage
+- **Allow** access to Unity Catalog storage
+- **Allow** access to customer storage accounts (via allow-list)
+- **Allow** access to Databricks system storage (via alias)
+- **Block** access to all other storage accounts
 
 ### Key Features
 
-✅ **Egress Control** - Prevent data leaving via unauthorized storage
-✅ **Automatic** - DBFS and UC storage automatically included
-✅ **Flexible** - Add custom storage accounts via list
-✅ **System Storage** - Databricks system accounts via alias
-✅ **BYOV Support** - Works with bring-your-own VNet
+- **Egress Control** - Prevent data leaving via unauthorized storage
+- **Automatic** - DBFS and UC storage automatically included
+- **Flexible** - Add custom storage accounts via list
+- **System Storage** - Databricks system accounts via alias
+- **BYOV Support** - Works with bring-your-own VNet
 
-⚠️ **Applies to**: Classic compute only (not serverless)
+**Applies to**: Classic compute only (not serverless)
 
 ---
 
@@ -55,14 +55,14 @@ The Service Endpoint Policy module restricts storage access from your Databricks
       │ Service Endpoint Policy (SEP)  │
       │                                 │
       │ Allowed Storage Accounts:      │
-      │ ✅ DBFS root storage           │
-      │ ✅ UC metastore storage        │
-      │ ✅ UC external storage         │
-      │ ✅ Databricks system storage   │
-      │ ✅ Custom storage accounts     │
+      │ DBFS root storage           │
+      │ UC metastore storage        │
+      │ UC external storage         │
+      │ Databricks system storage   │
+      │ Custom storage accounts     │
       │                                 │
       │ Denied:                         │
-      │ ❌ All other storage accounts  │
+      │ All other storage accounts  │
       └─────────────────────────────────┘
                      │
                      ▼
@@ -114,7 +114,7 @@ additional_storage_account_ids = [
 ```hcl
 enable_service_endpoint_policy = false
 
-# ⚠️ Warning: Disabling SEP removes egress control.
+# Warning: Disabling SEP removes egress control.
 # Compute can access ANY storage account.
 ```
 
@@ -303,14 +303,14 @@ terraform destroy
 
 ## Best Practices
 
-✅ **DO:**
+**DO:**
 - Enable SEP by default for all deployments
 - Add customer storage accounts explicitly
 - Test access before production use
 - Document allowed storage accounts
 - Use resource IDs (not storage account names)
 
-❌ **DON'T:**
+**DON'T:**
 - Disable SEP unless absolutely necessary
 - Add storage accounts you don't need
 - Use storage account names (use full resource IDs)
@@ -323,14 +323,14 @@ terraform destroy
 ### Scope Limitations
 
 **SEP Applies To:**
-- ✅ Classic clusters (interactive, job, all-purpose)
-- ✅ Data written to external storage
-- ✅ Data read from external storage
+- Classic clusters (interactive, job, all-purpose)
+- Data written to external storage
+- Data read from external storage
 
 **SEP Does NOT Apply To:**
-- ❌ Serverless compute (different connectivity model)
-- ❌ Control plane operations
-- ❌ Databricks-to-Databricks communication
+- Serverless compute (different connectivity model)
+- Control plane operations
+- Databricks-to-Databricks communication
 
 ### Serverless Connectivity
 

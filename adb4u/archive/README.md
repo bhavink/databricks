@@ -1,17 +1,17 @@
 # Archive - Legacy Content
 
-**Status**: 📦 **ARCHIVED** - Reference Only
+**Status**: **ARCHIVED** - Reference Only
 
 This folder contains legacy templates, scripts, and documentation from the original Azure Databricks repository.
 
-**⚠️ For new deployments, use the modular structure in the main repository:**
+**For new deployments, use the modular structure in the main repository:**
 - [New Modular Templates](../deployments/)
 - [Current Documentation](../docs/)
 - [Reusable Modules](../modules/)
 
 ---
 
-## 📂 Contents
+## Contents
 
 ### Legacy Templates
 - **`templates/`** - Original Terraform scripts (adb-npip, adb-pl-latest, adb-pvt-workspace)
@@ -33,39 +33,39 @@ This folder contains legacy templates, scripts, and documentation from the origi
 
 ---
 
-## 🔄 Migration Guide
+## Migration Guide
 
 ### Old vs New Structure
 
 | Old Location | New Location | Status |
 |--------------|--------------|--------|
-| `templates/terraform-scripts/adb-npip/` | `deployments/non-pl/` | ✅ Replaced with modular version |
-| `templates/terraform-scripts/adb-pl-latest/` | `deployments/full-private/` | 🚧 Coming soon |
-| `secure-deployments/` | `docs/patterns/NON-PL.md` | ✅ Documented |
-| Legacy README diagrams | `archive/LEGACY-CONTENT.md` | ✅ Archived |
+| `templates/terraform-scripts/adb-npip/` | `deployments/non-pl/` | Replaced with modular version |
+| `templates/terraform-scripts/adb-pl-latest/` | `deployments/full-private/` | Coming soon |
+| `secure-deployments/` | `docs/patterns/NON-PL.md` | Documented |
+| Legacy README diagrams | `archive/LEGACY-CONTENT.md` | Archived |
 
 ### Why Archive?
 
 The legacy content:
-- ❌ Uses monolithic Terraform files (not modular)
-- ❌ Limited documentation
-- ❌ No Unity Catalog support
-- ❌ No BYOV (Bring Your Own VNet) support
-- ❌ No comprehensive troubleshooting
+- Uses monolithic Terraform files (not modular)
+- Limited documentation
+- No Unity Catalog support
+- No BYOV (Bring Your Own VNet) support
+- No comprehensive troubleshooting
 
 The new modular structure:
-- ✅ Modular, reusable Terraform components
-- ✅ Comprehensive documentation (2,300+ lines)
-- ✅ Unity Catalog mandatory
-- ✅ BYOV support
-- ✅ CMK support
-- ✅ UML sequence diagrams
-- ✅ Troubleshooting guides
-- ✅ Pre-flight checklists
+- Modular, reusable Terraform components
+- Comprehensive documentation (2,300+ lines)
+- Unity Catalog mandatory
+- BYOV support
+- CMK support
+- UML sequence diagrams
+- Troubleshooting guides
+- Pre-flight checklists
 
 ---
 
-## 📝 Using Legacy Templates
+## Using Legacy Templates
 
 If you need to reference the legacy templates:
 
@@ -78,7 +78,7 @@ If you need to reference the legacy templates:
 
 ---
 
-## 📚 Reference Links
+## Reference Links
 
 **New Documentation**:
 - [Quick Start Guide](../docs/01-QUICKSTART.md)

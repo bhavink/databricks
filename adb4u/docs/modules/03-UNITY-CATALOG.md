@@ -11,13 +11,13 @@ The Unity Catalog module provides a complete Unity Catalog implementation with s
 
 ### Key Features
 
-- ✅ **Flexible Metastore**: Create new or use existing
-- ✅ **Per-Workspace External Location**: Dedicated storage per workspace
-- ✅ **Access Connector**: Managed identity for Unity Catalog
-- ✅ **Storage Connectivity**: Service Endpoints (default) or Private Link (optional)
-- ✅ **Regional Scope**: One metastore per region, shared across workspaces
-- ✅ **Clean Destroy**: `force_destroy = true` for metastores
-- ✅ **Production-Ready**: RBAC, network rules, and best practices
+- **Flexible Metastore**: Create new or use existing
+- **Per-Workspace External Location**: Dedicated storage per workspace
+- **Access Connector**: Managed identity for Unity Catalog
+- **Storage Connectivity**: Service Endpoints (default) or Private Link (optional)
+- **Regional Scope**: One metastore per region, shared across workspaces
+- **Clean Destroy**: `force_destroy = true` for metastores
+- **Production-Ready**: RBAC, network rules, and best practices
 
 ---
 
@@ -204,15 +204,15 @@ resource "databricks_metastore" "this" {
 ```
 
 **Why This Matters**:
-- ✅ Allows `terraform destroy` to delete metastore even with root credential attached
-- ✅ Prevents "cannot delete metastore data access" errors
-- ✅ Does NOT make deletion dangerous - requires explicit `terraform destroy`
-- ✅ Production-safe - metastore deletion still requires user confirmation
+- Allows `terraform destroy` to delete metastore even with root credential attached
+- Prevents "cannot delete metastore data access" errors
+- Does NOT make deletion dangerous - requires explicit `terraform destroy`
+- Production-safe - metastore deletion still requires user confirmation
 
 **DO NOT**:
-- ❌ Set `force_destroy = false`
-- ❌ Add `lifecycle.ignore_changes = [force_destroy]`
-- ❌ Remove `force_destroy` attribute
+- Set `force_destroy = false`
+- Add `lifecycle.ignore_changes = [force_destroy]`
+- Remove `force_destroy` attribute
 
 See [Troubleshooting Guide](../TROUBLESHOOTING.md#unity-catalog-destroy-issues) for details.
 
@@ -247,13 +247,13 @@ resource "azurerm_private_endpoint" "metastore_storage" {
 
 ### Storage Features
 
-- ✅ **ADLS Gen2**: Hierarchical Namespace enabled
-- ✅ **Replication**: LRS (locally redundant storage)
-- ✅ **Tier**: Standard (hot tier)
-- ✅ **Secure Transfer**: HTTPS required
-- ✅ **TLS Version**: 1.2 minimum
-- ✅ **Service Endpoints**: Always enabled
-- ✅ **Tags**: Applied to all resources
+- **ADLS Gen2**: Hierarchical Namespace enabled
+- **Replication**: LRS (locally redundant storage)
+- **Tier**: Standard (hot tier)
+- **Secure Transfer**: HTTPS required
+- **TLS Version**: 1.2 minimum
+- **Service Endpoints**: Always enabled
+- **Tags**: Applied to all resources
 
 ---
 

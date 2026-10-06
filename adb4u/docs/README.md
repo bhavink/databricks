@@ -4,7 +4,7 @@
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 **New to this repo?** Start here:
 
@@ -14,36 +14,36 @@
 
 ---
 
-## 📋 Deployment Patterns
+## Deployment Patterns
 
 Choose the pattern that matches your security and connectivity requirements:
 
 ### [Non-Private Link](patterns/01-NON-PL.md)
 **Best for:** Most deployments, cost-effective, simpler setup
 
-- ✅ Secure Cluster Connectivity (NPIP) - No public IPs on clusters
-- ✅ Unity Catalog with managed identity
-- ✅ Service Endpoint Policy for storage security
-- ✅ NAT Gateway for outbound connectivity
-- ✅ Customer-Managed Keys (optional)
-- ⚡ **Quick deployment** - Single terraform apply
+- Secure Cluster Connectivity (NPIP) - No public IPs on clusters
+- Unity Catalog with managed identity
+- Service Endpoint Policy for storage security
+- NAT Gateway for outbound connectivity
+- Customer-Managed Keys (optional)
+- **Quick deployment** - Single terraform apply
 
 **Use when:** Standard security requirements, public control plane acceptable
 
 ### [Full Private](patterns/02-FULL-PRIVATE.md)
 **Best for:** Highly regulated environments, complete isolation
 
-- ✅ All features from Non-PL pattern, PLUS:
-- ✅ Private Link for control plane (front-end)
-- ✅ Private Link for data plane (back-end)
-- ✅ Air-gapped deployment option
-- 🔒 **Complete isolation** - No public endpoints
+- All features from Non-PL pattern, PLUS:
+- Private Link for control plane (front-end)
+- Private Link for data plane (back-end)
+- Air-gapped deployment option
+- **Complete isolation** - No public endpoints
 
 **Use when:** Zero-trust network, compliance requirements, complete air-gapping needed
 
 ---
 
-## 🔧 Module Reference
+## Module Reference
 
 Deep-dive into each infrastructure component:
 
@@ -56,7 +56,7 @@ Deep-dive into each infrastructure component:
 
 ---
 
-## 📚 How-To Guides
+## How-To Guides
 
 Step-by-step instructions for specific tasks:
 
@@ -69,7 +69,7 @@ Enable Databricks SQL Warehouses and Serverless Notebooks with:
 
 ---
 
-## 🛠️ Additional Documentation
+## Additional Documentation
 
 ### Core Documentation
 
@@ -83,7 +83,7 @@ Enable Databricks SQL Warehouses and Serverless Notebooks with:
 
 ---
 
-## 📖 Documentation Structure
+## Documentation Structure
 
 ```
 docs/
@@ -110,7 +110,7 @@ docs/
 
 ---
 
-## 🎯 Common Workflows
+## Common Workflows
 
 ### First-Time Deployment
 
@@ -173,7 +173,7 @@ Read: 04-TROUBLESHOOTING.md
 
 ---
 
-## 🔍 Finding What You Need
+## Finding What You Need
 
 ### "I want to..."
 
@@ -194,9 +194,9 @@ Read: 04-TROUBLESHOOTING.md
 
 ---
 
-## 🏆 Best Practices
+## Best Practices
 
-✅ **DO:**
+**DO:**
 - Start with Non-PL pattern for most deployments
 - Enable Service Endpoint Policy by default
 - Use Unity Catalog for all workspaces
@@ -204,7 +204,7 @@ Read: 04-TROUBLESHOOTING.md
 - Test destroy workflow in non-production first
 - Enable CMK for sensitive workloads
 
-❌ **DON'T:**
+**DON'T:**
 - Deploy without Unity Catalog (it's mandatory)
 - Skip the deployment checklist
 - Disable Service Endpoint Policy without good reason
@@ -213,7 +213,7 @@ Read: 04-TROUBLESHOOTING.md
 
 ---
 
-## 💡 Tips for Success
+## Tips for Success
 
 ### For Beginners
 1. Start with [Quickstart](01-QUICKSTART.md)
@@ -239,7 +239,7 @@ Read: 04-TROUBLESHOOTING.md
 
 ---
 
-## 📞 Getting Help
+## Getting Help
 
 ### Documentation Resources
 - This `docs/` folder - Complete reference
@@ -259,6 +259,6 @@ Read: 04-TROUBLESHOOTING.md
 
 ---
 
-## 🚀 Ready to Deploy?
+## Ready to Deploy?
 
 Start with the **[Quickstart Guide](01-QUICKSTART.md)** and have your first workspace running in 15 minutes!

@@ -311,8 +311,8 @@ Important Notes:
 **Cost Consideration**: Data egress charges apply (first 100 GB free/month)
 
 **Critical Distinction**:
-- **DBR Image**: Databricks-managed storage → NSG Storage tag → $0 egress ✅
-- **User Libraries**: PyPI/Maven/Custom → NAT Gateway → Internet → Egress charges ✅
+- **DBR Image**: Databricks-managed storage → NSG Storage tag → $0 egress
+- **User Libraries**: PyPI/Maven/Custom → NAT Gateway → Internet → Egress charges
 
 ---
 

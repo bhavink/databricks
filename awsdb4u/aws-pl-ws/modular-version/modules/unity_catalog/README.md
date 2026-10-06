@@ -29,12 +29,12 @@ This module follows the Databricks Security Reference Architecture (SRA) pattern
 
 ## Key Features
 
-- ✅ Follows SRA best practices
-- ✅ Dynamic external_id generation
-- ✅ 30-second IAM propagation wait
-- ✅ Conditional resource creation
-- ✅ Proper dependency management
-- ✅ Clean destroy capability
+- Follows SRA best practices
+- Dynamic external_id generation
+- 30-second IAM propagation wait
+- Conditional resource creation
+- Proper dependency management
+- Clean destroy capability
 
 ## Usage
 

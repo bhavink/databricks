@@ -177,7 +177,7 @@ def to_markdown(assessment: Assessment, catalog: dict, facts: dict) -> str:
         lines += ["In priority order (required before recommended, then by severity):", ""]
         for i, f in enumerate(gaps, 1):
             r = f.check["remediation"]
-            warn = " ⚠️ has caveats" if r.get("caveats") else ""
+            warn = " (has caveats)" if r.get("caveats") else ""
             lines.append(f"{i}. **{f.check['id']}** — {r['summary'].strip()} "
                          f"(`{assessment.tier_of(f.check['id'])}`, `{f.check['severity']}`, fix: `{r['fix_type']}`){warn}")
         lines.append("")
@@ -215,7 +215,7 @@ def to_markdown(assessment: Assessment, catalog: dict, facts: dict) -> str:
         if r.get("cli"):
             lines += ["```bash", r["cli"].strip(), "```", ""]
         if r.get("caveats"):
-            lines += ["**Before you apply:**", ""] + [f"- ⚠️ {cv.strip()}" for cv in r["caveats"]] + [""]
+            lines += ["**Before you apply:**", ""] + [f"- {cv.strip()}" for cv in r["caveats"]] + [""]
 
     if advisory:
         lines += [f"## Beyond target ({len(advisory)})", "",

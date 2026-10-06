@@ -1,19 +1,19 @@
-# 📚 Modular Version - Documentation Index
+# Modular Version - Documentation Index
 
 Welcome to the modular version of AWS Databricks Private Link deployment!
 
-## 🎯 Start Here
+## Start Here
 
 ### New to This Project?
-1. 📘 **[README.md](README.md)** - Start here for architecture overview
-2. 🚀 **[QUICK_START.md](QUICK_START.md)** - Deploy in 5 minutes
-3. 📊 **[ROOT_VS_MODULAR.md](ROOT_VS_MODULAR.md)** - Understand the differences
+1. **[README.md](README.md)** - Start here for architecture overview
+2. **[QUICK_START.md](QUICK_START.md)** - Deploy in 5 minutes
+3. **[ROOT_VS_MODULAR.md](ROOT_VS_MODULAR.md)** - Understand the differences
 
 ### Ready to Deploy?
-1. 📖 **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - Complete step-by-step guide
-2. 📁 **[DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md)** - Understand the layout
+1. **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - Complete step-by-step guide
+2. **[DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md)** - Understand the layout
 
-## 📖 Main Documentation
+## Main Documentation
 
 | Document | Description | When to Read |
 |----------|-------------|--------------|
@@ -23,7 +23,7 @@ Welcome to the modular version of AWS Databricks Private Link deployment!
 | **ROOT_VS_MODULAR.md** | Comparison with root version | Decision making |
 | **DIRECTORY_STRUCTURE.md** | File structure and organization | Understanding layout |
 
-## 🗂️ Module Documentation
+## Module Documentation
 
 Each module has its own README with detailed documentation:
 
@@ -43,7 +43,7 @@ Each module has its own README with detailed documentation:
 | **databricks_workspace/** | [README](modules/databricks_workspace/README.md) | Workspace creation and MWS resources |
 | **unity_catalog/** | [README](modules/unity_catalog/README.md) | Unity Catalog, metastore, catalogs, grants |
 
-## 🚀 Quick Navigation
+## Quick Navigation
 
 ### I want to...
 
@@ -71,7 +71,7 @@ Each module has its own README with detailed documentation:
 **Understand IAM roles**
 → [modules/iam/README.md](modules/iam/README.md)
 
-## 📋 Deployment Checklist
+## Deployment Checklist
 
 - [ ] Read README.md for overview
 - [ ] Check prerequisites in QUICK_START.md
@@ -83,7 +83,7 @@ Each module has its own README with detailed documentation:
 - [ ] Wait 20 minutes for Private Link
 - [ ] Access workspace and verify
 
-## 🎓 Learning Path
+## Learning Path
 
 ### Beginner
 1. Read **README.md** - Understand what's being built
@@ -100,7 +100,7 @@ Each module has its own README with detailed documentation:
 2. Create new modules
 3. Build your own deployment patterns
 
-## 🔧 Configuration Files
+## Configuration Files
 
 | File | Purpose |
 |------|---------|
@@ -109,7 +109,7 @@ Each module has its own README with detailed documentation:
 | `outputs.tf` | Defines all outputs |
 | `terraform.tfvars` | Your configuration values |
 
-## 🏗️ Module Structure
+## Module Structure
 
 ```
 Each module follows this pattern:
@@ -121,27 +121,27 @@ modules/<module-name>/
 └── locals.tf          # Local variables (if needed)
 ```
 
-## 📊 What Gets Created
+## What Gets Created
 
 When you run `terraform apply`, you'll create:
 
-- ✅ 1 VPC with DNS support
-- ✅ 6 subnets (2 public, 2 private, 2 privatelink)
-- ✅ 2 NAT Gateways (high availability)
-- ✅ 2 security groups (workspace + VPC endpoints)
-- ✅ 5 VPC endpoints (S3, STS, Kinesis, Workspace, Relay)
-- ✅ 4 S3 buckets (root, UC metastore, UC root, UC external)
-- ✅ 5 IAM roles (cross-account, UC metastore, UC root, UC external, instance profile)
-- ✅ 1 KMS key (optional, if encryption enabled)
-- ✅ 1 Databricks workspace
-- ✅ 1 Unity Catalog metastore
-- ✅ 1 workspace catalog
-- ✅ 2 external locations
-- ✅ Various grants and permissions
+- 1 VPC with DNS support
+- 6 subnets (2 public, 2 private, 2 privatelink)
+- 2 NAT Gateways (high availability)
+- 2 security groups (workspace + VPC endpoints)
+- 5 VPC endpoints (S3, STS, Kinesis, Workspace, Relay)
+- 4 S3 buckets (root, UC metastore, UC root, UC external)
+- 5 IAM roles (cross-account, UC metastore, UC root, UC external, instance profile)
+- 1 KMS key (optional, if encryption enabled)
+- 1 Databricks workspace
+- 1 Unity Catalog metastore
+- 1 workspace catalog
+- 2 external locations
+- Various grants and permissions
 
 **Total:** ~65-70 resources
 
-## ⏱️ Time Estimates
+## Time Estimates
 
 | Task | Time |
 |------|------|
@@ -153,7 +153,7 @@ When you run `terraform apply`, you'll create:
 | Wait for Private Link | 20 min |
 | **Total** | **~75-95 min** |
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 Having issues? Check these resources:
 
@@ -163,24 +163,24 @@ Having issues? Check these resources:
 4. **AWS Console** - Verify resource creation
 5. **Databricks Console** - Check workspace status
 
-## 🎯 Next Steps After Deployment
+## Next Steps After Deployment
 
-1. ✅ Access workspace (see outputs for URL)
-2. ✅ Verify Unity Catalog
-3. ✅ Create test cluster (wait 20 min first!)
-4. ✅ Run sample queries
-5. ✅ Add more users
-6. ✅ Create additional catalogs
-7. ✅ Set up data pipelines
+1. Access workspace (see outputs for URL)
+2. Verify Unity Catalog
+3. Create test cluster (wait 20 min first!)
+4. Run sample queries
+5. Add more users
+6. Create additional catalogs
+7. Set up data pipelines
 
-## 📞 Support
+## Support
 
 - **Databricks Docs:** https://docs.databricks.com
 - **Terraform AWS Provider:** https://registry.terraform.io/providers/hashicorp/aws
 - **Terraform Databricks Provider:** https://registry.terraform.io/providers/databricks/databricks
 - **Databricks SRA:** https://github.com/databricks/terraform-databricks-sra
 
-## 💡 Tips
+## Tips
 
 - Always run `terraform plan` before `apply`
 - Keep `terraform.tfvars` secure (contains secrets)
@@ -191,4 +191,4 @@ Having issues? Check these resources:
 
 ---
 
-**Ready to get started?** Head to [QUICK_START.md](QUICK_START.md)! 🚀
+**Ready to get started?** Head to [QUICK_START.md](QUICK_START.md)!

@@ -6,7 +6,7 @@ Use this checklist **before** running `terraform apply` or `terraform destroy`.
 
 ---
 
-## 📋 Pre-Deployment Checklist
+## Pre-Deployment Checklist
 
 ### 1. Code Configuration
 
@@ -141,7 +141,7 @@ Use this checklist **before** running `terraform apply` or `terraform destroy`.
 
 ---
 
-## 🗑️ Pre-Destroy Checklist
+## Pre-Destroy Checklist
 
 ### 1. Confirm Intention
 
@@ -219,50 +219,50 @@ Use this checklist **before** running `terraform apply` or `terraform destroy`.
 
 ---
 
-## ⚠️ Common Mistakes to Avoid
+## Common Mistakes to Avoid
 
 ### Code Configuration Mistakes
 
-❌ **Setting `force_destroy = false` or not setting it at all**
+**Setting `force_destroy = false` or not setting it at all**
 ```hcl
 # DON'T DO THIS
 resource "databricks_metastore" "this" {
-  force_destroy = false  # ❌ Will block destroy
+  force_destroy = false  # Bad: Will block destroy
 }
 ```
 
-✅ **Always use `force_destroy = true`**
+**Always use `force_destroy = true`**
 ```hcl
 # DO THIS
 resource "databricks_metastore" "this" {
-  force_destroy = true  # ✅ Allows clean destroy
+  force_destroy = true  # Good: Allows clean destroy
 }
 ```
 
 ---
 
-❌ **Adding `lifecycle.ignore_changes` for `force_destroy`**
+**Adding `lifecycle.ignore_changes` for `force_destroy`**
 ```hcl
 # DON'T DO THIS
 resource "databricks_metastore" "this" {
   force_destroy = true
   lifecycle {
-    ignore_changes = [force_destroy]  # ❌ Prevents destroy
+    ignore_changes = [force_destroy]  # Bad: Prevents destroy
   }
 }
 ```
 
-✅ **No lifecycle ignore for force_destroy**
+**No lifecycle ignore for force_destroy**
 ```hcl
 # DO THIS
 resource "databricks_metastore" "this" {
-  force_destroy = true  # ✅ No lifecycle block
+  force_destroy = true  # Good: No lifecycle block
 }
 ```
 
 ---
 
-❌ **Creating NSG rules for Non-PL deployments**
+**Creating NSG rules for Non-PL deployments**
 ```hcl
 # DON'T DO THIS
 resource "azurerm_network_security_rule" "example" {
@@ -270,32 +270,32 @@ resource "azurerm_network_security_rule" "example" {
 }
 ```
 
-✅ **Conditional NSG rules for Private Link only**
+**Conditional NSG rules for Private Link only**
 ```hcl
 # DO THIS
 resource "azurerm_network_security_rule" "example" {
-  count = var.enable_private_link ? 1 : 0  # ✅ Only for PL
+  count = var.enable_private_link ? 1 : 0  # Good: Only for PL
 }
 ```
 
 ---
 
-❌ **Storage account with `default_action = "Deny"` initially**
+**Storage account with `default_action = "Deny"` initially**
 ```hcl
 # DON'T DO THIS
 resource "azurerm_storage_account" "example" {
   network_rules {
-    default_action = "Deny"  # ❌ Blocks container creation
+    default_action = "Deny"  # Bad: Blocks container creation
   }
 }
 ```
 
-✅ **Allow initial access for container creation**
+**Allow initial access for container creation**
 ```hcl
 # DO THIS
 resource "azurerm_storage_account" "example" {
   network_rules {
-    default_action = "Allow"  # ✅ Required initially
+    default_action = "Allow"  # Good: Required initially
   }
 }
 ```
@@ -304,27 +304,27 @@ resource "azurerm_storage_account" "example" {
 
 ### Environment Mistakes
 
-❌ **Missing `DATABRICKS_AZURE_TENANT_ID`**
+**Missing `DATABRICKS_AZURE_TENANT_ID`**
 ```bash
 # DON'T FORGET THIS
-export DATABRICKS_AZURE_TENANT_ID="..."  # ❌ Often forgotten
+export DATABRICKS_AZURE_TENANT_ID="..."  # Bad: Often forgotten
 ```
 
-✅ **Always export tenant ID**
+**Always export tenant ID**
 ```bash
 # DO THIS
-export DATABRICKS_AZURE_TENANT_ID="$ARM_TENANT_ID"  # ✅ Required
+export DATABRICKS_AZURE_TENANT_ID="$ARM_TENANT_ID"  # Good: Required
 ```
 
 ---
 
-❌ **Running destroy without checking metastore usage**
+**Running destroy without checking metastore usage**
 ```bash
 # DON'T DO THIS
-terraform destroy -auto-approve  # ❌ May delete shared metastore
+terraform destroy -auto-approve  # Bad: May delete shared metastore
 ```
 
-✅ **Check metastore dependencies first**
+**Check metastore dependencies first**
 ```bash
 # DO THIS
 databricks metastores get --metastore-id <id> --account-id <account-id>
@@ -334,17 +334,17 @@ terraform destroy -auto-approve
 
 ---
 
-## 🎯 Success Criteria
+## Success Criteria
 
 ### Deployment Success
 
-✅ All resources created without errors
-✅ Workspace accessible at returned URL
-✅ Unity Catalog metastore assigned
-✅ External location created and accessible
-✅ **NCC attached to workspace** (serverless-ready)
-✅ Tags applied to all resources
-✅ Random suffixes prevent naming conflicts
+- All resources created without errors
+- Workspace accessible at returned URL
+- Unity Catalog metastore assigned
+- External location created and accessible
+- **NCC attached to workspace** (serverless-ready)
+- Tags applied to all resources
+- Random suffixes prevent naming conflicts
 
 **Verify NCC**:
 ```bash
@@ -357,21 +357,21 @@ terraform output ncc_name
 
 ### Post-Deployment (Optional)
 
-⏸️ **Enable Serverless Compute**:
+**Enable Serverless Compute**:
 - **Non-PL**: See [deployments/non-pl/docs/SERVERLESS-SETUP.md](../deployments/non-pl/docs/SERVERLESS-SETUP.md)
 - **Full-Private**: See [deployments/full-private/docs/04-SERVERLESS-SETUP.md](../deployments/full-private/docs/04-SERVERLESS-SETUP.md)
 
 ### Destroy Success
 
-✅ All Azure resources deleted
-✅ No orphaned resources remain
-✅ Terraform state is clean
-✅ (Optional) Metastore deleted if intended
-✅ NCC binding removed (or kept for reuse)
+- All Azure resources deleted
+- No orphaned resources remain
+- Terraform state is clean
+- (Optional) Metastore deleted if intended
+- NCC binding removed (or kept for reuse)
 
 ---
 
-## 📞 Need Help?
+## Need Help?
 
 If you encounter issues:
 

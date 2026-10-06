@@ -18,11 +18,11 @@ The CMK module enables encryption of Databricks workspace data using customer-ma
 
 ### Key Features
 
-✅ **Auto-Rotation** - Keys automatically rotate every 90 days
-✅ **Flexible** - Create new Key Vault or use existing
-✅ **Comprehensive** - All three scopes supported
-✅ **Access Control** - Automatic access policy configuration
-✅ **Single Apply** - Works in one `terraform apply` for fresh deployments
+- **Auto-Rotation** - Keys automatically rotate every 90 days
+- **Flexible** - Create new Key Vault or use existing
+- **Comprehensive** - All three scopes supported
+- **Access Control** - Automatic access policy configuration
+- **Single Apply** - Works in one `terraform apply` for fresh deployments
 
 ---
 
@@ -51,13 +51,13 @@ The CMK module enables encryption of Databricks workspace data using customer-ma
 ┌─────────────────────────────────────────────────────────┐
 │           Azure Databricks Workspace                     │
 │  ┌────────────────────────────────────────────┐         │
-│  │ 🔒 Managed Services (Notebooks, Secrets)   │         │
+│  │ Managed Services (Notebooks, Secrets)   │         │
 │  └────────────────────────────────────────────┘         │
 │  ┌────────────────────────────────────────────┐         │
-│  │ 🔒 Managed Disks (Cluster VM Data Disks)   │         │
+│  │ Managed Disks (Cluster VM Data Disks)   │         │
 │  └────────────────────────────────────────────┘         │
 │  ┌────────────────────────────────────────────┐         │
-│  │ 🔒 DBFS Root (Workspace Storage)           │         │
+│  │ DBFS Root (Workspace Storage)           │         │
 │  └────────────────────────────────────────────┘         │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -96,7 +96,7 @@ sequenceDiagram
 
     TF->>DBX: 11. Apply DBFS root CMK
 
-    Note over TF,DBFS: ✅ Workspace Ready with CMK
+    Note over TF,DBFS: Workspace Ready with CMK
 
     rect rgb(240, 255, 240)
     Note over DBX,KV: Runtime: Encryption in Action
@@ -306,7 +306,7 @@ terraform apply
 
 ### Disable CMK (Not Recommended)
 
-⚠️ **Warning**: Cannot disable CMK once enabled. You must destroy and recreate workspace.
+**Warning**: Cannot disable CMK once enabled. You must destroy and recreate workspace.
 
 ---
 
@@ -334,14 +334,14 @@ terraform apply
 
 ## Best Practices
 
-✅ **DO:**
+**DO:**
 - Enable all three scopes for comprehensive encryption
 - Use auto-rotation (90-day default)
 - Set `create_key_vault = true` for new deployments
 - Enable purge protection on Key Vault
 - Tag Key Vault appropriately
 
-❌ **DON'T:**
+**DON'T:**
 - Disable purge protection on Key Vault
 - Share Key Vault across multiple workspaces
 - Delete Key Vault before workspace

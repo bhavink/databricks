@@ -1,7 +1,7 @@
 # Network Connectivity Configuration (NCC) Module
 
 **Module Path**: `modules/ncc`
-**Status**: ✅ **Production Ready**
+**Status**: **Production Ready**
 **Mandatory**: Yes (like Unity Catalog)
 
 ---
@@ -20,10 +20,10 @@ NCC enables **serverless compute** (SQL Warehouses, Serverless Notebooks) to sec
 ### Why is NCC Mandatory?
 
 Just like Unity Catalog, NCC is a **required component** for modern Databricks workspaces:
-- ✅ Enables serverless compute capabilities
-- ✅ Provides secure connectivity without VNet injection
-- ✅ Supports both Service Endpoints and Private Link
-- ✅ Future-proofs the workspace for serverless adoption
+- Enables serverless compute capabilities
+- Provides secure connectivity without VNet injection
+- Supports both Service Endpoints and Private Link
+- Future-proofs the workspace for serverless adoption
 
 ---
 
@@ -88,7 +88,7 @@ The NCC module creates **2 resources**:
 ### Resources NOT Created
 
 The module **does NOT create**:
-- ❌ `databricks_mws_ncc_private_endpoint_rule` - Private Endpoint rules
+- `databricks_mws_ncc_private_endpoint_rule` - Private Endpoint rules
 
 **Why?**: PE rules require manual approval in Azure Portal (cross-account connections). They are created:
 - **Manually** by customer in Databricks UI
@@ -163,11 +163,11 @@ None. The module has minimal configuration by design.
 
 ### Classic Clusters
 
-✅ **No setup required** - Classic clusters work immediately using VNet connectivity.
+**No setup required** - Classic clusters work immediately using VNet connectivity.
 
 ### Serverless Compute
 
-⏸️ **Manual setup required** - Choose one of two options:
+**Manual setup required** - Choose one of two options:
 
 #### **Option A: Service Endpoints** (Recommended for Non-PL)
 
@@ -343,7 +343,7 @@ terraform destroy
 
 ### 1. Always Include NCC
 
-✅ **DO**: Include NCC in all deployments
+**DO**: Include NCC in all deployments
 ```hcl
 module "ncc" {
   source = "../../modules/ncc"
@@ -351,7 +351,7 @@ module "ncc" {
 }
 ```
 
-❌ **DON'T**: Make NCC optional or conditional
+**DON'T**: Make NCC optional or conditional
 
 **Reason**: NCC is mandatory for serverless, which is increasingly the default compute mode.
 
@@ -359,7 +359,7 @@ module "ncc" {
 
 ### 2. Depend on Unity Catalog
 
-✅ **DO**: Add dependency on Unity Catalog
+**DO**: Add dependency on Unity Catalog
 ```hcl
 module "ncc" {
   # ...
@@ -367,7 +367,7 @@ module "ncc" {
 }
 ```
 
-❌ **DON'T**: Create NCC before workspace is fully initialized
+**DON'T**: Create NCC before workspace is fully initialized
 
 **Reason**: NCC binding requires a fully created workspace with UC.
 
@@ -375,13 +375,13 @@ module "ncc" {
 
 ### 3. Don't Create PE Rules in Terraform
 
-✅ **DO**: Leave PE rules for manual setup
+**DO**: Leave PE rules for manual setup
 ```hcl
 # NCC module creates config + binding only
 # NO databricks_mws_ncc_private_endpoint_rule resources
 ```
 
-❌ **DON'T**: Try to automate PE rule creation
+**DON'T**: Try to automate PE rule creation
 
 **Reason**: Requires manual approval in Azure Portal (cross-account).
 
@@ -389,12 +389,12 @@ module "ncc" {
 
 ### 4. Document Serverless Setup
 
-✅ **DO**: Provide clear serverless setup documentation
+**DO**: Provide clear serverless setup documentation
 ```markdown
 Post-deployment: See docs/SERVERLESS-SETUP.md for enabling serverless compute
 ```
 
-❌ **DON'T**: Assume users know how to enable serverless
+**DON'T**: Assume users know how to enable serverless
 
 **Reason**: Serverless requires additional steps not automated by Terraform.
 
@@ -500,4 +500,4 @@ output "serverless_setup_required" {
 ---
 
 **Module**: NCC (Network Connectivity Configuration)
-**Status**: ✅ Production Ready
+**Status**: Production Ready

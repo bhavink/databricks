@@ -2,7 +2,7 @@
 
 This is the **modular version** of the AWS Databricks Private Link deployment. It uses Terraform modules for better organization, reusability, and maintainability.
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 modular-version/
@@ -20,7 +20,7 @@ modular-version/
     └── databricks_workspace/ # Workspace creation and configuration
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Prerequisites
 
@@ -116,9 +116,9 @@ terraform plan
 terraform apply
 ```
 
-**⏰ Important:** After deployment, wait 20 minutes for backend Private Link to stabilize before creating clusters.
+**Important:** After deployment, wait 20 minutes for backend Private Link to stabilize before creating clusters.
 
-## 📦 Modules Overview
+## Modules Overview
 
 ### 1. Networking Module
 
@@ -177,7 +177,7 @@ Creates the Databricks workspace:
 - Workspace creation
 - Workspace admin assignment
 
-## 🔄 Module Dependencies
+## Module Dependencies
 
 ```
 Networking ─┐
@@ -189,7 +189,7 @@ IAM ────────┤
 KMS ────────┘
 ```
 
-## 📝 Outputs
+## Outputs
 
 After deployment, Terraform provides:
 
@@ -205,7 +205,7 @@ View outputs:
 terraform output
 ```
 
-## 🔧 Customization
+## Customization
 
 ### Enable KMS Encryption
 
@@ -223,7 +223,7 @@ create_workspace_catalog = false
 
 Edit the CIDR blocks in `terraform.tfvars` to match your requirements.
 
-## 🧹 Clean Destruction
+## Clean Destruction
 
 To cleanly destroy all resources:
 
@@ -242,17 +242,17 @@ To cleanly destroy all resources:
    terraform destroy
    ```
 
-## 🆚 vs. Root Version
+## vs. Root Version
 
 | Aspect | Modular Version | Root Version |
 |--------|----------------|--------------|
 | Organization | 6 modules, ~30 files | Single directory, ~15 files |
-| Readability | ✅ Excellent | Good |
-| Reusability | ✅ High | Limited |
-| Maintenance | ✅ Easy | Moderate |
+| Readability | Excellent | Good |
+| Reusability | High | Limited |
+| Maintenance | Easy | Moderate |
 | Complexity | Moderate | Simple |
 
-## 📚 Module Documentation
+## Module Documentation
 
 Each module has its own README with:
 - Detailed resource descriptions
@@ -263,16 +263,16 @@ Each module has its own README with:
 
 See `modules/*/README.md` for module-specific documentation.
 
-## 🔐 Security Best Practices
+## Security Best Practices
 
-✅ All S3 buckets have public access blocked
-✅ VPC endpoints for private connectivity
-✅ Security groups follow least-privilege principle
-✅ IAM roles use Databricks-generated policies
-✅ Optional KMS encryption for data at rest
-✅ Unity Catalog for data governance
+- All S3 buckets have public access blocked
+- VPC endpoints for private connectivity
+- Security groups follow least-privilege principle
+- IAM roles use Databricks-generated policies
+- Optional KMS encryption for data at rest
+- Unity Catalog for data governance
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Issue: Terraform can't find modules
 
@@ -286,23 +286,23 @@ See `modules/*/README.md` for module-specific documentation.
 
 **Solution:** Verify workspace admin email is correct and service principal has account admin role.
 
-## 📞 Support
+## Support
 
 For issues or questions:
 1. Check module READMEs for specific module documentation
 2. Review Databricks documentation: https://docs.databricks.com
 3. Check Terraform AWS provider docs: https://registry.terraform.io/providers/hashicorp/aws
 
-## 🎯 Next Steps
+## Next Steps
 
 After successful deployment:
 
-1. ✅ Wait 20 minutes for stabilization
-2. ✅ Access workspace URL from outputs
-3. ✅ Log in with workspace admin email
-4. ✅ Verify Unity Catalog catalog is available
-5. ✅ Create your first cluster
-6. ✅ Start building!
+1. Wait 20 minutes for stabilization
+2. Access workspace URL from outputs
+3. Log in with workspace admin email
+4. Verify Unity Catalog catalog is available
+5. Create your first cluster
+6. Start building!
 
 ---
 

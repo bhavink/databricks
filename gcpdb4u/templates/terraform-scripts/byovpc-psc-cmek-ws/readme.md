@@ -23,15 +23,15 @@ A Terraform configuration for deploying the **most secure** Databricks workspace
 
 This deployment creates the **most secure Databricks workspace** configuration with:
 
-- ✅ **Customer-Managed VPC (BYOVPC)** with custom subnets
-- ✅ **Private Service Connect (PSC)** for fully private connectivity
-- ✅ **Customer-Managed Encryption Keys (CMEK)** using Google Cloud KMS
-- ✅ **Private DNS** for workspace domain resolution
-- ✅ **No Public Internet Access** to control plane (optional)
-- ✅ **Encrypted Storage** for DBFS and system storage
-- ✅ **Encrypted Notebooks** in control plane
-- ✅ **IP Access Lists** for additional security layer
-- ✅ **Workspace Admin Assignment** for initial user
+- **Customer-Managed VPC (BYOVPC)** with custom subnets
+- **Private Service Connect (PSC)** for fully private connectivity
+- **Customer-Managed Encryption Keys (CMEK)** using Google Cloud KMS
+- **Private DNS** for workspace domain resolution
+- **No Public Internet Access** to control plane (optional)
+- **Encrypted Storage** for DBFS and system storage
+- **Encrypted Notebooks** in control plane
+- **IP Access Lists** for additional security layer
+- **Workspace Admin Assignment** for initial user
 
 > **Important**: This configuration requires **both PSC and CMEK** to be enabled for your Databricks account. Contact Databricks support to enable these features.
 
@@ -65,7 +65,7 @@ graph TB
 
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Managed - Encrypted & Private"
-            GCE[GCE VMs<br/>🔒 Encrypted with CMEK]
+            GCE[GCE VMs<br/> Encrypted with CMEK]
             GCS[GCS Buckets<br/>Encrypted with CMEK]
             DISK[Persistent Disks<br/>Encrypted with CMEK]
         end
@@ -127,11 +127,11 @@ graph TB
 
 This configuration does **NOT** include:
 
-- ❌ KMS key creation (assumes key already exists - use `../byovpc-cmek-ws/` for reference)
-- ❌ Unity Catalog setup
-- ❌ VPC creation (assumes VPC already exists)
-- ❌ Subnet creation (assumes subnets already exist)
-- ❌ Firewall rules configuration
+- KMS key creation (assumes key already exists - use `../byovpc-cmek-ws/` for reference)
+- Unity Catalog setup
+- VPC creation (assumes VPC already exists)
+- Subnet creation (assumes subnets already exist)
+- Firewall rules configuration
 
 For these features, see:
 - **KMS Key Creation**: `../byovpc-cmek-ws/`
@@ -1295,35 +1295,35 @@ After deploying your secure workspace:
 
 ### 1. Key Management
 
-- ✅ Never disable keys without backup plan
-- ✅ Enable automatic key rotation
-- ✅ Monitor key usage via Cloud Audit Logs
-- ✅ Limit KMS admin access
-- ✅ Document key recovery procedures
+- Never disable keys without backup plan
+- Enable automatic key rotation
+- Monitor key usage via Cloud Audit Logs
+- Limit KMS admin access
+- Document key recovery procedures
 
 ### 2. Network Security
 
-- ✅ Keep workspace fully private (`public_access_enabled = false`)
-- ✅ Use least-privilege IP allowlists
-- ✅ Implement VPN with strong authentication
-- ✅ Enable VPC Flow Logs
-- ✅ Monitor PSC connection health
+- Keep workspace fully private (`public_access_enabled = false`)
+- Use least-privilege IP allowlists
+- Implement VPN with strong authentication
+- Enable VPC Flow Logs
+- Monitor PSC connection health
 
 ### 3. Access Control
 
-- ✅ Use service accounts for automation
-- ✅ Implement RBAC in workspace
-- ✅ Enable MFA for admin users
-- ✅ Regular access reviews
-- ✅ Audit log monitoring
+- Use service accounts for automation
+- Implement RBAC in workspace
+- Enable MFA for admin users
+- Regular access reviews
+- Audit log monitoring
 
 ### 4. Compliance
 
-- ✅ Document security controls
-- ✅ Regular security assessments
-- ✅ Compliance scanning
-- ✅ Incident response procedures
-- ✅ Data classification and handling
+- Document security controls
+- Regular security assessments
+- Compliance scanning
+- Incident response procedures
+- Data classification and handling
 
 ---
 

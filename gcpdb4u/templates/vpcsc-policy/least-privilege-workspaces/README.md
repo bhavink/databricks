@@ -15,11 +15,11 @@ Least Privilege Workspaces are Databricks deployments with:
 ## When to Use LPW Policies
 
 Use Least Privilege Workspace policies when:
-- ✅ Your organization requires the highest level of security controls
-- ✅ You need to explicitly declare all allowed traffic patterns
-- ✅ Regulatory requirements mandate defense-in-depth with explicit approvals
-- ✅ You've coordinated with Databricks support for LPW setup
-- ❌ **NOT for standard deployments** - use the regular policies instead
+- Your organization requires the highest level of security controls
+- You need to explicitly declare all allowed traffic patterns
+- Regulatory requirements mandate defense-in-depth with explicit approvals
+- You've coordinated with Databricks support for LPW setup
+- **NOT for standard deployments** - use the regular policies instead
 
 ## Key Differences from Standard Policies
 
@@ -122,7 +122,7 @@ VPC-SC policy for creating Least Privilege Workspaces during workspace creation 
 
 ### Operational Complexity
 
-⚠️ **NOTE**: Least Privilege Workspaces are more involved than the standard templates:
+**NOTE**: Least Privilege Workspaces are more involved than the standard templates:
 - Requires custom VPC-SC configuration per deployment
 - Every access pattern must be explicitly declared in the policy
 - Ongoing policy maintenance as workloads change
@@ -232,8 +232,8 @@ For LPW deployments, always engage Databricks support:
 ## Summary
 
 Least Privilege Workspaces provide maximum security for Databricks deployments but require:
-- ✅ Explicit definition of all allowed access patterns in the VPC-SC policy
-- ✅ Higher operational complexity
+- Explicit definition of all allowed access patterns in the VPC-SC policy
+- Higher operational complexity
 
 **For most deployments, use the standard VPC-SC policies in the parent folder instead.**
 

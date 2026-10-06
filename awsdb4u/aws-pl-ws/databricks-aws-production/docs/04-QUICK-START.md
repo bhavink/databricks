@@ -3,16 +3,16 @@
 > **Deploy Fast**: Minimal steps to get your workspace running.
 
 ```
-⏱️ 5 minutes setup + 15 minutes deployment = 20 minutes total
+5 minutes setup + 15 minutes deployment = 20 minutes total
 ```
 
 ---
 
 ## Prerequisites Complete?
 
-✅ [00-PREREQUISITES.md](00-PREREQUISITES.md) - System configured
-✅ `TF_VAR_*` environment variables set
-✅ AWS credentials working
+- [00-PREREQUISITES.md](00-PREREQUISITES.md) - System configured
+- `TF_VAR_*` environment variables set
+- AWS credentials working
 
 **Not ready?** → [00-PREREQUISITES.md](00-PREREQUISITES.md)
 
@@ -90,7 +90,7 @@ terraform apply
 # Review the plan, then type: yes
 ```
 
-⏱️ **Wait**: 15-20 minutes for deployment
+**Wait**: 15-20 minutes for deployment
 
 ---
 
@@ -110,7 +110,7 @@ terraform output workspace_url
 
 1. **Open workspace URL** from output
 2. **Log in** with your Databricks account credentials
-3. **⏰ WAIT 20 MINUTES** before creating clusters (Private Link DNS propagation)
+3. **WAIT 20 MINUTES** before creating clusters (Private Link DNS propagation)
 
 **Tip**: Bookmark the workspace URL for easy access
 
@@ -143,7 +143,7 @@ enable_workspace_cmk = true  # DBFS/EBS/MS
 region = "us-east-1"
 ```
 
-VPC endpoint service names auto-detected ✅
+VPC endpoint service names auto-detected
 
 ---
 
@@ -180,10 +180,10 @@ terraform destroy
 
 ## Next Steps
 
-✅ **Understand architecture** → [01-ARCHITECTURE.md](01-ARCHITECTURE.md)
-✅ **Learn IAM roles** → [02-IAM-SECURITY.md](02-IAM-SECURITY.md)
-✅ **Review network/security** → [03-NETWORK-ENCRYPTION.md](03-NETWORK-ENCRYPTION.md)
-✅ **Troubleshooting** → [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md)
+- **Understand architecture** → [01-ARCHITECTURE.md](01-ARCHITECTURE.md)
+- **Learn IAM roles** → [02-IAM-SECURITY.md](02-IAM-SECURITY.md)
+- **Review network/security** → [03-NETWORK-ENCRYPTION.md](03-NETWORK-ENCRYPTION.md)
+- **Troubleshooting** → [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md)
 
 ---
 

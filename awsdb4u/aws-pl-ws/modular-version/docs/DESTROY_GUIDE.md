@@ -30,11 +30,11 @@ terraform destroy
 ```
 
 The script will:
-1. ✅ Find all EC2 instances in your VPC
-2. ✅ Terminate running Databricks cluster nodes
-3. ✅ Wait for termination to complete
-4. ✅ Delete unattached ENIs
-5. ✅ Ensure clean state for Terraform destroy
+1. Find all EC2 instances in your VPC
+2. Terminate running Databricks cluster nodes
+3. Wait for termination to complete
+4. Delete unattached ENIs
+5. Ensure clean state for Terraform destroy
 
 ---
 

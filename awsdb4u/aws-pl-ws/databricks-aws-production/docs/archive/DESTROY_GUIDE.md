@@ -1,9 +1,9 @@
 # Terraform Destroy Guide
 
 > **Related Documentation:**
-> - 🚀 [QUICK_START.md](QUICK_START.md) - Quick deployment reference
-> - 📐 [ARCHITECTURE.md](../ARCHITECTURE.md) - Understand what resources are created
-> - 📁 [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) - See all modules that will be destroyed
+> - [QUICK_START.md](QUICK_START.md) - Quick deployment reference
+> - [ARCHITECTURE.md](../ARCHITECTURE.md) - Understand what resources are created
+> - [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) - See all modules that will be destroyed
 
 This guide helps you safely destroy your Databricks Private Link infrastructure without encountering dependency issues.
 
@@ -36,11 +36,11 @@ terraform destroy
 ```
 
 The script would:
-1. ✅ Find all EC2 instances in your VPC
-2. ✅ Terminate running Databricks cluster nodes
-3. ✅ Wait for termination to complete
-4. ✅ Delete unattached ENIs
-5. ✅ Ensure clean state for Terraform destroy
+1. Find all EC2 instances in your VPC
+2. Terminate running Databricks cluster nodes
+3. Wait for termination to complete
+4. Delete unattached ENIs
+5. Ensure clean state for Terraform destroy
 
 **Note:** If you don't have the pre-destroy script, proceed to Option 2 for manual cleanup.
 

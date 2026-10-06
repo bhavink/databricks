@@ -36,7 +36,7 @@ wa-agent verify --tf-json state.json --baseline <baseline-id>
 wa-agent new --baseline <baseline-id> --out <new-dir> --set name=value   # tested Terraform + run book; the user runs it
 ```
 
-Relay fix caveats (`⚠️ Before you apply`) and maturity labels verbatim.
+Relay fix caveats (**Before you apply**) and maturity labels verbatim.
 
 Run `preflight` (MCP) or `wa-agent doctor --workspace <name>` before a live scan and relay its fixes.
 Ask the user which baseline applies if they haven't said. Never invent a

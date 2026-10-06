@@ -11,13 +11,13 @@ The networking module provides flexible network infrastructure for Azure Databri
 
 ### Key Features
 
-- ✅ **BYOV Support**: Use existing VNet/Subnets/NSG or create new
-- ✅ **Secure Cluster Connectivity (NPIP)**: Always enabled, no public IPs on clusters
-- ✅ **Subnet Delegation**: Automatically added to all subnets
-- ✅ **NAT Gateway**: Optional for internet egress (Non-PL pattern)
-- ✅ **Private Link Ready**: Conditional NSG rules for PL deployments
-- ✅ **Service Endpoints**: Enabled for Azure Storage and Key Vault
-- ✅ **Production-Ready**: Battle-tested NSG rules and configurations
+- **BYOV Support**: Use existing VNet/Subnets/NSG or create new
+- **Secure Cluster Connectivity (NPIP)**: Always enabled, no public IPs on clusters
+- **Subnet Delegation**: Automatically added to all subnets
+- **NAT Gateway**: Optional for internet egress (Non-PL pattern)
+- **Private Link Ready**: Conditional NSG rules for PL deployments
+- **Service Endpoints**: Enabled for Azure Storage and Key Vault
+- **Production-Ready**: Battle-tested NSG rules and configurations
 
 ---
 
@@ -126,8 +126,8 @@ The networking module provides flexible network infrastructure for Azure Databri
 | `enable_nat_gateway` | bool | `true` | Create NAT Gateway for egress |
 
 **When to Enable**:
-- ✅ **Non-PL Pattern**: Enable for internet access (PyPI, Maven, etc.)
-- ❌ **Private Link Pattern**: Disable (air-gapped, no internet)
+- **Non-PL Pattern**: Enable for internet access (PyPI, Maven, etc.)
+- **Private Link Pattern**: Disable (air-gapped, no internet)
 
 ### Required Configuration
 
@@ -235,8 +235,8 @@ output "network_configuration" {
 
 Automatically enabled on both public and private subnets:
 
-- ✅ `Microsoft.Storage` - Azure Storage access
-- ✅ `Microsoft.KeyVault` - Key Vault access (for CMK)
+- `Microsoft.Storage` - Azure Storage access
+- `Microsoft.KeyVault` - Key Vault access (for CMK)
 
 **Benefits**:
 - Direct Azure backbone routing
@@ -266,9 +266,9 @@ delegation {
 ```
 
 **Important**:
-- ✅ Applied to **new** subnets automatically
-- ✅ Applied to **existing** subnets via `azurerm_subnet_delegation` resource
-- ❌ Cannot be removed once Databricks workspace is deployed
+- Applied to **new** subnets automatically
+- Applied to **existing** subnets via `azurerm_subnet_delegation` resource
+- Cannot be removed once Databricks workspace is deployed
 
 ---
 
@@ -372,9 +372,9 @@ module "networking" {
 ### Security
 
 1. **NSG Rules**
-   - ✅ Let Databricks manage rules (Non-PL)
-   - ✅ Use module defaults (Private Link)
-   - ❌ Don't manually add rules to Databricks NSG
+   - Let Databricks manage rules (Non-PL)
+   - Use module defaults (Private Link)
+   - Don't manually add rules to Databricks NSG
 
 2. **Service Endpoints**
    - Always enabled for better performance

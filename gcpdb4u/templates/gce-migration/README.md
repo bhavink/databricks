@@ -1,6 +1,6 @@
 # Databricks GCE Compute Migration
 
-> ⚠️ **DEPRECATED — historical reference only.** The GKE-based classic compute plane has been
+> **DEPRECATED — historical reference only.** The GKE-based classic compute plane has been
 > retired; all classic compute on GCP now runs on **GCE (Compute Engine)**. This migration is
 > complete, so the content below is retained only for historical context. For current deployments,
 > use the GCE-based patterns under `templates/terraform-scripts/`.
@@ -26,18 +26,18 @@ Databricks is migrating the underlying infrastructure for classic compute cluste
 **Type**: IAM conditional policy or org policy constraint (NOT a VPC Service Controls policy)
 
 **When Needed**:
-- ✅ During GCE migration for customer-managed VPCs
-- ✅ If you want Databricks to automatically create firewall rules
-- ❌ NOT needed if you manually pre-create the firewall rule
+- During GCE migration for customer-managed VPCs
+- If you want Databricks to automatically create firewall rules
+- NOT needed if you manually pre-create the firewall rule
 
 ## Do You Need This?
 
-### ✅ You NEED this migration if:
+### You NEED this migration if:
 - You use **customer-managed VPCs** (Shared VPC or standalone VPC)
 - You have **classic compute** Databricks workspaces
 - You received notification about the GCE migration from Databricks
 
-### ❌ You DON'T need this if:
+### You DON'T need this if:
 - You use **Databricks-managed VPCs**
 - You only use **serverless compute** (no classic clusters)
 - You already completed the migration
@@ -83,10 +83,10 @@ gcloud compute firewall-rules create databricks-cmv1-worker-to-worker-gce \
 - `[REGION]`: Your Databricks region (e.g., `us-east1`, `us-central1`)
 
 **Advantages**:
-- ✅ Full control over firewall rule
-- ✅ No additional policy required
-- ✅ Can customize rule parameters
-- ✅ Rule persists after migration
+- Full control over firewall rule
+- No additional policy required
+- Can customize rule parameters
+- Rule persists after migration
 
 ### Option 2: Let Databricks Create the Rule (USE POLICY FILE)
 
@@ -111,13 +111,13 @@ Use the `cmv1-gce-policy.yaml` to allow Databricks to automatically create the f
 4. **Remove policy** after migration is complete
 
 **Advantages**:
-- ✅ Automated by Databricks
-- ✅ Less manual work
+- Automated by Databricks
+- Less manual work
 
 **Disadvantages**:
-- ❌ Requires additional IAM policy
-- ❌ Temporary permission grant to Databricks
-- ❌ Less control over rule parameters
+- Requires additional IAM policy
+- Temporary permission grant to Databricks
+- Less control over rule parameters
 
 ## Migration Workflow
 
@@ -242,7 +242,7 @@ gcloud compute firewall-rules describe databricks-cmv1-worker-to-worker-gce
 
 ## Important Notes
 
-### ⚠️ This is NOT a VPC Service Controls Policy
+### This is NOT a VPC Service Controls Policy
 
 The `cmv1-gce-policy.yaml` file is **NOT** a VPC Service Controls (VPC-SC) policy. It's an **IAM conditional policy** or **org policy constraint**.
 
@@ -250,16 +250,16 @@ The `cmv1-gce-policy.yaml` file is **NOT** a VPC Service Controls (VPC-SC) polic
 - VPC-SC ingress/egress policies (in `/templates/vpcsc-policy/`)
 - VPC firewall rules (in `/templates/firewall-rules/` or managed by gcloud)
 
-### ⚠️ Keep the Firewall Rule After Migration
+### Keep the Firewall Rule After Migration
 
 The `databricks-cmv1-worker-to-worker-gce` firewall rule is **required for ongoing operations**, not just migration:
-- ✅ Keep the rule permanently
-- ❌ Do NOT delete after migration
-- ✅ Required for all future cluster launches
+- Keep the rule permanently
+- Do NOT delete after migration
+- Required for all future cluster launches
 
 Only the **policy file** (cmv1-gce-policy.yaml) should be removed after migration if you used Option 2.
 
-### ⚠️ Region-Specific Configuration
+### Region-Specific Configuration
 
 Each region has its own delegate-sa. If you have workspaces in multiple regions:
 - Create firewall rule per region with correct delegate-sa

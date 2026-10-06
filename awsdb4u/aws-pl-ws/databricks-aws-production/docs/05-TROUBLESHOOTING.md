@@ -7,7 +7,7 @@
 ## Quick Issue Lookup
 
 ```
-🔍 Use Ctrl+F to find your error message
+Use Ctrl+F to find your error message
 ```
 
 | Category | Jump To |
@@ -255,7 +255,7 @@ Layer 2 - Workspace CMK (enable_workspace_cmk):
 You can enable:
 - Neither (AWS-managed encryption)
 - One or the other
-- Both simultaneously ✅
+- Both simultaneously
 ```
 
 **Docs**: [Encryption Layers](03-NETWORK-ENCRYPTION.md#3-encryption-layers)
@@ -267,15 +267,15 @@ You can enable:
 **Answer**:
 ```
 AWS Automatic Rotation (enabled by default):
-✅ Rotates key material annually
-✅ ARN stays the same
-✅ No action required
-✅ Applies to both encryption layers
+Rotates key material annually
+ARN stays the same
+No action required
+Applies to both encryption layers
 
 Manual Rotation to Different Key:
-✅ Managed Services CMK: Supported
-❌ Storage CMK: NOT supported (only auto-rotation)
-✅ S3 Bucket keys: Update bucket config
+Managed Services CMK: Supported
+Storage CMK: NOT supported (only auto-rotation)
+S3 Bucket keys: Update bucket config
 ```
 
 **Databricks Docs**: [Key Rotation](https://docs.databricks.com/aws/en/security/keys/configure-customer-managed-keys#rotate-an-existing-key)
@@ -412,18 +412,18 @@ Error: Invalid value for variable "vpc_cidr": VPC CIDR overlaps with Databricks 
 
 **Reserved CIDRs** (avoid these):
 ```
-❌ 127.187.216.0/24  (Databricks internal)
-❌ 192.168.216.0/24  (Databricks internal)
-❌ 198.18.216.0/24   (Databricks internal)
-❌ 172.17.0.0/16     (Docker default)
+127.187.216.0/24  (Databricks internal)
+192.168.216.0/24  (Databricks internal)
+198.18.216.0/24   (Databricks internal)
+172.17.0.0/16     (Docker default)
 ```
 
 **Solution**:
 ```hcl
 # Use different CIDR
-vpc_cidr = "10.0.0.0/22"  # ✅ Good
-vpc_cidr = "172.16.0.0/16" # ✅ Good
-vpc_cidr = "192.168.0.0/16" # ✅ Good (avoid .216 subnet)
+vpc_cidr = "10.0.0.0/22"  # Good: Good
+vpc_cidr = "172.16.0.0/16" # Good: Good
+vpc_cidr = "192.168.0.0/16" # Good: Good (avoid .216 subnet)
 ```
 
 ---

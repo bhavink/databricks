@@ -1,10 +1,10 @@
 # Deployment Guide: Using This Databricks Private Link Implementation
 
 > **Related Documentation:**
-> - 🚀 [docs/QUICK_START.md](docs/QUICK_START.md) - Quick deployment for first-time users
-> - 📐 [ARCHITECTURE.md](ARCHITECTURE.md) - Complete architecture diagrams and traffic flows
-> - 🧹 [docs/DESTROY_GUIDE.md](docs/DESTROY_GUIDE.md) - Safe destruction procedures
-> - 📁 [docs/DIRECTORY_STRUCTURE.md](docs/DIRECTORY_STRUCTURE.md) - File organization reference
+> - [docs/QUICK_START.md](docs/QUICK_START.md) - Quick deployment for first-time users
+> - [ARCHITECTURE.md](ARCHITECTURE.md) - Complete architecture diagrams and traffic flows
+> - [docs/DESTROY_GUIDE.md](docs/DESTROY_GUIDE.md) - Safe destruction procedures
+> - [docs/DIRECTORY_STRUCTURE.md](docs/DIRECTORY_STRUCTURE.md) - File organization reference
 
 This guide explains how to use the optional VPC endpoint implementation in different scenarios:
 - Deploy to another AWS account or region
@@ -424,7 +424,7 @@ resource "google_compute_firewall" "workspace_egress_control_plane" {
 
 ## Common Pitfalls to Avoid
 
-### ❌ Don't:
+### Don't:
 
 - **Forget to create workspace endpoint for backend-only scenarios**
   - Backend Private Link needs BOTH workspace + relay endpoints
@@ -447,7 +447,7 @@ resource "google_compute_firewall" "workspace_egress_control_plane" {
   - Test backend VPC endpoint is working
   - Then switch to "ENDPOINT" to route through private relay
 
-### ✅ Do:
+### Do:
 
 - **Read `ARCHITECTURE.md` first to understand traffic flows**
   - Visual diagrams show exactly how traffic routes

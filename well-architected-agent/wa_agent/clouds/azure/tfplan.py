@@ -95,6 +95,10 @@ PROVENANCE = {
     "network.storage_service_endpoint": _SUBNETS,
     "network.service_endpoint_policy": _SUBNETS + ("azurerm_subnet_service_endpoint_storage_policy",),
     "network.firewall_present": ("azurerm_firewall",),
+    "network.hub_peering": ("azurerm_virtual_network_peering",),
+    "network.firewall_application_rules": ("azurerm_firewall_policy_rule_collection_group",
+                                           "azurerm_firewall_application_rule_collection"),
+    "network.firewall_logs": ("azurerm_firewall", "azurerm_monitor_diagnostic_setting"),
     "private_link.": ("azurerm_private_endpoint",),
     "dns.": ("azurerm_private_dns_zone", "azurerm_private_dns_zone_virtual_network_link"),
     "serverless.ncc_bound": _SERVERLESS,
@@ -254,7 +258,27 @@ def _network(rs) -> dict:
         "service_endpoint_policy": bool(_of_type(rs, "azurerm_subnet_service_endpoint_storage_policy"))
         or all(_is_set(s.get("service_endpoint_policy_ids")) for s in subnets),
         "firewall_present": bool(_of_type(rs, "azurerm_firewall")),
-    }
+    } | _hub(rs)
+
+
+def _hub(rs) -> dict:
+    """Peering and firewall facts, only where this plan can establish them.
+
+    The hub often lives in another Terraform root: a missing peering or
+    firewall here is unknown (collect the hub plan too, or scan live), not FAIL.
+    """
+    out: dict = {}
+    if _of_type(rs, "azurerm_virtual_network_peering"):
+        out["hub_peering"] = True
+    if not _of_type(rs, "azurerm_firewall"):
+        return out
+    groups = _of_type(rs, "azurerm_firewall_policy_rule_collection_group")
+    out["firewall_application_rules"] = bool(_of_type(rs, "azurerm_firewall_application_rule_collection")) or any(
+        r["values"].get("application_rule_collection") not in (None, [], COMPUTED) for r in groups)
+    out["firewall_logs"] = any(
+        "azurefirewalls" in str(r["values"].get("target_resource_id", "")).lower() or "firewall" in r["address"].lower()
+        for r in _of_type(rs, "azurerm_monitor_diagnostic_setting"))
+    return out
 
 
 def _private_link(rs) -> dict:

@@ -232,13 +232,13 @@ sequenceDiagram
     GCE->>VPC: Attach to Subnet
     GCE->>CP: Connect via SCC Relay
     CP-->>WS: Cluster Ready
-    WS-->>Admin: Cluster Running ✓
+    WS-->>Admin: Cluster Running
 
     Admin->>NB: Create Notebook
     Admin->>NB: Run Test Command<br/>%sql show tables
     NB->>GCE: Execute Command
     GCE->>NB: Return Results
-    NB-->>Admin: Command Success ✓
+    NB-->>Admin: Command Success
     deactivate GCE
 
     Note over Admin,NB: Workspace Validated!
@@ -302,7 +302,7 @@ graph TB
     CHECK4 -->|Yes| CHECK5{Organization<br/>Policies OK?}
 
     CHECK5 -->|No| FAIL5[Policy Violation<br/>Fix: Update org policies<br/>or project settings]
-    CHECK5 -->|Yes| SUCCESS[Cluster Running ✓]
+    CHECK5 -->|Yes| SUCCESS[Cluster Running ]
 
     style START fill:#1E88E5
     style SUCCESS fill:#43A047

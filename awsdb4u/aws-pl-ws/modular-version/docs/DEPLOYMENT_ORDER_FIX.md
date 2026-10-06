@@ -10,7 +10,7 @@ ERROR: Permission assignment APIs are not available for this workspace.
 
 ## Understanding the Issue
 
-### ❌ **What Was Happening (WRONG)**
+### **What Was Happening (WRONG)**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -18,7 +18,7 @@ ERROR: Permission assignment APIs are not available for this workspace.
 │                                                              │
 │  1. Create Workspace                                        │
 │     ↓                                                        │
-│  2. Assign Admin ❌ ERROR!                                  │
+│  2. Assign Admin ERROR!                                  │
 │     (UC not assigned yet!)                                  │
 └─────────────────────────────────────────────────────────────┘
 
@@ -34,7 +34,7 @@ ERROR: Permission assignment APIs are not available for this workspace.
 
 **Problem**: Both modules depend on the workspace, so they run in parallel. The admin assignment tries to run before UC assignment completes.
 
-### ✅ **What Should Happen (CORRECT)**
+### **What Should Happen (CORRECT)**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -48,10 +48,10 @@ ERROR: Permission assignment APIs are not available for this workspace.
 │                                                              │
 │  1. Create Metastore                                        │
 │     ↓                                                        │
-│  2. Assign Metastore to Workspace ✅                        │
+│  2. Assign Metastore to Workspace                        │
 │     (This enables permission assignment APIs!)              │
 │     ↓                                                        │
-│  3. Assign Workspace Admin ✅                               │
+│  3. Assign Workspace Admin                               │
 │     (Now the APIs are available!)                           │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -83,7 +83,7 @@ resource "databricks_mws_permission_assignment" "workspace_admin" {
   permissions  = ["ADMIN"]
 
   depends_on = [databricks_metastore_assignment.workspace_assignment]
-  # ☝️ THIS IS THE KEY: Wait for UC assignment before admin assignment
+  # THIS IS THE KEY: Wait for UC assignment before admin assignment
 
   lifecycle {
     ignore_changes = [principal_id]
@@ -104,10 +104,10 @@ databricks = {
 
 The `databricks_mws_permission_assignment` API is **only available after Unity Catalog is assigned** to a workspace. By moving the admin assignment to the Unity Catalog module and making it depend on the metastore assignment, we ensure:
 
-1. ✅ Workspace is created
-2. ✅ Unity Catalog metastore is assigned to the workspace
-3. ✅ Permission assignment APIs become available
-4. ✅ Workspace admin is assigned successfully
+1. Workspace is created
+2. Unity Catalog metastore is assigned to the workspace
+3. Permission assignment APIs become available
+4. Workspace admin is assigned successfully
 
 ## Deployment Commands
 
@@ -126,7 +126,7 @@ terraform apply
 
 ## Key Takeaway
 
-🔑 **The permission assignment APIs are enabled by Unity Catalog assignment, not by workspace creation alone.**
+**The permission assignment APIs are enabled by Unity Catalog assignment, not by workspace creation alone.**
 
 Always ensure Unity Catalog metastore is assigned to the workspace before attempting to use `databricks_mws_permission_assignment`.
 

@@ -24,16 +24,16 @@ A comprehensive Terraform configuration for deploying a **production-ready Datab
 
 This deployment creates a **complete, production-ready Databricks platform** with:
 
-- ✅ **Databricks Workspace** with BYOVPC
-- ✅ **Unity Catalog Metastore** for data governance
-- ✅ **Managed Storage** (default metastore storage)
-- ✅ **External Storage** locations with credentials
-- ✅ **Catalogs and Schemas** with proper permissions
-- ✅ **Account-Level Groups** with workspace assignments
-- ✅ **Cluster Policies** with cost controls and tags
-- ✅ **User and Group Permissions** across all layers
-- ✅ **IP Access Lists** for security
-- ✅ **Custom Tags** for cost attribution
+- **Databricks Workspace** with BYOVPC
+- **Unity Catalog Metastore** for data governance
+- **Managed Storage** (default metastore storage)
+- **External Storage** locations with credentials
+- **Catalogs and Schemas** with proper permissions
+- **Account-Level Groups** with workspace assignments
+- **Cluster Policies** with cost controls and tags
+- **User and Group Permissions** across all layers
+- **IP Access Lists** for security
+- **Custom Tags** for cost attribution
 
 > **Note**: This configuration assumes you already have VPC infrastructure. For infrastructure creation, see `../infra4db/`.
 
@@ -1074,7 +1074,7 @@ terraform output -json | jq
 
 ### Important Notes
 
-⚠️ **Before destroying**:
+**Before destroying**:
 1. Export all important notebooks and data
 2. Terminate all running clusters
 3. Remove metastore data access resource from state
@@ -1148,33 +1148,33 @@ After deploying your complete platform:
 
 ## Best Practices Implemented
 
-### ✅ Infrastructure as Code
+### Infrastructure as Code
 - All resources defined in Terraform
 - Version controlled configuration
 - Repeatable deployments
 
-### ✅ Data Governance
+### Data Governance
 - Unity Catalog for centralized metadata
 - Fine-grained access control
 - Audit trail for all data access
 
-### ✅ Cost Management
+### Cost Management
 - Cluster policies with DBU limits
 - Auto-termination to prevent waste
 - Custom tags for chargeback
 
-### ✅ Security
+### Security
 - RBAC at all levels
 - Least privilege access
 - IP access lists
 - Separate groups for different roles
 
-### ✅ Organization
+### Organization
 - Catalogs for environment separation
 - Schemas for logical grouping
 - External locations for data organization
 
-### ✅ Automation
+### Automation
 - Automated group and user creation
 - Automated permission grants
 - Automated storage credential setup

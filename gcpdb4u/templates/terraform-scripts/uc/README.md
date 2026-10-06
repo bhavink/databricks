@@ -27,9 +27,9 @@ This is a **standalone Unity Catalog** configuration that can be applied to **ex
 
 | Aspect | Standalone UC (`uc/`) | End-to-End (`end2end/`) |
 |--------|----------------------|------------------------|
-| **Creates Workspace** | ❌ No | ✅ Yes |
-| **Creates Unity Catalog** | ✅ Yes | ✅ Yes |
-| **Workspace Required** | ✅ Must exist | ❌ Creates new |
+| **Creates Workspace** | No | Yes |
+| **Creates Unity Catalog** | Yes | Yes |
+| **Workspace Required** | Must exist | Creates new |
 | **Use Case** | Add UC to existing workspace | New workspace with UC |
 | **Deployment** | On top of existing | Complete from scratch |
 
@@ -87,14 +87,14 @@ graph TB
 
 ### When to Use This Configuration
 
-✅ **Perfect for:**
+**Perfect for:**
 - You have an existing workspace without Unity Catalog
 - You want to add data governance to an existing deployment
 - You need to retrofit Unity Catalog onto legacy workspaces
 - You're migrating from workspace-local metastore to Unity Catalog
 - You want to test Unity Catalog features on existing workspace
 
-❌ **Not suitable for:**
+**Not suitable for:**
 - Creating new workspaces (use `../end2end/` or workspace-specific configs)
 - Workspaces that already have Unity Catalog enabled
 - Testing workspace deployment (no workspace creation here)
@@ -129,7 +129,7 @@ Then: Use this config to assign Workspace 2 & 3 to same metastore
 
 ### 1. Existing Databricks Workspace
 
-⚠️ **Critical**: You **must** have an existing, running Databricks workspace.
+**Critical**: You **must** have an existing, running Databricks workspace.
 
 **Required Information:**
 - Workspace ID (visible in Account Console or workspace URL)
@@ -225,7 +225,7 @@ terraform state show databricks_mws_workspaces.databricks_workspace
 
 ### What This Does NOT Do
 
-❌ **Does not create:**
+**Does not create:**
 - Databricks workspace (must already exist)
 - VPC or networking resources
 - Catalogs or schemas (only metastore and default "main" catalog)
@@ -508,7 +508,7 @@ cd gcp/gh-repo/gcp/terraform-scripts/uc
 
 ### Step 3: Update Workspace ID
 
-⚠️ **CRITICAL STEP**: Edit `unity-setup.tf` and update `workspace_id` in locals block.
+**CRITICAL STEP**: Edit `unity-setup.tf` and update `workspace_id` in locals block.
 
 ```hcl
 # Line ~51-54 in unity-setup.tf
@@ -893,7 +893,7 @@ terraform output -json | jq
 
 ### Before Destroying
 
-⚠️ **Important considerations:**
+**Important considerations:**
 
 1. **Data Loss**: Destroying the metastore will make all Unity Catalog managed tables inaccessible
 2. **Workspace Impact**: The workspace will lose Unity Catalog functionality
@@ -925,12 +925,12 @@ terraform destroy
 ```
 
 **What gets destroyed:**
-- ✅ Workspace permission assignments
-- ✅ Metastore assignment (workspace → metastore link)
-- ✅ Groups and users
-- ✅ GCS bucket (if `force_destroy = true`)
-- ❌ Metastore data access (already removed from state)
-- ❌ Workspace itself (not managed by this config)
+- Workspace permission assignments
+- Metastore assignment (workspace → metastore link)
+- Groups and users
+- GCS bucket (if `force_destroy = true`)
+- Metastore data access (already removed from state)
+- Workspace itself (not managed by this config)
 
 **Step 4: Manual cleanup (if needed):**
 
@@ -994,28 +994,28 @@ After successfully adding Unity Catalog to your workspace:
 
 ## Best Practices
 
-### ✅ Planning
+### Planning
 
 - Understand existing workspace architecture
 - Document current metastore (if any)
 - Plan catalog structure before deployment
 - Identify user groups and access patterns
 
-### ✅ Security
+### Security
 
 - Use service account impersonation
 - Follow least-privilege access
 - Enable audit logging
 - Regular permission audits
 
-### ✅ Organization
+### Organization
 
 - Consistent naming conventions
 - Group-based permissions (not user-based)
 - Separate catalogs for environments (dev/prod)
 - Clear ownership of catalogs and schemas
 
-### ✅ Operations
+### Operations
 
 - Test in dev workspace first
 - Document metastore ID and bucket names

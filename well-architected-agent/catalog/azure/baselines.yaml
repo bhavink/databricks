@@ -197,6 +197,8 @@ baselines:
             network_policy_enforcement_mode: "ENFORCED"
             serverless_allowed_internet_destinations: []
 
+  # Assess-only by design: grounded in the Azure data exfiltration protection
+  # blog (the definitive guide for hub-spoke); no deployment, so no `build`.
   - id: classic-exfiltration-protection
     name: Classic — data exfiltration protection (hub-spoke firewall)
     use_case: >-

@@ -327,8 +327,8 @@ def test_caveats_render_in_prescription_and_gap(azure_catalog):
     facts = replay("live-backend-pl-ws1.calls.json")
     result = assess(azure_catalog, facts, baseline_id="classic-high-security")
     md = report.to_markdown(result, azure_catalog, facts)
-    assert "**AZ-STO-002**" in md and "⚠️ has caveats" in md
-    assert "⚠️ Irreversible: enabling it deletes the access connector in the managed" in md
+    assert "**AZ-STO-002**" in md and "(has caveats)" in md
+    assert "- Irreversible: enabling it deletes the access connector in the managed" in md
 
 
 def test_storage_firewall_not_required_for_standard_baseline(azure_catalog):
@@ -661,8 +661,97 @@ def test_this_repo_is_the_only_source_of_terraform(azure_catalog):
         assert "git::" not in path.read_text(encoding="utf-8"), path  # no external module sources
 
 
-def test_hub_spoke_is_assessed_but_not_generated_until_the_repo_has_it(azure_catalog, tmp_path):
+def test_hub_spoke_is_assessed_not_generated(azure_catalog, tmp_path):
     from wa_agent.new import generate
 
     with pytest.raises(ValueError, match="no tested deployment"):
         generate(azure_catalog, "classic-exfiltration-protection", str(tmp_path / "x"))
+
+
+def _hub_spoke_fake(firewall_ip="10.0.0.4", app_rules=True, firewall_logs=True):
+    """A spoke whose default route points at an Azure Firewall in a peered hub."""
+    spoke_vnet = "/subscriptions/s/resourceGroups/spoke-rg/providers/Microsoft.Network/virtualNetworks/spoke"
+    hub_vnet = "/subscriptions/s/resourceGroups/hub-rg/providers/Microsoft.Network/virtualNetworks/hub"
+    fw_id = "/subscriptions/s/resourceGroups/hub-rg/providers/Microsoft.Network/azureFirewalls/fw"
+    policy_id = "/subscriptions/s/resourceGroups/hub-rg/providers/Microsoft.Network/firewallPolicies/pol"
+    rcg_id = f"{policy_id}/ruleCollectionGroups/databricks"
+    ws_id = "/subscriptions/s/resourceGroups/spoke-rg/providers/Microsoft.Databricks/workspaces/ws"
+    subnet = {"delegations": [{"serviceName": "Microsoft.Databricks/workspaces"}], "networkSecurityGroup": {"id": "nsg"},
+              "routeTable": {"id": "rt"}, "addressPrefix": "10.1.0.0/24"}
+    rule = {"ruleType": "ApplicationRule" if app_rules else "NetworkRule"}
+
+    def fake(args):
+        a = tuple(args)
+        if a[:4] == ("az", "databricks", "workspace", "show"):
+            return {"id": ws_id, "name": "ws", "sku": {"name": "premium"}, "publicNetworkAccess": "Disabled",
+                    "workspaceUrl": "adb-1.azuredatabricks.net",
+                    "parameters": {"customVirtualNetworkId": {"value": spoke_vnet}, "enableNoPublicIp": {"value": True},
+                                   "customPublicSubnetName": {"value": "pub"}, "customPrivateSubnetName": {"value": "priv"}}}
+        if a[:5] == ("az", "network", "vnet", "subnet", "show"):
+            return subnet
+        if a[:4] == ("az", "network", "route-table", "show"):
+            return {"routes": [{"addressPrefix": "0.0.0.0/0", "nextHopType": "VirtualAppliance",
+                                "nextHopIpAddress": "10.0.0.4"}]}
+        if a[:5] == ("az", "network", "vnet", "peering", "list"):
+            return [{"peeringState": "Connected", "remoteVirtualNetwork": {"id": hub_vnet}}]
+        if a[:3] == ("az", "resource", "list") and "Microsoft.Network/azureFirewalls" in a:
+            return [{"id": fw_id}] if "hub-rg" in a else []
+        if a[:3] == ("az", "resource", "show") and fw_id in a:
+            return {"properties": {"ipConfigurations": [{"properties": {"privateIPAddress": firewall_ip}}],
+                                   "firewallPolicy": {"id": policy_id}}}
+        if a[:3] == ("az", "resource", "show") and policy_id in a and rcg_id not in a:
+            return {"properties": {"ruleCollectionGroups": [{"id": rcg_id}]}}
+        if a[:3] == ("az", "resource", "show") and rcg_id in a:
+            return {"properties": {"ruleCollections": [{"rules": [rule]}]}}
+        if a[:4] == ("az", "monitor", "diagnostic-settings", "list"):
+            return [{"name": "fw-logs"}] if fw_id in a and firewall_logs else []
+        return None
+
+    return ws_id, fake
+
+
+def test_live_hub_spoke_follows_peering_to_the_firewall_and_its_rules(azure_catalog):
+    ws_id, fake = _hub_spoke_fake()
+    facts = azure_live.collect(ws_id, run=fake, databricks_profile="ws")
+    net = facts["network"]
+    assert net["hub_peering"] and net["firewall_present"] and net["firewall_application_rules"] and net["firewall_logs"]
+    s = statuses(assess(azure_catalog, facts, baseline_id="classic-exfiltration-protection"))
+    assert s["AZ-NET-006"] == s["AZ-NET-010"] == s["AZ-NET-011"] == s["AZ-OPS-002"] == PASS
+    assert "ruleCollectionGroups" in facts["_evidence"]["network.firewall_application_rules"][0]
+
+    _, fake = _hub_spoke_fake(app_rules=False, firewall_logs=False)
+    s = statuses(assess(azure_catalog, azure_live.collect(ws_id, run=fake, databricks_profile="ws"),
+                        baseline_id="classic-exfiltration-protection"))
+    assert s["AZ-NET-011"] == FAIL and s["AZ-OPS-002"] == FAIL
+
+
+def test_live_hub_spoke_unknown_when_next_hop_is_not_a_readable_azure_firewall(azure_catalog):
+    ws_id, fake = _hub_spoke_fake(firewall_ip="10.9.9.9")  # an NVA, or a firewall we can't read
+    facts = azure_live.collect(ws_id, run=fake, databricks_profile="ws")
+    assert "firewall_application_rules" not in facts["network"]
+    s = statuses(assess(azure_catalog, facts, baseline_id="classic-exfiltration-protection"))
+    assert s["AZ-NET-011"] == UNKNOWN and s["AZ-OPS-002"] == UNKNOWN and s["AZ-NET-010"] == PASS
+
+
+def test_plan_hub_spoke_facts_only_where_the_plan_shows_them(azure_catalog):
+    plan = full_private_plan()
+    facts = azure_tfplan.collect(plan)
+    assert not {"hub_peering", "firewall_application_rules", "firewall_logs"} & set(facts["network"])
+    plan["resource_changes"] += [
+        rc("module.hub.azurerm_firewall.this", "azurerm_firewall", {"name": "fw"}),
+        rc("module.hub.azurerm_firewall_policy_rule_collection_group.databricks",
+           "azurerm_firewall_policy_rule_collection_group", {"application_rule_collection": [{"name": "dbx"}]}),
+        rc("module.hub.azurerm_monitor_diagnostic_setting.firewall", "azurerm_monitor_diagnostic_setting", {}),
+        rc("azurerm_virtual_network_peering.spoke_to_hub", "azurerm_virtual_network_peering", {}),
+    ]
+    net = azure_tfplan.collect(plan)["network"]
+    assert net["hub_peering"] and net["firewall_application_rules"] and net["firewall_logs"]
+
+
+def test_hub_spoke_reads_stay_on_the_allowlist():
+    for args in (["az", "network", "vnet", "peering", "list", "-g", "rg", "--vnet-name", "v"],
+                 ["az", "resource", "show", "--ids", "x"]):
+        azure_live.assert_read_only(args)
+    for args in (["az", "network", "vnet", "peering", "create", "-g", "rg"], ["az", "resource", "delete", "--ids", "x"]):
+        with pytest.raises(azure_live.ReadOnlyViolation):
+            azure_live.assert_read_only(args)

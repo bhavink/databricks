@@ -195,7 +195,7 @@ steps, handled automatically in order (`ip-access-list.tf`):
 Edit `ip_access_list.yaml` to set your entries (`<label>: {list_type: ALLOW|BLOCK,
 ip_addresses: [...]}`). Default is **off** — no lists, no restriction.
 
-⚠️ An **ALLOW** list restricts the workspace to the listed IPs only. Include your own
+An **ALLOW** list restricts the workspace to the listed IPs only. Include your own
 egress IP/CIDR or you will lock yourself out of the UI/API. These resources use the
 workspace-level provider, so they apply once the workspace is RUNNING.
 
@@ -224,7 +224,7 @@ Scope + defaults:
 - Start in `DRY_RUN`. `RESTRICTED_ACCESS` + `ENFORCED` **will** break serverless jobs
   until the allow-list includes everything they reach (control plane, DBFS/GCS, PyPI).
 
-### ⚠️ Lifecycle gotchas (learned the hard way)
+### Lifecycle gotchas (learned the hard way)
 
 `databricks_workspace_network_option` is **update-only** — every workspace always has
 one (defaulting to `default-policy`). Consequences when tearing a custom policy down:

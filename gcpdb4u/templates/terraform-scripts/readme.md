@@ -29,12 +29,12 @@ This repository provides **production-ready Terraform configurations** for deplo
 
 ### Key Features
 
-✅ **Modular Design**: Choose the configuration that matches your requirements
-✅ **Production Ready**: Battle-tested configurations with security best practices
-✅ **Well Documented**: Comprehensive README in each folder with architecture diagrams
-✅ **Mermaid Diagrams**: Visual architecture and deployment flow diagrams
-✅ **Troubleshooting**: Common issues and solutions included
-✅ **GCP Best Practices**: Follows Google Cloud Platform recommendations
+- **Modular Design**: Choose the configuration that matches your requirements
+- **Production Ready**: Battle-tested configurations with security best practices
+- **Well Documented**: Comprehensive README in each folder with architecture diagrams
+- **Mermaid Diagrams**: Visual architecture and deployment flow diagrams
+- **Troubleshooting**: Common issues and solutions included
+- **GCP Best Practices**: Follows Google Cloud Platform recommendations
 
 ### Repository Structure Overview
 
@@ -42,21 +42,21 @@ This repository provides **production-ready Terraform configurations** for deplo
 graph TB
     ROOT[Terraform Scripts Root]
 
-    ROOT --> INFRA[infra4db/<br/>📦 Infrastructure Foundation<br/>VPC, Subnets, NAT, Firewall]
+    ROOT --> INFRA[infra4db/<br/> Infrastructure Foundation<br/>VPC, Subnets, NAT, Firewall]
 
     ROOT --> WS_GROUP[Workspace Configurations]
-    WS_GROUP --> BASIC[byovpc-ws/<br/>🟦 Basic Workspace]
-    WS_GROUP --> CMEK[byovpc-cmek-ws/<br/>🟨 + Encryption]
-    WS_GROUP --> PSC[byovpc-psc-ws/<br/>🟩 + Private Access]
-    WS_GROUP --> SECURE[byovpc-psc-cmek-ws/<br/>🟥 Maximum Security]
+    WS_GROUP --> BASIC[byovpc-ws/<br/> Basic Workspace]
+    WS_GROUP --> CMEK[byovpc-cmek-ws/<br/> + Encryption]
+    WS_GROUP --> PSC[byovpc-psc-ws/<br/> + Private Access]
+    WS_GROUP --> SECURE[byovpc-psc-cmek-ws/<br/> Maximum Security]
 
     ROOT --> GOV_GROUP[Governance Configurations]
-    GOV_GROUP --> E2E[end2end/<br/>🎯 Complete Platform]
-    GOV_GROUP --> UC[uc/<br/>📊 Unity Catalog Only]
+    GOV_GROUP --> E2E[end2end/<br/> Complete Platform]
+    GOV_GROUP --> UC[uc/<br/> Unity Catalog Only]
 
     ROOT --> DOCS[Documentation]
-    DOCS --> SA_DOC[sa-impersonation.md<br/>📖 Auth Guide]
-    DOCS --> README[README.md<br/>📖 This File]
+    DOCS --> SA_DOC[sa-impersonation.md<br/> Auth Guide]
+    DOCS --> README[README.md<br/> This File]
 
     style ROOT fill:#4285F4
     style INFRA fill:#FBBC04
@@ -257,7 +257,7 @@ graph TB
     style USERS fill:#FBBC04
 ```
 
-**Security Level**: ⭐ Basic
+**Security Level**: Basic
 **Access**: Public internet
 **Encryption**: Google-managed keys
 **Best For**: Development, testing, proof-of-concept
@@ -284,9 +284,9 @@ graph TB
 
     subgraph "GCP - Service/Consumer Project"
         subgraph "Databricks Workspace - Encrypted"
-            GCE[GCE VMs<br/>🔒 Encrypted with CMEK]
-            GCS[GCS Buckets<br/>🔒 Encrypted with CMEK]
-            DISK[Persistent Disks<br/>🔒 Encrypted with CMEK]
+            GCE[GCE VMs<br/> Encrypted with CMEK]
+            GCS[GCS Buckets<br/> Encrypted with CMEK]
+            DISK[Persistent Disks<br/> Encrypted with CMEK]
         end
     end
 
@@ -312,7 +312,7 @@ graph TB
     style CONTROL fill:#FF3621
 ```
 
-**Security Level**: ⭐⭐ Enhanced
+**Security Level**: Enhanced
 **Access**: Public internet
 **Encryption**: Customer-managed keys (you control the keys)
 **Best For**: Compliance requirements, sensitive data
@@ -376,7 +376,7 @@ graph TB
     style BE_EP fill:#34A853
 ```
 
-**Security Level**: ⭐⭐⭐ High
+**Security Level**: High
 **Access**: Private only (requires VPN/Cloud Interconnect)
 **Encryption**: Google-managed keys
 **Best For**: Production workloads, regulated industries
@@ -404,15 +404,15 @@ graph TB
         end
 
         subgraph "Cloud KMS"
-            KEY[Crypto Key<br/>🔑 Customer Managed]
+            KEY[Crypto Key<br/> Customer Managed]
         end
     end
 
     subgraph "GCP - Service/Consumer"
         subgraph "Encrypted & Private Workspace"
-            GCE[GCE VMs<br/>🔒 Encrypted with CMEK]
-            GCS[GCS Buckets<br/>🔒 CMEK Encrypted]
-            DISK[Disks<br/>🔒 CMEK Encrypted]
+            GCE[GCE VMs<br/> Encrypted with CMEK]
+            GCS[GCS Buckets<br/> CMEK Encrypted]
+            DISK[Disks<br/> CMEK Encrypted]
         end
     end
 
@@ -444,7 +444,7 @@ graph TB
     style GCS fill:#34A853
 ```
 
-**Security Level**: ⭐⭐⭐⭐⭐ Maximum
+**Security Level**: Maximum
 **Access**: Private only (VPN required)
 **Encryption**: Customer-managed keys
 **Best For**: Highly regulated environments (financial, healthcare, government)
@@ -489,7 +489,7 @@ graph TB
         end
 
         subgraph "Cluster Policies"
-            POLICY[Fair Use Policy<br/>💰 Cost Controls<br/>🏷️ Custom Tags]
+            POLICY[Fair Use Policy<br/> Cost Controls<br/> Custom Tags]
         end
     end
 
@@ -522,13 +522,13 @@ graph TB
 ```
 
 **What It Includes**:
-- ✅ Databricks workspace with BYOVPC
-- ✅ Unity Catalog metastore
-- ✅ Catalogs, schemas, and external locations
-- ✅ Account-level groups (UC Admins, Data Eng, Data Science)
-- ✅ Cluster policies with cost controls
-- ✅ Custom tags for cost attribution
-- ✅ Fine-grained access control
+- Databricks workspace with BYOVPC
+- Unity Catalog metastore
+- Catalogs, schemas, and external locations
+- Account-level groups (UC Admins, Data Eng, Data Science)
+- Cluster policies with cost controls
+- Custom tags for cost attribution
+- Fine-grained access control
 
 **Best For**: Production data platform, complete governance
 **Deployment Time**: ~30 minutes
@@ -547,24 +547,24 @@ graph TB
 
     subgraph "Unity Catalog - Added"
         subgraph "Metastore"
-            META[Unity Catalog<br/>Metastore<br/>🆕 New]
-            META_BUCKET[GCS Bucket<br/>🆕 New]
+            META[Unity Catalog<br/>Metastore<br/> New]
+            META_BUCKET[GCS Bucket<br/> New]
         end
 
         subgraph "Groups - New"
-            UC_ADMIN[UC Admins<br/>🆕]
-            GROUP1[Data Engineering<br/>🆕]
-            GROUP2[Data Science<br/>🆕]
+            UC_ADMIN[UC Admins<br/>]
+            GROUP1[Data Engineering<br/>]
+            GROUP2[Data Science<br/>]
         end
 
         subgraph "Users - Added"
-            USER1[Admin Users<br/>🆕]
-            USER2[Service Account<br/>🆕]
+            USER1[Admin Users<br/>]
+            USER2[Service Account<br/>]
         end
 
         subgraph "Workspace Assignment"
-            ASSIGN[Metastore → Workspace<br/>🔗 Link]
-            WS_PERM[Group Permissions<br/>🔗 Assign]
+            ASSIGN[Metastore → Workspace<br/> Link]
+            WS_PERM[Group Permissions<br/> Assign]
         end
     end
 
@@ -589,11 +589,11 @@ graph TB
 **Use Case**: Add Unity Catalog to workspace created without it
 **Prerequisites**: Existing workspace (any `byovpc-*` configuration)
 **What It Adds**:
-- ✅ Unity Catalog metastore
-- ✅ Default storage credentials
-- ✅ Account-level groups
-- ✅ Metastore assignment to workspace
-- ✅ Workspace permission assignments
+- Unity Catalog metastore
+- Default storage credentials
+- Account-level groups
+- Metastore assignment to workspace
+- Workspace permission assignments
 
 **Best For**: Legacy workspace migration, phased deployments
 **Deployment Time**: ~8 minutes
@@ -606,16 +606,16 @@ graph TB
 
 | Feature | byovpc-ws | byovpc-cmek-ws | byovpc-psc-ws | byovpc-psc-cmek-ws | end2end | uc |
 |---------|-----------|----------------|---------------|--------------------|---------|----|
-| **Workspace Creation** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **BYOVPC** | ✅ | ✅ | ✅ | ✅ | ✅ | N/A |
-| **CMEK Encryption** | ❌ | ✅ | ❌ | ✅ | ❌* | N/A |
-| **Private Service Connect** | ❌ | ❌ | ✅ | ✅ | ❌* | N/A |
-| **Private DNS** | ❌ | ❌ | ✅ | ✅ | ❌* | N/A |
-| **Unity Catalog** | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| **External Locations** | ❌ | ❌ | ❌ | ❌ | ✅ | ❌** |
-| **Cluster Policies** | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| **Groups & Users** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **IP Access Lists** | ❌ | ❌ | ✅ | ✅ | ✅ | N/A |
+| **Workspace Creation** | Yes | Yes | Yes | Yes | Yes | No |
+| **BYOVPC** | Yes | Yes | Yes | Yes | Yes | N/A |
+| **CMEK Encryption** | No | Yes | No | Yes | * | N/A |
+| **Private Service Connect** | No | No | Yes | Yes | * | N/A |
+| **Private DNS** | No | No | Yes | Yes | * | N/A |
+| **Unity Catalog** | No | No | No | No | Yes | Yes |
+| **External Locations** | No | No | No | No | Yes | ** |
+| **Cluster Policies** | No | No | No | No | Yes | No |
+| **Groups & Users** | Yes | Yes | Yes | Yes | Yes | Yes |
+| **IP Access Lists** | No | No | Yes | Yes | Yes | N/A |
 | **Complexity** | Low | Medium | Medium | High | High | Low |
 | **Deployment Time** | ~12 min | ~15 min | ~20 min | ~25 min | ~30 min | ~8 min |
 
@@ -626,10 +626,10 @@ graph TB
 
 ```mermaid
 graph LR
-    A[byovpc-ws<br/>⭐ Basic<br/>Public + Standard Encryption]
-    B[byovpc-cmek-ws<br/>⭐⭐ Enhanced<br/>Public + CMEK]
-    C[byovpc-psc-ws<br/>⭐⭐⭐ High<br/>Private + Standard Encryption]
-    D[byovpc-psc-cmek-ws<br/>⭐⭐⭐⭐⭐ Maximum<br/>Private + CMEK]
+    A[byovpc-ws<br/> Basic<br/>Public + Standard Encryption]
+    B[byovpc-cmek-ws<br/> Enhanced<br/>Public + CMEK]
+    C[byovpc-psc-ws<br/> High<br/>Private + Standard Encryption]
+    D[byovpc-psc-cmek-ws<br/> Maximum<br/>Private + CMEK]
 
     A -->|Add Encryption| B
     A -->|Add Private Access| C
@@ -849,7 +849,7 @@ graph TB
     end
 
     subgraph "Phase 5: Production"
-        P5[Production Ready!<br/>✅ Secure<br/>✅ Governed<br/>✅ Cost Controlled]
+        P5[Production Ready!<br/> Secure<br/> Governed<br/> Cost Controlled]
     end
 
     START --> P1
@@ -1165,41 +1165,41 @@ sequenceDiagram
 
 ### Security
 
-- ✅ Use service account impersonation (avoid key files)
-- ✅ Enable CMEK for sensitive data
-- ✅ Use Private Service Connect for production
-- ✅ Implement least-privilege IAM roles
-- ✅ Enable IP access lists
-- ✅ Use separate projects for prod/dev
-- ✅ Enable audit logging
+- Use service account impersonation (avoid key files)
+- Enable CMEK for sensitive data
+- Use Private Service Connect for production
+- Implement least-privilege IAM roles
+- Enable IP access lists
+- Use separate projects for prod/dev
+- Enable audit logging
 
 ### Infrastructure
 
-- ✅ Use Shared VPC for multi-workspace deployments
-- ✅ Size subnets appropriately (min /24 for nodes)
-- ✅ Deploy across multiple availability zones
-- ✅ Use Cloud NAT for egress
-- ✅ Implement proper firewall rules
-- ✅ Use private Google access
+- Use Shared VPC for multi-workspace deployments
+- Size subnets appropriately (min /24 for nodes)
+- Deploy across multiple availability zones
+- Use Cloud NAT for egress
+- Implement proper firewall rules
+- Use private Google access
 
 ### Operations
 
-- ✅ Use Terraform for all deployments
-- ✅ Store state in GCS backend
-- ✅ Version control all configurations
-- ✅ Tag resources appropriately
-- ✅ Document custom configurations
-- ✅ Test in dev before prod
-- ✅ Implement proper change management
+- Use Terraform for all deployments
+- Store state in GCS backend
+- Version control all configurations
+- Tag resources appropriately
+- Document custom configurations
+- Test in dev before prod
+- Implement proper change management
 
 ### Cost Optimization
 
-- ✅ Use cluster policies to limit DBU consumption
-- ✅ Enable auto-termination
-- ✅ Use custom tags for cost attribution
-- ✅ Right-size node subnets
-- ✅ Consider single NAT gateway for dev (not prod)
-- ✅ Clean up unused resources
+- Use cluster policies to limit DBU consumption
+- Enable auto-termination
+- Use custom tags for cost attribution
+- Right-size node subnets
+- Consider single NAT gateway for dev (not prod)
+- Clean up unused resources
 
 ---
 
@@ -1207,13 +1207,13 @@ sequenceDiagram
 
 ### Recent Updates
 
-- ✅ Added comprehensive README to all folders
-- ✅ Added Mermaid architecture diagrams
-- ✅ Enhanced troubleshooting sections
-- ✅ Added deployment flow diagrams
-- ✅ Improved configuration examples
-- ✅ Added security best practices
-- ✅ Updated for latest Terraform provider versions
+- Added comprehensive README to all folders
+- Added Mermaid architecture diagrams
+- Enhanced troubleshooting sections
+- Added deployment flow diagrams
+- Improved configuration examples
+- Added security best practices
+- Updated for latest Terraform provider versions
 
 ---
 
@@ -1241,23 +1241,23 @@ These Terraform configurations are provided as reference implementations for dep
 ```mermaid
 graph TB
     subgraph "Infrastructure Foundation"
-        INFRA[infra4db<br/>📦 VPC, Subnets, NAT<br/>⏱️ ~5 min]
+        INFRA[infra4db<br/> VPC, Subnets, NAT<br/> ~5 min]
     end
 
     subgraph "Workspace Configurations"
-        BASIC[byovpc-ws<br/>🟦 Basic Workspace<br/>⭐ Public Access<br/>⏱️ ~12 min]
+        BASIC[byovpc-ws<br/> Basic Workspace<br/> Public Access<br/> ~12 min]
 
-        CMEK[byovpc-cmek-ws<br/>🟨 + CMEK<br/>⭐⭐ Encrypted<br/>🔑 Customer Keys<br/>⏱️ ~15 min]
+        CMEK[byovpc-cmek-ws<br/> + CMEK<br/> Encrypted<br/> Customer Keys<br/> ~15 min]
 
-        PSC[byovpc-psc-ws<br/>🟩 + PSC<br/>⭐⭐⭐ Private<br/>🔒 VPN Required<br/>⏱️ ~20 min]
+        PSC[byovpc-psc-ws<br/> + PSC<br/> Private<br/> VPN Required<br/> ~20 min]
 
-        SECURE[byovpc-psc-cmek-ws<br/>🟥 + PSC + CMEK<br/>⭐⭐⭐⭐⭐ Maximum Security<br/>🔒 Private + Encrypted<br/>⏱️ ~25 min]
+        SECURE[byovpc-psc-cmek-ws<br/> + PSC + CMEK<br/> Maximum Security<br/> Private + Encrypted<br/> ~25 min]
     end
 
     subgraph "Governance Layer"
-        E2E[end2end<br/>🎯 Complete Platform<br/>✅ Workspace<br/>✅ Unity Catalog<br/>✅ Policies<br/>⏱️ ~30 min]
+        E2E[end2end<br/> Complete Platform<br/> Workspace<br/> Unity Catalog<br/> Policies<br/> ~30 min]
 
-        UC_ONLY[uc<br/>📊 UC Only<br/>Add to Existing WS<br/>⏱️ ~8 min]
+        UC_ONLY[uc<br/> UC Only<br/>Add to Existing WS<br/> ~8 min]
     end
 
     INFRA -.Optional.-> BASIC
@@ -1288,13 +1288,13 @@ graph TD
     subgraph "Components Included"
         direction TB
 
-        C1[Workspace<br/>✅ ✅ ✅ ✅ ✅ ❌]
-        C2[BYOVPC<br/>✅ ✅ ✅ ✅ ✅ N/A]
-        C3[CMEK<br/>❌ ✅ ❌ ✅ ❌ N/A]
-        C4[PSC<br/>❌ ❌ ✅ ✅ ❌ N/A]
-        C5[Unity Catalog<br/>❌ ❌ ❌ ❌ ✅ ✅]
-        C6[Policies<br/>❌ ❌ ❌ ❌ ✅ ❌]
-        C7[External Storage<br/>❌ ❌ ❌ ❌ ✅ ❌]
+        C1[Workspace<br/> ]
+        C2[BYOVPC<br/> N/A]
+        C3[CMEK<br/> N/A]
+        C4[PSC<br/> N/A]
+        C5[Unity Catalog<br/> ]
+        C6[Policies<br/> ]
+        C7[External Storage<br/> ]
     end
 
     subgraph "Legend"

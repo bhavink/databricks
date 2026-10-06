@@ -62,9 +62,9 @@ module "storage" {
 
 ## Features
 
-- ✅ All buckets have versioning enabled
-- ✅ Public access blocked on all buckets
-- ✅ Force destroy enabled for easy cleanup
-- ✅ Optional KMS encryption
-- ✅ Databricks-generated bucket policy for root storage
+- All buckets have versioning enabled
+- Public access blocked on all buckets
+- Force destroy enabled for easy cleanup
+- Optional KMS encryption
+- Databricks-generated bucket policy for root storage
 

@@ -4,12 +4,12 @@ This module creates the Databricks workspace and all required MWS (Multi-Workspa
 
 ## Features
 
-- ✅ MWS credentials configuration
-- ✅ MWS storage configuration
-- ✅ MWS network configuration
-- ✅ MWS private access settings (Backend Private Link)
-- ✅ Databricks workspace creation
-- ✅ Workspace admin user assignment
+- MWS credentials configuration
+- MWS storage configuration
+- MWS network configuration
+- MWS private access settings (Backend Private Link)
+- Databricks workspace creation
+- Workspace admin user assignment
 
 ## Resources Created
 

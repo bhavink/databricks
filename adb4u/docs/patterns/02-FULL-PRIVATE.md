@@ -1,7 +1,7 @@
 # Full Private (Air-Gapped) Deployment Pattern
 
 **Pattern**: `deployments/full-private`
-**Status**: ✅ **Production Ready**
+**Status**: **Production Ready**
 
 ---
 
@@ -18,11 +18,11 @@ The Full Private (Air-Gapped) pattern provides a **fully isolated** Azure Databr
 
 ### Use Cases
 
-✅ **Highly regulated industries** (Financial services, Healthcare)
-✅ **Zero-trust network architectures**
-✅ **Air-gapped requirements** (No internet access)
-✅ **Strict data residency** (All traffic on Azure backbone)
-✅ **Compliance mandates** (HIPAA, PCI-DSS, FedRAMP)
+- **Highly regulated industries** (Financial services, Healthcare)
+- **Zero-trust network architectures**
+- **Air-gapped requirements** (No internet access)
+- **Strict data residency** (All traffic on Azure backbone)
+- **Compliance mandates** (HIPAA, PCI-DSS, FedRAMP)
 
 ---
 
@@ -95,9 +95,9 @@ The Full Private (Air-Gapped) pattern provides a **fully isolated** Azure Databr
 ```
 
 **Legend**:
-- 🔒 **All traffic**: Private (Azure backbone)
-- ❌ **No NAT Gateway**: Air-gapped (no internet)
-- 🔐 **Private Endpoints**: All connectivity via Private Link
+- **All traffic**: Private (Azure backbone)
+- **No NAT Gateway**: Air-gapped (no internet)
+- **Private Endpoints**: All connectivity via Private Link
 
 ---
 
@@ -107,7 +107,7 @@ The Full Private (Air-Gapped) pattern provides a **fully isolated** Azure Databr
 |---------|--------|--------------|
 | **Control Plane Access** | Public internet | Private Link only |
 | **User Access** | Any internet connection | VPN/ExpressRoute required |
-| **Internet Egress** | ✅ NAT Gateway (PyPI/Maven) | ❌ None (air-gapped) |
+| **Internet Egress** | NAT Gateway (PyPI/Maven) | None (air-gapped) |
 | **Storage Connectivity** | Service Endpoints | Private Link |
 | **Package Management** | Internet repos | Customer repos required |
 | **Deployment Complexity** | Low | High |
@@ -142,10 +142,10 @@ sequenceDiagram
 **Timeline**: ~3-5 minutes from creation to ready state
 
 **Key Points**:
-- ✅ All traffic via **Private Link** (no public internet)
-- ✅ VMs have **no public IPs** (NPIP enabled)
-- ✅ **No NAT Gateway** (air-gapped deployment)
-- ❌ **No internet access** for package downloads
+- All traffic via **Private Link** (no public internet)
+- VMs have **no public IPs** (NPIP enabled)
+- **No NAT Gateway** (air-gapped deployment)
+- **No internet access** for package downloads
 
 ---
 
@@ -257,7 +257,7 @@ graph LR
 #### **Phase 6: Package Management** (Air-Gapped)
 
 ```
-❌ NO internet access for packages
+NO internet access for packages
 
 Customer Responsibilities:
 1. Host internal PyPI mirror (e.g., JFrog Artifactory, Nexus)
@@ -293,7 +293,7 @@ pip install pandas numpy scikit-learn
 | **External Data** | Cluster VMs | External Location | Private Endpoint | Managed Identity |
 | **Worker-to-Worker** | Worker VMs | Worker VMs | Within VNet | N/A |
 | **Logs/Metrics** | Cluster VMs | Event Hub | Private Endpoint (optional) | Databricks-managed |
-| **Package Downloads** | ❌ | ❌ | **NONE** (air-gapped) | N/A |
+| **Package Downloads** | No | No | **NONE** (air-gapped) | N/A |
 
 **Key Routing**:
 - **Zero internet traffic**: All communication via Private Link
@@ -308,25 +308,25 @@ pip install pandas numpy scikit-learn
 
 | Feature | Status | Details |
 |---------|--------|---------|
-| **Secure Cluster Connectivity (NPIP)** | ✅ Always enabled | No public IPs on clusters |
-| **VNet Injection** | ✅ Always enabled | Deploy into customer VNet |
-| **Private Link (Control Plane)** | ✅ Always enabled | Frontend (UI/API) + Backend (SCC) |
-| **Private Link (Storage)** | ✅ Always enabled | All storage via Private Endpoints |
-| **Unity Catalog** | ✅ Mandatory | Data governance and access control |
-| **Customer-Managed Keys (CMK)** | ✅ Default enabled | Managed services + Disks + DBFS |
-| **BYOV Support** | ✅ Optional | Bring Your Own VNet/Subnets/NSG |
-| **IP Access Lists** | ✅ Optional | Restrict workspace access by IP |
-| **Private DNS Zones** | ✅ Auto-created | Azure-integrated DNS for Private Endpoints |
-| **Service Endpoint Policy (SEP)** | ✅ Optional | Storage egress control for classic compute |
-| **NCC (Serverless)** | ✅ Optional | Private Link for serverless compute |
+| **Secure Cluster Connectivity (NPIP)** | Always enabled | No public IPs on clusters |
+| **VNet Injection** | Always enabled | Deploy into customer VNet |
+| **Private Link (Control Plane)** | Always enabled | Frontend (UI/API) + Backend (SCC) |
+| **Private Link (Storage)** | Always enabled | All storage via Private Endpoints |
+| **Unity Catalog** | Mandatory | Data governance and access control |
+| **Customer-Managed Keys (CMK)** | Default enabled | Managed services + Disks + DBFS |
+| **BYOV Support** | Optional | Bring Your Own VNet/Subnets/NSG |
+| **IP Access Lists** | Optional | Restrict workspace access by IP |
+| **Private DNS Zones** | Auto-created | Azure-integrated DNS for Private Endpoints |
+| **Service Endpoint Policy (SEP)** | Optional | Storage egress control for classic compute |
+| **NCC (Serverless)** | Optional | Private Link for serverless compute |
 
 ### Not Included
 
 | Feature | Status | Reason | Alternative |
 |---------|--------|--------|-------------|
-| **NAT Gateway** | ❌ Not included | Air-gapped design | Use internal package repos |
-| **Service Endpoints** | ❌ Not used | Private Link provides stronger isolation | N/A |
-| **Public Internet Egress** | ❌ Not allowed | Air-gapped requirement | Internal repos required |
+| **NAT Gateway** | Not included | Air-gapped design | Use internal package repos |
+| **Service Endpoints** | Not used | Private Link provides stronger isolation | N/A |
+| **Public Internet Egress** | Not allowed | Air-gapped requirement | Internal repos required |
 
 ---
 
@@ -438,10 +438,10 @@ This deployment automatically creates and configures three Private DNS zones:
 | `privatelink.blob.core.windows.net` | Blob Storage (legacy/fallback) | DBFS Blob endpoint |
 
 **Auto-Configuration**:
-- ✅ Zones created in workspace resource group
-- ✅ Automatically linked to customer VNet
-- ✅ A records auto-populated by Private Endpoints
-- ✅ TTL: 10 seconds (Azure default)
+- Zones created in workspace resource group
+- Automatically linked to customer VNet
+- A records auto-populated by Private Endpoints
+- TTL: 10 seconds (Azure default)
 
 ---
 
@@ -465,9 +465,9 @@ adb-<workspace-id>.<random-id>.azuredatabricks.net
 - SQL Warehouse API access
 
 **Characteristics**:
-- ✅ Unique per workspace
-- ✅ Required for all workspace operations
-- ✅ Resolves to workspace-specific Private Endpoint IP
+- Unique per workspace
+- Required for all workspace operations
+- Resolves to workspace-specific Private Endpoint IP
 
 **Example**:
 ```bash
@@ -496,9 +496,9 @@ adb-<workspace-id>.azuredatabricks.net  (no random-id)
 - Token acquisition during login
 
 **Characteristics**:
-- ✅ Regional endpoint (shared across workspaces in same region)
-- ✅ Only used during authentication
-- ✅ Can be shared by multiple workspaces
+- Regional endpoint (shared across workspaces in same region)
+- Only used during authentication
+- Can be shared by multiple workspaces
 
 **Example**:
 ```bash
@@ -580,10 +580,10 @@ Workspace B:
 ```
 
 **Key Points**:
-- ✅ Each workspace has its own `databricks_ui_api` Private Endpoint
-- ✅ `browser_authentication` endpoint can be shared (regional)
-- ✅ All endpoints in the same Private Link subnet
-- ✅ Single `privatelink.azuredatabricks.net` DNS zone for all workspaces
+- Each workspace has its own `databricks_ui_api` Private Endpoint
+- `browser_authentication` endpoint can be shared (regional)
+- All endpoints in the same Private Link subnet
+- Single `privatelink.azuredatabricks.net` DNS zone for all workspaces
 
 **Cost Optimization**: Sharing the `browser_authentication` endpoint reduces Private Endpoint costs in multi-workspace deployments.
 
@@ -606,9 +606,9 @@ DNS Zone: privatelink.azuredatabricks.net (linked to VNet)
 ```
 
 **Architecture**:
-- ✅ Separate Private DNS zones per VNet/region
-- ✅ VNet peering required for cross-region workspace access
-- ✅ Each region has its own Private Endpoints
+- Separate Private DNS zones per VNet/region
+- VNet peering required for cross-region workspace access
+- Each region has its own Private Endpoints
 
 **Cross-Region Access**:
 - Requires VNet peering or VPN gateway
@@ -640,9 +640,9 @@ DNS Resolution Flow:
 | UC External (DFS) | `<prefix>ext<suffix>.dfs.core.windows.net` | `<prefix>ext<suffix>.privatelink.dfs.core.windows.net` | 10.178.2.22 |
 
 **Auto-Configured by Terraform**:
-- ✅ Private Endpoints for all storage accounts
-- ✅ DNS zone group integration (auto DNS record creation)
-- ✅ VNet link to customer VNet
+- Private Endpoints for all storage accounts
+- DNS zone group integration (auto DNS record creation)
+- VNet link to customer VNet
 
 ---
 
@@ -847,31 +847,31 @@ az storage account show \
 
 #### **Planning**
 
-- ✅ **Document FQDNs**: Maintain a list of all Private Endpoint FQDNs for your workspaces
-- ✅ **IP Address Planning**: Reserve IP range in Private Link subnet (min /27)
-- ✅ **DNS Forwarding**: Configure on-premises DNS to forward `*.azuredatabricks.net` to Azure DNS
-- ✅ **Multi-Region**: Use consistent DNS zone naming across regions
+- **Document FQDNs**: Maintain a list of all Private Endpoint FQDNs for your workspaces
+- **IP Address Planning**: Reserve IP range in Private Link subnet (min /27)
+- **DNS Forwarding**: Configure on-premises DNS to forward `*.azuredatabricks.net` to Azure DNS
+- **Multi-Region**: Use consistent DNS zone naming across regions
 
 #### **Security**
 
-- ✅ **Private DNS Only**: Never expose `privatelink.*` zones to public DNS
-- ✅ **VNet Isolation**: Only link Private DNS zones to authorized VNets
-- ✅ **Access Control**: Use Azure RBAC to restrict DNS zone modifications
-- ✅ **Audit Logging**: Enable diagnostic logs for DNS zones
+- **Private DNS Only**: Never expose `privatelink.*` zones to public DNS
+- **VNet Isolation**: Only link Private DNS zones to authorized VNets
+- **Access Control**: Use Azure RBAC to restrict DNS zone modifications
+- **Audit Logging**: Enable diagnostic logs for DNS zones
 
 #### **Operations**
 
-- ✅ **Monitor DNS Queries**: Track query volumes and failures
-- ✅ **TTL Configuration**: Use default 10s TTL for fast failover
-- ✅ **Automation**: Use Terraform for consistent DNS configuration
-- ✅ **Documentation**: Keep runbooks for DNS troubleshooting
+- **Monitor DNS Queries**: Track query volumes and failures
+- **TTL Configuration**: Use default 10s TTL for fast failover
+- **Automation**: Use Terraform for consistent DNS configuration
+- **Documentation**: Keep runbooks for DNS troubleshooting
 
 #### **Testing**
 
-- ✅ **Pre-Deployment**: Test DNS resolution from all user locations
-- ✅ **Post-Deployment**: Verify A records auto-created for all Private Endpoints
-- ✅ **Failover**: Test DNS behavior during Private Endpoint maintenance
-- ✅ **Cross-Region**: Validate resolution across peered VNets
+- **Pre-Deployment**: Test DNS resolution from all user locations
+- **Post-Deployment**: Verify A records auto-created for all Private Endpoints
+- **Failover**: Test DNS behavior during Private Endpoint maintenance
+- **Cross-Region**: Validate resolution across peered VNets
 
 ---
 
@@ -963,35 +963,35 @@ EOF
 ### Network Security
 
 **Private Link Isolation**:
-- ✅ Zero public internet exposure
-- ✅ All traffic on Azure backbone
-- ✅ Control Plane accessible only via Private Endpoints
-- ✅ Storage accessible only via Private Endpoints
+- Zero public internet exposure
+- All traffic on Azure backbone
+- Control Plane accessible only via Private Endpoints
+- Storage accessible only via Private Endpoints
 
 **Air-Gapped Architecture**:
-- ✅ No NAT Gateway (no internet egress)
-- ✅ No public IPs on cluster VMs (NPIP)
-- ✅ No Service Endpoints (Private Link only)
-- ✅ Custom NSG rules when public access disabled
+- No NAT Gateway (no internet egress)
+- No public IPs on cluster VMs (NPIP)
+- No Service Endpoints (Private Link only)
+- Custom NSG rules when public access disabled
 
 ### Data Security
 
 **Unity Catalog**:
-- ✅ Fine-grained access control (GRANT/REVOKE)
-- ✅ Data lineage and audit logging
-- ✅ Centralized governance across workspaces
+- Fine-grained access control (GRANT/REVOKE)
+- Data lineage and audit logging
+- Centralized governance across workspaces
 
 **Storage Security**:
-- ✅ Private Link only (no public access)
-- ✅ HTTPS-only (TLS 1.2+)
-- ✅ Managed identity authentication (no keys)
-- ✅ Storage Blob Data Contributor RBAC
+- Private Link only (no public access)
+- HTTPS-only (TLS 1.2+)
+- Managed identity authentication (no keys)
+- Storage Blob Data Contributor RBAC
 
 **Customer-Managed Keys (CMK)**:
-- ✅ Managed services encryption (notebooks, secrets)
-- ✅ Managed disks encryption (cluster VMs)
-- ✅ DBFS root encryption (workspace storage)
-- ✅ Enabled by default in Full Private pattern
+- Managed services encryption (notebooks, secrets)
+- Managed disks encryption (cluster VMs)
+- DBFS root encryption (workspace storage)
+- Enabled by default in Full Private pattern
 
 ---
 
@@ -1075,5 +1075,5 @@ This is **expected in air-gapped deployments**. Libraries cannot be downloaded f
 ---
 
 **Pattern Version**: 1.0
-**Status**: ✅ Production Ready
+**Status**: Production Ready
 **Terraform Version**: >= 1.5

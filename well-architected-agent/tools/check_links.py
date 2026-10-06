@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 def references(cat: dict) -> dict[str, list[str]]:
     refs: dict[str, list[str]] = {}
     for c in cat["checks"]:
-        for s in c["sources"] + [c["remediation"]["module"]]:
+        for s in c["sources"] + ([c["remediation"]["module"]] if c["remediation"].get("module") else []):
             refs.setdefault(s, []).append(c["id"])
     for p in cat["patterns"]["patterns"]:
         for s in p["references"]:

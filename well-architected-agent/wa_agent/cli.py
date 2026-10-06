@@ -155,7 +155,7 @@ def cmd_demo(args) -> int:
 
 
 def _utf8_stdio() -> None:
-    # Reports use ✔ ⚠️ —; Windows consoles and redirects default to legacy code pages.
+    # Output uses ✔ ✘ → —; Windows consoles and redirects default to legacy code pages.
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")

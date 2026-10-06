@@ -87,3 +87,5 @@ controls:
   # ---------------------------------------------------------- 9 Observability
   - {id: OPS.AUDIT_LOG_DELIVERY, phase: 9, pillar: operational_excellence,
      title: Audit logs are delivered to a durable destination}
+  - {id: OPS.EGRESS_LOGS, phase: 9, pillar: operational_excellence,
+     title: Egress inspection logs allowed and blocked traffic}

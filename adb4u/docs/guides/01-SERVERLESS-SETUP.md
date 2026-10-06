@@ -6,7 +6,7 @@
 
 ---
 
-## 📋 **Table of Contents**
+## **Table of Contents**
 
 1. [Overview](#1-overview)
 2. [Prerequisites](#2-prerequisites)
@@ -34,19 +34,19 @@ Serverless compute runs in **Databricks-managed Azure VNet** (not your VNet like
 ### **Deployment Status**
 
 After `terraform apply`, your workspace has:
-- ✅ **NCC Attached**: Network Connectivity Configuration created and bound
-- ✅ **Classic Clusters**: Work immediately with Service Endpoints
-- ⏸️ **Serverless**: Requires additional configuration (this guide)
+- **NCC Attached**: Network Connectivity Configuration created and bound
+- **Classic Clusters**: Work immediately with Service Endpoints
+- **Serverless**: Requires additional configuration (this guide)
 
 ---
 
 ## 2. Prerequisites
 
 **Before Starting**:
-- ✅ Workspace deployed successfully
-- ✅ Classic cluster tested and working
-- ✅ Unity Catalog functional
-- ✅ NCC attached (check `terraform output ncc_id`)
+- Workspace deployed successfully
+- Classic cluster tested and working
+- Unity Catalog functional
+- NCC attached (check `terraform output ncc_id`)
 
 **What You'll Configure**:
 - Serverless connectivity to Unity Catalog storage
@@ -60,16 +60,16 @@ After `terraform apply`, your workspace has:
 ### **Two Approaches**
 
 #### **Option A: Service Endpoints (Recommended)**
-- ✅ **Setup**: Simple configuration
-- ✅ **Performance**: Good latency
-- ⚠️ **Security**: Traffic stays on Azure backbone (not internet), but not isolated
-- ✅ **Best For**: Most deployments
+- **Setup**: Simple configuration
+- **Performance**: Good latency
+- **Security**: Traffic stays on Azure backbone (not internet), but not isolated
+- **Best For**: Most deployments
 
 #### **Option B: Private Link via NCC**
-- ✅ **Setup**: Manual approval required in Azure Portal
-- ✅ **Performance**: Best latency
-- ✅ **Security**: Fully isolated (no public network routing)
-- ✅ **Best For**: Highly regulated environments, zero-trust networks
+- **Setup**: Manual approval required in Azure Portal
+- **Performance**: Best latency
+- **Security**: Fully isolated (no public network routing)
+- **Best For**: Highly regulated environments, zero-trust networks
 
 ---
 
@@ -172,7 +172,7 @@ az storage account network-rule add \
    SELECT * FROM <catalog>.<schema>.<table> LIMIT 10;
    ```
 
-3. **Expected Result**: ✅ Query returns data successfully
+3. **Expected Result**: Query returns data successfully
 
 ---
 
@@ -188,7 +188,7 @@ az storage account update \
   --public-network-access Disabled
 ```
 
-⚠️ **Warning**: This will break classic clusters unless you also add your VNet subnets to the firewall or use Private Endpoints.
+**Warning**: This will break classic clusters unless you also add your VNet subnets to the firewall or use Private Endpoints.
 
 **Recommended Approach**:
 - Keep public access **enabled**
@@ -307,7 +307,7 @@ az storage account update \
   --public-network-access Disabled
 ```
 
-⚠️ **Important**:
+**Important**:
 - Classic clusters will break unless they also use Private Endpoints
 - Consider keeping public access enabled with firewall rules instead
 - Or deploy Private Endpoints for classic clusters as well
@@ -460,7 +460,7 @@ Error: Permission denied
 
 ---
 
-## 📚 **Additional Resources**
+## **Additional Resources**
 
 **Azure Documentation**:
 - [Serverless Network Security](https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/serverless-firewall)
@@ -475,4 +475,4 @@ Error: Permission denied
 ---
 
 **Applies to**: Non-PL and Full-Private patterns
-**Status**: ✅ Serverless Ready (requires post-deployment setup)
+**Status**: Serverless Ready (requires post-deployment setup)

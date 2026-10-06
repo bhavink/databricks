@@ -81,6 +81,8 @@ patterns:
       - AZ-NET-003
       - AZ-NET-004
       - AZ-NET-006
+      - AZ-NET-008
+      - AZ-NET-011
       - AZ-PL-001
       - AZ-PL-002
       - AZ-PL-003
@@ -93,6 +95,8 @@ patterns:
       - AZ-UC-002
       - AZ-OPS-001
     recommended:
+      - AZ-NET-010
+      - AZ-OPS-002
       - AZ-WS-001
       - AZ-NET-009
       - AZ-NET-007

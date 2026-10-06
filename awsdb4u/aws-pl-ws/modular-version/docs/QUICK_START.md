@@ -1,4 +1,4 @@
-# ⚡ Quick Start Guide
+# Quick Start Guide
 
 Get up and running in 5 minutes!
 
@@ -70,7 +70,7 @@ terraform apply
 # Type 'yes' when prompted
 ```
 
-⏰ **Wait:** 10-15 minutes for deployment to complete.
+**Wait:** 10-15 minutes for deployment to complete.
 
 ## 5. Access
 
@@ -82,7 +82,7 @@ terraform output workspace_url
 terraform output deployment_summary
 ```
 
-⏰ **IMPORTANT:** Wait 20 minutes before creating clusters!
+**IMPORTANT:** Wait 20 minutes before creating clusters!
 
 ## 6. Verify
 
@@ -101,19 +101,19 @@ terraform destroy
 
 ---
 
-## 📁 What You Get
+## What You Get
 
-- ✅ Fully private Databricks workspace
-- ✅ VPC with 3 subnet tiers (public, private, privatelink)
-- ✅ NAT Gateways in 2 AZs for HA
-- ✅ Security groups configured
-- ✅ VPC endpoints (S3, STS, Kinesis, Workspace, Relay)
-- ✅ Unity Catalog with metastore
-- ✅ Workspace catalog with storage
-- ✅ External location for data access
-- ✅ Workspace admin with full privileges
+- Fully private Databricks workspace
+- VPC with 3 subnet tiers (public, private, privatelink)
+- NAT Gateways in 2 AZs for HA
+- Security groups configured
+- VPC endpoints (S3, STS, Kinesis, Workspace, Relay)
+- Unity Catalog with metastore
+- Workspace catalog with storage
+- External location for data access
+- Workspace admin with full privileges
 
-## 🔧 Common Customizations
+## Common Customizations
 
 ### Use Different Region
 
@@ -137,7 +137,7 @@ privatelink_subnet_cidrs = ["172.16.3.0/24", "172.16.4.0/24"]
 public_subnet_cidrs      = ["172.16.101.0/24", "172.16.102.0/24"]
 ```
 
-## 🐛 Quick Troubleshooting
+## Quick Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
@@ -146,7 +146,7 @@ public_subnet_cidrs      = ["172.16.101.0/24", "172.16.102.0/24"]
 | Can't access workspace | Wait 20 minutes for Private Link |
 | Provider errors | Run `terraform init` |
 
-## 📚 More Details
+## More Details
 
 For detailed instructions, see:
 - `USAGE_GUIDE.md` - Complete step-by-step guide
@@ -155,5 +155,5 @@ For detailed instructions, see:
 
 ---
 
-**That's it!** You now have a production-ready Databricks workspace with Private Link and Unity Catalog. 🎉
+**That's it!** You now have a production-ready Databricks workspace with Private Link and Unity Catalog.
 

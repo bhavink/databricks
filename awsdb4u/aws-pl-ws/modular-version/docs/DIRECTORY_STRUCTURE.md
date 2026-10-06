@@ -1,12 +1,12 @@
-# 📁 Modular Version - Complete Directory Structure
+# Modular Version - Complete Directory Structure
 
 ```
 modular-version/
 │
-├── 📘 README.md                          # Main overview and architecture
-├── 🚀 QUICK_START.md                     # 5-minute deployment guide
-├── 📖 USAGE_GUIDE.md                     # Detailed step-by-step instructions
-├── 📊 ROOT_VS_MODULAR.md                 # Comparison between versions
+├── README.md                          # Main overview and architecture
+├── QUICK_START.md                     # 5-minute deployment guide
+├── USAGE_GUIDE.md                     # Detailed step-by-step instructions
+├── ROOT_VS_MODULAR.md                 # Comparison between versions
 │
 ├── main.tf                               # Orchestrates all modules
 ├── variables.tf                          # Root-level input variables
@@ -15,7 +15,7 @@ modular-version/
 │
 └── modules/                              # Reusable Terraform modules
     │
-    ├── networking/                       # 🌐 VPC, Subnets, VPC Endpoints
+    ├── networking/                       # VPC, Subnets, VPC Endpoints
     │   ├── README.md                     # Networking module docs
     │   ├── main.tf                       # VPC, subnets, NAT, route tables
     │   ├── security_groups.tf            # Security groups and rules
@@ -23,13 +23,13 @@ modular-version/
     │   ├── variables.tf                  # Networking inputs
     │   └── outputs.tf                    # VPC IDs, subnet IDs, SG IDs
     │
-    ├── storage/                          # 🗄️ S3 Buckets
+    ├── storage/                          # S3 Buckets
     │   ├── README.md                     # Storage module docs
     │   ├── main.tf                       # 4 S3 buckets with configs
     │   ├── variables.tf                  # Storage inputs
     │   └── outputs.tf                    # Bucket names and ARNs
     │
-    ├── iam/                              # 🔐 IAM Roles and Policies
+    ├── iam/                              # IAM Roles and Policies
     │   ├── README.md                     # IAM module docs
     │   ├── cross_account.tf              # Cross-account role for Databricks
     │   ├── unity_catalog.tf              # UC metastore IAM role
@@ -37,19 +37,19 @@ modular-version/
     │   ├── variables.tf                  # IAM inputs
     │   └── outputs.tf                    # Role ARNs
     │
-    ├── kms/                              # 🔑 Encryption Keys
+    ├── kms/                              # Encryption Keys
     │   ├── README.md                     # KMS module docs
     │   ├── main.tf                       # KMS key and alias
     │   ├── variables.tf                  # KMS inputs
     │   └── outputs.tf                    # Key ARN and ID
     │
-    ├── databricks_workspace/             # 🏢 Databricks Workspace
+    ├── databricks_workspace/             # Databricks Workspace
     │   ├── README.md                     # Workspace module docs
     │   ├── main.tf                       # MWS resources and workspace
     │   ├── variables.tf                  # Workspace inputs
     │   └── outputs.tf                    # Workspace URL and ID
     │
-    └── unity_catalog/                    # 📊 Unity Catalog
+    └── unity_catalog/                    # Unity Catalog
         ├── README.md                     # Unity Catalog module docs
         ├── 01-metastore.tf               # Metastore and assignment
         ├── 02-root-storage.tf            # Root storage credential & location
@@ -61,7 +61,7 @@ modular-version/
         └── outputs.tf                    # Metastore and catalog details
 ```
 
-## 📊 File Count Summary
+## File Count Summary
 
 | Category | Count |
 |----------|-------|
@@ -71,7 +71,7 @@ modular-version/
 | Module Terraform Files | 25 |
 | **Total Files** | **40** |
 
-## 🗂️ Module Breakdown
+## Module Breakdown
 
 ### 1. Networking Module (6 files)
 - VPC with DNS support
@@ -118,7 +118,7 @@ modular-version/
 - Metastore grants
 - Location grants
 
-## 📖 Documentation Files
+## Documentation Files
 
 | File | Purpose |
 |------|---------|
@@ -128,7 +128,7 @@ modular-version/
 | `ROOT_VS_MODULAR.md` | Comparison with root version |
 | `modules/*/README.md` | Module-specific documentation (6 files) |
 
-## 🔄 Dependency Flow
+## Dependency Flow
 
 ```
 ┌─────────────┐
@@ -159,29 +159,29 @@ modular-version/
                   └───────────────┘
 ```
 
-## 🎯 Key Features
+## Key Features
 
 ### Separation of Concerns
-- ✅ Each module handles one aspect
-- ✅ Clear boundaries between components
-- ✅ Easy to test individually
+- Each module handles one aspect
+- Clear boundaries between components
+- Easy to test individually
 
 ### Reusability
-- ✅ Modules can be used in other projects
-- ✅ Consistent across deployments
-- ✅ Version-controlled separately
+- Modules can be used in other projects
+- Consistent across deployments
+- Version-controlled separately
 
 ### Maintainability
-- ✅ Changes isolated to specific modules
-- ✅ Clear ownership of components
-- ✅ Easier code reviews
+- Changes isolated to specific modules
+- Clear ownership of components
+- Easier code reviews
 
 ### Documentation
-- ✅ Module-specific READMEs
-- ✅ Usage examples
-- ✅ Input/output documentation
+- Module-specific READMEs
+- Usage examples
+- Input/output documentation
 
-## 🚀 How to Use
+## How to Use
 
 ### Quick Start (3 Commands)
 ```bash
@@ -198,7 +198,7 @@ terraform apply
 
 See `QUICK_START.md` for detailed instructions.
 
-## 📚 Learning Path
+## Learning Path
 
 1. **Read:** `README.md` - Understand architecture
 2. **Follow:** `QUICK_START.md` - Deploy in 5 minutes
@@ -206,7 +206,7 @@ See `QUICK_START.md` for detailed instructions.
 4. **Compare:** `ROOT_VS_MODULAR.md` - See differences
 5. **Deploy:** `USAGE_GUIDE.md` - Production deployment
 
-## 🔧 Customization Points
+## Customization Points
 
 All customization happens in `terraform.tfvars`:
 
@@ -218,15 +218,15 @@ All customization happens in `terraform.tfvars`:
 
 No need to modify module code for common customizations!
 
-## 🏆 Best For
+## Best For
 
-- ✅ Production deployments
-- ✅ Multiple workspaces
-- ✅ Team collaboration
-- ✅ Long-term maintenance
-- ✅ Reusable infrastructure patterns
+- Production deployments
+- Multiple workspaces
+- Team collaboration
+- Long-term maintenance
+- Reusable infrastructure patterns
 
-## 📞 Getting Help
+## Getting Help
 
 1. Check module-specific `README.md`
 2. Review `USAGE_GUIDE.md`

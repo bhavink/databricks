@@ -4,38 +4,38 @@
 
 ---
 
-## 🎯 Purpose
+## Purpose
 
 The BYOR pattern creates pre-configured networking and security infrastructure that meets all Databricks requirements. This is ideal for enterprise teams that separate infrastructure provisioning (network team) from workspace deployment (platform team).
 
 ### Use Cases
 
-✅ **Separation of Concerns**: Network team manages infrastructure, platform team deploys workspaces
-✅ **Infrastructure Reuse**: Deploy multiple workspaces using the same network
-✅ **Pre-validated Setup**: All Databricks requirements configured correctly
-✅ **CMK Centralization**: Shared Key Vault across workspaces (optional)
+- **Separation of Concerns**: Network team manages infrastructure, platform team deploys workspaces
+- **Infrastructure Reuse**: Deploy multiple workspaces using the same network
+- **Pre-validated Setup**: All Databricks requirements configured correctly
+- **CMK Centralization**: Shared Key Vault across workspaces (optional)
 
 ---
 
-## 📦 What Gets Created
+## What Gets Created
 
 ### Always Created
 
-- ✅ **VNet** with user-specified CIDR
-- ✅ **Public/Host Subnet** with Databricks delegation
-- ✅ **Private/Container Subnet** with Databricks delegation
-- ✅ **NSG** with Databricks-required rules (service tags)
-- ✅ **Service Endpoints** (Storage, KeyVault, EventHub)
+- **VNet** with user-specified CIDR
+- **Public/Host Subnet** with Databricks delegation
+- **Private/Container Subnet** with Databricks delegation
+- **NSG** with Databricks-required rules (service tags)
+- **Service Endpoints** (Storage, KeyVault, EventHub)
 
 ### Optional (Flag-Controlled)
 
-- ⚙️ **NAT Gateway** (for Non-PL pattern) - `enable_nat_gateway = true`
-- ⚙️ **Private Link Subnet** (for Full-Private pattern) - `create_privatelink_subnet = true`
-- ⚙️ **Key Vault + CMK** (for encryption) - `create_key_vault = true`
+- **NAT Gateway** (for Non-PL pattern) - `enable_nat_gateway = true`
+- **Private Link Subnet** (for Full-Private pattern) - `create_privatelink_subnet = true`
+- **Key Vault + CMK** (for encryption) - `create_key_vault = true`
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Configure
 
@@ -162,7 +162,7 @@ terraform apply
 
 ---
 
-## 📋 Configuration Options
+## Configuration Options
 
 ### For Non-PL Workspaces
 
@@ -191,7 +191,7 @@ cmk_key_size     = 2048     # or 3072, 4096
 
 ---
 
-## ✅ What's Pre-Configured
+## What's Pre-Configured
 
 ### Subnet Delegation
 
@@ -210,30 +210,30 @@ delegation {
 ### Service Endpoints
 
 All Databricks subnets include:
-- ✅ `Microsoft.Storage`
-- ✅ `Microsoft.KeyVault`
-- ✅ `Microsoft.EventHub`
+- `Microsoft.Storage`
+- `Microsoft.KeyVault`
+- `Microsoft.EventHub`
 
 ### NSG Rules
 
 Pre-configured with Databricks-required rules:
-- ✅ **Outbound**: `AzureDatabricks` (443) - Control plane
-- ✅ **Outbound**: `Storage` (443) - DBFS and artifacts
-- ✅ **Outbound**: `EventHub` (443) - Logs and metrics
-- ✅ **Inbound**: `VirtualNetwork` (all) - Worker communication
+- **Outbound**: `AzureDatabricks` (443) - Control plane
+- **Outbound**: `Storage` (443) - DBFS and artifacts
+- **Outbound**: `EventHub` (443) - Logs and metrics
+- **Inbound**: `VirtualNetwork` (all) - Worker communication
 
 ---
 
-## 🔍 Validation
+## Validation
 
 BYOR automatically validates:
-- ✅ Subnet CIDR sizes (minimum /26)
-- ✅ workspace_prefix format (lowercase, max 12 chars)
-- ✅ CMK key type and size (if enabled)
+- Subnet CIDR sizes (minimum /26)
+- workspace_prefix format (lowercase, max 12 chars)
+- CMK key type and size (if enabled)
 
 ---
 
-## 📤 Outputs
+## Outputs
 
 ### Copy-Paste Ready
 
@@ -256,7 +256,7 @@ All outputs available programmatically for automation.
 
 ---
 
-## 🔄 Reusing Infrastructure
+## Reusing Infrastructure
 
 The same BYOR infrastructure can be used for **multiple workspaces**:
 
@@ -280,7 +280,7 @@ terraform apply
 
 ---
 
-## 🛠️ Advanced: CMK for Multiple Workspaces
+## Advanced: CMK for Multiple Workspaces
 
 When using CMK from BYOR across multiple workspaces:
 
@@ -293,7 +293,7 @@ Each workspace's DBFS storage identity automatically gets access to the shared K
 
 ---
 
-## 📚 Examples
+## Examples
 
 See `terraform.tfvars.example` for complete examples:
 - Example 1: Non-PL Infrastructure
@@ -304,7 +304,7 @@ See `terraform.tfvars.example` for complete examples:
 
 ---
 
-## 🔄 Using BYOR with Workspace Deployments
+## Using BYOR with Workspace Deployments
 
 ### Step-by-Step Workflow
 
@@ -339,15 +339,15 @@ terraform apply
 
 ### What Happens
 
-✅ **BYOR creates**: VNet, Subnets, NSG, NAT Gateway, Key Vault
-✅ **Non-PL workspace creates**: Workspace, Unity Catalog, NCC, SEP
-✅ **Full-Private workspace creates**: Workspace, Unity Catalog, Private Endpoints, NCC
+- **BYOR creates**: VNet, Subnets, NSG, NAT Gateway, Key Vault
+- **Non-PL workspace creates**: Workspace, Unity Catalog, NCC, SEP
+- **Full-Private workspace creates**: Workspace, Unity Catalog, Private Endpoints, NCC
 
-Both workspaces share the same network and Key Vault! 🎉
+Both workspaces share the same network and Key Vault!
 
 ---
 
-## 🔗 Related Documentation
+## Related Documentation
 
 - [Non-PL Pattern](../../docs/patterns/01-NON-PL.md)
 - [Full-Private Pattern](../../docs/patterns/02-FULL-PRIVATE.md)
@@ -356,16 +356,16 @@ Both workspaces share the same network and Key Vault! 🎉
 
 ---
 
-## 💡 Best Practices
+## Best Practices
 
-✅ **DO**:
+**DO**:
 - Use BYOR for production environments with multiple workspaces
 - Tag resources appropriately for cost tracking
 - Use /24 subnets for production (more IPs than minimum /26)
 - Create CMK in BYOR if multiple workspaces need same encryption key
 - Document the BYOR output for your team
 
-❌ **DON'T**:
+**DON'T**:
 - Use BYOR for single workspace deployments (use Non-PL/Full-Private directly)
 - Change network resources after workspace deployment
 - Delete BYOR resources while workspaces are still using them
@@ -373,4 +373,4 @@ Both workspaces share the same network and Key Vault! 🎉
 
 ---
 
-**Ready to create your infrastructure?** Start with `terraform.tfvars.example`! 🚀
+**Ready to create your infrastructure?** Start with `terraform.tfvars.example`!

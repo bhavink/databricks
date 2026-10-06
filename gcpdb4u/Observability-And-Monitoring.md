@@ -108,9 +108,9 @@ sequenceDiagram
         SPARK->>MONITOR: Update Dashboard
 
         alt Task Success
-            CLUSTER-->>JOB: Task Complete ✓
+            CLUSTER-->>JOB: Task Complete
         else Task Failure
-            CLUSTER-->>JOB: Task Failed ✗
+            CLUSTER-->>JOB: Task Failed
             JOB->>ALERT: Trigger Alert
             ALERT->>Admin: Email/Webhook Notification
         end
@@ -170,7 +170,7 @@ graph TB
     LOGS --> FIX
     GANGLIA --> FIX
     FIX --> TEST[Test & Validate]
-    TEST --> END[Performance Improved ✓]
+    TEST --> END[Performance Improved ]
 
     style START fill:#FF6F00
     style MEM_ISSUE fill:#E53935

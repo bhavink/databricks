@@ -5,11 +5,11 @@
 ## Quick Reference
 
 ```
-✅ Databricks Account (E2 Enterprise)
-✅ Service Principal + Credentials
-✅ AWS Account + Credentials
-✅ Terraform >= 1.0
-✅ Environment Variables Configured
+Databricks Account (E2 Enterprise)
+Service Principal + Credentials
+AWS Account + Credentials
+Terraform >= 1.0
+Environment Variables Configured
 ```
 
 ---
@@ -225,24 +225,24 @@ curl -X GET \
 Run these commands to verify everything is ready:
 
 ```bash
-# ✅ Terraform installed
+# Good: Terraform installed
 terraform --version
 
-# ✅ AWS CLI installed
+# Good: AWS CLI installed
 aws --version
 
-# ✅ AWS authentication works
+# Good: AWS authentication works
 aws sts get-caller-identity --profile your-profile
 
-# ✅ Environment variables set
+# Good: Environment variables set
 echo "Client ID: ${TF_VAR_databricks_client_id:0:8}..."
 echo "Account ID: $TF_VAR_databricks_account_id"
 
-# ✅ Check current directory
+# Good: Check current directory
 pwd
 # Should be in project root: databricks-aws-production
 
-# ✅ Verify example configuration exists
+# Good: Verify example configuration exists
 ls terraform.tfvars.example
 ```
 
@@ -255,11 +255,11 @@ ls terraform.tfvars.example
 ### 6.1 Credential Management
 
 ```
-❌ NEVER commit credentials to Git
-❌ NEVER hardcode secrets in .tf files
-✅ Use TF_VAR_* environment variables
-✅ Store credentials in ~/.zshrc or .env.local
-✅ Add sensitive files to .gitignore
+NEVER commit credentials to Git
+NEVER hardcode secrets in .tf files
+Use TF_VAR_* environment variables
+Store credentials in ~/.zshrc or .env.local
+Add sensitive files to .gitignore
 ```
 
 ### 6.2 Files to Protect
@@ -300,9 +300,9 @@ export TF_VAR_aws_profile="account-dev"  # or "account-prod"
 
 ## Next Steps
 
-✅ Prerequisites complete → [01-ARCHITECTURE.md](01-ARCHITECTURE.md) - Understand the deployment architecture
+Prerequisites complete → [01-ARCHITECTURE.md](01-ARCHITECTURE.md) - Understand the deployment architecture
 
-✅ Ready to deploy → [04-QUICK-START.md](04-QUICK-START.md) - 5-minute deployment guide
+Ready to deploy → [04-QUICK-START.md](04-QUICK-START.md) - 5-minute deployment guide
 
 ---
 

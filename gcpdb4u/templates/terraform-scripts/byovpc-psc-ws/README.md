@@ -23,13 +23,13 @@ A Terraform configuration for deploying a secure Databricks workspace on Google 
 
 This deployment creates a **secure, private Databricks workspace** with:
 
-- ✅ **Customer-Managed VPC (BYOVPC)** with custom subnets
-- ✅ **Private Service Connect (PSC)** for private connectivity to Databricks control plane
-- ✅ **Private DNS** for workspace domain resolution
-- ✅ **No Public Internet Access** required for workspace communication
-- ✅ **VPC Endpoints** for both frontend (REST API/UI) and backend (cluster relay) traffic
-- ✅ **IP Access Lists** for additional security
-- ✅ **Workspace Admin Assignment** for initial user
+- **Customer-Managed VPC (BYOVPC)** with custom subnets
+- **Private Service Connect (PSC)** for private connectivity to Databricks control plane
+- **Private DNS** for workspace domain resolution
+- **No Public Internet Access** required for workspace communication
+- **VPC Endpoints** for both frontend (REST API/UI) and backend (cluster relay) traffic
+- **IP Access Lists** for additional security
+- **Workspace Admin Assignment** for initial user
 
 > **Note**: Private Service Connect (PSC) is **generally available (GA)** — no account-level enablement required. PSC endpoints will remain in **PENDING** state until registered with Databricks via the Account Console or the VPC Endpoint Configurations API. See [official PSC docs](https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect).
 
@@ -123,11 +123,11 @@ graph TB
 
 This configuration does **NOT** include:
 
-- ❌ Customer-Managed Encryption Keys (CMEK)
-- ❌ Unity Catalog setup
-- ❌ VPC creation (assumes VPC already exists)
-- ❌ Subnet creation (assumes subnets already exist)
-- ❌ Firewall rules configuration
+- Customer-Managed Encryption Keys (CMEK)
+- Unity Catalog setup
+- VPC creation (assumes VPC already exists)
+- Subnet creation (assumes subnets already exist)
+- Firewall rules configuration
 
 For these features, see:
 - **BYOVPC + PSC + CMEK**: `../byovpc-psc-cmek-ws/`

@@ -769,3 +769,131 @@ checks:
         }
       caveats:
         - Users can no longer export notebooks or download query results from the UI; agree exceptions (for example a separate, less restricted workspace) first.
+
+  # ------------------------------------------------- hub-spoke egress firewall
+  # Grounded in the Azure data exfiltration protection blog (definitive guide
+  # for hub-spoke); assess-only, there is no hub-spoke deployment in this repo.
+  - id: AZ-NET-010
+    control: NET.EGRESS_FIREWALL
+    title: Databricks VNet is peered to the hub that hosts the firewall
+    pillar: security
+    severity: medium
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+        - {fact: network.default_route_to_appliance, op: equals, value: true}
+    rule: {fact: network.hub_peering, op: equals, value: true}
+    rationale: >-
+      The hub-spoke design keeps the firewall and shared services in a hub
+      VNet and each workspace in a spoke, connected by VNet peering. The blog
+      also allows the firewall in the same VNet; then this check can be
+      accepted as a deliberate deviation.
+    sources:
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+      - https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-peering-overview
+    remediation:
+      fix_type: additive
+      summary: >-
+        Peer the Databricks VNet with the hub VNet (both directions), allowing
+        forwarded traffic so the 0.0.0.0/0 route reaches the firewall.
+      terraform: |
+        resource "azurerm_virtual_network_peering" "spoke_to_hub" {
+          name                      = "${var.workspace_prefix}-to-hub"
+          resource_group_name       = var.resource_group_name
+          virtual_network_name      = var.spoke_vnet_name
+          remote_virtual_network_id = var.hub_vnet_id
+          allow_forwarded_traffic   = true
+        }
+        resource "azurerm_virtual_network_peering" "hub_to_spoke" {
+          name                      = "hub-to-${var.workspace_prefix}"
+          resource_group_name       = var.hub_resource_group_name
+          virtual_network_name      = var.hub_vnet_name
+          remote_virtual_network_id = var.spoke_vnet_id
+          allow_forwarded_traffic   = true
+        }
+
+  - id: AZ-NET-011
+    control: NET.EGRESS_FIREWALL
+    title: Egress firewall allowlists Databricks destinations with application rules
+    pillar: security
+    severity: high
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+        - {fact: network.default_route_to_appliance, op: equals, value: true}
+    rule: {fact: network.firewall_application_rules, op: equals, value: true}
+    rationale: >-
+      Routing egress to the firewall only protects data if the firewall
+      allowlists what compute needs: application rules for FQDNs (control
+      plane, web app, secure cluster connectivity relay, artifact and log
+      storage) and network rules for what can't be expressed as an FQDN. The
+      agent checks that application rules exist on the Azure Firewall the
+      route points at; it does not check each destination.
+    sources:
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+      - https://learn.microsoft.com/en-us/azure/databricks/resources/ip-domain-region
+      - https://learn.microsoft.com/en-us/azure/firewall/policy-rule-sets
+    remediation:
+      fix_type: additive
+      summary: >-
+        Add a firewall policy rule collection group with application rules
+        allowing the Azure Databricks FQDNs for your region (see "IP addresses
+        and domains for Azure Databricks services and assets"), and network
+        rules for any required non-FQDN traffic.
+      caveats:
+        - Use the FQDN list for your workspace region; it differs per region and changes over time.
+        - With front-end and back-end Private Link, control-plane traffic bypasses the firewall; you still need storage, artifact and relay destinations allowed.
+      terraform: |
+        resource "azurerm_firewall_policy_rule_collection_group" "databricks" {
+          name               = "databricks"
+          firewall_policy_id = var.firewall_policy_id
+          priority           = 200
+          application_rule_collection {
+            name     = "databricks-fqdns"
+            priority = 200
+            action   = "Allow"
+            rule {
+              name              = "databricks-control-plane"
+              source_addresses  = var.databricks_subnet_cidrs
+              destination_fqdns = var.databricks_region_fqdns  # from the Azure Databricks IP and domain list
+              protocols {
+                type = "Https"
+                port = 443
+              }
+            }
+          }
+        }
+
+  - id: AZ-OPS-002
+    control: OPS.EGRESS_LOGS
+    title: Egress firewall logs allowed and blocked traffic
+    pillar: operational_excellence
+    severity: medium
+    when:
+      all_of:
+        - {fact: workspace.compute_mode, op: equals, value: classic}
+        - {fact: workspace.vnet_injected, op: equals, value: true}
+        - {fact: network.default_route_to_appliance, op: equals, value: true}
+    rule: {fact: network.firewall_logs, op: equals, value: true}
+    rationale: >-
+      Firewall logs and metrics show what compute reached and what was
+      blocked, which is how you confirm the allowlist works and spot
+      exfiltration attempts.
+    sources:
+      - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
+      - https://learn.microsoft.com/en-us/azure/firewall/monitor-firewall
+    remediation:
+      fix_type: additive
+      summary: Add a diagnostic setting on the Azure Firewall that sends its logs to Log Analytics or storage.
+      terraform: |
+        resource "azurerm_monitor_diagnostic_setting" "firewall" {
+          name                           = "firewall-logs"
+          target_resource_id             = var.firewall_id
+          log_analytics_workspace_id     = var.log_analytics_workspace_id
+          log_analytics_destination_type = "Dedicated"
+          enabled_log {
+            category_group = "allLogs"
+          }
+        }

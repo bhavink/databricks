@@ -1,7 +1,7 @@
 # Non-Private Link (Non-PL) Deployment Pattern
 
 **Pattern**: `deployments/non-pl`
-**Status**: ✅ **Production Ready**
+**Status**: **Production Ready**
 
 ---
 
@@ -17,10 +17,10 @@ The Non-Private Link (Non-PL) pattern provides a **secure** Azure Databricks dep
 
 ### Use Cases
 
-✅ **Standard production workloads**
-✅ **Teams needing internet access** (PyPI, Maven, etc.)
-✅ **Development and testing environments**
-✅ **Proof of concepts and demos**
+- **Standard production workloads**
+- **Teams needing internet access** (PyPI, Maven, etc.)
+- **Development and testing environments**
+- **Proof of concepts and demos**
 
 ---
 
@@ -152,7 +152,7 @@ This deployment includes Network Connectivity Configuration (NCC) for serverless
 |-----------|------------------|-------------------|
 | **Runs In** | Customer VNet | Databricks-managed VNet |
 | **Storage Access** | Service Endpoints (VNet) | Service Endpoints or Private Link (NCC) |
-| **Setup** | ✅ Immediate | ⏸️ Manual configuration required |
+| **Setup** | Immediate | Manual configuration required |
 | **Use Cases** | ETL, ML, batch jobs | SQL queries, ad-hoc analysis |
 
 ### **Serverless Connectivity Options**
@@ -166,9 +166,9 @@ Serverless Compute → NCC → Service Endpoint → Storage
 ```
 
 **Benefits**:
-- ✅ **Setup**: Simple firewall configuration
-- ✅ **Performance**: Low latency via Azure backbone
-- ✅ **Security**: Traffic stays on Azure network (never touches internet)
+- **Setup**: Simple firewall configuration
+- **Performance**: Low latency via Azure backbone
+- **Security**: Traffic stays on Azure network (never touches internet)
 
 **Setup Steps** (Manual):
 1. Enable serverless in Databricks UI
@@ -188,9 +188,9 @@ Serverless Compute → NCC → Private Endpoint → Storage
 ```
 
 **Benefits**:
-- ✅ **Security**: Fully isolated (zero public routing)
-- ✅ **Performance**: Best latency
-- ✅ **Compliance**: Meets strict network isolation requirements
+- **Security**: Fully isolated (zero public routing)
+- **Performance**: Best latency
+- **Compliance**: Meets strict network isolation requirements
 
 **Setup Steps** (Manual):
 1. Enable serverless with Private Link in Databricks UI
@@ -216,9 +216,9 @@ module "ncc" {
 ```
 
 **Resources**:
-- ✅ `databricks_mws_network_connectivity_config` - NCC configuration
-- ✅ `databricks_mws_ncc_binding` - Binds NCC to workspace
-- ❌ NO Private Endpoint rules (manual setup required)
+- `databricks_mws_network_connectivity_config` - NCC configuration
+- `databricks_mws_ncc_binding` - Binds NCC to workspace
+- NO Private Endpoint rules (manual setup required)
 
 **Why Manual Setup?**:
 - Private Endpoint connections from Databricks to customer storage require **manual approval** in Azure Portal
@@ -288,10 +288,10 @@ sequenceDiagram
 **Timeline**: ~3-5 minutes from creation to ready state
 
 **Key Points**:
-- ✅ VMs have **no public IPs** (NPIP enabled)
-- ✅ Control plane traffic via **NSG service tag** (not NAT)
-- ✅ Storage access via **Service Endpoints** (Azure backbone)
-- ✅ User libraries via **NAT Gateway** (PyPI/Maven)
+- VMs have **no public IPs** (NPIP enabled)
+- Control plane traffic via **NSG service tag** (not NAT)
+- Storage access via **Service Endpoints** (Azure backbone)
+- User libraries via **NAT Gateway** (PyPI/Maven)
 
 ---
 
@@ -490,7 +490,7 @@ graph LR
 
 ---
 
-**📖 For More Details**: See [Traffic Flows Deep Dive](../../docs/TRAFFIC-FLOWS.md) for complete sequence diagrams and packet-level analysis.
+**For More Details**: See [Traffic Flows Deep Dive](../../docs/TRAFFIC-FLOWS.md) for complete sequence diagrams and packet-level analysis.
 
 ---
 
@@ -500,24 +500,24 @@ graph LR
 
 | Feature | Status | Details |
 |---------|--------|---------|
-| **Secure Cluster Connectivity (NPIP)** | ✅ Always enabled | No public IPs on clusters |
-| **VNet Injection** | ✅ Always enabled | Deploy into customer VNet |
-| **NAT Gateway** | ✅ Default enabled | Stable egress IP for internet access |
-| **Unity Catalog** | ✅ Mandatory | Data governance and access control |
-| **Service Endpoints** | ✅ Always enabled | Azure Storage and Key Vault |
-| **BYOV Support** | ✅ Optional | Bring Your Own VNet/Subnets/NSG |
-| **Customer-Managed Keys** | ✅ Optional | CMK for managed services, disks, DBFS |
-| **IP Access Lists** | ✅ Optional | Restrict workspace access by IP |
-| **Random Suffixes** | ✅ Always enabled | Prevent naming conflicts |
-| **Resource Tagging** | ✅ Always enabled | Owner and KeepUntil tags |
+| **Secure Cluster Connectivity (NPIP)** | Always enabled | No public IPs on clusters |
+| **VNet Injection** | Always enabled | Deploy into customer VNet |
+| **NAT Gateway** | Default enabled | Stable egress IP for internet access |
+| **Unity Catalog** | Mandatory | Data governance and access control |
+| **Service Endpoints** | Always enabled | Azure Storage and Key Vault |
+| **BYOV Support** | Optional | Bring Your Own VNet/Subnets/NSG |
+| **Customer-Managed Keys** | Optional | CMK for managed services, disks, DBFS |
+| **IP Access Lists** | Optional | Restrict workspace access by IP |
+| **Random Suffixes** | Always enabled | Prevent naming conflicts |
+| **Resource Tagging** | Always enabled | Owner and KeepUntil tags |
 
 ### Not Included
 
 | Feature | Status | Alternative |
 |---------|--------|-------------|
-| **Private Link** (Classic) | ❌ Not included | Use `full-private` pattern |
-| **Hub-Spoke Topology** | ❌ Not included | Use `hub-spoke` pattern (future) |
-| **Azure Firewall** | ❌ Not included | Use `hub-spoke` pattern (future) |
+| **Private Link** (Classic) | Not included | Use `full-private` pattern |
+| **Hub-Spoke Topology** | Not included | Use `hub-spoke` pattern (future) |
+| **Azure Firewall** | Not included | Use `hub-spoke` pattern (future) |
 
 **Note**: Private Link for **serverless compute** is available via NCC (see [Serverless Compute Connectivity](#serverless-compute-connectivity)).
 
@@ -676,36 +676,36 @@ deployment_summary = {
 ### Network Security
 
 **Secure Cluster Connectivity (NPIP)**:
-- ✅ No public IPs on cluster VMs
-- ✅ All cluster communication within VNet
-- ✅ Control plane access via secure tunnel
+- No public IPs on cluster VMs
+- All cluster communication within VNet
+- Control plane access via secure tunnel
 
 **NSG Rules**:
-- ✅ Databricks manages NSG rules automatically
-- ✅ Worker-to-worker communication allowed
-- ✅ Control plane communication secured
-- ❌ Do not manually add rules to Databricks NSG
+- Databricks manages NSG rules automatically
+- Worker-to-worker communication allowed
+- Control plane communication secured
+- Do not manually add rules to Databricks NSG
 
 **Service Endpoints**:
-- ✅ Direct Azure backbone routing to storage
-- ✅ No internet exposure for storage traffic
+- Direct Azure backbone routing to storage
+- No internet exposure for storage traffic
 
 ### Data Security
 
 **Unity Catalog**:
-- ✅ Fine-grained access control (GRANT/REVOKE)
-- ✅ Data lineage and audit logging
-- ✅ Centralized governance across workspaces
+- Fine-grained access control (GRANT/REVOKE)
+- Data lineage and audit logging
+- Centralized governance across workspaces
 
 **Storage Security**:
-- ✅ HTTPS-only (TLS 1.2+)
-- ✅ Managed identity authentication (no keys)
-- ✅ Storage Blob Data Contributor RBAC
+- HTTPS-only (TLS 1.2+)
+- Managed identity authentication (no keys)
+- Storage Blob Data Contributor RBAC
 
 **Optional CMK**:
-- ✅ Managed services encryption (notebooks, secrets)
-- ✅ Managed disks encryption (cluster VMs)
-- ✅ DBFS root encryption (workspace storage)
+- Managed services encryption (notebooks, secrets)
+- Managed disks encryption (cluster VMs)
+- DBFS root encryption (workspace storage)
 
 ---
 
@@ -849,12 +849,12 @@ If migrating from legacy templates in `templates/terraform-scripts/adb-npip`:
 
 ### After Deployment
 
-1. ✅ **Verify workspace access**: Open `workspace_url` in browser
-2. ✅ **Configure Unity Catalog**: Create catalogs and schemas
-3. ✅ **Set up cluster policies**: Enforce governance
-4. ✅ **Configure notebooks repos**: Connect Git repos
-5. ✅ **Create service principals**: For CI/CD automation
-6. ✅ **Enable audit logging**: Monitor workspace activity
+1. **Verify workspace access**: Open `workspace_url` in browser
+2. **Configure Unity Catalog**: Create catalogs and schemas
+3. **Set up cluster policies**: Enforce governance
+4. **Configure notebooks repos**: Connect Git repos
+5. **Create service principals**: For CI/CD automation
+6. **Enable audit logging**: Monitor workspace activity
 
 ### Advanced Configurations
 
@@ -884,5 +884,5 @@ If migrating from legacy templates in `templates/terraform-scripts/adb-npip`:
 ---
 
 **Pattern Version**: 1.0
-**Status**: ✅ Production Ready
+**Status**: Production Ready
 **Terraform Version**: >= 1.5

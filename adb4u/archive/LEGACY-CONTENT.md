@@ -1,6 +1,6 @@
 # Azure Databricks Security Best Practices - Legacy Content
 
-**Status**: 📦 **ARCHIVED** - For reference only
+**Status**: **ARCHIVED** - For reference only
 
 This document contains historical best practices and patterns. **For new deployments, use the modular structure in the main repository.**
 

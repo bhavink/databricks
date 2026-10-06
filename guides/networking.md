@@ -7,7 +7,7 @@ _Understanding Databricks Network Architecture Across Clouds_
 
 ---
 
-## 📖 Table of Contents
+## Table of Contents
 
 1. [Introduction](#introduction)
 2. [Why Networking Matters](#why-networking-matters)
@@ -72,25 +72,25 @@ Databricks provides flexible networking options to meet your organization's secu
 
 Organizations choose customer-managed networking for several compelling reasons:
 
-**🔒 Security & Compliance**
+**Security & Compliance**
 - Meet strict regulatory requirements (HIPAA, SOC 2, PCI-DSS, FedRAMP)
 - Implement zero-trust network architectures
 - Control data flow and prevent exfiltration
 - Integrate with existing security tools (firewalls, proxies, IDS/IPS)
 
-**🏢 Enterprise Integration**
+**Enterprise Integration**
 - Connect to on-premises data centers via VPN or Direct Connect
 - Integrate with existing network infrastructure
 - Use centralized network management and monitoring
 - Maintain consistent security policies across platforms
 
-**💰 Operational Efficiency**
+**Operational Efficiency**
 - Better IP address space utilization (smaller subnets possible)
 - Consolidated networking across multiple workspaces
 - Simplified billing and cost allocation
 - Reduced complexity with VPC sharing
 
-**🎯 Control & Governance**
+**Control & Governance**
 - Lower privilege requirements for Databricks cross-account role
 - Alignment with internal approval processes
 - Network change management through existing workflows
@@ -153,8 +153,8 @@ Before diving into architecture, understand that Databricks offers **two types o
 
 | Compute Type | Managed By | Network Location | This Guide Covers |
 |--------------|------------|------------------|-------------------|
-| **Classic Compute** | Customer | Your VPC/VNet | ✅ Yes (detailed) |
-| **Serverless Compute** | Databricks | Databricks VPC | ❌ No (separate guide) |
+| **Classic Compute** | Customer | Your VPC/VNet | Yes (detailed) |
+| **Serverless Compute** | Databricks | Databricks VPC | No (separate guide) |
 
 **Classic compute plane**: Resources run in **your cloud account**, in **your VPC/VNet**. You control networking (subnets, security groups, routes). This guide covers classic compute networking.
 
@@ -423,7 +423,7 @@ Example /24: (2^8 - 5) / 2 = 251 / 2 = 125 nodes
 - Each workspace subnet must be `/17` to `/26`
 - If using secondary CIDR blocks, ensure subnets use **same CIDR block** as primary
 
-⚠️ **Important**: All subnets for a Databricks workspace must come from the same VPC CIDR block, not from secondary CIDR blocks.
+**Important**: All subnets for a Databricks workspace must come from the same VPC CIDR block, not from secondary CIDR blocks.
 
 #### DNS Configuration
 
@@ -529,7 +529,7 @@ resource "aws_route_table" "databricks_private" {
 }
 ```
 
-⚠️ **Critical**: The `0.0.0.0/0` route to NAT Gateway is **required**. Databricks needs outbound internet access to reach the control plane.
+**Critical**: The `0.0.0.0/0` route to NAT Gateway is **required**. Databricks needs outbound internet access to reach the control plane.
 
 **Route table for NAT Gateway subnet:**
 
@@ -646,7 +646,7 @@ If you customize NACLs, you must follow these requirements:
 |--------|------|----------|------------|--------|--------|
 | 100 | All traffic | All | All | `0.0.0.0/0` | ALLOW |
 
-⚠️ **Critical**: This rule must be **prioritized first**.
+**Critical**: This rule must be **prioritized first**.
 
 **Why this is required:**
 - NACLs are **stateless** - they don't track connections or return traffic
@@ -784,7 +784,7 @@ spark.hadoop.fs.s3a.stsAssumeRole.stsEndpoint https://sts.<region>.amazonaws.com
 }
 ```
 
-⚠️ **Important**: Regional endpoint configuration **blocks cross-region S3 access**. Only apply if all S3 buckets are in the same region.
+**Important**: Regional endpoint configuration **blocks cross-region S3 access**. Only apply if all S3 buckets are in the same region.
 
 ### S3 Bucket Policies
 
@@ -1916,24 +1916,24 @@ Example /24: 256 - 4 = 252 nodes
 ### Key Architectural Differences
 
 **AWS:**
-- ✅ Uses 2 IPs per node (management + Spark)
-- ✅ Requires `0.0.0.0/0` in security groups (no service tags)
-- ⚠️ Stateless NACLs add complexity (must allow return traffic)
-- ✅ PrivateLink available for fully private connectivity
+- Uses 2 IPs per node (management + Spark)
+- Requires `0.0.0.0/0` in security groups (no service tags)
+- Stateless NACLs add complexity (must allow return traffic)
+- PrivateLink available for fully private connectivity
 
 **Azure:**
-- ✅ Uses 1 IP per node (simpler than AWS)
-- ✅ **Service tags** simplify NSG rules (`AzureDatabricks`, `Storage`, `Sql`)
-- ✅ Two subnets serve different purposes (public for infra, private for compute)
-- ✅ Requires subnet delegation for private subnet to `Microsoft.Databricks/workspaces`
-- ✅ NSGs are stateful (simpler than AWS NACLs)
+- Uses 1 IP per node (simpler than AWS)
+- **Service tags** simplify NSG rules (`AzureDatabricks`, `Storage`, `Sql`)
+- Two subnets serve different purposes (public for infra, private for compute)
+- Requires subnet delegation for private subnet to `Microsoft.Databricks/workspaces`
+- NSGs are stateful (simpler than AWS NACLs)
 
 **GCP:**
-- ✅ Uses 1 IP per node
-- ✅ Single subnet sufficient (simplest architecture)
-- ✅ Firewall rules at VPC level
-- ✅ VPC-SC provides strong data exfiltration protection
-- ✅ Private Google Access for Google services
+- Uses 1 IP per node
+- Single subnet sufficient (simplest architecture)
+- Firewall rules at VPC level
+- VPC-SC provides strong data exfiltration protection
+- Private Google Access for Google services
 
 ---
 
@@ -1956,76 +1956,76 @@ The Q&A guide is organized by topic and cloud provider for easy navigation.
 
 ### Essential Concepts
 
-✅ **Two compute types**: Classic (your VPC) and Serverless (Databricks-managed)
-✅ **This guide covers classic compute plane** networking only
-✅ **Control plane** (Databricks-managed) and **classic compute plane** are separate
-✅ Classic compute plane initiates outbound connections to control plane - no inbound required
-✅ Customer-managed networking is **recommended** for production classic compute
-✅ Databricks offers flexible deployment options to match your requirements
-✅ Networking choice is permanent - set during workspace creation
+- **Two compute types**: Classic (your VPC) and Serverless (Databricks-managed)
+- **This guide covers classic compute plane** networking only
+- **Control plane** (Databricks-managed) and **classic compute plane** are separate
+- Classic compute plane initiates outbound connections to control plane - no inbound required
+- Customer-managed networking is **recommended** for production classic compute
+- Databricks offers flexible deployment options to match your requirements
+- Networking choice is permanent - set during workspace creation
 
 ### AWS Networking Essentials
 
-✅ **Minimum**: 2 subnets in different Availability Zones
-✅ **IP allocation**: 2 IPs per Databricks node (management + Spark)
-✅ **Subnet sizing**: Between `/17` (large) and `/26` (small)
-✅ **Security groups**: Allow all TCP/UDP within same SG
-✅ **Outbound access**: `0.0.0.0/0` required in security groups (filter at firewall)
-✅ **NAT Gateway**: Required for internet access (or PrivateLink for Databricks-only)
-✅ **DNS**: Both DNS hostnames and DNS resolution must be enabled
-✅ **VPC Endpoints**: S3 Gateway Endpoint recommended (free, better performance)
+- **Minimum**: 2 subnets in different Availability Zones
+- **IP allocation**: 2 IPs per Databricks node (management + Spark)
+- **Subnet sizing**: Between `/17` (large) and `/26` (small)
+- **Security groups**: Allow all TCP/UDP within same SG
+- **Outbound access**: `0.0.0.0/0` required in security groups (filter at firewall)
+- **NAT Gateway**: Required for internet access (or PrivateLink for Databricks-only)
+- **DNS**: Both DNS hostnames and DNS resolution must be enabled
+- **VPC Endpoints**: S3 Gateway Endpoint recommended (free, better performance)
 
 ### Azure Networking Essentials
 
-✅ **Minimum**: 2 subnets (host + container) delegated to Databricks
-✅ **IP allocation**: Host subnet (`/26` min), Container subnet (`/23` to `/26`)
-✅ **Subnet delegation**: Both subnets must be delegated to `Microsoft.Databricks/workspaces`
-✅ **NSG rules**: Inbound/outbound to AzureDatabricks Service Tag + internal communication
-✅ **Outbound access**: Internet or Azure NAT Gateway required (or Private Link)
-✅ **Service Tags**: Use `AzureDatabricks` Service Tag to simplify NSG rules
-✅ **Private Link**: Front-end (UI/REST API) and back-end (compute) connections
-✅ **Storage access**: Service Endpoints or Private Endpoints for Azure storage
+- **Minimum**: 2 subnets (host + container) delegated to Databricks
+- **IP allocation**: Host subnet (`/26` min), Container subnet (`/23` to `/26`)
+- **Subnet delegation**: Both subnets must be delegated to `Microsoft.Databricks/workspaces`
+- **NSG rules**: Inbound/outbound to AzureDatabricks Service Tag + internal communication
+- **Outbound access**: Internet or Azure NAT Gateway required (or Private Link)
+- **Service Tags**: Use `AzureDatabricks` Service Tag to simplify NSG rules
+- **Private Link**: Front-end (UI/REST API) and back-end (compute) connections
+- **Storage access**: Service Endpoints or Private Endpoints for Azure storage
 
 ### GCP Networking Essentials
 
-✅ **Minimum**: 1 subnet with 2 secondary IP ranges (pods + services)
-✅ **IP allocation**: Primary range for nodes, secondary for pods/services
-✅ **Subnet sizing**: `/23` for primary, `/17` pods, `/21` services (minimum)
-✅ **Firewall rules**: Allow internal communication (all TCP/UDP within subnet)
-✅ **Outbound access**: Cloud NAT required for internet access
-✅ **Private Google Access**: Enable for GCS and Google APIs access
-✅ **Private Service Connect**: Optional for private connectivity to control plane
-✅ **VPC-SC**: Optional perimeter for data exfiltration protection
+- **Minimum**: 1 subnet with 2 secondary IP ranges (pods + services)
+- **IP allocation**: Primary range for nodes, secondary for pods/services
+- **Subnet sizing**: `/23` for primary, `/17` pods, `/21` services (minimum)
+- **Firewall rules**: Allow internal communication (all TCP/UDP within subnet)
+- **Outbound access**: Cloud NAT required for internet access
+- **Private Google Access**: Enable for GCS and Google APIs access
+- **Private Service Connect**: Optional for private connectivity to control plane
+- **VPC-SC**: Optional perimeter for data exfiltration protection
 
 ### Planning Essentials
 
-✅ **Capacity formula**: (Usable IPs / 2) = Max Databricks nodes
-✅ **Growth buffer**: Add 30-50% extra IP capacity
-✅ **Multi-workspace**: Can share VPC, but plan capacity accordingly
-✅ **One SG per workspace**: Recommended for isolation
-✅ **Document CIDRs**: Avoid conflicts with existing networks
+- **Capacity formula**: (Usable IPs / 2) = Max Databricks nodes
+- **Growth buffer**: Add 30-50% extra IP capacity
+- **Multi-workspace**: Can share VPC, but plan capacity accordingly
+- **One SG per workspace**: Recommended for isolation
+- **Document CIDRs**: Avoid conflicts with existing networks
 
 ### Security Essentials
 
-✅ **Encryption**: All traffic encrypted with TLS 1.3
-✅ **Private connectivity**: Use AWS PrivateLink for highest security
-✅ **S3 bucket policies**: Restrict access to specific VPCs/IPs
-✅ **Egress filtering**: Use firewall/proxy for fine-grained control
-✅ **VPC Flow Logs**: Enable for traffic monitoring
-✅ **Required ports**: 443, 3306, 53, 6666, 2443, 8443-8451
+- **Encryption**: All traffic encrypted with TLS 1.3
+- **Private connectivity**: Use AWS PrivateLink for highest security
+- **S3 bucket policies**: Restrict access to specific VPCs/IPs
+- **Egress filtering**: Use firewall/proxy for fine-grained control
+- **VPC Flow Logs**: Enable for traffic monitoring
+- **Required ports**: 443, 3306, 53, 6666, 2443, 8443-8451
 
 ### Common Mistakes to Avoid
 
-❌ **Don't**: Forget to enable DNS hostnames and DNS resolution
-❌ **Don't**: Use subnets outside `/17` to `/26` range
-❌ **Don't**: Block `0.0.0.0/0` in security groups (filter at firewall instead)
-❌ **Don't**: Block `0.0.0.0/0` in NACLs inbound rules (required by Databricks)
-❌ **Don't**: Use NACLs for egress filtering (use firewall/proxy instead)
-❌ **Don't**: Reuse same subnet across multiple Availability Zones
-❌ **Don't**: Skip high availability for NAT Gateway in production
-❌ **Don't**: Assume you can migrate from Databricks-managed to customer-managed later
-❌ **Don't**: Under-provision IP capacity (always add growth buffer)
-❌ **Don't**: Mix subnets from primary and secondary CIDR blocks
+- **Don't**: Forget to enable DNS hostnames and DNS resolution
+- **Don't**: Use subnets outside `/17` to `/26` range
+- **Don't**: Block `0.0.0.0/0` in security groups (filter at firewall instead)
+- **Don't**: Block `0.0.0.0/0` in NACLs inbound rules (required by Databricks)
+- **Don't**: Use NACLs for egress filtering (use firewall/proxy instead)
+- **Don't**: Reuse same subnet across multiple Availability Zones
+- **Don't**: Skip high availability for NAT Gateway in production
+- **Don't**: Assume you can migrate from Databricks-managed to customer-managed later
+- **Don't**: Under-provision IP capacity (always add growth buffer)
+- **Don't**: Mix subnets from primary and secondary CIDR blocks
 
 ### When to Use What
 
@@ -2045,15 +2045,15 @@ The Q&A guide is organized by topic and cloud provider for easy navigation.
 
 | Port | Protocol | Purpose | Required |
 |------|----------|---------|----------|
-| `443` | TCP | HTTPS - Control plane, AWS services, repos | ✅ Yes |
-| `8443` | TCP | Control plane API | ✅ Yes |
-| `8444` | TCP | Unity Catalog logging/lineage | ✅ Yes (recommended) |
-| `8445-8451` | TCP | Future extendability | ✅ Yes |
-| `53` | TCP | DNS resolution | ✅ Yes (if custom DNS) |
-| `6666` | TCP | Secure Cluster Connectivity (PrivateLink) | ✅ Yes (if PrivateLink) |
-| `2443` | TCP | FIPS-compliant encryption | ✅ Yes (if FIPS) |
-| `3306` | TCP | Legacy Hive metastore | ⚠️ Optional (not needed with Unity Catalog) |
-| All | TCP/UDP | Within same security group | ✅ Yes |
+| `443` | TCP | HTTPS - Control plane, AWS services, repos | Yes |
+| `8443` | TCP | Control plane API | Yes |
+| `8444` | TCP | Unity Catalog logging/lineage | Yes (recommended) |
+| `8445-8451` | TCP | Future extendability | Yes |
+| `53` | TCP | DNS resolution | Yes (if custom DNS) |
+| `6666` | TCP | Secure Cluster Connectivity (PrivateLink) | Yes (if PrivateLink) |
+| `2443` | TCP | FIPS-compliant encryption | Yes (if FIPS) |
+| `3306` | TCP | Legacy Hive metastore | Optional (not needed with Unity Catalog) |
+| All | TCP/UDP | Within same security group | Yes |
 
 > **Modern Approach**: Unity Catalog (ports 8443-8451) is the recommended metadata management solution. Legacy Hive metastore (port 3306) is optional and can be [disabled](https://docs.databricks.com/aws/en/data-governance/unity-catalog/disable-hms).
 

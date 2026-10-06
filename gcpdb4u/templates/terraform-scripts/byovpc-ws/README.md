@@ -21,10 +21,10 @@ A Terraform configuration for deploying a basic Databricks workspace on Google C
 
 This deployment creates a **basic Databricks workspace** with:
 
-- ✅ **Customer-Managed VPC (BYOVPC)** with custom subnets
-- ✅ **Public Internet Access** for workspace and clusters
-- ✅ **Workspace Admin Assignment** for initial user
-- ✅ **Basic Security Configuration**
+- **Customer-Managed VPC (BYOVPC)** with custom subnets
+- **Public Internet Access** for workspace and clusters
+- **Workspace Admin Assignment** for initial user
+- **Basic Security Configuration**
 
 ### Architecture Diagram
 
@@ -75,13 +75,13 @@ graph TB
 
 This is a minimal workspace deployment. It does **NOT** include:
 
-- ❌ Private Service Connect (PSC) for private connectivity
-- ❌ Customer-Managed Encryption Keys (CMEK)
-- ❌ Unity Catalog setup
-- ❌ VPC creation (assumes VPC already exists)
-- ❌ Subnet creation (assumes subnets already exist)
-- ❌ Firewall rules configuration
-- ❌ IP Access Lists
+- Private Service Connect (PSC) for private connectivity
+- Customer-Managed Encryption Keys (CMEK)
+- Unity Catalog setup
+- VPC creation (assumes VPC already exists)
+- Subnet creation (assumes subnets already exist)
+- Firewall rules configuration
+- IP Access Lists
 
 For these features, see:
 - **BYOVPC + PSC**: `../byovpc-psc-ws/`

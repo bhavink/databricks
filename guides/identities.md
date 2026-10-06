@@ -87,7 +87,7 @@ sequenceDiagram
     Note over You,DB: Workspace Creation
     DB->>IAM: 4. AssumeRole (with external ID)
     IAM->>IAM: Verify: Is this really Databricks?
-    IAM->>DB: ✅ Here are temporary credentials<br/>(valid for 1 hour)
+    IAM->>DB: Here are temporary credentials<br/>(valid for 1 hour)
 
     DB->>Resources: 5. Create workspace using temp creds
     DB->>Resources: Launch EC2 instances
@@ -209,7 +209,7 @@ sequenceDiagram
     Note over You,S3: Access Flow
     DB->>You: 8. AssumeRole (with external_id)
     You->>You: Verify external_id matches
-    You->>DB: ✅ Temporary credentials
+    You->>DB: Temporary credentials
     DB->>S3: 9. Access S3 data
 ```
 
@@ -748,7 +748,7 @@ sequenceDiagram
     Attacker->>DB: Use role arn:aws:iam::YOUR-ACCT:role/your-role
     DB->>Your_Role: AssumeRole<br/>(with Attacker's external_id)
     Your_Role->>Your_Role: Check: external_id = YOUR-ACCOUNT-ID?
-    Your_Role->>DB: ❌ Access Denied<br/>(external_id mismatch)
+    Your_Role->>DB: Access Denied<br/>(external_id mismatch)
 
     Note over Attacker,Your_Role: Attacker cannot access your data
 ```

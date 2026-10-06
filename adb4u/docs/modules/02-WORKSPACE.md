@@ -11,12 +11,12 @@ The workspace module creates a fully configured Azure Databricks workspace with 
 
 ### Key Features
 
-- ✅ **VNet Injection**: Deploy into customer-managed VNet
-- ✅ **Secure Cluster Connectivity (NPIP)**: Always enabled (no public IPs on clusters)
-- ✅ **Private Link**: Optional front-end and back-end isolation
-- ✅ **Customer-Managed Keys**: Optional encryption for managed services, disks, and DBFS
-- ✅ **IP Access Lists**: Optional workspace access restrictions
-- ✅ **Production-Ready**: Battle-tested configurations
+- **VNet Injection**: Deploy into customer-managed VNet
+- **Secure Cluster Connectivity (NPIP)**: Always enabled (no public IPs on clusters)
+- **Private Link**: Optional front-end and back-end isolation
+- **Customer-Managed Keys**: Optional encryption for managed services, disks, and DBFS
+- **IP Access Lists**: Optional workspace access restrictions
+- **Production-Ready**: Battle-tested configurations
 
 ---
 
@@ -173,10 +173,10 @@ custom_parameters {
 ```
 
 **Benefits**:
-- ✅ No public IPs on cluster VMs
-- ✅ All traffic stays within VNet
-- ✅ Reduced attack surface
-- ✅ Compliance-friendly
+- No public IPs on cluster VMs
+- All traffic stays within VNet
+- Reduced attack surface
+- Compliance-friendly
 
 **NSG Rule Management**:
 - **Non-PL**: Databricks manages NSG rules automatically
@@ -291,11 +291,11 @@ Catalog
 ```
 
 **Key Points**:
-- ✅ Workspace creates VNet-injected compute plane
-- ✅ Workspace ID required for Unity Catalog assignment
-- ✅ Workspace numeric ID required for NCC binding
-- ✅ Classic clusters work immediately after workspace creation
-- ⏸️ Serverless requires NCC + manual setup
+- Workspace creates VNet-injected compute plane
+- Workspace ID required for Unity Catalog assignment
+- Workspace numeric ID required for NCC binding
+- Classic clusters work immediately after workspace creation
+- Serverless requires NCC + manual setup
 
 ### Integration with Other Modules
 

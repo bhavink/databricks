@@ -1,8 +1,8 @@
-# 🚀 How to Use the Modular Version
+# How to Use the Modular Version
 
 This guide walks you through deploying AWS Databricks with Private Link using the modular Terraform configuration.
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before starting, ensure you have:
 
@@ -12,7 +12,7 @@ Before starting, ensure you have:
 - [x] Databricks account
 - [x] Databricks service principal (OAuth credentials)
 
-## 🛠️ Step 1: Prepare Your Environment
+## Step 1: Prepare Your Environment
 
 ### 1.1 Clone or Navigate to the Directory
 
@@ -49,7 +49,7 @@ You need a Databricks service principal with account admin privileges:
 4. Generate OAuth secret
 5. Save the `Client ID` and `Client Secret`
 
-## ⚙️ Step 2: Configure Variables
+## Step 2: Configure Variables
 
 ### 2.1 Copy and Edit terraform.tfvars
 
@@ -115,7 +115,7 @@ enable_encryption        = false  # Set to true for KMS encryption
 create_workspace_catalog = true   # Set to false to skip catalog creation
 ```
 
-## 🎯 Step 3: Initialize Terraform
+## Step 3: Initialize Terraform
 
 Initialize Terraform to download providers and modules:
 
@@ -140,7 +140,7 @@ Initializing provider plugins...
 Terraform has been successfully initialized!
 ```
 
-## 📝 Step 4: Review the Plan
+## Step 4: Review the Plan
 
 Preview what Terraform will create:
 
@@ -157,7 +157,7 @@ Review the plan carefully. You should see:
 - Databricks workspace
 - Unity Catalog resources
 
-## 🚀 Step 5: Deploy
+## Step 5: Deploy
 
 Apply the configuration:
 
@@ -176,7 +176,7 @@ Type `yes` when prompted.
 3. **Phase 3 (5-10 min):** Databricks workspace creation
 4. **Phase 4 (10-15 min):** Unity Catalog metastore, storage credentials, external locations, catalogs
 
-## ✅ Step 6: Verify Deployment
+## Step 6: Verify Deployment
 
 ### 6.1 Check Terraform Outputs
 
@@ -200,7 +200,7 @@ terraform output deployment_summary
 
 ### 6.3 Access the Workspace
 
-⏰ **IMPORTANT:** Wait 20 minutes before creating clusters!
+**IMPORTANT:** Wait 20 minutes before creating clusters!
 
 1. Get the workspace URL:
    ```bash
@@ -215,11 +215,11 @@ terraform output deployment_summary
    - Click "Data" in the left sidebar
    - You should see your workspace catalog
 
-## 🧪 Step 7: Test the Deployment
+## Step 7: Test the Deployment
 
 ### 7.1 Create a Test Cluster
 
-⏰ Wait 20 minutes after deployment before creating clusters!
+Wait 20 minutes after deployment before creating clusters!
 
 1. Navigate to "Compute" → "Create Cluster"
 2. Configure:
@@ -256,7 +256,7 @@ terraform output deployment_summary
    SELECT * FROM test_schema.test_table;
    ```
 
-## 🔄 Step 8: Making Changes
+## Step 8: Making Changes
 
 ### Add KMS Encryption
 
@@ -274,7 +274,7 @@ terraform output deployment_summary
 
 Edit `modules/unity_catalog/04-workspace-catalog.tf` to add more catalogs.
 
-## 🧹 Step 9: Cleanup (Destroy)
+## Step 9: Cleanup (Destroy)
 
 To destroy all resources:
 
@@ -297,9 +297,9 @@ terraform destroy
 terraform destroy
 ```
 
-⚠️ **Note:** S3 buckets have `force_destroy = true` enabled, so they will be deleted even if they contain data.
+**Note:** S3 buckets have `force_destroy = true` enabled, so they will be deleted even if they contain data.
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Issue: "No valid credential sources found"
 
@@ -330,7 +330,7 @@ terraform init
 2. Workspace admin email is correct
 3. Metastore owner is set correctly
 
-## 📊 Understanding the Module Structure
+## Understanding the Module Structure
 
 ```
 modular-version/
@@ -368,25 +368,25 @@ modular-version/
         └── 05-grants.tf
 ```
 
-## 🎓 Next Steps
+## Next Steps
 
 After successful deployment:
 
-1. ✅ Create compute policies
-2. ✅ Set up cluster policies
-3. ✅ Configure workspace settings
-4. ✅ Add more users and groups
-5. ✅ Create additional catalogs and schemas
-6. ✅ Set up data pipelines
+1. Create compute policies
+2. Set up cluster policies
+3. Configure workspace settings
+4. Add more users and groups
+5. Create additional catalogs and schemas
+6. Set up data pipelines
 
-## 📚 Additional Resources
+## Additional Resources
 
 - [Databricks Documentation](https://docs.databricks.com)
 - [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws)
 - [Terraform Databricks Provider](https://registry.terraform.io/providers/databricks/databricks)
 - [Databricks Security Reference Architecture](https://github.com/databricks/terraform-databricks-sra)
 
-## 💡 Tips
+## Tips
 
 - Always use `terraform plan` before `terraform apply`
 - Keep your `terraform.tfvars` secure (contains secrets)

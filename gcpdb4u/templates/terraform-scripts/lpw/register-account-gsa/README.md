@@ -45,7 +45,7 @@ Optional precursor to workspace creation. If you use it, run it before the works
 deploy so the creator GSA is admin-ready. If you'd rather add the GSA manually (a
 one-off), skip this entirely — it changes nothing about the workspace config.
 
-## ⚠️ Security
+## Security
 
 `account_admin` is the highest privilege in Databricks: full control of the entire
 account (every workspace, billing, identities, network/security, audit). Granting it

@@ -152,8 +152,9 @@ def check_build(baseline: dict, repo_root: Path = REPO_ROOT) -> None:
     build = baseline.get("build")
     if not build:
         raise ValueError(
-            f"baseline {baseline['id']!r} has no tested deployment yet; see {baseline['deployment']} "
-            f"and the official docs. The agent does not improvise Terraform."
+            f"baseline {baseline['id']!r} has no tested deployment in this repo; it is for assessing "
+            f"existing workspaces (assess, verify) against {baseline['deployment']}. "
+            f"The agent does not improvise Terraform."
         )
     declared = set(build_variables(build, repo_root))
     for stage in build["stages"]:

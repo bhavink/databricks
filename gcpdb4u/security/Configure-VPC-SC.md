@@ -1,4 +1,4 @@
-# VPC Service Controls (VPC-SC) for Databricks on GCP 🔒
+# VPC Service Controls (VPC-SC) for Databricks on GCP
 
 VPC Service Controls (VPC-SC) lets you create security perimeters around Google Cloud resources to reduce the risk of data exfiltration and to restrict access to only authorized networks and identities. Databricks supports VPC-SC for both Customer-Managed VPCs (Shared VPC or standalone) and Databricks-managed VPCs.
 
@@ -299,9 +299,9 @@ identityType: ANY_IDENTITY  # Required because Consumer SA doesn't exist yet
 ```
 
 This still requires requests to originate from:
-1. ✅ Databricks Control Plane projects (project number restrictions)
-2. ✅ IPs matching Access Level (Control Plane NAT IPs)
-3. ❌ NOT arbitrary sources
+1. Databricks Control Plane projects (project number restrictions)
+2. IPs matching Access Level (Control Plane NAT IPs)
+3. NOT arbitrary sources
 
 ---
 
@@ -720,40 +720,40 @@ See [Lock Down VPC Firewall Rules](./LockDown-VPC-Firewall-Rules.md) for firewal
 
 | Step | Task | Status |
 |------|------|--------|
-| 1 | Identify Databricks Control Plane IPs for your region | ☐ |
-| 2 | Identify Databricks project numbers for your region | ☐ |
-| 3 | Identify your Consumer Project number(s) | ☐ |
-| 4 | Verify IAM permissions for VPC-SC configuration | ☐ |
-| 5 | Configure Private Google Access and DNS | ☐ |
+| 1 | Identify Databricks Control Plane IPs for your region | [ ] |
+| 2 | Identify Databricks project numbers for your region | [ ] |
+| 3 | Identify your Consumer Project number(s) | [ ] |
+| 4 | Verify IAM permissions for VPC-SC configuration | [ ] |
+| 5 | Configure Private Google Access and DNS | [ ] |
 
 ### Workspace Creation Phase
 
 | Step | Task | Status |
 |------|------|--------|
-| 6 | Get Access Context Manager policy ID | ☐ |
-| 7 | Create Access Level with Control Plane IPs | ☐ |
-| 8 | Update `create-ws-ingress.yaml` with your values | ☐ |
-| 9 | Create Service Perimeter in dry-run mode | ☐ |
-| 10 | Test dry-run and review logs | ☐ |
-| 11 | Enforce Service Perimeter | ☐ |
-| 12 | Create Databricks workspace | ☐ |
-| 13 | Verify workspace creation succeeds | ☐ |
-| 14 | Verify Consumer SA and DBFS buckets created | ☐ |
+| 6 | Get Access Context Manager policy ID | [ ] |
+| 7 | Create Access Level with Control Plane IPs | [ ] |
+| 8 | Update `create-ws-ingress.yaml` with your values | [ ] |
+| 9 | Create Service Perimeter in dry-run mode | [ ] |
+| 10 | Test dry-run and review logs | [ ] |
+| 11 | Enforce Service Perimeter | [ ] |
+| 12 | Create Databricks workspace | [ ] |
+| 13 | Verify workspace creation succeeds | [ ] |
+| 14 | Verify Consumer SA and DBFS buckets created | [ ] |
 
 ### Post-Creation Phase
 
 | Step | Task | Status |
 |------|------|--------|
-| 15 | Update `ingress.yaml` with your values | ☐ |
-| 16 | Update `egress.yaml` with your values and workspace-specific SA | ☐ |
-| 17 | Update perimeter with ingress + egress policies (dry-run) | ☐ |
-| 18 | Test dry-run and review logs | ☐ |
-| 19 | Enforce updated perimeter | ☐ |
-| 20 | Launch test cluster | ☐ |
-| 21 | Verify cluster can access DBFS | ☐ |
-| 22 | Verify cluster can pull runtime images | ☐ |
-| 23 | Monitor VPC-SC logs for violations | ☐ |
-| 24 | Document any policy adjustments made | ☐ |
+| 15 | Update `ingress.yaml` with your values | [ ] |
+| 16 | Update `egress.yaml` with your values and workspace-specific SA | [ ] |
+| 17 | Update perimeter with ingress + egress policies (dry-run) | [ ] |
+| 18 | Test dry-run and review logs | [ ] |
+| 19 | Enforce updated perimeter | [ ] |
+| 20 | Launch test cluster | [ ] |
+| 21 | Verify cluster can access DBFS | [ ] |
+| 22 | Verify cluster can pull runtime images | [ ] |
+| 23 | Monitor VPC-SC logs for violations | [ ] |
+| 24 | Document any policy adjustments made | [ ] |
 
 ---
 
@@ -774,7 +774,7 @@ See [Lock Down VPC Firewall Rules](./LockDown-VPC-Firewall-Rules.md) for firewal
 
 ## Summary
 
-✅ **Recommended VPC Service Controls Configuration for Databricks on GCP**:
+**Recommended VPC Service Controls Configuration for Databricks on GCP**:
 
 1. **Use two-phase approach**: Create workspace with `create-ws-ingress.yaml`, then update to full `ingress.yaml` + `egress.yaml`
 2. **Always start with dry-run mode**: Test policies before enforcement to avoid breaking workspaces

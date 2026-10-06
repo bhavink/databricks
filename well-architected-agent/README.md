@@ -6,7 +6,7 @@ reports what is missing and exactly how to fix it, with Terraform from this
 repo. Works **pre-deployment** (Terraform plan) and **post-deployment**
 (live, read-only scan).
 
-Status: **Phase 0 — Azure, deterministic core.** GCP and AWS follow.
+Status: **Azure complete.** GCP is next, then AWS.
 
 New here? Read the **[simple guide](GUIDE.md)** (what / why / when / how).
 
@@ -247,7 +247,7 @@ private package mirror doesn't rewrite `uv.lock` at every launch.
 
 | Assistant | Check |
 |---|---|
-| Claude Code | `claude mcp list` (shows ✔ Connected), then `/mcp` in a session |
+| Claude Code | `claude mcp list` (shows Connected), then `/mcp` in a session |
 | Codex CLI | `codex mcp list` |
 | Cursor | Settings → MCP: `databricks-wa` is green |
 | Gemini CLI | `/mcp` in a session |
@@ -312,7 +312,7 @@ such as the Databricks SRA are cited as references only.
 |---|---|
 | `classic-*` | This repo's [`non-pl`](../adb4u/deployments/non-pl) / [`full-private`](../adb4u/deployments/full-private), copied into the folder |
 | `serverless`, `serverless-high-security` | [`adb4u/deployments/serverless`](../adb4u/deployments/serverless): the same ARM call as the official [SRA `serverless_workspace` module](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf/modules/serverless_workspace), without its VNet; copied into the folder |
-| `classic-exfiltration-protection` | Not yet: `new` refuses until this repo has a hub-spoke deployment; the baseline is used for assessments |
+| `classic-exfiltration-protection` | None by design: hub-spoke is assessed against the [Azure data exfiltration protection blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks), not deployed |
 
 Required variables become `inputs.tfvars`: answer them with `--set name=value`
 (JSON for lists and booleans); anything unanswered is a `REPLACE_ME_*`.
@@ -382,26 +382,33 @@ Each fix states how proven its repo implementation is:
 
 Everything in this repo today is `tested`.
 
-## Known limits (Phase 0)
+## Known limits
 
 - **Plan correlation is by type and count.** Resource IDs are unknown before
   apply, so DBFS private endpoints are recognized by address name (`dbfs`). Use
   the live collector for exact correlation.
-- **Firewall allowlist content is not validated.** Only the 0.0.0.0/0 →
-  appliance route is checked, not the FQDN/IP rules (planned, see roadmap).
-- **The live collector has been validated against two real back-end Private
-  Link workspaces** (Azure CLI 2.70, Databricks CLI 1.17). Their
-  sanitized responses are replay fixtures in `tests/fixtures/azure/`. Other
-  topologies (hub-spoke, VNets in a different subscription) have not been run
-  live yet.
+- **Firewall rules are checked for presence, not content.** For hub-spoke the
+  agent follows the 0.0.0.0/0 route to the Azure Firewall and checks it has
+  application rules and logs; it doesn't compare each FQDN with the published
+  Azure Databricks list. With an NVA instead of Azure Firewall, those checks
+  report not evaluable.
+- **Live scans have been run against real workspaces:** two back-end Private
+  Link workspaces (their sanitized responses are replay fixtures in
+  `tests/fixtures/azure/`) and a serverless workspace deployed from
+  `adb4u/deployments/serverless` (plan, state and live scan agree). Hub-spoke
+  checks are covered by tests, not yet by a live hub-spoke scan.
+- **Hub-spoke is assess-only by design.** The Azure data exfiltration
+  protection blog is the definitive guide for `classic-exfiltration-protection`;
+  there is no hub-spoke deployment, so `new` doesn't generate it.
 
 ## Roadmap
 
-| Phase | Scope |
+This repo stays the definitive source: every cloud's Terraform lands in its
+`*db4u` folder; other repositories (such as the Databricks SRA) are cited as
+references.
+
+| | Scope |
 |---|---|
-| 0 ✅ | Azure: patterns, checks, baselines, plan/state/live collectors, evidence provenance, read-only guard, `verify`, MCP server, CI gate |
-| A ✅ | Azure complete: `adb4u` opt-in diagnostic logs, workspace storage firewall, enforced serverless network policy (mock-tested); `new` run books; caveats + maturity in reports; CI with weekly doc-drift check |
-| 1 | Azure depth: firewall rule validation against published Databricks IP/FQDN ranges ([databricksIPranges](https://github.com/bhavink/databricksIPranges)), cluster policies, cost checks from `system.billing`, audit coverage from `system.access` |
-| 2 | GCP: `gcpdb4u` patterns (`byovpc-ws` → `byovpc-psc-cmek-ws`, `lpw`), PSC, VPC-SC, CMEK, PGA, serverless |
-| 3 | AWS: `awsdb4u` patterns (back-end PrivateLink, SRA), VPC endpoints, Network Firewall, KMS, serverless |
-| 5 | Databricks App front-end over the same read-only core |
+| Azure (done) | 7 baselines, plan/state/live collectors with evidence, read-only guard, `assess`, `verify`, `diagram`, plain-language `show`, `new` folders from tested `adb4u` deployments (classic and serverless without a VNet), hub-spoke assessed against the Azure data exfiltration protection blog, MCP server, CI on Windows/macOS/Linux |
+| 1 · GCP | `gcpdb4u` patterns (`byovpc-ws` → `byovpc-psc-cmek-ws`, `lpw`), PSC, VPC-SC, CMEK, Private Google Access, serverless |
+| 2 · AWS | `awsdb4u` patterns (back-end PrivateLink, customer-managed VPC), VPC endpoints, Network Firewall, KMS, serverless; SRA as reference |

@@ -207,7 +207,7 @@ Example output:
 
 ### Step 5: Manual Action - Add Workspace GSA to Operator Group
 
-⚠️ **CRITICAL**: The workspace GSA must be added to your operator group before proceeding to Phase 2.
+**CRITICAL**: The workspace GSA must be added to your operator group before proceeding to Phase 2.
 
 #### Option A: Google Workspace (if using workspace directory)
 1. Go to admin.google.com
@@ -427,7 +427,7 @@ terraform apply -var="phase=RUNNING"
 
 ## Destroying Resources
 
-⚠️ **WARNING**: This will delete the workspace and all data!
+**WARNING**: This will delete the workspace and all data!
 
 ```bash
 # Destroy workspace resources first (Phase 2)

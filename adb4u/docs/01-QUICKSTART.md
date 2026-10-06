@@ -2,16 +2,16 @@
 
 Deploy your first Azure Databricks workspace using the Non-Private Link pattern.
 
-## ⏱️ Estimated Time: 20 minutes
+## Estimated Time: 20 minutes
 
-## ✅ Prerequisites Checklist
+## Prerequisites Checklist
 
 - [ ] Azure subscription with Contributor + User Access Administrator roles
 - [ ] Terraform >= 1.5 installed (`terraform version`)
 - [ ] Azure CLI installed and logged in (`az login`)
 - [ ] Databricks Account ID from https://accounts.azuredatabricks.net
 
-## 🚀 Deployment Steps
+## Deployment Steps
 
 ### Step 1: Set Environment Variables
 
@@ -108,7 +108,7 @@ terraform output
 terraform output metastore_id > metastore-id.txt
 ```
 
-## ✅ Verification
+## Verification
 
 ### 1. Access Workspace
 
@@ -141,7 +141,7 @@ In Azure Portal, check:
 3. Create a catalog: `CREATE CATALOG test_catalog`
 4. Check external location is available
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Issue: "databricks_account_id must be a valid UUID"
 **Solution:** Verify format is `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` (no spaces)
@@ -162,7 +162,7 @@ az network vnet subnet update \
 ### Issue: Cannot install packages
 **Solution:** Verify NAT Gateway is created and associated with subnets
 
-## 📊 What Was Created?
+## What Was Created?
 
 | Resource Type | Count | Purpose |
 |---------------|-------|---------|
@@ -178,7 +178,7 @@ az network vnet subnet update \
 
 **Monthly Cost:** ~$58 (infrastructure only, compute is additional)
 
-## 🎯 Next Steps
+## Next Steps
 
 1. **Configure Users & Groups**
    - Set up Azure AD SCIM provisioning
@@ -202,15 +202,15 @@ az network vnet subnet update \
    - Set `create_metastore = false`
    - Reference `existing_metastore_id`
 
-## 🧹 Cleanup (Testing Only)
+## Cleanup (Testing Only)
 
 ```bash
 terraform destroy
 ```
 
-**⚠️ Warning:** This will delete everything including Unity Catalog data!
+**Warning:** This will delete everything including Unity Catalog data!
 
-## 📚 More Information
+## More Information
 
 - **Authentication Options:** See `docs/02-AUTHENTICATION.md`
 - **Architecture Details:** See [Non-PL Pattern](patterns/01-NON-PL.md)

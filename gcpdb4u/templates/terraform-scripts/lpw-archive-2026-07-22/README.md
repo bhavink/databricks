@@ -1,6 +1,6 @@
 # Databricks Workspace with Unity Catalog on GCP
 
-> **⚠️ IMPORTANT - SPECIAL CONFIGURATION NOTICE**
+> **IMPORTANT - SPECIAL CONFIGURATION NOTICE**
 >
 > **Least Privilege Workspaces (LPW)** is a specialized Databricks deployment configuration with enhanced security controls (generally available). This configuration:
 > - Applies a maximum-security posture (least-privilege IAM, CMK, PSC, VPC-SC)
@@ -87,49 +87,49 @@ graph TB
 
 ## Prerequisites
 
-⚠️ **IMPORTANT**: This module does NOT create the foundational infrastructure. The following resources must exist BEFORE deploying:
+**IMPORTANT**: This module does NOT create the foundational infrastructure. The following resources must exist BEFORE deploying:
 
 ### 1. Databricks Account Setup (Must Exist)
 
 #### Account Access
-- ✅ Databricks account on GCP with **account-level admin access**
-- ✅ Access to account console: `https://accounts.gcp.databricks.com/`
+- Databricks account on GCP with **account-level admin access**
+- Access to account console: `https://accounts.gcp.databricks.com/`
 
 #### Regional Unity Catalog Metastore (Must Be Created First)
-- ✅ **Unity Catalog metastore** already created in your target region (e.g., `us-east4`)
+- **Unity Catalog metastore** already created in your target region (e.g., `us-east4`)
   - Created by Databricks during account provisioning
   - One metastore per region
   - Obtain the metastore UUID from your Databricks account team
 
 #### Databricks Groups (Must Exist Before Deployment)
-- ✅ **Account-level groups** created in Databricks for permission management
+- **Account-level groups** created in Databricks for permission management
   - Example: `databricks-admins`, `databricks-writers`, `databricks-readers`
   - Create at: https://accounts.gcp.databricks.com/ → User Management → Groups
   - Groups must exist BEFORE running Terraform
 
 #### Regional Databricks Infrastructure IDs (Obtain from Databricks Account Team)
-- ✅ **Private Access Settings ID** (UUID) - per region
-- ✅ **Dataplane Relay VPC Endpoint ID** (UUID) - per region (ngrok endpoint)
-- ✅ **REST API VPC Endpoint ID** (UUID) - per region (plproxy endpoint)
+- **Private Access Settings ID** (UUID) - per region
+- **Dataplane Relay VPC Endpoint ID** (UUID) - per region (ngrok endpoint)
+- **REST API VPC Endpoint ID** (UUID) - per region (plproxy endpoint)
 
 ### 2. GCP Infrastructure (Must Exist)
 
 #### GCP Projects
-- ✅ **Databricks workspace project** - where workspace resources will be created
-- ✅ **Network project** (if using Shared VPC) - where VPC/subnets exist
+- **Databricks workspace project** - where workspace resources will be created
+- **Network project** (if using Shared VPC) - where VPC/subnets exist
 
 #### Network Infrastructure
-- ✅ **VPC network** configured and accessible
+- **VPC network** configured and accessible
   - Can be Shared VPC or dedicated VPC
   - Must allow outbound internet access (for Databricks control plane)
-- ✅ **Subnet** allocated for Databricks worker nodes
+- **Subnet** allocated for Databricks worker nodes
   - Minimum size: `/26` (64 IPs) - **Required**
   - Recommended: `/24` (256 IPs) for production workloads
   - Must have Private Google Access enabled
   - Region must match workspace region
 
 #### Service Account with Permissions
-- ✅ **Terraform service account** with the following roles:
+- **Terraform service account** with the following roles:
   - `roles/iam.serviceAccountUser` - To use service accounts
   - `roles/compute.networkAdmin` - To configure networking
   - `roles/storage.admin` - To create GCS buckets
@@ -139,8 +139,8 @@ graph TB
 ### 3. Terraform Environment
 
 #### Required Tools
-- ✅ Terraform >= 1.0
-- ✅ gcloud CLI (for authentication)
+- Terraform >= 1.0
+- gcloud CLI (for authentication)
 
 #### Provider Versions
 - Databricks provider ~> 1.95.0
@@ -196,13 +196,13 @@ This module creates the following resources (it does NOT create the prerequisite
 
 The following are NOT created by this module and must exist beforehand:
 
-❌ VPC network
-❌ Subnets
-❌ Unity Catalog metastore
-❌ Databricks account
-❌ Databricks groups
-❌ GCP projects
-❌ Regional Databricks endpoint infrastructure
+- VPC network
+- Subnets
+- Unity Catalog metastore
+- Databricks account
+- Databricks groups
+- GCP projects
+- Regional Databricks endpoint infrastructure
 
 ## Quick Start
 

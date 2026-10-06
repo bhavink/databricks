@@ -1,4 +1,4 @@
-# Lock Down VPC Egress for Databricks on GCP 🔐
+# Lock Down VPC Egress for Databricks on GCP
 
 By default, GCP allows egress from VPCs to any destination. To meet security and compliance requirements, you can restrict egress traffic from Databricks clusters using a **deny-by-default approach** that explicitly allows only essential services and destinations.
 
@@ -18,8 +18,8 @@ The recommended security model for Databricks on GCP follows a **deny-by-default
 ```mermaid
 graph TD
     Start[Databricks Cluster VM] --> Check{Egress Traffic}
-    Check -->|Match Allow Rule<br/>Priority 1000-1099| Allow[✅ Allow Traffic]
-    Check -->|No Match| Deny[❌ Deny Traffic<br/>Priority 1100]
+    Check -->|Match Allow Rule<br/>Priority 1000-1099| Allow[ Allow Traffic]
+    Check -->|No Match| Deny[ Deny Traffic<br/>Priority 1100]
 
     Allow --> Dest1[199.36.153.4/30<br/>Restricted Google APIs]
     Allow --> Dest2[34.126.0.0/18<br/>VPC-SC Entry Point]
@@ -36,7 +36,7 @@ graph TD
 
 ---
 
-## 🎯 Why Use Restricted Google APIs?
+## Why Use Restricted Google APIs?
 
 **For Databricks on GCP, the recommended best practice is to use `restricted.googleapis.com` (199.36.153.4/30) instead of `private.googleapis.com`.**
 
@@ -47,7 +47,7 @@ graph TD
 | **Compliance Ready** | Aligns with regulatory requirements by enforcing strict API access controls |
 | **Explicit Allow-listing** | Forces explicit configuration of allowed services following least privilege |
 
-> ⚠️ **Trade-off**: Using restricted APIs blocks public package repositories (PyPI, Maven Central) and non-VPC-SC-compliant Google services. Plan accordingly for package management.
+> **Trade-off**: Using restricted APIs blocks public package repositories (PyPI, Maven Central) and non-VPC-SC-compliant Google services. Plan accordingly for package management.
 
 ---
 
@@ -68,7 +68,7 @@ All **allow rules** must use **priority 1000-1099**. The **deny-all rule** must 
 | `allow-ntp` | EGRESS | 1000 | ALLOW | UDP | 123 | `<NTP_SERVER_IPS>` | Time synchronization | **Required** for time services |
 | `deny-all-egress` | EGRESS | 1100 | DENY | All | All | `0.0.0.0/0` | Deny all other egress traffic | **Critical** - must be lowest priority |
 
-> 🔴 **CRITICAL**: The deny-all rule MUST have lower priority (higher number) than allow rules. Incorrect prioritization prevents Databricks from accessing essential services and breaks workspace/cluster creation.
+> **CRITICAL**: The deny-all rule MUST have lower priority (higher number) than allow rules. Incorrect prioritization prevents Databricks from accessing essential services and breaks workspace/cluster creation.
 
 ### Regional Control Plane IP Addresses
 
@@ -84,7 +84,7 @@ To find your region's control plane IPs, see: [Databricks IP Addresses and Domai
 | `us-east1` | Check official docs | 443, 8443-8451 |
 | `europe-west2` | Check official docs | 443, 8443-8451 |
 
-> ⚠️ **Important**: Update firewall rules when Databricks IP addresses change to avoid breaking workspace or cluster creation.
+> **Important**: Update firewall rules when Databricks IP addresses change to avoid breaking workspace or cluster creation.
 
 ---
 
@@ -114,12 +114,12 @@ graph TD
     Eval -->|Match 1000-1099| A5
     Eval -->|No Match| D1
 
-    A1 --> Allowed[✅ Traffic Allowed]
+    A1 --> Allowed[ Traffic Allowed]
     A2 --> Allowed
     A3 --> Allowed
     A4 --> Allowed
     A5 --> Allowed
-    D1 --> Denied[❌ Traffic Denied]
+    D1 --> Denied[ Traffic Denied]
 
     style Allowed fill:#90EE90
     style Denied fill:#FFB6C6
@@ -270,7 +270,7 @@ gcloud compute firewall-rules create allow-ntp \
 
 ### Step 5: Create Deny-All Rule (LAST)
 
-**⚠️ Create this rule LAST after verifying all allow rules are working**:
+**Create this rule LAST after verifying all allow rules are working**:
 
 ```bash
 # DENY all other egress with priority 1100 (lower priority than allows)
@@ -283,7 +283,7 @@ gcloud compute firewall-rules create deny-all-egress \
   --priority=1100
 ```
 
-> 🔴 **WARNING**: Creating the deny-all rule before allow rules will break all connectivity. Always create allow rules first and verify they work before adding the deny-all rule.
+> **WARNING**: Creating the deny-all rule before allow rules will break all connectivity. Always create allow rules first and verify they work before adding the deny-all rule.
 
 ---
 
@@ -307,7 +307,7 @@ sequenceDiagram
 
     Cluster->>VIP: HTTPS Request to 199.36.153.4:443
 
-    Note over VIP: Firewall rule evaluation:<br/>✅ Priority 1000: allow-restricted-googleapis
+    Note over VIP: Firewall rule evaluation:<br/> Priority 1000: allow-restricted-googleapis
 
     VIP->>API: Forward to Google API (within VPC-SC perimeter)
     API-->>VIP: Response (storage data)
@@ -356,7 +356,7 @@ allow-ntp                      1000      EGRESS     ALLOW   0.0.0.0/0
 deny-all-egress                1100      EGRESS     DENY    0.0.0.0/0
 ```
 
-> ✅ Verify: All allow rules have priority 1000-1099, deny rule has priority 1100
+> Verify: All allow rules have priority 1000-1099, deny rule has priority 1100
 
 #### 2. Test DNS Resolution
 
@@ -532,47 +532,47 @@ gcloud logging read "resource.type=gce_subnetwork AND jsonPayload.reporter=DEST 
 
 | Step | Task | Status |
 |------|------|--------|
-| 1 | Identify workspace subnet CIDR(s) | ☐ |
-| 2 | Obtain current control plane IPs for your region(s) | ☐ |
-| 3 | Verify VPC network configuration | ☐ |
-| 4 | Plan firewall rule priorities (1000-1099 allow, 1100 deny) | ☐ |
-| 5 | Document required egress destinations | ☐ |
+| 1 | Identify workspace subnet CIDR(s) | [ ] |
+| 2 | Obtain current control plane IPs for your region(s) | [ ] |
+| 3 | Verify VPC network configuration | [ ] |
+| 4 | Plan firewall rule priorities (1000-1099 allow, 1100 deny) | [ ] |
+| 5 | Document required egress destinations | [ ] |
 
 ### DNS and Routing Configuration
 
 | Step | Task | Status |
 |------|------|--------|
-| 6 | Enable Private Google Access on workspace subnets | ☐ |
-| 7 | Create private DNS zone for `googleapis.com` | ☐ |
-| 8 | Add A records for `restricted.googleapis.com` → 199.36.153.4-7 | ☐ |
-| 9 | Add CNAME for `*.googleapis.com` → `restricted.googleapis.com` | ☐ |
-| 10 | Create route for `199.36.153.4/30` → default-internet-gateway | ☐ |
-| 11 | Create route for `34.126.0.0/18` → default-internet-gateway | ☐ |
+| 6 | Enable Private Google Access on workspace subnets | [ ] |
+| 7 | Create private DNS zone for `googleapis.com` | [ ] |
+| 8 | Add A records for `restricted.googleapis.com` → 199.36.153.4-7 | [ ] |
+| 9 | Add CNAME for `*.googleapis.com` → `restricted.googleapis.com` | [ ] |
+| 10 | Create route for `199.36.153.4/30` → default-internet-gateway | [ ] |
+| 11 | Create route for `34.126.0.0/18` → default-internet-gateway | [ ] |
 
 ### Firewall Rules Implementation
 
 | Step | Task | Status |
 |------|------|--------|
-| 12 | Create allow rule for `199.36.153.4/30` (restricted APIs) - priority 1000 | ☐ |
-| 13 | Create allow rule for `34.126.0.0/18` (VPC-SC entry) - priority 1000 | ☐ |
-| 14 | Create allow rule for workspace subnet CIDR (intra-cluster) - priority 1000 | ☐ |
-| 15 | Create allow rule for control plane IPs - priority 1000 | ☐ |
-| 16 | Create allow rule for DNS (UDP/TCP 53) - priority 1000 | ☐ |
-| 17 | Create allow rule for NTP (UDP 123) - priority 1000 | ☐ |
-| 18 | Verify all allow rules exist with correct priorities | ☐ |
-| 19 | Create DENY rule for `0.0.0.0/0` - priority 1100 | ☐ |
+| 12 | Create allow rule for `199.36.153.4/30` (restricted APIs) - priority 1000 | [ ] |
+| 13 | Create allow rule for `34.126.0.0/18` (VPC-SC entry) - priority 1000 | [ ] |
+| 14 | Create allow rule for workspace subnet CIDR (intra-cluster) - priority 1000 | [ ] |
+| 15 | Create allow rule for control plane IPs - priority 1000 | [ ] |
+| 16 | Create allow rule for DNS (UDP/TCP 53) - priority 1000 | [ ] |
+| 17 | Create allow rule for NTP (UDP 123) - priority 1000 | [ ] |
+| 18 | Verify all allow rules exist with correct priorities | [ ] |
+| 19 | Create DENY rule for `0.0.0.0/0` - priority 1100 | [ ] |
 
 ### Validation
 
 | Step | Task | Status |
 |------|------|--------|
-| 20 | Test DNS resolution for `restricted.googleapis.com` | ☐ |
-| 21 | Test HTTPS connectivity to `storage.googleapis.com` | ☐ |
-| 22 | Verify public internet is blocked (curl www.example.com fails) | ☐ |
-| 23 | Launch test Databricks cluster | ☐ |
-| 24 | Verify cluster can access Cloud Storage | ☐ |
-| 25 | Monitor VPC Flow Logs for denied traffic | ☐ |
-| 26 | Document any additional required destinations | ☐ |
+| 20 | Test DNS resolution for `restricted.googleapis.com` | [ ] |
+| 21 | Test HTTPS connectivity to `storage.googleapis.com` | [ ] |
+| 22 | Verify public internet is blocked (curl www.example.com fails) | [ ] |
+| 23 | Launch test Databricks cluster | [ ] |
+| 24 | Verify cluster can access Cloud Storage | [ ] |
+| 25 | Monitor VPC Flow Logs for denied traffic | [ ] |
+| 26 | Document any additional required destinations | [ ] |
 
 ---
 
@@ -703,7 +703,7 @@ For multi-region Databricks deployments:
 
 ## Summary
 
-✅ **Recommended Firewall Configuration for Databricks on GCP**:
+**Recommended Firewall Configuration for Databricks on GCP**:
 
 1. **Deny-by-default approach**: Allow specific destinations (priority 1000-1099), deny all else (priority 1100)
 2. **Use `restricted.googleapis.com`**: Configure 199.36.153.4/30 for Google API access

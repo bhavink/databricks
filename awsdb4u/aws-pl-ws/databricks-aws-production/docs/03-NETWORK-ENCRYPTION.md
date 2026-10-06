@@ -5,15 +5,15 @@
 ## Quick Reference
 
 ```
-🔒 2 Encryption Layers (Independent):
+2 Encryption Layers (Independent):
 ├── S3 Bucket Encryption (enable_encryption)
 └── Workspace CMK (enable_workspace_cmk)
 
-🛡️ 2 Security Groups:
+2 Security Groups:
 ├── Workspace SG (cluster nodes)
 └── VPCE SG (VPC endpoints)
 
-🌐 Regional VPC Endpoints (Cost Optimized):
+Regional VPC Endpoints (Cost Optimized):
 ├── S3 Gateway Endpoint (FREE)
 ├── STS Interface Endpoint
 └── Kinesis Interface Endpoint
@@ -229,9 +229,9 @@ AWS Automatic Rotation (Enabled by default):
 └── No action required
 
 Manual Rotation to Different Key:
-├── Managed Services CMK: ✅ Supported
-├── Storage CMK (DBFS/EBS): ❌ Not supported
-└── S3 Bucket keys: ✅ Update S3 bucket config
+├── Managed Services CMK: Supported
+├── Storage CMK (DBFS/EBS): Not supported
+└── S3 Bucket keys: Update S3 bucket config
 ```
 
 **Docs**: [Key Rotation](https://docs.databricks.com/aws/en/security/keys/configure-customer-managed-keys#rotate-an-existing-key)
@@ -342,12 +342,12 @@ sequenceDiagram
 
 ### 7.1 Why Use Regional Endpoints?
 
-✅ **Already Configured**: This deployment uses regional VPC endpoints for all AWS services:
+**Already Configured**: This deployment uses regional VPC endpoints for all AWS services:
 - **S3**: `com.amazonaws.${region}.s3` (Gateway endpoint - FREE)
 - **STS**: `com.amazonaws.${region}.sts` (Interface endpoint)
 - **Kinesis**: `com.amazonaws.${region}.kinesis-streams` (Interface endpoint)
 
-✅ **Benefits**:
+**Benefits**:
 - **Lower latency**: Direct regional connections to AWS services
 - **Reduced cost**: No cross-region data transfer charges
 - **Better security**: Traffic stays within your region
@@ -359,7 +359,7 @@ sequenceDiagram
 
 While VPC endpoints handle AWS service traffic automatically, you may optionally configure Spark to use regional S3/STS endpoints explicitly. This is useful for enforcing data residency requirements.
 
-⚠️ **Important**: This configuration prevents cross-region S3 access. Only apply if all your S3 buckets are in the same region.
+**Important**: This configuration prevents cross-region S3 access. Only apply if all your S3 buckets are in the same region.
 
 #### Option A: Notebook-Level Configuration
 
@@ -409,13 +409,13 @@ Create or update your cluster policy to enforce regional endpoints for all clust
 
 ### 7.3 When to Apply Spark Regional Configuration
 
-#### ✅ Apply When:
+#### Apply When:
 - All your S3 buckets are in the **same region** as the workspace
 - You want to explicitly **prevent cross-region** S3 access
 - You're following **strict data residency** requirements (e.g., GDPR, compliance)
 - You want to **enforce** regional-only access via cluster policies
 
-#### ❌ Do NOT Apply When:
+#### Do NOT Apply When:
 - You access S3 buckets in **multiple regions** (most common)
 - You need **cross-region data replication** or disaster recovery
 - You use **global S3 URLs** or multi-region applications
@@ -472,8 +472,8 @@ sequenceDiagram
 
 ## Next Steps
 
-✅ Network security understood → [04-QUICK-START.md](04-QUICK-START.md) - Deploy now!
+Network security understood → [04-QUICK-START.md](04-QUICK-START.md) - Deploy now!
 
-✅ Need troubleshooting → [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md) - Common issues
+Need troubleshooting → [05-TROUBLESHOOTING.md](05-TROUBLESHOOTING.md) - Common issues
 
 **Docs**: [Network Security](https://docs.databricks.com/aws/en/security/network/index.html)

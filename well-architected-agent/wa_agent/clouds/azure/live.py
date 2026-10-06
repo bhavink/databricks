@@ -37,12 +37,14 @@ READ_ONLY_COMMANDS = {
     ("databricks", "auth", "profiles"),
     ("az", "network", "vnet", "subnet", "show"),
     ("az", "network", "route-table", "show"),
+    ("az", "network", "vnet", "peering", "list"),
     ("az", "network", "private-endpoint", "show"),
     ("az", "network", "private-dns", "zone", "list"),
     ("az", "network", "private-dns", "link", "vnet", "list"),
     ("az", "storage", "account", "show"),
     ("az", "monitor", "diagnostic-settings", "list"),
     ("az", "resource", "list"),
+    ("az", "resource", "show"),
     ("databricks", "workspace-conf", "get-status"),
     ("databricks", "ip-access-lists", "list"),
     ("databricks", "metastores", "current"),
@@ -291,6 +293,15 @@ def _provenance(facts: dict, ws_id: str, ws: dict) -> dict:
         "network.default_route_to_appliance": f"{subnet_show} -> routeTable; az network route-table show -> routes[]",
         "network.storage_service_endpoint": f"{subnet_show} -> serviceEndpoints[].service",
         "network.service_endpoint_policy": f"{subnet_show} -> serviceEndpointPolicies",
+        "network.hub_peering": f"az network vnet peering list --vnet-name {vnet.split('/')[-1]} -> peeringState == Connected",
+        "network.firewall_present": "az resource list --resource-type Microsoft.Network/azureFirewalls (spoke and peered "
+                                    "hub resource groups) -> ipConfigurations[].privateIPAddress == route next hop",
+        "network.firewall_id": "Azure Firewall matched by the 0.0.0.0/0 next-hop IP",
+        "network.firewall_application_rules":
+            f"az resource show --ids {(facts.get('network') or {}).get('firewall_id', '<firewall>')} -> "
+            "applicationRuleCollections, or firewallPolicy -> ruleCollectionGroups[].ruleCollections[].rules[].ruleType",
+        "network.firewall_logs": f"az monitor diagnostic-settings list --resource "
+                                 f"{(facts.get('network') or {}).get('firewall_id', '<firewall>')}",
         "private_link.ui_api": f"{ws_show} -> privateEndpointConnections[] (Approved, groupIds)",
         "private_link.browser_authentication": f"{ws_show} -> privateEndpointConnections[] (Approved, groupIds)",
         "private_link.dbfs_dfs": f"az storage account show -n {dbfs} -> privateEndpointConnections[]",
@@ -327,28 +338,96 @@ def _network(run: Runner, vnet_id: str, subnet_names: list[str]) -> dict:
     if not subnets or any(not isinstance(s, dict) for s in subnets):
         return {}
 
+    next_hops: set[str] = set()
+
     def has_default_route_to_appliance(subnet: dict) -> bool:
         rt_id = (subnet.get("routeTable") or {}).get("id")
         if not rt_id:
             return False
         rt = run(["az", "network", "route-table", "show", "--ids", rt_id, "-o", "json"]) or {}
-        return any(r.get("addressPrefix") == "0.0.0.0/0" and r.get("nextHopType") == "VirtualAppliance"
-                   for r in rt.get("routes") or [])
+        hops = [r for r in rt.get("routes") or []
+                if r.get("addressPrefix") == "0.0.0.0/0" and r.get("nextHopType") == "VirtualAppliance"]
+        next_hops.update(r["nextHopIpAddress"] for r in hops if r.get("nextHopIpAddress"))
+        return bool(hops)
 
     prefixes = [int(s["addressPrefix"].split("/")[1]) for s in subnets if "/" in (s.get("addressPrefix") or "")]
-    return {
+    to_appliance = all(has_default_route_to_appliance(s) for s in subnets)
+    return _hub_firewall(run, vnet_id, next_hops if to_appliance else set()) | {
         "smallest_subnet_prefix_length": max(prefixes) if prefixes else None,
         "delegated_subnet_count": sum(
             1 for s in subnets if any(d.get("serviceName") == DATABRICKS_DELEGATION for d in s.get("delegations") or [])
         ),
         "all_subnets_have_nsg": all(s.get("networkSecurityGroup") for s in subnets),
         "nat_gateway_attached": all(s.get("natGateway") for s in subnets),
-        "default_route_to_appliance": all(has_default_route_to_appliance(s) for s in subnets),
+        "default_route_to_appliance": to_appliance,
         "storage_service_endpoint": all(
             any(e.get("service") in STORAGE_SERVICE_ENDPOINTS for e in s.get("serviceEndpoints") or []) for s in subnets
         ),
         "service_endpoint_policy": all(s.get("serviceEndpointPolicies") for s in subnets),
     }
+
+
+def _arm_parts(resource_id: str) -> tuple[str, str, str] | None:
+    """(subscription, resource group, name) of an ARM id, or None."""
+    parts = resource_id.split("/")
+    return (parts[2], parts[4], parts[-1]) if len(parts) >= 9 and parts[1].lower() == "subscriptions" else None
+
+
+def _hub_firewall(run: Runner, vnet_id: str, next_hops: set[str]) -> dict:
+    """Hub-spoke facts: peering, and the Azure Firewall the default route points at.
+
+    Follows spoke VNet -> peerings -> hub resource groups -> the Azure Firewall
+    whose private IP is the route's next hop. Facts the scan can't establish
+    (no read access, or an NVA instead of Azure Firewall) are left out, so
+    their checks report UNKNOWN rather than FAIL.
+    """
+    out: dict = {}
+    spoke = _arm_parts(vnet_id)
+    if not spoke:
+        return out
+    sub, rg, name = spoke
+    peerings = run(["az", "network", "vnet", "peering", "list", "-g", rg, "--vnet-name", name,
+                    "--subscription", sub, "-o", "json"])
+    connected = []
+    if isinstance(peerings, list):
+        connected = [x for x in peerings if x.get("peeringState") == "Connected"]
+        out["hub_peering"] = bool(connected)
+    if not next_hops:
+        return out
+
+    scopes = {(sub, rg)}
+    for x in connected:
+        remote = _arm_parts((x.get("remoteVirtualNetwork") or {}).get("id") or "")
+        if remote:
+            scopes.add(remote[:2])
+    for s_id, group in sorted(scopes):
+        listed = run(["az", "resource", "list", "-g", group, "--subscription", s_id,
+                      "--resource-type", "Microsoft.Network/azureFirewalls", "-o", "json"])
+        for ref in listed if isinstance(listed, list) else []:
+            fw = run(["az", "resource", "show", "--ids", ref["id"], "-o", "json"]) or {}
+            props = fw.get("properties") or {}
+            ips = {(c.get("properties") or {}).get("privateIPAddress") for c in props.get("ipConfigurations") or []}
+            if not ips & next_hops:
+                continue
+            out["firewall_present"] = True
+            out["firewall_id"] = ref["id"]
+            app_rules = bool(props.get("applicationRuleCollections"))
+            policy_id = (props.get("firewallPolicy") or {}).get("id")
+            if policy_id and not app_rules:
+                policy = run(["az", "resource", "show", "--ids", policy_id, "-o", "json"]) or {}
+                for group_ref in (policy.get("properties") or {}).get("ruleCollectionGroups") or []:
+                    rcg = run(["az", "resource", "show", "--ids", group_ref["id"], "-o", "json"]) or {}
+                    app_rules = app_rules or any(
+                        rule.get("ruleType") == "ApplicationRule"
+                        for coll in (rcg.get("properties") or {}).get("ruleCollections") or []
+                        for rule in coll.get("rules") or [])
+            out["firewall_application_rules"] = app_rules
+            diag = run(["az", "monitor", "diagnostic-settings", "list", "--resource", ref["id"], "-o", "json"])
+            if diag is not None:
+                entries = diag.get("value", diag) if isinstance(diag, dict) else diag
+                out["firewall_logs"] = bool(entries)
+            return out
+    return out
 
 
 def _dbfs_storage(run: Runner, ws: dict) -> dict | None:

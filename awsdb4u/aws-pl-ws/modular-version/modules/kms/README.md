@@ -32,10 +32,10 @@ module "kms" {
 
 ## Features
 
-- ✅ Conditional creation (based on `enable_encryption`)
-- ✅ Key rotation enabled
-- ✅ Configurable deletion window
-- ✅ Proper key policy for Databricks and S3 access
+- Conditional creation (based on `enable_encryption`)
+- Key rotation enabled
+- Configurable deletion window
+- Proper key policy for Databricks and S3 access
 
 ## Outputs
 

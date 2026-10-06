@@ -22,13 +22,13 @@ A Terraform configuration for deploying a secure Databricks workspace on Google 
 
 This deployment creates a **secure Databricks workspace with encryption** featuring:
 
-- ✅ **Customer-Managed VPC (BYOVPC)** with custom subnets
-- ✅ **Customer-Managed Encryption Keys (CMEK)** using Google Cloud KMS
-- ✅ **Encrypted Storage** for both managed and unmanaged (DBFS) storage
-- ✅ **GCE Node (VM disk) Encryption** for cluster compute nodes
-- ✅ **Key Rotation** with configurable rotation period
-- ✅ **Workspace Admin Assignment** for initial user
-- ✅ **Public Internet Access** for workspace and clusters
+- **Customer-Managed VPC (BYOVPC)** with custom subnets
+- **Customer-Managed Encryption Keys (CMEK)** using Google Cloud KMS
+- **Encrypted Storage** for both managed and unmanaged (DBFS) storage
+- **GCE Node (VM disk) Encryption** for cluster compute nodes
+- **Key Rotation** with configurable rotation period
+- **Workspace Admin Assignment** for initial user
+- **Public Internet Access** for workspace and clusters
 
 ### Architecture Diagram
 
@@ -49,7 +49,7 @@ graph TB
 
     subgraph "GCP Project - Service/Consumer"
         subgraph "Databricks Managed - Encrypted"
-            GCE[GCE VMs<br/>🔒 Encrypted with CMEK]
+            GCE[GCE VMs<br/> Encrypted with CMEK]
             GCS_DBFS[GCS Bucket - DBFS<br/>Encrypted with CMEK]
             GCS_SYS[System Storage<br/>Encrypted with CMEK]
             DISK[Persistent Disks<br/>Encrypted with CMEK]
@@ -99,12 +99,12 @@ graph TB
 
 This configuration does **NOT** include:
 
-- ❌ Private Service Connect (PSC) for private connectivity
-- ❌ Unity Catalog setup
-- ❌ VPC creation (assumes VPC already exists)
-- ❌ Subnet creation (assumes subnets already exist)
-- ❌ Firewall rules configuration
-- ❌ IP Access Lists
+- Private Service Connect (PSC) for private connectivity
+- Unity Catalog setup
+- VPC creation (assumes VPC already exists)
+- Subnet creation (assumes subnets already exist)
+- Firewall rules configuration
+- IP Access Lists
 
 For these features, see:
 - **BYOVPC + PSC + CMEK**: `../byovpc-psc-cmek-ws/`

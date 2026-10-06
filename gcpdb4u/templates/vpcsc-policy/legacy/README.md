@@ -1,6 +1,6 @@
 # Legacy VPC-SC Policies (GKE-based classic compute)
 
-> ⚠️ **DEPRECATED — historical reference only.** These VPC Service Controls ingress/egress
+> **DEPRECATED — historical reference only.** These VPC Service Controls ingress/egress
 > policies were written for the **GKE-based** classic compute plane, which has been retired.
 > All classic compute on GCP now runs on **GCE (Compute Engine)**. They are kept here only for
 > historical context and to help interpret perimeters that predate the GCE migration.

@@ -2,14 +2,14 @@ I design and implement secure, production-grade Data and AI platforms across **A
 
 > **Rendered site:** [bhavink.github.io/databricks](https://bhavink.github.io/databricks/). Browse the guides and deployment patterns as a site. All projects: [bhavink.github.io](https://bhavink.github.io/).
 
-### 🎯 What I Do
+### What I Do
 
-- 🏗️ **Build secure data lakehouses** with Private Link, Unity Catalog, and data exfiltration protection
-- ☁️ **Multi-cloud Databricks architecture** for regulated industries (finance, healthcare, government)
-- ⚙️ **Infrastructure as Code** with modular Terraform templates and automation frameworks
-- 📝 **Share knowledge** through technical articles and open source contributions
+- **Build secure data lakehouses** with Private Link, Unity Catalog, and data exfiltration protection
+- **Multi-cloud Databricks architecture** for regulated industries (finance, healthcare, government)
+- **Infrastructure as Code** with modular Terraform templates and automation frameworks
+- **Share knowledge** through technical articles and open source contributions
 
-### 📚 Recent Work
+### Recent Work
 
 **Latest Articles** on the [Databricks Blog](https://www.databricks.com/blog/author/bhavin-kukadia):
 - [A Unified Approach to Data Exfiltration Protection on Databricks](https://www.databricks.com/blog/unified-approach-data-exfiltration-protection-databricks) (Aug 2025)
@@ -17,7 +17,7 @@ I design and implement secure, production-grade Data and AI platforms across **A
 - [How Delta Sharing Enables Secure End-to-End Collaboration](https://www.databricks.com/blog/how-delta-sharing-enables-secure-end-end-collaboration) (May 2024)
 - [Data Exfiltration Protection with Azure Databricks](https://www.databricks.com/blog/data-exfiltration-protection-azure-databricks) (Mar 2024)
 
-### 💡 Core Expertise
+### Core Expertise
 
 ```text
 Security           Infrastructure        Multi-Cloud
@@ -29,10 +29,10 @@ Security           Infrastructure        Multi-Cloud
 • Network Security • Automation          • Cross-Cloud
 ```
 
-### 📫 Connect
+### Connect
 
-- 📝 Blog: [databricks.com/blog/author/bhavin-kukadia](https://www.databricks.com/blog/author/bhavin-kukadia)
-- 💼 LinkedIn: [linkedin.com/in/bhavink](https://www.linkedin.com/in/bhavink/)
+- Blog: [databricks.com/blog/author/bhavin-kukadia](https://www.databricks.com/blog/author/bhavin-kukadia)
+- LinkedIn: [linkedin.com/in/bhavink](https://www.linkedin.com/in/bhavink/)
 
 ---
 
@@ -40,28 +40,28 @@ Security           Infrastructure        Multi-Cloud
 
 ---
 
-# Repository Contents: All Things Databricks ✅
+# Repository Contents: All Things Databricks
 
 This repository contains **production-ready infrastructure templates**, ready-to-use code samples, how-to guides, and deployment architectures to help you learn and operate the Databricks Lakehouse on Azure, AWS, and GCP.
 
 ---
 
-## Quick Links 🔗
+## Quick Links
 
 | Cloud | Description | Path |
 |-------|-------------|------|
-| **📖 Guides** | Cross-cloud guides (authentication, networking, troubleshooting) | [guides](./guides/) |
-| **🤖 AI Governance** | Authentication & authorization for Agent Bricks, Genie, Databricks Apps | [applied-ai-governance](https://github.com/bhavink/applied-ai-governance) |
-| **🧭 Well-Architected Agent** | Cloud-agnostic, deterministic, read-only assessments and new-workspace verification, organized by the Databricks production planning guide (Azure today; GCP, AWS next) | [well-architected-agent](./well-architected-agent/) |
-| **🔷 Azure** | Production-ready security & modular Terraform deployment patterns | [adb4u](./adb4u/) |
-| **☁️ AWS** | Private Link workspace templates with DEP controls | [awsdb4u](./awsdb4u/) |
-| **🟢 GCP** | VPC-SC, Private Service Connect, CMEK implementations | [gcpdb4u](./gcpdb4u/) |
-| **🛠️ Utils** | Databricks IP range extraction tool | [databricksIPranges](https://github.com/bhavink/databricksIPranges) |
-| **📦 Archive** | Legacy content and code samples | [archive](./archive/) |
+| **Guides** | Cross-cloud guides (authentication, networking, troubleshooting) | [guides](./guides/) |
+| **AI Governance** | Authentication & authorization for Agent Bricks, Genie, Databricks Apps | [applied-ai-governance](https://github.com/bhavink/applied-ai-governance) |
+| **Well-Architected Agent** | Cloud-agnostic, deterministic, read-only assessments and new-workspace verification, organized by the Databricks production planning guide (Azure today; GCP, AWS next) | [well-architected-agent](./well-architected-agent/) |
+| **Azure** | Production-ready security & modular Terraform deployment patterns | [adb4u](./adb4u/) |
+| **AWS** | Private Link workspace templates with DEP controls | [awsdb4u](./awsdb4u/) |
+| **GCP** | VPC-SC, Private Service Connect, CMEK implementations | [gcpdb4u](./gcpdb4u/) |
+| **Utils** | Databricks IP range extraction tool | [databricksIPranges](https://github.com/bhavink/databricksIPranges) |
+| **Archive** | Legacy content and code samples | [archive](./archive/) |
 
 ---
 
-## 📖 Cross-Cloud Guides (Start Here!)
+## Cross-Cloud Guides (Start Here!)
 
 **New to Databricks infrastructure?** Check out our comprehensive guides:
 
@@ -73,23 +73,23 @@ This repository contains **production-ready infrastructure templates**, ready-to
 **Building AI Applications?** Check out our AI governance guide:
 
 - **[Applied AI Governance](https://github.com/bhavink/applied-ai-governance)** - Production-ready authentication & authorization patterns for:
-  - 🔮 **Genie Space** - Multi-team access, 1000+ users with complex UC governance
-  - 🤖 **Agent Bricks** - Knowledge Assistant, Information Extraction, Multi-Agent Supervisor, Custom LLM
-  - 📱 **Databricks Apps** - App authorization vs user authorization patterns
+  - **Genie Space** - Multi-team access, 1000+ users with complex UC governance
+  - **Agent Bricks** - Knowledge Assistant, Information Extraction, Multi-Agent Supervisor, Custom LLM
+  - **Databricks Apps** - App authorization vs user authorization patterns
   - Includes real-world scenarios mapped to [official use cases](https://docs.databricks.com/aws/en/generative-ai/agent-bricks/)
 
 ---
 
-## 🌩️ Databricks Deployment Guides by Cloud
+## Databricks Deployment Guides by Cloud
 
-### 🔷 Azure (adb4u)
+### Azure (adb4u)
 **Production-Ready Modular Terraform Templates**
 
-- ✅ **Focus**: Security, governance, and production-ready deployment patterns
-- 🏗️ **Architecture**: Non-PL, Full Private (air-gapped), Hub-Spoke with firewall
-- 🔐 **Security**: Unity Catalog, Private Link, NPIP/SCC, CMK, Service Endpoints
-- 📚 **Documentation**: 2,300+ lines with UML diagrams, traffic flows, troubleshooting guides
-- 📁 **Path**: [`adb4u/`](./adb4u/)
+- **Focus**: Security, governance, and production-ready deployment patterns
+- **Architecture**: Non-PL, Full Private (air-gapped), Hub-Spoke with firewall
+- **Security**: Unity Catalog, Private Link, NPIP/SCC, CMK, Service Endpoints
+- **Documentation**: 2,300+ lines with UML diagrams, traffic flows, troubleshooting guides
+- **Path**: [`adb4u/`](./adb4u/)
 
 **Key Features**:
 - Modular Terraform structure (Networking, Workspace, Unity Catalog, Key Vault)
@@ -102,14 +102,14 @@ This repository contains **production-ready infrastructure templates**, ready-to
 
 ---
 
-### ☁️ AWS (awsdb4u)
+### AWS (awsdb4u)
 **Private Link Workspace Templates with DEP Controls**
 
-- 🎯 **Focus**: Deploying and operating Databricks on AWS with best practices
-- 🔐 **Security**: VPC design, Private Link, PrivateLink endpoints, data exfiltration protection
-- 📊 **Topics**: S3 data access patterns, IAM roles and policies, cross-account setups
-- 🛠️ **Automation**: Infrastructure templates and configuration management
-- 📁 **Path**: [`awsdb4u/`](./awsdb4u/)
+- **Focus**: Deploying and operating Databricks on AWS with best practices
+- **Security**: VPC design, Private Link, PrivateLink endpoints, data exfiltration protection
+- **Topics**: S3 data access patterns, IAM roles and policies, cross-account setups
+- **Automation**: Infrastructure templates and configuration management
+- **Path**: [`awsdb4u/`](./awsdb4u/)
 
 **Key Features**:
 - Private Link workspace deployments
@@ -120,14 +120,14 @@ This repository contains **production-ready infrastructure templates**, ready-to
 
 ---
 
-### 🟢 GCP (gcpdb4u)
+### GCP (gcpdb4u)
 **VPC-SC, Private Service Connect, CMEK Implementations**
 
-- 🎯 **Focus**: GCP-specific guidance with emphasis on data plane security
-- 🔐 **Security**: VPC-SC perimeters, Private Service Connect, KMS integration
-- 🌐 **Networking**: VPC and subnet design, private connectivity patterns
-- 🔑 **Identity**: IAM & service accounts, Workload Identity Federation
-- 📁 **Path**: [`gcpdb4u/`](./gcpdb4u/)
+- **Focus**: GCP-specific guidance with emphasis on data plane security
+- **Security**: VPC-SC perimeters, Private Service Connect, KMS integration
+- **Networking**: VPC and subnet design, private connectivity patterns
+- **Identity**: IAM & service accounts, Workload Identity Federation
+- **Path**: [`gcpdb4u/`](./gcpdb4u/)
 
 **Key Features**:
 - VPC Service Controls (VPC-SC) integration
@@ -138,7 +138,7 @@ This repository contains **production-ready infrastructure templates**, ready-to
 
 ---
 
-## 🔧 How to Use This Repository
+## How to Use This Repository
 
 ### 1. **Choose Your Cloud Platform**
 Pick the folder that matches your target environment:
@@ -165,29 +165,29 @@ Each cloud folder contains multiple deployment patterns:
 
 ---
 
-## 🌟 Highlighted Features
+## Highlighted Features
 
 ### Production-Ready Templates
-- ✅ Modular Terraform code with conditional logic
-- ✅ Support for BYOV (Bring Your Own VNet/VPC)
-- ✅ Automated network security group rules
-- ✅ Unity Catalog with regional metastore management
+- Modular Terraform code with conditional logic
+- Support for BYOV (Bring Your Own VNet/VPC)
+- Automated network security group rules
+- Unity Catalog with regional metastore management
 
 ### Comprehensive Documentation
-- 📚 2,300+ lines of detailed guides
-- 📊 UML architecture and sequence diagrams
-- 🔍 Traffic flow analysis with cost breakdowns
-- ⚠️ Troubleshooting guides and deployment checklists
+- 2,300+ lines of detailed guides
+- UML architecture and sequence diagrams
+- Traffic flow analysis with cost breakdowns
+- Troubleshooting guides and deployment checklists
 
 ### Security Best Practices
-- 🔐 Data Exfiltration Protection (DEP) frameworks
-- 🔑 Customer-Managed Keys (CMK) with auto-rotation
-- 🌐 Private Link, VPC-SC, and network isolation
-- 🛡️ Zero-trust architectures for regulated industries
+- Data Exfiltration Protection (DEP) frameworks
+- Customer-Managed Keys (CMK) with auto-rotation
+- Private Link, VPC-SC, and network isolation
+- Zero-trust architectures for regulated industries
 
 ---
 
-## ✨ Contributing
+## Contributing
 
 Contributions are welcome! Please:
 1. Open issues for bugs, questions, or feature requests
@@ -199,13 +199,13 @@ Contributions are welcome! Please:
 
 ---
 
-## 📄 License
+## License
 
 This repository follows the licensing described in the project. Please see the `LICENSE` file (if present) or reach out for clarification.
 
 ---
 
-## 🔗 Additional Resources
+## Additional Resources
 
 - **Databricks Blog Articles**: [All articles](https://www.databricks.com/blog/author/bhavin-kukadia)
 

@@ -1,7 +1,7 @@
 # Databricks on GCP
 _The best practice guide that you've been looking for_
 
-🔑 **[Authentication Setup Guide →](../guides/authentication.md)** - Need help with GCP/Databricks authentication? Start here!
+**[Authentication Setup Guide →](../guides/authentication.md)** - Need help with GCP/Databricks authentication? Start here!
 
 # Introduction
 

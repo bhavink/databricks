@@ -255,7 +255,7 @@ export DATABRICKS_CLIENT_ID="$ARM_CLIENT_ID"
 export DATABRICKS_CLIENT_SECRET="$ARM_CLIENT_SECRET"
 export DATABRICKS_AZURE_TENANT_ID="$ARM_TENANT_ID"
 
-echo "✅ Azure and Databricks credentials loaded"
+echo " Azure and Databricks credentials loaded"
 ```
 
 Load it:
@@ -406,7 +406,7 @@ export DATABRICKS_ACCOUNT_ID="your-databricks-account-id"
 export DATABRICKS_CLIENT_ID="service-principal-client-id"
 export DATABRICKS_CLIENT_SECRET="service-principal-secret"
 
-echo "✅ AWS and Databricks credentials loaded"
+echo " AWS and Databricks credentials loaded"
 ```
 
 Load it:
@@ -624,7 +624,7 @@ export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
 # Databricks configuration
 export DATABRICKS_ACCOUNT_ID="your-databricks-account-id"
 
-echo "✅ GCP and Databricks credentials loaded"
+echo " GCP and Databricks credentials loaded"
 ```
 
 #### Step 6: Test It

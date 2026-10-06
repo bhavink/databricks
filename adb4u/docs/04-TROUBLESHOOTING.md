@@ -126,9 +126,9 @@ resource "databricks_metastore" "this" {
 ```
 
 **Important Notes**:
-- ✅ **DO** set `force_destroy = true` in production deployments
-- ⚠️ Metastore can be manually cleaned up later from Databricks Account Console if needed
-- 🔒 Setting `force_destroy = true` doesn't make deletion dangerous - it only allows Terraform to delete when you explicitly run `terraform destroy`
+- **DO** set `force_destroy = true` in production deployments
+- Metastore can be manually cleaned up later from Databricks Account Console if needed
+- Setting `force_destroy = true` doesn't make deletion dangerous - it only allows Terraform to delete when you explicitly run `terraform destroy`
 
 ---
 
@@ -178,8 +178,8 @@ resource "azurerm_network_security_rule" "inbound_vnet_to_vnet" {
 ```
 
 **Rule Summary**:
-- **Non-PL**: Databricks manages NSG rules automatically ✅
-- **Private Link**: Custom NSG rules are created ✅
+- **Non-PL**: Databricks manages NSG rules automatically
+- **Private Link**: Custom NSG rules are created
 
 ---
 
