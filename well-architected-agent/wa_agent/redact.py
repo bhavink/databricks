@@ -20,7 +20,10 @@ _PATTERNS = [
     (re.compile(r"\badb-\d+\.\d+\.azuredatabricks\.net\b"), "adb-<id>.azuredatabricks.net"),
     (re.compile(r"\b\d{6,}\.\d+\.gcp\.databricks\.com\b"), "<id>.gcp.databricks.com"),
     (re.compile(r"\b[a-z][a-z0-9-]{4,28}[a-z0-9]\.iam\.gserviceaccount\.com\b"), "<project>.iam.gserviceaccount.com"),
+    (re.compile(r"\barn:aws[a-z-]*:[a-z0-9-]*:[a-z0-9-]*:\d{12}:\S+"), "<aws-arn>"),
+    (re.compile(r"\bdbc-[0-9a-f]{8}-[0-9a-f]{4}\.cloud\.databricks\.com\b"), "dbc-<id>.cloud.databricks.com"),
     (re.compile(r"\b\d{15,16}\b"), "<workspace-id>"),
+    (re.compile(r"\b\d{12}\b"), "<aws-account-id>"),
 ]
 
 

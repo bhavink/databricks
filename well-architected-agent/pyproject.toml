@@ -15,4 +15,4 @@ wa-agent = "wa_agent.cli:main"
 wa-agent-mcp = "wa_agent.mcp_server:main"
 
 [tool.setuptools]
-packages = ["wa_agent", "wa_agent.clouds", "wa_agent.clouds.azure", "wa_agent.clouds.gcp"]
+packages = ["wa_agent", "wa_agent.clouds", "wa_agent.clouds.azure", "wa_agent.clouds.gcp", "wa_agent.clouds.aws"]

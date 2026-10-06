@@ -23,6 +23,7 @@ PROBES = [
     ("Azure CLI 'databricks' extension", ["az", "extension", "list", "--query", "[?name=='databricks'].version",
                                          "-o", "tsv"], False),
     ("gcloud login (GCP scans)", ["gcloud", "config", "get-value", "account"], False),
+    ("AWS credentials (AWS builds)", ["aws", "sts", "get-caller-identity", "--query", "Arn", "--output", "text"], False),
     ("Databricks CLI", ["databricks", "--version"], False),
     ("Databricks CLI profiles", ["databricks", "auth", "profiles"], False),
     ("Terraform", ["terraform", "version"], False),

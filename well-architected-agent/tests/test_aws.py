@@ -304,6 +304,14 @@ def test_sra_rejects_answers_that_are_not_its_variables(aws_catalog):
         render(aws_catalog, "classic-no-pl", {**IPS, "databricks_client_secret": "x"})
 
 
+def test_aws_identifiers_are_redacted():
+    from wa_agent.redact import redact
+
+    out = redact("arn:aws:sts::123456789012:assumed-role/Admin/me account 123456789012 "
+                 "https://dbc-1a2b3c4d-5e6f.cloud.databricks.com")
+    assert "123456789012" not in out and "Admin/me" not in out and "1a2b3c4d" not in out
+
+
 def test_live_scan_is_not_available_yet():
     with pytest.raises(RuntimeError, match="collect tfplan"):
         aws_live.collect("ws")

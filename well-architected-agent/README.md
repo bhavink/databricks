@@ -102,11 +102,11 @@ Every command has `--help`.
 ## Self-contained · runs locally · secure
 
 - **Runs on your machine.** No hosted service, no server to deploy, no account to create. Works the same on macOS, Windows and Linux.
-- **No telemetry.** The only network calls are read-only API calls to *your* tenant, made through *your* `az` and `databricks` CLIs (plus a one-time dependency download by `uv`).
+- **No telemetry.** The only network calls are read-only API calls to *your* tenant, made through *your* `az`, `gcloud` and `databricks` CLIs (`doctor` also runs `aws sts get-caller-identity`) (plus a one-time dependency download by `uv`).
 - **No credentials handled.** It never asks for, stores or prints keys or tokens; it reuses your existing CLI logins.
 - **Read-only by construction.** Only allow-listed read commands can run, it never runs Terraform, and it never overwrites a file. Tests enforce all three.
 - **Your data stays local.** Facts and reports are written only where you choose; generated files are git-ignored by default. Through an AI assistant (MCP), tool results go to that assistant's model provider under its terms, so choose your assistant accordingly.
-- **Safe to share.** `doctor` output is redacted (IDs, names, emails, tokens) so you can paste it into an issue.
+- **Safe to share.** `doctor` output is redacted (IDs, AWS account IDs and ARNs, names, emails, tokens) so you can paste it into an issue.
 - **Auditable.** Open source; the complete list of commands it may run is one table: `READ_ONLY_COMMANDS` in `wa_agent/clouds/azure/live.py`.
 
 **Problem or question?** [Open an issue](https://github.com/bhavink/databricks/issues/new?template=wa-agent-problem.yml) and paste the output of `wa-agent doctor`.
