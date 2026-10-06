@@ -10,6 +10,8 @@
 > Always check against the official documentation and your own security and
 > compliance requirements.
 
+Prefer slides? The [presentation](https://bhavink.github.io/databricks/presentations/well-architected-agent.html) covers the same ground in 16 slides.
+
 ---
 
 ## Start here (3 steps, any OS)

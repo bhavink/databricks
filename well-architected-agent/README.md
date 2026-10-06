@@ -10,7 +10,8 @@ new workspaces from the repo's tested Terraform.
 Status: **Azure and GCP complete. AWS: plan and state review, diagrams and
 new workspaces;** the live AWS scan is next.
 
-New here? Read the **[simple guide](GUIDE.md)** (what / why / when / how).
+New here? Read the **[simple guide](GUIDE.md)** (what / why / when / how), or flip through the
+**[presentation](https://bhavink.github.io/databricks/presentations/well-architected-agent.html)** (16 slides, also in [`presentations/`](../presentations/well-architected-agent.html)).
 
 > **Disclaimer.** Community project, provided "as is", without warranty of any
 > kind. Not an official Databricks or Microsoft product. You are responsible

@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Databricks Well-Architected Agent</title>
+<meta name="description" content="A deterministic, read-only agent that checks Databricks workspaces on Azure, Google Cloud and AWS against proven reference patterns, and builds new ones from tested Terraform.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── tokens: white 60 · ink 30 · vermillion 10 ───────────────────────────── */
+:root {
+  --bg:     #ffffff;
+  --ink:    #1a1a1a;
+  --red:    #cc3311;
+  --muted:  #444444;
+  --rule:   #d6d6d6;
+  --font:   'Space Grotesk', sans-serif;
+  --mono:   'DM Mono', monospace;
+  --pad:    clamp(2rem,4.5vw,4rem);
+  --h1:     clamp(1.9rem,4vw,3rem);
+  --h2:     clamp(1.35rem,2.8vw,2.1rem);
+  --h3:     clamp(0.98rem,1.8vw,1.32rem);
+  --body:   clamp(0.83rem,1.35vw,1.02rem);
+  --sm:     clamp(0.72rem,1.05vw,0.86rem);
+  --xs:     clamp(0.62rem,0.82vw,0.72rem);
+  --code:   clamp(0.66rem,0.95vw,0.80rem);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;border-radius:0}
+html,body{overflow:hidden;height:100%;font-family:var(--font);background:var(--bg);color:var(--ink)}
+a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--rule);text-underline-offset:3px}
+a:hover{color:var(--red);text-decoration-color:var(--red)}
+
+/* ── chrome ─────────────────────────────────────────────────────────────── */
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:46px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 22px;
+  background:var(--ink);color:#fff;z-index:100;font-size:var(--sm);
+}
+.topbar .title{font-weight:600;letter-spacing:-0.02em}
+.topbar .title span{color:var(--red)}
+.topbar .right{display:flex;align-items:center;gap:18px}
+.topbar a{color:#fff;opacity:.65;text-decoration:none;font-size:var(--xs);letter-spacing:.08em;text-transform:uppercase}
+.topbar a:hover{opacity:1;color:#fff}
+.topbar .counter{font-variant-numeric:tabular-nums;opacity:.65}
+.progress-track{position:fixed;top:46px;left:0;right:0;height:3px;background:var(--rule);z-index:100}
+.progress-bar{height:100%;background:var(--red);transition:width .38s ease;width:0}
+
+/* ── nav controls ────────────────────────────────────────────────────────── */
+.nav-controls{position:fixed;bottom:18px;right:22px;display:flex;align-items:center;gap:7px;z-index:200}
+.nav-btn{
+  width:38px;height:38px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);font-size:.95rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .18s;padding:0;line-height:1;font-family:var(--font);
+}
+.nav-btn:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.nav-btn:disabled{opacity:.22;cursor:default;pointer-events:none}
+.help-btn{
+  width:26px;height:26px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--muted);font-size:.68rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-weight:700;
+  margin-left:6px;transition:all .18s;font-family:var(--font);
+}
+.help-btn:hover{border-color:var(--ink);color:var(--ink)}
+
+.nav-dots{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:200}
+.dot{width:6px;height:6px;background:var(--rule);cursor:pointer;transition:all .25s}
+.dot.active{background:var(--red);width:18px}
+.dot:hover{background:var(--muted)}
+
+.kb-overlay{position:fixed;inset:0;background:rgba(26,26,26,.82);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .28s}
+.kb-overlay.visible{opacity:1;pointer-events:auto}
+.kb-card{background:#fff;padding:30px 38px;max-width:360px;width:90%;text-align:center;border:1px solid var(--ink)}
+.kb-card h3{font-size:1.05rem;font-weight:700;margin-bottom:14px;letter-spacing:-.02em}
+.kb-card table{width:100%;text-align:left;font-size:.80rem;border-collapse:collapse}
+.kb-card td{padding:5px 8px;border-bottom:1px solid var(--rule)}
+.kb-card td:first-child{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.kb-card .dismiss{margin-top:14px;font-size:.70rem;color:var(--muted)}
+
+/* ── slide shell ─────────────────────────────────────────────────────────── */
+.slide{
+  position:absolute;top:49px;left:0;right:0;bottom:0;
+  opacity:0;pointer-events:none;
+  transform:translateX(56px);
+  transition:opacity .38s ease,transform .38s ease;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  padding:var(--pad);
+  padding-bottom:calc(var(--pad) + 36px);
+}
+.slide.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+.slide.exit-left{opacity:0;transform:translateX(-56px)}
+
+.r{opacity:0;transform:translateY(16px);transition:opacity .45s ease,transform .45s ease}
+.slide.active .r{opacity:1;transform:translateY(0)}
+.slide.active .r:nth-child(1){transition-delay:.05s}
+.slide.active .r:nth-child(2){transition-delay:.12s}
+.slide.active .r:nth-child(3){transition-delay:.20s}
+.slide.active .r:nth-child(4){transition-delay:.28s}
+.slide.active .r:nth-child(5){transition-delay:.36s}
+.slide.active .r:nth-child(6){transition-delay:.44s}
+.slide.active .r:nth-child(7){transition-delay:.52s}
+.slide.active .r:nth-child(8){transition-delay:.60s}
+
+/* ── typography ──────────────────────────────────────────────────────────── */
+.label{font-size:var(--xs);text-transform:uppercase;letter-spacing:.10em;color:var(--red);font-weight:600;margin-bottom:5px}
+.slide h2{font-size:var(--h1);font-weight:700;letter-spacing:-.03em;line-height:1.08;margin-bottom:6px;max-width:36ch}
+.slide p,.slide li{font-size:var(--body);line-height:1.62}
+.muted{color:var(--muted)}
+.lede{color:var(--muted);max-width:76ch;margin-top:4px}
+
+/* ── title slide ─────────────────────────────────────────────────────────── */
+.slide-title{justify-content:center;align-items:center;text-align:center}
+.slide-title h1{font-size:clamp(2.5rem,5.5vw,4.2rem);font-weight:700;letter-spacing:-.04em;line-height:1.06;max-width:860px;text-wrap:balance}
+.slide-title h1 em{font-style:normal;color:var(--red)}
+.slide-title .sub{font-size:var(--h3);color:var(--muted);margin-top:14px;font-weight:400;max-width:680px}
+.red-rule{width:72px;height:4px;background:var(--red);margin:18px auto 0}
+.tags{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.tag{font-size:var(--xs);text-transform:uppercase;letter-spacing:.10em;font-weight:600;border:1px solid var(--rule);padding:3px 9px;color:var(--ink)}
+
+/* ── layout helpers ──────────────────────────────────────────────────────── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.2rem,2.5vw,2.2rem);flex:1;min-height:0}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(.9rem,1.8vw,1.4rem)}
+.col{display:flex;flex-direction:column;gap:10px;min-height:0}
+.mt1{margin-top:8px}.mt2{margin-top:16px}.mt3{margin-top:24px}
+
+/* ── cards: hairline rules, ink or vermillion edge, no fills ─────────────── */
+.card{border:1px solid var(--rule);padding:clamp(.8rem,1.6vw,1.25rem);background:var(--bg)}
+.card h4{font-size:var(--h3);font-weight:600;margin-bottom:6px;letter-spacing:-.01em}
+.card p,.card li{font-size:var(--sm);line-height:1.58}
+.card ul{padding-left:1.1em}
+.card-red{border-left:4px solid var(--red)}
+.card-ink{border-left:4px solid var(--ink)}
+.card-solid{background:var(--ink);color:#fff;border-color:var(--ink)}
+.card-solid p{color:rgba(255,255,255,.8)}
+.card-solid code{background:rgba(255,255,255,.12);color:#fff}
+.note{border-top:1px solid var(--rule);padding-top:10px;font-size:var(--sm);color:var(--muted);max-width:90ch}
+.note strong{color:var(--ink)}
+
+/* ── code ────────────────────────────────────────────────────────────────── */
+pre,code{font-family:var(--mono);font-size:var(--code)}
+pre{
+  background:var(--bg);color:var(--ink);
+  border:1px solid var(--rule);border-left:3px solid var(--ink);
+  padding:clamp(.55rem,1.1vw,.9rem);overflow-x:auto;line-height:1.55;
+}
+code{border:1px solid var(--rule);padding:.05em .34em;color:var(--ink)}
+pre code{border:0;padding:0}
+.cm{color:var(--muted)}
+
+/* ── table ───────────────────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;font-size:var(--sm)}
+th{text-align:left;font-weight:600;font-size:var(--xs);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:7px 9px;border-bottom:1px solid var(--ink)}
+td{padding:7px 9px;border-bottom:1px solid var(--rule);vertical-align:top}
+td code{white-space:nowrap}
+
+/* ── status chips (outlined, ink) ────────────────────────────────────────── */
+.chip{display:inline-block;font-size:var(--xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--ink);font-family:var(--mono)}
+.chip-red{border-color:var(--red);color:var(--red)}
+.chip-muted{border-color:var(--rule);color:var(--muted)}
+
+/* ── flow ────────────────────────────────────────────────────────────────── */
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;align-items:stretch;gap:0;margin-top:clamp(1rem,3vh,2rem)}
+.fbox{border:1px solid var(--rule);padding:clamp(.6rem,1.2vw,1rem);display:flex;flex-direction:column;justify-content:center}
+.fbox strong{font-size:var(--body);font-weight:600;display:block}
+.fbox span{font-size:var(--xs);color:var(--muted);margin-top:3px;display:block;line-height:1.45}
+.fbox.focus{border:2px solid var(--red)}
+.fbox.solid{background:var(--ink);color:#fff;border-color:var(--ink)}
+.fbox.solid span{color:rgba(255,255,255,.7)}
+.farrow{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 clamp(.3rem,.8vw,.7rem);min-width:70px}
+.farrow b{font-size:var(--h3);line-height:1}
+.farrow i{font-style:normal;font-size:var(--xs);color:var(--muted);text-align:center;line-height:1.3;margin-top:3px}
+.inputs{display:flex;flex-direction:column;gap:8px}
+
+/* ── steps ───────────────────────────────────────────────────────────────── */
+.seq-step{display:flex;align-items:flex-start;gap:clamp(.8rem,1.5vw,1.2rem);padding:clamp(.5rem,1vw,.8rem);border:1px solid var(--rule)}
+.seq-num{flex-shrink:0;width:clamp(1.6rem,3vw,2.1rem);height:clamp(1.6rem,3vw,2.1rem);background:var(--ink);color:#fff;font-weight:700;font-size:var(--sm);display:flex;align-items:center;justify-content:center}
+.seq-step.focus .seq-num{background:var(--red)}
+.seq-body strong{font-size:var(--body);font-weight:600;display:block;margin-bottom:2px}
+.seq-body p{font-size:var(--sm);color:var(--muted);line-height:1.5}
+
+/* ── decision ────────────────────────────────────────────────────────────── */
+.decide{display:grid;grid-template-columns:1.25fr auto 1fr;gap:0 14px;align-items:center}
+.q{border:1px solid var(--ink);padding:10px 14px;font-size:var(--body);font-weight:500}
+.a{font-size:var(--xs);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:center;white-space:nowrap}
+.res{font-family:var(--mono);font-size:var(--sm);font-weight:500;padding:8px 12px;border:1px solid var(--rule)}
+.res.focus{border:2px solid var(--red)}
+.down{grid-column:1;text-align:center;font-size:var(--xs);color:var(--muted);padding:4px 0;text-transform:uppercase;letter-spacing:.08em}
+
+.callout{border-left:4px solid var(--red);padding:12px 18px;font-size:clamp(.95rem,1.9vw,1.24rem);line-height:1.55}
+
+/* ── closing ─────────────────────────────────────────────────────────────── */
+.slide-calli{background:var(--ink);color:#fff;justify-content:center;align-items:center;text-align:center}
+.calli-hero{font-size:clamp(2.4rem,7vw,5.6rem);font-weight:700;letter-spacing:-.04em;line-height:.98;color:#fff}
+.calli-hero .line2{display:block;font-size:clamp(1.2rem,3.4vw,2.6rem);font-weight:300;letter-spacing:.16em;color:var(--red);text-transform:uppercase;margin-top:.2em}
+.calli-rule{width:56px;height:3px;background:var(--red);margin:clamp(.8rem,2vh,1.4rem) auto}
+.calli-links{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.calli-links a{color:#fff;font-size:var(--sm);text-decoration-color:rgba(255,255,255,.35)}
+.calli-links a:hover{color:var(--red);text-decoration-color:var(--red)}
+
+/* ── breakpoints ─────────────────────────────────────────────────────────── */
+@media(max-height:760px){
+  :root{--pad:clamp(1.2rem,3vw,2.2rem)}
+  .mt3{margin-top:14px}
+  .seq-step{padding:.4rem .7rem}
+  td,th{padding:5px 8px}
+}
+@media(max-height:620px){
+  :root{--pad:1rem;--h1:clamp(1.5rem,3.4vw,2.3rem)}
+  .mt2{margin-top:8px}.mt3{margin-top:10px}
+}
+@media(max-width:900px){
+  .two-col,.three-col{grid-template-columns:1fr}
+  .flow{grid-template-columns:1fr}
+  .farrow{flex-direction:row;gap:8px;padding:6px 0}
+  .farrow b{transform:rotate(90deg)}
+  .slide{overflow-y:auto}
+}
+@media print{
+  html,body{overflow:visible;height:auto}
+  .slide{position:relative!important;top:0;opacity:1!important;transform:none!important;pointer-events:auto!important;page-break-after:always;overflow:visible;min-height:100vh}
+  .slide .r{opacity:1!important;transform:none!important}
+  .topbar,.progress-track,.nav-controls,.nav-dots,.kb-overlay{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title">Databricks <span>Well-Architected</span> Agent</div>
+  <div class="right">
+    <a href="https://bhavink.github.io/applied-ai-governance/presentations/">All decks</a>
+    <a href="https://github.com/bhavink/databricks/tree/master/well-architected-agent">Repo</a>
+    <div class="counter" id="counter">01 / 16</div>
+  </div>
+</div>
+<div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+
+<div class="nav-dots" id="navDots"></div>
+<div class="nav-controls">
+  <button class="nav-btn" id="homeBtn" title="First slide (Home)" onclick="goTo(0)">&#8962;</button>
+  <button class="nav-btn" id="prevBtn" title="Previous" onclick="goTo(current-1)">&larr;</button>
+  <button class="nav-btn" id="nextBtn" title="Next" onclick="goTo(current+1)">&rarr;</button>
+  <button class="help-btn" id="helpBtn" title="Keyboard shortcuts">?</button>
+</div>
+<div class="kb-overlay" id="kbOverlay">
+  <div class="kb-card">
+    <h3>Navigation</h3>
+    <table>
+      <tr><td>&rarr; / Space</td><td>Next slide</td></tr>
+      <tr><td>&larr;</td><td>Previous slide</td></tr>
+      <tr><td>Home</td><td>First slide</td></tr>
+      <tr><td>End</td><td>Last slide</td></tr>
+      <tr><td>Swipe</td><td>Touch navigation</td></tr>
+    </table>
+    <div class="dismiss">Click anywhere or press Esc to close</div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 1 · TITLE ═══════════════════════════════════════════════════ -->
+<div class="slide slide-title active" data-slide="1">
+  <h1 class="r">Is your Databricks workspace <em>well-architected</em>?</h1>
+  <div class="sub r">An agent that checks a workspace against proven reference patterns, tells you what is missing and why, and shows the exact Terraform to fix it. It can also build a new workspace from tested Terraform.</div>
+  <div class="red-rule r"></div>
+  <div class="tags r">
+    <span class="tag">Azure</span><span class="tag">Google Cloud</span><span class="tag">AWS</span>
+    <span class="tag">Read-only</span><span class="tag">Runs locally</span><span class="tag">MCP</span>
+  </div>
+  <p class="r" style="margin-top:20px;color:var(--muted);font-size:var(--xs);max-width:640px">
+    Companion to the Well-Architected Agent README and simple guide. Community project, provided as is; not an official Databricks product.
+  </p>
+</div>
+
+
+<!-- ═══ SLIDE 2 · THE CHALLENGE ═══════════════════════════════════════════ -->
+<div class="slide" data-slide="2">
+  <div class="label r">The challenge</div>
+  <h2 class="r">Workspaces drift from the design they were meant to have.</h2>
+  <div class="two-col mt2">
+    <div class="col">
+      <div class="callout r">
+        A team deploys a workspace "with Private Link". Months later, nobody can say for sure whether public access is really off, whether serverless can reach the whole internet, or whether the IP access list was ever turned on. The design review was a slide; the workspace is the truth.
+      </div>
+      <div class="card card-ink r">
+        <h4>Why this happens</h4>
+        <p>Secure defaults are opt-in, settings live in three places (cloud, account, workspace), and each new workspace is rebuilt by hand from a different starting point.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="label r" style="margin-bottom:0">Where the gaps show up</div>
+      <div class="card card-red r">
+        <h4>Controls left at their defaults</h4>
+        <p>IP access lists off, serverless egress unrestricted, Unity Catalog not assigned, audit logs not delivered.</p>
+      </div>
+      <div class="card r">
+        <h4>Reviews without evidence</h4>
+        <p>A checklist says "done". Nothing records which API call or Terraform resource proved it.</p>
+      </div>
+      <div class="card r">
+        <h4>Every new workspace is a one-off</h4>
+        <p>Teams copy an old folder, change a few values, and inherit its gaps.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 3 · WHAT IT IS ══════════════════════════════════════════════ -->
+<div class="slide" data-slide="3">
+  <div class="label r">What it is</div>
+  <h2 class="r">Rules, not a model. Same input, same report.</h2>
+  <div class="two-col mt2">
+    <div class="col">
+      <div class="card card-ink r">
+        <h4>What the agent does</h4>
+        <ul>
+          <li>Reads a Terraform plan or state, or a deployed workspace (read-only).</li>
+          <li>Matches it to one of five reference patterns and scores it against the baseline you choose.</li>
+          <li>Gives a ranked prescription: every finding has evidence, the official doc, and the fix from this repo.</li>
+          <li>Writes a ready-to-run folder for a new workspace from tested Terraform, then verifies the result.</li>
+        </ul>
+      </div>
+      <div class="card card-red r">
+        <h4>What it is not</h4>
+        <p>Not a hosted service, not an LLM judging your setup, and not a tool that applies anything. It prescribes; you decide what to apply and run it yourself.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="label r" style="margin-bottom:0">Design principles</div>
+      <table class="r">
+        <thead><tr><th>Principle</th><th>In practice</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Deterministic</strong></td><td>Findings come from rules in the catalog. No timestamps, stable sort: safe for CI gates.</td></tr>
+          <tr><td><strong>Grounded</strong></td><td>Every check cites an official doc (the loader refuses one that doesn't) and the tested Terraform that fixes it.</td></tr>
+          <tr><td><strong>Never guesses</strong></td><td>A fact it can't see is <span class="chip">UNKNOWN</span>, with how to collect it. Never a false pass or fail.</td></tr>
+          <tr><td><strong>Pattern-first</strong></td><td>Scored against an architecture, not a flat list, with the upgrade path to the next one.</td></tr>
+          <tr><td><strong>Advisory</strong></td><td>Read-only. Fixes are Terraform or CLI for a person to apply.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 4 · HOW IT WORKS ════════════════════════════════════════════ -->
+<div class="slide" data-slide="4">
+  <div class="label r">How it works</div>
+  <h2 class="r">From what you have to what to fix, in one deterministic pass.</h2>
+  <div class="flow r">
+    <div class="inputs">
+      <div class="fbox"><strong>Terraform plan or state</strong><span><code>terraform show -json</code>, before or after apply</span></div>
+      <div class="fbox"><strong>Deployed workspace</strong><span>read-only calls through your <code>az</code>, <code>gcloud</code> and <code>databricks</code> logins</span></div>
+    </div>
+    <div class="farrow"><b>&rarr;</b><i>collectors</i></div>
+    <div class="fbox"><strong>Facts</strong><span>normalized per cloud; each records the command or resource it came from</span></div>
+    <div class="farrow"><b>&rarr;</b><i>rules</i></div>
+    <div class="fbox focus"><strong>Engine + catalog</strong><span>patterns, checks and baselines in YAML; three-valued logic: pass, fail, unknown</span></div>
+    <div class="farrow"><b>&rarr;</b><i>report</i></div>
+    <div class="fbox solid"><strong>Prescription</strong><span>gaps in priority order, evidence, official docs, the fix from this repo, upgrade path</span></div>
+  </div>
+  <div class="three-col mt3">
+    <div class="card r"><h4>Merge several plans</h4><p>Network in one root, workspace in another, guardrails in a third? Pass each plan; facts merge in any order.</p></div>
+    <div class="card r"><h4>Override what you know</h4><p>An account-level fact no plan contains (audit log delivery, for example) can be set with <code>--set path=value</code> after you check it in the account console.</p></div>
+    <div class="card r"><h4>Draw what it deploys</h4><p><code>wa-agent diagram</code> turns any plan or state into a Mermaid architecture diagram and a resource manifest.</p></div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 5 · FIVE BASELINES ══════════════════════════════════════════ -->
+<div class="slide" data-slide="5">
+  <div class="label r">Baselines</div>
+  <h2 class="r">Five baselines, with the same names on every cloud.</h2>
+  <p class="r lede">A baseline is what the workspace is supposed to be. Classic means compute runs in a VNet or VPC you bring; serverless means it runs in the Databricks serverless compute plane.</p>
+  <div class="r mt2" style="overflow-x:auto">
+    <table style="min-width:760px">
+      <thead><tr><th style="width:17%">Baseline</th><th style="width:27%">What it is</th><th>Azure</th><th>Google Cloud</th><th>AWS</th></tr></thead>
+      <tbody>
+        <tr><td><code>serverless</code></td><td>No customer network; a VNet or VPC only for a private front-end</td><td><code>serverless</code></td><td><code>serverless-ws</code> + guardrails</td><td><code>serverless-ws</code> + guardrails, or the SRA</td></tr>
+        <tr><td><code>classic-no-pl</code></td><td>Your network, no Private Link; public front-end limited to your IPs</td><td><code>non-pl</code></td><td><code>infra4db</code> + <code>byovpc-ws</code>, or <code>lpw</code></td><td><code>databricks-aws-production</code> + guardrails</td></tr>
+        <tr><td><code>classic-backend-pl</code></td><td>Back-end Private Link only; public front-end limited to your IPs</td><td>assess only</td><td>assess only</td><td>assess only</td></tr>
+        <tr><td><code>classic-full-pl</code></td><td>Front-end and back-end Private Link; public access off, or on for selected clients</td><td><code>full-private</code></td><td><code>byovpc-psc-*</code>, or <code>lpw</code></td><td><code>databricks-aws-production</code> + guardrails, or the SRA</td></tr>
+        <tr><td><code>classic-dep</code></td><td>Data exfiltration protection: controlled egress</td><td>hub-spoke firewall, assessed</td><td>VPC Service Controls, assessed</td><td>the SRA, isolated network</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note r mt2"><strong>Assess only</strong> means the agent scores a workspace against it but has no build for it: every Private Link root in the repo also adds the front-end, so it builds <code>classic-full-pl</code>. Azure and GCP <code>classic-dep</code> are assessed against the Databricks data exfiltration protection guides.</div>
+</div>
+
+
+<!-- ═══ SLIDE 6 · BARE MINIMUM AND OPTIONS ════════════════════════════════ -->
+<div class="slide" data-slide="6">
+  <div class="label r">Bare minimum and options</div>
+  <h2 class="r">Three controls everywhere. The rest is your choice.</h2>
+  <div class="three-col mt2">
+    <div class="card card-red r"><h4>An IP restriction on any public front-end</h4><p>IP access lists from <strong>your</strong> known ranges (corporate egress, VPN, automation, your Terraform runner). On AWS, context-based ingress limited to them also counts. <code>0.0.0.0/0</code> is refused.</p></div>
+    <div class="card card-ink r"><h4>Enforced serverless egress</h4><p>A network policy in <code>RESTRICTED_ACCESS</code>, enforced, bound to the workspace, so serverless compute reaches only the destinations you allow.</p></div>
+    <div class="card card-ink r"><h4>Unity Catalog</h4><p>A metastore assigned to the workspace: one governance layer for data, AI and access.</p></div>
+  </div>
+  <p class="r muted mt1" style="font-size:var(--sm)">Required in every baseline on every cloud; they can't be waived, and every build turns them on.</p>
+  <div class="r mt2" style="overflow-x:auto">
+    <table style="min-width:700px">
+      <thead><tr><th style="width:20%">Option</th><th>Adds</th></tr></thead>
+      <tbody>
+        <tr><td><code>public-access</code></td><td>On <code>classic-full-pl</code>: keeps the public front-end on for selected clients, behind your IP ranges; front-end Private Link stays.</td></tr>
+        <tr><td><code>cmk</code></td><td>Customer-managed keys for managed services, workspace storage and disks.</td></tr>
+        <tr><td><code>data-leak</code></td><td>Notebook export, results download and the notebook table clipboard turned off.</td></tr>
+        <tr><td><code>context-ingress</code></td><td>Allow and deny rules on identity, request type and network source, on top of IP access lists.</td></tr>
+        <tr><td><code>storage-lockdown</code>, <code>storage-private</code></td><td>Azure: workspace storage firewall and service endpoint policy; private endpoints from serverless to your storage.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note r mt1">A chosen option makes its controls required (<code>--option &lt;id&gt;</code>); options you don't choose show as recommended. Where a build has no setting for an option, the run book lists it as a manual step.</div>
+</div>
+
+
+<!-- ═══ SLIDE 7 · PICK A BASELINE ═════════════════════════════════════════ -->
+<div class="slide" data-slide="7">
+  <div class="label r">Pick a baseline</div>
+  <h2 class="r">Three questions get you to the right one.</h2>
+  <div class="two-col mt2">
+    <div class="col r" style="justify-content:center">
+      <div class="decide">
+        <div class="q">Do you need classic compute in your own network?</div><div class="a">no &rarr;</div><div class="res">serverless</div>
+        <div class="down">yes &darr;</div><div></div><div></div>
+        <div class="q">Must all egress be inspected, or have no internet path at all?</div><div class="a">yes &rarr;</div><div class="res focus">classic-dep</div>
+        <div class="down">no &darr;</div><div></div><div></div>
+        <div class="q">Should users reach the workspace privately?</div><div class="a">yes &rarr;</div><div class="res">classic-full-pl</div>
+        <div class="down">no &darr;</div><div></div><div></div>
+        <div class="q" style="border-color:var(--rule)">Public front-end, limited to your IP ranges</div><div class="a">&rarr;</div><div class="res">classic-no-pl</div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card card-ink r"><h4>Compute mode is fixed at creation</h4><p>A baseline whose compute mode differs from the workspace (say, <code>serverless</code> on a classic workspace) is flagged: moving between them means a new workspace.</p></div>
+      <div class="card r"><h4>Not sure? Don't pick one</h4><p>With no <code>--baseline</code>, the workspace is scored against the pattern it is detected as, with the upgrade path to the next tier.</p></div>
+      <div class="card r"><h4>See it in plain language first</h4><p><code>wa-agent show classic-full-pl</code> lists every control by area (Network, Storage, Unity Catalog and so on), required or recommended, with its options and builds.</p></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 8 · THREE MOMENTS ═══════════════════════════════════════════ -->
+<div class="slide" data-slide="8">
+  <div class="label r">When to use it</div>
+  <h2 class="r">Before you deploy, while you build, and once it runs.</h2>
+  <div class="two-col mt2">
+    <div class="col">
+      <div class="seq-step r">
+        <div class="seq-num">1</div>
+        <div class="seq-body"><strong>Review Terraform before applying</strong><p>Catch gaps in a plan before anything exists: <code>collect tfplan</code>, then <code>assess</code>.</p></div>
+      </div>
+      <div class="seq-step focus r">
+        <div class="seq-num">2</div>
+        <div class="seq-body"><strong>Build a new workspace, then verify it</strong><p><code>new</code> writes the folder; you run <code>terraform apply</code>; <code>verify</code> checks the state did what the baseline requires.</p></div>
+      </div>
+      <div class="seq-step r">
+        <div class="seq-num">3</div>
+        <div class="seq-body"><strong>Health-check a running workspace</strong><p><code>collect live</code> reads it with allow-listed read commands only; <code>assess</code> scores it. Azure and Google Cloud today.</p></div>
+      </div>
+      <div class="seq-step r">
+        <div class="seq-num">4</div>
+        <div class="seq-body"><strong>Gate a pipeline</strong><p><code>assess --format json --fail-on-gaps</code> fails the build on any required gap.</p></div>
+      </div>
+    </div>
+    <div class="col">
+      <pre class="r"><span class="cm"># 1 · before deploying (any cloud)</span>
+terraform show -json tf.plan &gt; plan.json
+uv run wa-agent collect tfplan --cloud aws --plan plan.json -o ws.facts.json
+uv run wa-agent assess --cloud aws --facts ws.facts.json --baseline classic-full-pl
+
+<span class="cm"># 2 · after apply</span>
+uv run wa-agent verify --tf-json state.json --baseline classic-full-pl --option cmk
+
+<span class="cm"># 3 · a running workspace (Azure, GCP)</span>
+uv run wa-agent doctor --workspace &lt;name-or-url&gt;
+uv run wa-agent collect live --cloud gcp --workspace &lt;name-or-url&gt; -o ws.facts.json
+uv run wa-agent assess --cloud gcp --facts ws.facts.json</pre>
+      <div class="card r"><h4>Preflight first</h4><p><code>doctor --workspace</code> resolves the workspace, matches your CLI logins, tries each data source and says how to fix what's missing, before you scan.</p></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 9 · READING A REPORT ════════════════════════════════════════ -->
+<div class="slide" data-slide="9">
+  <div class="label r">Reading a report</div>
+  <h2 class="r">Most important first, with the proof and the fix.</h2>
+  <div class="two-col mt2">
+    <div class="col">
+      <table class="r">
+        <thead><tr><th>Section</th><th>What's in it</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Prescription</strong></td><td>Every gap in order: required before recommended, then by severity.</td></tr>
+          <tr><td><strong>Gaps against target</strong></td><td>Each failed check: evidence, planning-guide phase, official docs, the repo fix.</td></tr>
+          <tr><td><strong>Beyond target</strong></td><td>What the workspace does above its baseline.</td></tr>
+          <tr><td><strong>Not evaluable</strong></td><td>What it couldn't see, and the access or plan that would show it.</td></tr>
+          <tr><td><strong>Passed, not applicable</strong></td><td>The rest, so nothing is silently skipped.</td></tr>
+          <tr><td><strong>Coverage by phase</strong></td><td>Organized by the Databricks production planning guide.</td></tr>
+        </tbody>
+      </table>
+      <div class="r" style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="chip">PASS</span><span class="chip chip-red">FAIL</span><span class="chip">UNKNOWN</span><span class="chip chip-muted">NOT APPLICABLE</span>
+      </div>
+    </div>
+    <div class="col">
+      <div class="label r" style="margin-bottom:0">One finding, from the demo report</div>
+      <pre class="r"><strong>AZ-ING-001 — IP access lists restrict the public front-end</strong>
+required · high · security · phase 4 Network · fix: in_place
+
+<span class="cm">Evidence</span>
+access.ip_access_lists_enabled = false
+  from databricks workspace-conf get-status enableIpAccessLists
+
+<span class="cm">Fix (ground-truth repo, tested)</span>
+module "workspace" {
+  enable_ip_access_lists = true
+  allowed_ip_ranges      = ["203.0.113.0/24"]
+}</pre>
+      <div class="card card-ink r"><h4>Try it now</h4><p><code>uv run wa-agent demo</code> prints a full report from a real, sanitized Azure workspace. No setup, no cloud access.</p></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 10 · BUILD A NEW WORKSPACE ══════════════════════════════════ -->
+<div class="slide" data-slide="10">
+  <div class="label r">New workspaces</div>
+  <h2 class="r">A ready-to-run folder from tested Terraform, never generated code.</h2>
+  <div class="two-col mt2">
+    <div class="col">
+      <pre class="r">uv run wa-agent new --cloud aws --baseline classic-full-pl \
+  --build awsdb4u --option cmk --out ./my-ws \
+  --set region=us-west-2 \
+  --set allowed_ip_ranges='["203.0.113.0/24"]'</pre>
+      <table class="r">
+        <thead><tr><th>In the folder</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>terraform/</code></td><td>The repo's tested Terraform, copied as-is (never state or local tfvars)</td></tr>
+          <tr><td><code>inputs-*.tfvars</code></td><td>Required values; anything you didn't answer is a <code>REPLACE_ME_*</code></td></tr>
+          <tr><td><code>stage-N-*.tfvars</code></td><td>The baseline's settings, one file per stage, in apply order</td></tr>
+          <tr><td><code>README.md</code></td><td>Run book: sign in, plan, assess the plan, apply, verify</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col">
+      <div class="card card-red r"><h4>Your IP ranges are required</h4><p>The run book can't turn on IP access lists without them, so <code>new</code> asks and never invents a default.</p></div>
+      <div class="card r"><h4>Secrets stay in the environment</h4><p>Account IDs and client secrets come from <code>TF_VAR_*</code> and <code>DATABRICKS_*</code> variables; they are never written to a file.</p></div>
+      <div class="card r"><h4>Wired and checked</h4><p>Later roots read values such as <code>workspace_url</code> from the previous root's <code>terraform output</code>. CI resolves every emitted value against the real Terraform, for every build and option.</p></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 11 · BUILDS PER CLOUD ═══════════════════════════════════════ -->
+<div class="slide" data-slide="11">
+  <div class="label r">Builds</div>
+  <h2 class="r">Where a baseline has several builds, you choose.</h2>
+  <div class="three-col mt2">
+    <div class="card card-ink r">
+      <h4>Azure</h4>
+      <p>One build per baseline from <code>adb4u/deployments</code>: <code>non-pl</code>, <code>full-private</code>, and <code>serverless</code> (no VNet, the same ARM call as the SRA serverless module).</p>
+    </div>
+    <div class="card card-ink r">
+      <h4>Google Cloud</h4>
+      <p><code>new-vpc</code> and <code>existing-vpc</code> (standard creation: Databricks creates the IAM roles and firewall rules) or <code>lpw</code>, the least-privilege workspace, for teams that must create those themselves. <code>serverless-ws</code> for serverless.</p>
+    </div>
+    <div class="card card-ink r">
+      <h4>AWS</h4>
+      <p><code>awsdb4u</code>: <code>databricks-aws-production</code> or <code>serverless-ws</code>, then <code>workspace-guardrails</code>. Or <code>sra</code>, the Databricks Security Reference Architecture, which is also the only <code>classic-dep</code> build.</p>
+    </div>
+  </div>
+  <div class="two-col mt2">
+    <div class="card card-red r">
+      <h4>The SRA: the one build from outside this repo</h4>
+      <p>Pinned to a full commit and never copied (it has its own licence). The run book clones that commit; the folder holds only your inputs and stage settings. CI checks that the variables the catalog records still match the SRA at that commit.</p>
+    </div>
+    <div class="card r">
+      <h4>Known gaps are stated up front</h4>
+      <p>The SRA keeps the public front-end on, limited to your IP ranges by context-based ingress, so its private builds list "public access off" as a known gap. Choose <code>public-access</code> to hold the workspace to that design.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 12 · COVERAGE ═══════════════════════════════════════════════ -->
+<div class="slide" data-slide="12">
+  <div class="label r">Coverage</div>
+  <h2 class="r">What works on each cloud today.</h2>
+  <div class="r mt2" style="overflow-x:auto">
+    <table style="min-width:700px">
+      <thead><tr><th style="width:26%">Capability</th><th>Azure</th><th>Google Cloud</th><th>AWS</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Plan and state review</strong></td><td>yes</td><td>yes</td><td>yes</td></tr>
+        <tr><td><strong>Architecture diagram</strong></td><td>yes</td><td>yes</td><td>yes</td></tr>
+        <tr><td><strong>New workspace and verify</strong></td><td>yes</td><td>yes</td><td>yes (<code>awsdb4u</code>, <code>sra</code>)</td></tr>
+        <tr><td><strong>Live, read-only scan</strong></td><td>yes</td><td>yes</td><td><span class="chip chip-red">next</span></td></tr>
+        <tr><td><strong>Data exfiltration protection</strong></td><td>hub-spoke firewall, assessed</td><td>VPC Service Controls and <code>restricted.googleapis.com</code>, assessed</td><td>no internet path or a firewall, S3 endpoint policy; built with the SRA</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="two-col mt3">
+    <div class="card r">
+      <h4>Every fix states how proven it is</h4>
+      <p><span class="chip">tested</span> deployed and verified by the repo owner (the default). <span class="chip chip-muted">validated</span> <code>terraform validate</code> and mock-provider tests only, not yet applied. The new <code>workspace-guardrails</code> and <code>serverless-ws</code> roots on GCP and AWS are labelled validated.</p>
+    </div>
+    <div class="card r">
+      <h4>Organized by the planning guide</h4>
+      <p>Checks map to cloud-neutral controls, by phase of the Databricks production planning guide and by pillar of the Well-Architected Lakehouse framework.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 13 · AI ASSISTANT ═══════════════════════════════════════════ -->
+<div class="slide" data-slide="13">
+  <div class="label r">In your AI assistant</div>
+  <h2 class="r">Ask in plain English. The answer still comes from the rules.</h2>
+  <div class="two-col mt2">
+    <div class="col">
+      <p class="r muted" style="font-size:var(--sm)">The agent has no LLM inside, so it works the same under any assistant. Your assistant calls its tools over MCP and relays the report. Every tool is read-only and none writes files.</p>
+      <pre class="r"><span class="cm"># register once (doctor prints this with your path)</span>
+claude mcp add --scope user databricks-wa -- \
+  uv run --quiet --frozen --project /abs/path/well-architected-agent wa-agent-mcp</pre>
+      <p class="r muted" style="font-size:var(--sm)">Also Codex CLI, Cursor, Gemini CLI and VS Code: the repo includes their configs.</p>
+      <div class="card r">
+        <h4>Ten tools</h4>
+        <p><code>list_baselines</code> <code>describe_baseline</code> <code>list_patterns</code> <code>preflight</code> <code>collect_live</code> <code>collect_tfplan</code> <code>assess</code> <code>verify</code> <code>diagram</code> <code>new_workspace</code></p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="label r" style="margin-bottom:0">Things to ask</div>
+      <div class="card r"><p>"What does <code>classic-full-pl</code> require, and what does the <code>cmk</code> option add?"</p></div>
+      <div class="card r"><p>"Preflight workspace <code>prod-ws</code>, then assess it against <code>classic-full-pl</code> with <code>public-access</code>, and list the required gaps."</p></div>
+      <div class="card r"><p>"Assess <code>./tf.plan.json</code> against <code>serverless</code> before I apply, and draw what it deploys."</p></div>
+      <div class="card r"><p>"Compare the <code>awsdb4u</code> and <code>sra</code> builds of <code>classic-full-pl</code> on AWS."</p></div>
+      <div class="card card-ink r"><p>The bundled <code>AGENTS.md</code> tells assistants to relay findings unchanged, ask you for the baseline, options and IP ranges, and never apply anything.</p></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 14 · TRUST ══════════════════════════════════════════════════ -->
+<div class="slide" data-slide="14">
+  <div class="label r">Safe by construction</div>
+  <h2 class="r">It can't change anything, and it doesn't phone home.</h2>
+  <div class="three-col mt2">
+    <div class="card card-red r"><h4>1 · Never changes anything</h4><p>Only allow-listed read commands can run (<code>READ_ONLY_COMMANDS</code>, one table per cloud). It never runs Terraform and never overwrites a file. Tests enforce all three.</p></div>
+    <div class="card card-ink r"><h4>2 · Grounded, with evidence</h4><p>Every check cites an official doc and, where it exists, the tested Terraform here. Every fact records the command or resource it came from.</p></div>
+    <div class="card card-ink r"><h4>3 · You decide</h4><p>The agent prescribes. Choosing what to apply, and when, is yours.</p></div>
+  </div>
+  <div class="r mt2" style="overflow-x:auto">
+    <table style="min-width:640px">
+      <tbody>
+        <tr><td style="width:24%"><strong>Runs on your machine</strong></td><td>No hosted service, no account to create. macOS, Windows and Linux, tested in CI on all three.</td></tr>
+        <tr><td><strong>No telemetry</strong></td><td>The only network calls are read-only calls to your tenant through your own CLI logins.</td></tr>
+        <tr><td><strong>No credentials handled</strong></td><td>It never asks for, stores or prints keys or tokens.</td></tr>
+        <tr><td><strong>Safe to share</strong></td><td><code>doctor</code> output is redacted: IDs, AWS account IDs and ARNs, names, emails, tokens.</td></tr>
+        <tr><td><strong>Your data stays local</strong></td><td>Facts and reports go only where you choose and are git-ignored by default. Through an assistant, results go to that assistant's model provider under its terms.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 15 · SCOPE AND DESIGN CHOICES ═══════════════════════════════ -->
+<div class="slide" data-slide="15">
+  <div class="label r">Scope and design choices</div>
+  <h2 class="r">What it assesses, what it builds, and how it reads.</h2>
+  <div class="two-col mt2">
+    <div class="col">
+      <div class="card card-ink r"><h4>Assessed, not built</h4><p>Back-end-only Private Link everywhere, and data exfiltration protection on Azure (hub-spoke) and Google Cloud (VPC Service Controls), are scored against the official guides; the repo has no root for them.</p></div>
+      <div class="card r"><h4>Plans are matched by resource type</h4><p>Resource IDs exist only after apply, so a few resources are matched by address name. Live scans match exactly. A VPC managed in another root makes its checks not evaluable until you add that plan.</p></div>
+      <div class="card r"><h4>Firewall rules are checked for presence</h4><p>The agent follows egress to the firewall and checks it has rules and logs; it doesn't compare each destination with the published Databricks list.</p></div>
+    </div>
+    <div class="col">
+      <div class="card r"><h4>Context-based ingress is a how-to</h4><p>The check passes on enforced <code>ingress</code> rules; <code>ingress_dry_run</code> is for testing and doesn't count. The report gives the Terraform to add them, starting in dry run.</p></div>
+      <div class="card r"><h4>Account-level facts can be outside a plan</h4><p>Audit log delivery, for example, often lives in another root: add that plan, or set the fact after checking the account console.</p></div>
+      <div class="card card-red r"><h4>Next: the live AWS scan</h4><p>Account API plus read-only <code>aws</code> calls, with replay fixtures, the same way Azure and Google Cloud are tested today.</p></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 16 · GETTING STARTED ════════════════════════════════════════ -->
+<div class="slide" data-slide="16">
+  <div class="label r">Getting started</div>
+  <h2 class="r">Three steps, any OS.</h2>
+  <div class="two-col mt2">
+    <div class="col">
+      <div class="seq-step r">
+        <div class="seq-num">1</div>
+        <div class="seq-body"><strong>Install uv and clone</strong><p><code>brew install uv</code> or <code>winget install astral-sh.uv</code>, then <code>git clone https://github.com/bhavink/databricks.git</code> and <code>cd databricks/well-architected-agent</code>. uv brings everything else.</p></div>
+      </div>
+      <div class="seq-step r">
+        <div class="seq-num">2</div>
+        <div class="seq-body"><strong>See it work</strong><p><code>uv run wa-agent demo</code>: a full report from a real, sanitized workspace, with no setup and no cloud access.</p></div>
+      </div>
+      <div class="seq-step focus r">
+        <div class="seq-num">3</div>
+        <div class="seq-body"><strong>Point it at yours</strong><p><code>uv run wa-agent doctor</code> checks tools and logins; then assess a plan, scan a workspace, or run <code>new</code> for a fresh one. Every command has <code>--help</code>.</p></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card card-ink r"><h4>Read next</h4>
+        <ul>
+          <li><a href="https://github.com/bhavink/databricks/blob/master/well-architected-agent/GUIDE.md">The simple guide</a>: what, why, when and how, in plain words.</li>
+          <li><a href="https://github.com/bhavink/databricks/blob/master/well-architected-agent/README.md">The README</a>: every command, baseline, option and build.</li>
+          <li><a href="https://github.com/bhavink/databricks">The ground-truth Terraform</a>: <code>adb4u</code>, <code>gcpdb4u</code>, <code>awsdb4u</code>.</li>
+          <li><a href="https://bhavink.github.io/applied-ai-governance/presentations/">More decks</a>: identity, governance and AI on Databricks.</li>
+        </ul>
+      </div>
+      <div class="card r"><h4>Problem or question?</h4><p><a href="https://github.com/bhavink/databricks/issues/new?template=wa-agent-problem.yml">Open an issue</a> and paste the output of <code>wa-agent doctor</code>: it's redacted for you.</p></div>
+      <div class="note r">Community project, provided as is, without warranty. Not an official Databricks, Microsoft, Google or AWS product. You are responsible for reviewing and testing anything you apply.</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ── slide engine (same as the other decks) ──────────────────────────────── */
+const slides = Array.from(document.querySelectorAll('.slide'));
+const total   = slides.length;
+let current   = 0;
+let touchStartX = 0;
+
+function goTo(n) {
+  if (n < 0 || n >= total) return;
+  const prev = slides[current];
+  prev.classList.remove('active');
+  prev.classList.add('exit-left');
+  setTimeout(() => prev.classList.remove('exit-left'), 420);
+  current = n;
+  slides[current].classList.add('active');
+  updateChrome();
+}
+
+function updateChrome() {
+  document.getElementById('counter').textContent =
+    String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+  document.getElementById('progressBar').style.width = ((current + 1) / total * 100) + '%';
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === total - 1;
+  document.getElementById('homeBtn').disabled = current === 0;
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+}
+
+const dotsEl = document.getElementById('navDots');
+for (let i = 0; i < total; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.addEventListener('click', () => goTo(i));
+  dotsEl.appendChild(d);
+}
+
+document.addEventListener('keydown', e => {
+  const overlay = document.getElementById('kbOverlay');
+  if (overlay.classList.contains('visible')) {
+    if (e.key === 'Escape' || e.key === '?') overlay.classList.remove('visible');
+    return;
+  }
+  if (e.key === 'ArrowRight' || e.key === ' ')  { e.preventDefault(); goTo(current + 1); }
+  if (e.key === 'ArrowLeft')  goTo(current - 1);
+  if (e.key === 'Home')       goTo(0);
+  if (e.key === 'End')        goTo(total - 1);
+  if (e.key === '?')          overlay.classList.add('visible');
+});
+
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive:true});
+document.addEventListener('touchend',   e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 45) dx < 0 ? goTo(current + 1) : goTo(current - 1);
+}, {passive:true});
+
+document.getElementById('helpBtn').addEventListener('click', () =>
+  document.getElementById('kbOverlay').classList.add('visible'));
+document.getElementById('kbOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('kbOverlay').classList.remove('visible');
+});
+
+/* deep link: #5 opens slide 5 */
+const start = parseInt(location.hash.slice(1), 10);
+if (start > 1 && start <= total) goTo(start - 1);
+updateChrome();
+</script>
+</body>
+</html>
