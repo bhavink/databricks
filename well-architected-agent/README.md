@@ -466,43 +466,57 @@ Everything in this repo today is `tested`, except the new GCP roots
 [`serverless-ws`](../gcpdb4u/templates/terraform-scripts/serverless-ws), and the context-based ingress how-to
 (`validated`).
 
-## Known limits
+## Scope and design choices
 
-- **Plan correlation is by type and count.** Resource IDs are unknown before
-  apply, so DBFS private endpoints are recognized by address name (`dbfs`). Use
-  the live collector for exact correlation.
-- **Firewall rules are checked for presence, not content.** For hub-spoke the
-  agent follows the 0.0.0.0/0 route to the Azure Firewall and checks it has
-  application rules and logs; it doesn't compare each FQDN with the published
-  Azure Databricks list. With an NVA instead of Azure Firewall, those checks
-  report not evaluable.
-- **Live scans have been run against real workspaces:** two back-end Private
-  Link workspaces (their sanitized responses are replay fixtures in
-  `tests/fixtures/azure/`) and a serverless workspace deployed from
-  `adb4u/deployments/serverless` (plan, state and live scan agree). Hub-spoke
-  checks are covered by tests, not yet by a live hub-spoke scan.
-- **Hub-spoke is assess-only by design.** The Azure data exfiltration
-  protection blog is the definitive guide for `classic-dep`;
-  there is no hub-spoke deployment, so `new` doesn't generate it.
-- **GCP has not been scanned live yet.** The GCP collectors are covered by
-  tests shaped like the `gcpdb4u` roots and a simulated account and `gcloud`,
-  not yet by a real GCP workspace.
-- **GCP data exfiltration protection is assess-only.** VPC Service Controls,
-  `restricted.googleapis.com` and the egress lockdown are checked, not
-  deployed. A Terraform plan rarely contains the perimeter, so that check is
-  usually *not evaluable* from a plan; a live scan needs Access Context Manager
-  Reader on the organization.
+The Terraform in `adb4u` and `gcpdb4u` has been deployed and validated, and the
+agent uses it as-is. This section describes what the agent assesses, what it
+builds, and how it reads what it's given.
+
+**All clouds**
+
+- **Assessed, not built.** `new` builds only from Terraform in this repo.
+  Back-end-only Private Link (every Private Link root here also creates the
+  front-end endpoint) and `classic-dep` (Azure hub-spoke, following the Azure
+  data exfiltration protection blog; GCP VPC Service Controls,
+  `restricted.googleapis.com` and the egress lockdown) are assessed.
+- **Options a root has no setting for become run-book steps.** For example,
+  `data-leak` on Azure classic and GCP `lpw`: the generated README lists it as a
+  manual step.
+- **Context-based ingress is a how-to.** The check passes on enforced `ingress`
+  rules in the workspace's network policy (`ingress_dry_run` rules are for
+  testing and don't count); the report gives the Terraform to add them.
+- **Plans are matched by resource type and count.** Resource IDs are known only
+  after apply, so some resources are matched by address name (for example,
+  Azure DBFS private endpoints by `dbfs`). The live collector matches exactly.
+
+**Azure**
+
+- **Firewall rules are checked for presence.** For hub-spoke the agent follows
+  the 0.0.0.0/0 route to the Azure Firewall and checks it has application rules
+  and logs; it doesn't compare each FQDN with the published Azure Databricks
+  list. With an NVA instead of Azure Firewall, those checks are not evaluable.
+- **Collector coverage.** Live scans cover two back-end Private Link workspaces
+  (sanitized replay fixtures in `tests/fixtures/azure/`) and a serverless
+  workspace from `adb4u/deployments/serverless`; hub-spoke checks are covered by
+  tests.
+
+**Google Cloud**
+
+- **Collector coverage.** The collectors are tested against plans of the
+  `gcpdb4u` roots and a simulated account and `gcloud`; a live GCP scan is next.
+- **The VPC Service Controls perimeter is read live.** It's rarely in a
+  workspace plan, so from a plan that check is usually *not evaluable*; a live
+  scan needs Access Context Manager Reader on the organization.
 - **`infra4db` points `*.googleapis.com` at `private.googleapis.com`.** That
-  passes Private Google Access but fails the exfiltration-protection check,
-  which needs `restricted.googleapis.com`.
-- **GCP PSC DNS records come after the workspace.** With `new-vpc` and PSC,
-  `infra4db` creates the workspace's private DNS records on a re-apply once
-  the workspace exists (its README); until then the DNS check fails.
-- **Back-end-only Private Link is assess-only.** No root in this repo
-  builds it without the front-end endpoints.
-- **Context-based ingress is a how-to, not a build.** The check reads the
-  workspace's network policy (`ingress`, not `ingress_dry_run`); no root in
-  this repo writes ingress rules yet.
+  passes Private Google Access; the exfiltration-protection check looks for
+  `restricted.googleapis.com`.
+- **PSC DNS records follow the workspace.** With `new-vpc` and PSC, `infra4db`
+  creates the workspace's private DNS records on a re-apply once the workspace
+  exists (see its README); the DNS check passes after that.
+- **`public-access` and `cmk` go together differently per root.** The
+  `gcpdb4u` PSC roots set both at once (`byovpc-psc-ws`: public on, no CMK;
+  `byovpc-psc-cmek-ws`: public off, CMK), so on `new-vpc` / `existing-vpc` pick
+  one; `lpw` supports both together.
 
 ## Roadmap
 
