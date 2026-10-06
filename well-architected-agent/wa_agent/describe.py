@@ -52,6 +52,19 @@ def to_markdown(catalog: dict, ref: str) -> str:
     req = sum(r["level"] == "required" for r in rows)
     lines += [f"{req} required and {len(rows) - req} recommended controls, by area of the production planning guide.",
               ""]
+    if baseline and baseline.get("options"):
+        lines += ["## Options", "", "Hardening you can choose on top (`--option <id>`); a chosen option's controls "
+                  "become required.", "", "| Option | What it adds | Controls |", "|---|---|---|"]
+        for o in baseline["options"]:
+            refs = [f"`{c}`" for c in o.get("require") or []] + [f"waives `{c}`" for c in o.get("waive") or []]
+            lines.append(f"| `{o['id']}` | {o['name']}: {o['summary'].strip()} | {', '.join(refs)} |")
+        lines += [""]
+    if baseline and (baseline.get("builds") or baseline.get("build")):
+        from .new import builds
+        lines += ["## Builds", "", "| Build | For |", "|---|---|"]
+        lines += [f"| `{b['id']}` | {b.get('for', '').strip() or _where(baseline)} |" for b in builds(baseline)]
+        lines += ["", "IP access lists are part of the bare minimum: `wa-agent new` needs your known IP ranges "
+                  "(`--set allowed_ip_ranges='[\"203.0.113.0/24\"]'`).", ""]
     area = None
     for r in rows:
         if r["area"] != area:

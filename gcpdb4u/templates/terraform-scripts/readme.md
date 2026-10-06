@@ -124,9 +124,10 @@ graph TB
 | **[end2end/](end2end/)** | Workspace + Unity Catalog + Policies | Complete production deployment |
 | **[lpw/](lpw/)** | **Least Privilege Workspace (2-phase)** | Maximum security: least-privilege IAM, CMK, PSC (front + back end), NCC, account groups + UC metastore binding. 2-phase deploy. |
 | **[uc/](uc/)** | Unity Catalog only | Add UC to existing workspace |
-| **[workspace-guardrails/](workspace-guardrails/)** | IP access lists, NCC, enforced serverless network policy | Bare-minimum controls after any `byovpc-*` workspace (`lpw` has them built in) |
+| **[serverless-ws/](serverless-ws/)** | Serverless workspace: no VPC, default storage | Serverless SQL, notebooks, jobs and apps only; follow with `workspace-guardrails` |
+| **[workspace-guardrails/](workspace-guardrails/)** | IP access lists, NCC, enforced serverless network policy, metastore assignment, optional data-leak settings | Bare-minimum controls after any `byovpc-*` or `serverless-ws` workspace (`lpw` has them built in) |
 
-The [Well-Architected Agent](../../../well-architected-agent) builds new workspaces from these folders as-is (`lpw`, `infra4db` → `byovpc-*`, or `byovpc-*` alone, plus `workspace-guardrails`) and assesses existing ones, including VPC Service Controls against [`vpcsc-policy`](../vpcsc-policy).
+The [Well-Architected Agent](../../../well-architected-agent) builds new workspaces from these folders as-is, with the same five baselines as on Azure (`classic-no-pl`, `classic-backend-pl`, `classic-full-pl`, `classic-dep`, `serverless`): `infra4db` → `byovpc-*`, or `byovpc-*` alone, plus `workspace-guardrails` (standard creation: Databricks creates the IAM roles and firewall rules, the common case), or `lpw` (least-privilege: you create them yourself, for teams whose security policy requires it); and `serverless-ws` → `workspace-guardrails`. It assesses existing workspaces too, including VPC Service Controls against [`vpcsc-policy`](../vpcsc-policy).
 
 ### 2. Prerequisites
 

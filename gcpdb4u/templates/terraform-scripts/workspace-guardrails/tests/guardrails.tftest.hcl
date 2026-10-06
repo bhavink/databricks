@@ -29,8 +29,12 @@ run "bare_minimum_by_default" {
     error_message = "workspace must be found by name"
   }
   assert {
-    condition     = databricks_workspace_conf.ip_acl[0].custom_config["enableIpAccessLists"] == "true"
-    error_message = "IP access lists must be enabled by default"
+    condition     = length(databricks_workspace_conf.this[0].custom_config) == 1 && databricks_workspace_conf.this[0].custom_config["enableIpAccessLists"] == "true"
+    error_message = "IP access lists must be enabled by default, data-leak settings left alone"
+  }
+  assert {
+    condition     = length(databricks_metastore_assignment.this) == 0
+    error_message = "no metastore assignment unless a metastore_id is given"
   }
   assert {
     condition     = toset(keys(databricks_ip_access_list.this)) == toset(["office-allow"])
@@ -50,6 +54,29 @@ run "bare_minimum_by_default" {
   assert {
     condition     = length(databricks_mws_ncc_binding.this) == 1 && length(databricks_workspace_network_option.this) == 1
     error_message = "NCC and network policy must be bound to the workspace"
+  }
+}
+
+run "data_leak_and_metastore_options" {
+  command = apply
+
+  variables {
+    disable_data_leak_features = true
+    metastore_id               = "11111111-2222-3333-4444-555555555555"
+  }
+
+  assert {
+    condition = (
+      databricks_workspace_conf.this[0].custom_config["enableExportNotebook"] == "false"
+      && databricks_workspace_conf.this[0].custom_config["enableResultsDownloading"] == "false"
+      && databricks_workspace_conf.this[0].custom_config["enableNotebookTableClipboard"] == "false"
+      && databricks_workspace_conf.this[0].custom_config["enableIpAccessLists"] == "true"
+    )
+    error_message = "data-leak settings are turned off in the same workspace_conf"
+  }
+  assert {
+    condition     = databricks_metastore_assignment.this[0].workspace_id == 1111111111111111
+    error_message = "the metastore is assigned to the workspace"
   }
 }
 
@@ -80,7 +107,8 @@ run "controls_can_be_turned_off" {
   }
 
   assert {
-    condition = (length(databricks_ip_access_list.this) == 0 && length(databricks_account_network_policy.this) == 0
+    condition = (length(databricks_ip_access_list.this) == 0 && length(databricks_workspace_conf.this) == 0
+      && length(databricks_account_network_policy.this) == 0
     && length(databricks_workspace_network_option.this) == 0 && length(databricks_mws_ncc_binding.this) == 0)
     error_message = "everything off means nothing created"
   }

@@ -97,7 +97,7 @@ adb4u/
 
 #### 5. **Hub-Spoke with Firewall (Data Exfiltration Protection)**
 - Guideline: the [Azure data exfiltration protection blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks) (definitive for hub-spoke); the [Databricks SRA](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf) for reference
-- No deployment in this repo by design. The [Well-Architected Agent](../well-architected-agent) assesses hub-spoke workspaces against the blog (`classic-exfiltration-protection` baseline): firewall route, hub peering, firewall application rules and logs, Private Link, service endpoint policies, CMK
+- No deployment in this repo by design. The [Well-Architected Agent](../well-architected-agent) assesses hub-spoke workspaces against the blog (`classic-dep` baseline): firewall route, hub peering, firewall application rules and logs, Private Link, service endpoint policies, CMK
 
 ### Key Features
 

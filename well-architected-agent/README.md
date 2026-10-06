@@ -42,10 +42,10 @@ uv run wa-agent demo
 uv run wa-agent doctor                              # tools and logins (output is redacted, safe to share)
 uv run wa-agent doctor --workspace <name-or-url>    # preflight: what is reachable, how to fix the rest
 uv run wa-agent collect live --cloud azure --workspace <name-or-url> -o ws.facts.json
-uv run wa-agent assess --facts ws.facts.json --baseline classic-standard -o report.md
-# Google Cloud: the same, with --cloud gcp
+uv run wa-agent assess --facts ws.facts.json --baseline classic-no-pl -o report.md
+# Google Cloud: the same, with --cloud gcp (same baseline ids on every cloud)
 uv run wa-agent collect live --cloud gcp --workspace <name-or-url> -o gcp.facts.json
-uv run wa-agent assess --cloud gcp --facts gcp.facts.json --baseline gcp-classic-standard -o gcp-report.md
+uv run wa-agent assess --cloud gcp --facts gcp.facts.json --baseline classic-no-pl -o gcp-report.md
 ```
 
 **What you need**
@@ -133,9 +133,10 @@ Every command has `--help`.
    Every fix points at a module in this repo.
 3. **Never guesses.** A fact that can't be collected yields `UNKNOWN` with the
    missing fact and how to collect it — never a false PASS or FAIL.
-4. **Pattern-first.** A deployment is scored against an architecture (Azure
-   Non-PL, Full Private, DEP hub-spoke, Serverless; GCP customer-managed VPC,
-   Private Service Connect, VPC Service Controls), not a flat list of best practices.
+4. **Pattern-first.** A deployment is scored against an architecture (the
+   same five on every cloud: no Private Link, back-end Private Link, full
+   Private Link, data exfiltration protection, serverless), not a flat list
+   of best practices.
    You get "what's missing for *this* pattern" plus an upgrade path to the next tier.
 5. **Advisory first.** Read-only. Fixes are emitted as Terraform/CLI for a human
    to apply.
@@ -168,94 +169,97 @@ Pillars follow the Databricks Well-Architected Lakehouse framework: data &
 AI governance, interoperability & usability, operational excellence,
 security, reliability, performance efficiency, cost optimization.
 
-## Classic vs serverless
+## Patterns: the same five on every cloud
 
-| | Classic (BYO network) | Serverless workspace |
-|---|---|---|
-| Compute network | Your VNet: subnets, NSG, UDR, NAT/firewall, private endpoints | Databricks-managed |
-| Egress control | Firewall / NAT + service endpoint policies | Serverless network policies |
-| Private storage access | Private endpoints / service endpoints from your VNet | NCC private endpoint rules |
-| Checks | `AZ-NET-*`, `AZ-PL-*`, `AZ-STO-*`, `AZ-ENC-002/003` + serverless checks | `AZ-SRV-*`, `AZ-ING-*`, `AZ-UC-*`, `AZ-OPS-*` |
+There are two ways to run a workspace: **classic**, where compute runs in a
+VNet/VPC you bring (new or existing), or **serverless**, where compute runs
+in the Databricks serverless compute plane. A private front-end (Private
+Link / Private Service Connect) needs a VNet/VPC and subnet of yours either
+way.
 
-Classic workspaces also run serverless SQL, notebooks and jobs, so the
-`AZ-SRV-*` checks apply to them too. Classic-only checks are gated by
-`workspace.compute_mode` and report `NOT_APPLICABLE` for serverless.
-
-On Google Cloud the baselines are classic workspaces on a customer-managed
-VPC; their serverless compute is governed the same way (`GCP-SRV-*`: NCC and
-an enforced network policy).
-
-## Azure patterns
-
-| Pattern | Tier | Grounded in |
-|---|---|---|
-| `az-classic-managed-vnet` | 0 (anti-pattern) | — migrate |
-| `az-classic-non-pl` | 1 | [`adb4u/deployments/non-pl`](../adb4u/deployments/non-pl), [01-NON-PL.md](../adb4u/docs/patterns/01-NON-PL.md) |
-| `az-classic-backend-pl` | 2 | [Azure Private Link](https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link): back-end private endpoint, public front-end with IP access lists |
-| `az-classic-full-private` | 3 | [`adb4u/deployments/full-private`](../adb4u/deployments/full-private), [02-FULL-PRIVATE.md](../adb4u/docs/patterns/02-FULL-PRIVATE.md) |
-| `az-classic-dep-hub-spoke` | 3 | [Azure DEP blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks), [Databricks SRA](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf) (reference) |
-| `az-serverless` | 2 | [`adb4u/deployments/serverless`](../adb4u/deployments/serverless) (no VNet), [setup guide](../adb4u/docs/guides/01-SERVERLESS-SETUP.md) |
-
-## GCP patterns
-
-| Pattern | Tier | Grounded in |
-|---|---|---|
-| `gcp-classic-managed-vpc` | 0 (anti-pattern) | — migrate to a customer-managed VPC |
-| `gcp-classic-byovpc` | 1 | [`byovpc-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-ws), [`infra4db`](../gcpdb4u/templates/terraform-scripts/infra4db), [customer-managed VPC](https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc) |
-| `gcp-classic-psc` | 2 | [`byovpc-psc-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-psc-ws), [Private Service Connect](https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect) |
-| `gcp-classic-psc-private` | 3 | [`byovpc-psc-cmek-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-psc-cmek-ws): PSC, public access disabled |
-| `gcp-classic-dep` | 3 | [GCP data exfiltration protection guide](https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection), [`security/`](../gcpdb4u/security), [`vpcsc-policy`](../gcpdb4u/templates/vpcsc-policy) |
-
-## Baselines — pick what the workspace is supposed to be
-
-**Bare minimum in every baseline:** whatever else you choose, an IP access list
-on any public front-end (inbound users and apps) and an enforced serverless
-egress policy are required. They are declared once per cloud
-(`minimum_required` in `patterns.yaml`), and every `new` build turns them on.
-
-Like the deployments in `adb4u` and `gcpdb4u`, the agent has one baseline
-per use case. A baseline chooses a reference pattern, can make extra
-controls mandatory, and lists the tested Terraform that builds it.
-
-**Azure** (`--cloud azure`, the default)
-
-| Baseline | Use case | Pattern | Builds it |
+| Pattern / baseline | What it is | Azure | Google Cloud |
 |---|---|---|---|
-| `serverless` | Serverless only, no customer network | `az-serverless` | [`serverless`](../adb4u/deployments/serverless) |
-| `serverless-high-security` | + NCC private endpoints to storage, CMK, data-leak features off | `az-serverless` | [`serverless`](../adb4u/deployments/serverless) |
-| `classic-standard` | VNet-injected, NAT egress, public IP-restricted front-end | `az-classic-non-pl` | [`non-pl`](../adb4u/deployments/non-pl) |
-| `classic-private-link` | Back-end Private Link, public front-end | `az-classic-backend-pl` | [`full-private`](../adb4u/deployments/full-private) with public access on |
-| `classic-full-private` | No public access, private storage, no internet egress | `az-classic-full-private` | [`full-private`](../adb4u/deployments/full-private) |
-| `classic-high-security` | Full private + CMK everywhere, storage firewall, enforced serverless egress, SEP | `az-classic-full-private` | [`full-private`](../adb4u/deployments/full-private) |
-| `classic-exfiltration-protection` | Hub-spoke, firewall-inspected egress, CMK | `az-classic-dep-hub-spoke` | Assess only for now; references: [DEP blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks), [Databricks SRA](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf) |
+| `classic-no-pl` | Your VNet/VPC, no Private Link; public front-end restricted to your IP ranges | [`non-pl`](../adb4u/deployments/non-pl) | [`infra4db`](../gcpdb4u/templates/terraform-scripts/infra4db) → [`byovpc-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-ws), or [`lpw`](../gcpdb4u/templates/terraform-scripts/lpw) (least-privilege) |
+| `classic-backend-pl` | Back-end Private Link only (compute to control plane); public front-end restricted to your IP ranges | assess only | assess only |
+| `classic-full-pl` | Front-end and back-end Private Link; public access off, or on for selected clients (`public-access` option) | [`full-private`](../adb4u/deployments/full-private) | [`byovpc-psc-cmek-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-psc-cmek-ws) / [`byovpc-psc-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-psc-ws), or [`lpw`](../gcpdb4u/templates/terraform-scripts/lpw) (least-privilege) |
+| `classic-dep` | Data exfiltration protection | hub-spoke egress firewall, assessed against the [Azure DEP blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks) | VPC Service Controls, `restricted.googleapis.com`, deny-by-default egress, assessed against the [GCP DEP guide](https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection) and [`vpcsc-policy`](../gcpdb4u/templates/vpcsc-policy) |
+| `serverless` | No customer network (a VNet/VPC only for a private front-end) | [`serverless`](../adb4u/deployments/serverless) | [`serverless-ws`](../gcpdb4u/templates/terraform-scripts/serverless-ws) → [`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) |
 
-**Google Cloud** (`--cloud gcp`). Each baseline offers three builds, as peers;
-pick one with `--build`:
+Back-end-only Private Link is assess-only because the repo's Private Link
+Terraform always adds the front-end endpoints too; it builds `classic-full-pl`
+(use `public-access` to keep a public front-end). A workspace without a
+network of its own is scored against `classic-no-pl` and fails the
+customer-managed network check: the network type is fixed at creation, so
+the fix is a new workspace on your own VNet/VPC.
 
-| Baseline | Use case | Pattern |
-|---|---|---|
-| `gcp-classic-standard` | Customer-managed VPC, Private Google Access, Cloud NAT, public front-end with IP access lists | `gcp-classic-byovpc` |
-| `gcp-classic-cmek` | Standard + customer-managed keys (managed services, storage, disks) | `gcp-classic-byovpc` |
-| `gcp-classic-psc` | Front-end and back-end Private Service Connect, public front-end with IP access lists | `gcp-classic-psc` |
-| `gcp-classic-high-security` | PSC with public access disabled, CMK, private DNS, data-leak features off | `gcp-classic-psc-private` |
-| `gcp-classic-exfiltration-protection` | High security + VPC Service Controls, `restricted.googleapis.com`, deny-by-default egress | `gcp-classic-dep` (assess only) |
-
-| Build | Terraform | For |
-|---|---|---|
-| `lpw` | [`lpw`](../gcpdb4u/templates/terraform-scripts/lpw): one root, two applies (provisioning, then running) | One root that creates the VPC, least-privilege service accounts and CMK (LPW is generally available) |
-| `new-vpc` | [`infra4db`](../gcpdb4u/templates/terraform-scripts/infra4db) → `byovpc-*` → [`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) | Teams that keep the network in its own Terraform root |
-| `existing-vpc` | `byovpc-*` → [`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) | Teams with an existing (or shared) VPC |
-
-`workspace-guardrails` adds the bare minimum (IP access lists, NCC, enforced
-serverless network policy) that the `byovpc-*` roots don't include; `lpw`
-has them built in.
+**Bare minimum in every baseline, on every cloud:** IP access lists on any
+public front-end, an enforced serverless egress policy (network policy in
+`RESTRICTED_ACCESS`), and Unity Catalog. They are declared once per cloud
+(`minimum_required` in `patterns.yaml`), can't be waived, and every `new`
+build turns them on. IP access lists only work with **your** known IP ranges
+(corporate egress, VPN, automation, and the IP you run Terraform from), so
+`new` requires them as an answer and never invents a default:
 
 ```bash
-uv run wa-agent baselines                          # --cloud gcp for Google Cloud
-uv run wa-agent show classic-high-security        # its controls in plain language, by area
-uv run wa-agent show gcp-classic-high-security --cloud gcp
-uv run wa-agent assess --facts out/ws.facts.json --baseline classic-high-security
+--set allowed_ip_ranges='["203.0.113.0/24", "198.51.100.10/32"]'
 ```
+
+The feature is enabled on the workspace first (`enableIpAccessLists`), then
+the ALLOW list is applied; every root used here does it in that order.
+
+### Options: hardening you choose on top
+
+| Option | Adds | Azure | Google Cloud |
+|---|---|---|---|
+| `public-access` (`classic-full-pl`) | Keeps the public front-end on for selected clients, behind IP access lists; front-end Private Link stays | `full-private` with public access on | `lpw`, or `byovpc-psc-ws` (no CMK) |
+| `cmk` | Customer-managed keys | managed services, managed disks, DBFS root | managed services, workspace storage, disks (`lpw` always; `byovpc-cmek-ws` / `byovpc-psc-cmek-ws`) |
+| `storage-lockdown` (Azure `classic-full-pl`) | Workspace storage firewall and a service endpoint policy | `full-private` | — |
+| `storage-private` (Azure `serverless`) | NCC private endpoints from serverless to your storage | `serverless` | — |
+| `data-leak` | Notebook export, results download and table clipboard off | `serverless`; manual on classic | `workspace-guardrails` (`disable_data_leak_features`); manual on `lpw` |
+| `context-ingress` | Context-based ingress: allow and deny rules on identity, request type (UI, APIs by scope, Apps) and network source, on top of IP access lists (a request must pass both) | how-to (`AZ-ING-002`) | how-to (`GCP-ING-002`) |
+
+A chosen option makes its controls required (`--option <id>` on `assess`,
+`verify` and `new`); options you don't choose show as recommended. Where a
+build has no Terraform setting for an option, the run book lists it as a
+manual step. Context-based ingress lives on the same account network policy
+as serverless egress (`ingress` / `ingress_dry_run` on
+`databricks_account_network_policy`): start in dry run, watch
+`system.access.inbound_network`, then enforce.
+
+```bash
+uv run wa-agent baselines                              # --cloud gcp for Google Cloud
+uv run wa-agent show classic-full-pl                   # controls, options and builds in plain language
+uv run wa-agent assess --facts out/ws.facts.json --baseline classic-full-pl --option public-access --option cmk
+```
+
+### Builds on Google Cloud
+
+Classic baselines offer three builds; pick one with `--build`. They differ in
+who creates the IAM roles, role bindings and VPC firewall rules the workspace
+needs:
+
+- **Standard creation (most teams):** your workspace-creator service account has
+  the roles Databricks needs, and Databricks creates them when it creates the
+  workspace. Databricks recommends this for most deployments.
+- **Least-privilege workspace (LPW), a special case:** for security-conscious or
+  regulated accounts where Databricks must not create IAM roles or firewall
+  rules. You create them yourself, separately from workspace creation, which
+  takes two applies. LPW is generally available
+  ([docs](https://docs.databricks.com/gcp/en/admin/workspace/create-least-privilege-workspace)).
+
+| Build | Creation | Terraform | For |
+|---|---|---|---|
+| `new-vpc` | Standard | [`infra4db`](../gcpdb4u/templates/terraform-scripts/infra4db) → `byovpc-*` → [`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) | Teams that keep the network in its own Terraform root |
+| `existing-vpc` | Standard | `byovpc-*` → [`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) | Teams with an existing (or shared) VPC |
+| `lpw` | Least-privilege | [`lpw`](../gcpdb4u/templates/terraform-scripts/lpw): one root, two applies (provisioning, then running) | Teams whose security policy keeps IAM and firewall changes away from Databricks; the root also creates the VPC, service accounts and CMK |
+
+`serverless` has one build: [`serverless-ws`](../gcpdb4u/templates/terraform-scripts/serverless-ws) →
+`workspace-guardrails`. `workspace-guardrails` adds the bare minimum (IP
+access lists from your ranges, NCC, enforced serverless network policy,
+metastore assignment) that the other roots don't include; `lpw` has them
+built in. The `gcpdb4u` PSC roots fix public access and CMK together, so on
+`new-vpc` / `existing-vpc` `public-access` and `cmk` can't be combined; choose
+one, or `lpw` if least-privilege creation suits your security policy.
 
 **Architecture diagram and manifest** of what any Terraform plan or state deploys
 (this repo's deployments or your own): a Mermaid diagram drawn from the
@@ -311,7 +315,7 @@ Start a new session after registering; tools load at session start.
 
 | Tool | What it does |
 |---|---|
-| `list_baselines` | The use-case baselines (serverless, classic standard, private link, full private, high security, …) and the Terraform that builds each |
+| `list_baselines` | The five baselines (`classic-no-pl`, `classic-backend-pl`, `classic-full-pl`, `classic-dep`, `serverless`), their options and the Terraform that builds each |
 | `describe_baseline` | What one baseline requires, in plain language: every control by area (Network, Storage, Unity Catalog, …), required or recommended |
 | `list_patterns` | The reference architecture patterns and their controls |
 | `preflight` | Before a live scan: resolves the workspace, matches your CLI logins, tries each data source read-only, and says how to fix what's missing |
@@ -320,21 +324,21 @@ Start a new session after registering; tools load at session start.
 | `assess` | Scores collected facts against a baseline: PASS/FAIL/UNKNOWN with evidence, official docs, and the fix from this repo |
 | `verify` | After `terraform apply`: does the state do what the baseline requires? |
 | `diagram` | Architecture diagram (Mermaid) and resource manifest of a plan or state |
-| `new_workspace` | The files for a new workspace from a baseline's tested Terraform (inputs, staged settings, step-by-step README) |
+| `new_workspace` | The files for a new workspace from a baseline's tested Terraform (inputs, staged settings, step-by-step README); needs your known IP ranges |
 
 Assistants that read [`AGENTS.md`](AGENTS.md) (Codex, Cursor, and others;
 `CLAUDE.md` points there) also get the three operating rules as instructions.
 
 **4. Ask.** For example:
 
-- *"Which Well-Architected baselines are there, and which fits a regulated workload?"*
-- *"What does `classic-high-security` require?"*
-- *"Preflight workspace `<name>`, then assess it against `classic-private-link` and list the required gaps."*
+- *"Which Well-Architected baselines are there, and which options fit a regulated workload?"*
+- *"What does `classic-full-pl` require, and what does the `cmk` option add?"*
+- *"Preflight workspace `<name>`, then assess it against `classic-full-pl` with `public-access` and list the required gaps."*
 - *"Assess `./tf.plan.json` against `serverless` before I apply, and draw what it deploys."*
-- *"Verify `./state.json` against `classic-full-private`."*
-- *"Set up a new `serverless` workspace in `eastus2` with prefix `demo`."* (the assistant shows the files; `wa-agent new` writes the folder)
-- *"Which GCP builds can create `gcp-classic-psc`, and what does each need from me?"*
-- *"Assess GCP workspace `<name>` against `gcp-classic-exfiltration-protection`."*
+- *"Verify `./state.json` against `classic-full-pl` with `cmk`."*
+- *"Set up a new `serverless` workspace in `eastus2` with prefix `demo`; our office egress is 203.0.113.0/24."* (the assistant shows the files; `wa-agent new` writes the folder)
+- *"Which GCP builds can create `classic-full-pl`, and what does each need from me?"*
+- *"How would I add context-based ingress to this workspace?"*
 
 ```mermaid
 flowchart LR
@@ -352,10 +356,13 @@ The full command list is in [What it can do](#what-it-can-do); worked examples b
 **New workspace (baseline → tested deployment → verify):**
 
 ```bash
-uv run wa-agent new --baseline classic-high-security --out ./my-ws \
-  --set location=eastus2 --set workspace_prefix=prodsec
-uv run wa-agent new --cloud gcp --baseline gcp-classic-psc --build new-vpc --out ./my-gcp-ws \
-  --set google_region=us-central1 --set network_name=dbx-vpc
+uv run wa-agent new --baseline classic-full-pl --option cmk --out ./my-ws \
+  --set location=eastus2 --set workspace_prefix=prodsec --set allowed_ip_ranges='["203.0.113.0/24"]'
+uv run wa-agent new --cloud gcp --baseline classic-full-pl --build new-vpc --option public-access \
+  --out ./my-gcp-ws --set google_region=us-central1 --set network_name=dbx-vpc \
+  --set allowed_ip_ranges='["203.0.113.0/24"]'
+uv run wa-agent new --cloud gcp --baseline serverless --out ./my-srv \
+  --set google_region=us-east4 --set allowed_ip_ranges='["203.0.113.0/24"]'
 # ./my-ws: the tested Terraform (terraform/), inputs, staged tfvars and a
 # README: plan → assess → apply (you run it) → verify
 ```
@@ -366,12 +373,15 @@ such as the Databricks SRA are cited as references only.
 
 | Baselines | Terraform |
 |---|---|
-| `classic-*` | This repo's [`non-pl`](../adb4u/deployments/non-pl) / [`full-private`](../adb4u/deployments/full-private), copied into the folder |
-| `serverless`, `serverless-high-security` | [`adb4u/deployments/serverless`](../adb4u/deployments/serverless): the same ARM call as the official [SRA `serverless_workspace` module](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf/modules/serverless_workspace), without its VNet; copied into the folder |
-| `classic-exfiltration-protection` | None by design: hub-spoke is assessed against the [Azure data exfiltration protection blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks), not deployed |
-| `gcp-classic-*` | `gcpdb4u` as-is: `lpw`, or `infra4db` → `byovpc-*`, or `byovpc-*` alone, each followed by `workspace-guardrails` where needed |
-| `gcp-classic-exfiltration-protection` | None by design: assessed against the [GCP data exfiltration protection guide](https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection) and the `vpcsc-policy` samples |
+| Azure `classic-no-pl`, `classic-full-pl` | This repo's [`non-pl`](../adb4u/deployments/non-pl) / [`full-private`](../adb4u/deployments/full-private), copied into the folder |
+| Azure `serverless` | [`adb4u/deployments/serverless`](../adb4u/deployments/serverless): the same ARM call as the official [SRA `serverless_workspace` module](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf/modules/serverless_workspace), without its VNet; copied into the folder |
+| GCP `classic-no-pl`, `classic-full-pl` | `gcpdb4u` as-is: `infra4db` → `byovpc-*`, or `byovpc-*` alone (standard creation), each followed by `workspace-guardrails`; or `lpw` (least-privilege) |
+| GCP `serverless` | [`serverless-ws`](../gcpdb4u/templates/terraform-scripts/serverless-ws) → [`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) |
+| `classic-backend-pl` | None: the repo's Private Link Terraform always adds the front-end endpoints, so it builds `classic-full-pl` |
+| `classic-dep` | None by design: assessed against the [Azure](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks) and [GCP](https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection) data exfiltration protection guides (and the `vpcsc-policy` samples), not deployed |
 
+Your IP ranges (`allowed_ip_ranges`) go where each root reads them: a
+variable, or the root's `ip_access_list.yaml`, written from your answer.
 Required variables become `inputs.tfvars` (one inputs file per root in a
 multi-root build): answer them with `--set name=value` (JSON for lists and
 booleans); an answer goes to every root that declares the variable, and
@@ -395,7 +405,7 @@ cd -
 
 uv run wa-agent collect tfplan --cloud azure --plan /tmp/non-pl.plan.json -o out/non-pl.facts.json
 uv run wa-agent assess --facts out/non-pl.facts.json                       # score vs detected pattern
-uv run wa-agent assess --facts out/non-pl.facts.json --baseline classic-exfiltration-protection
+uv run wa-agent assess --facts out/non-pl.facts.json --baseline classic-dep
 uv run wa-agent assess --facts out/non-pl.facts.json --format json --fail-on-gaps   # CI gate
 ```
 
@@ -417,7 +427,7 @@ uv run wa-agent assess --facts out/ws.facts.json
 gcloud auth login
 uv run wa-agent collect live --cloud gcp --workspace <name-url-or-id> \
   --account-profile <databricks-gcp-account-profile> --profile <workspace-profile> -o out/gcp.facts.json
-uv run wa-agent assess --cloud gcp --facts out/gcp.facts.json --baseline gcp-classic-high-security
+uv run wa-agent assess --cloud gcp --facts out/gcp.facts.json --baseline classic-full-pl --option cmk
 ```
 
 Classic and serverless are detected automatically: live scans read
@@ -451,8 +461,10 @@ Each fix states how proven its repo implementation is:
 | `tested` | Deployed and verified by the repo owner (default) |
 | `validated` | `terraform validate` + mock-provider `terraform test` only; not yet applied. Use for new Terraform until it has been deployed |
 
-Everything in this repo today is `tested`, except
-[`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) (new, `validated`).
+Everything in this repo today is `tested`, except the new GCP roots
+[`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) and
+[`serverless-ws`](../gcpdb4u/templates/terraform-scripts/serverless-ws), and the context-based ingress how-to
+(`validated`).
 
 ## Known limits
 
@@ -470,7 +482,7 @@ Everything in this repo today is `tested`, except
   `adb4u/deployments/serverless` (plan, state and live scan agree). Hub-spoke
   checks are covered by tests, not yet by a live hub-spoke scan.
 - **Hub-spoke is assess-only by design.** The Azure data exfiltration
-  protection blog is the definitive guide for `classic-exfiltration-protection`;
+  protection blog is the definitive guide for `classic-dep`;
   there is no hub-spoke deployment, so `new` doesn't generate it.
 - **GCP has not been scanned live yet.** The GCP collectors are covered by
   tests shaped like the `gcpdb4u` roots and a simulated account and `gcloud`,
@@ -486,8 +498,11 @@ Everything in this repo today is `tested`, except
 - **GCP PSC DNS records come after the workspace.** With `new-vpc` and PSC,
   `infra4db` creates the workspace's private DNS records on a re-apply once
   the workspace exists (its README); until then the DNS check fails.
-- **No serverless-only GCP baseline yet.** GCP baselines are classic
-  workspaces; their serverless compute is still checked.
+- **Back-end-only Private Link is assess-only.** No root in this repo
+  builds it without the front-end endpoints.
+- **Context-based ingress is a how-to, not a build.** The check reads the
+  workspace's network policy (`ingress`, not `ingress_dry_run`); no root in
+  this repo writes ingress rules yet.
 
 ## Roadmap
 
@@ -497,6 +512,7 @@ references.
 
 | | Scope |
 |---|---|
-| Azure (done) | 7 baselines, plan/state/live collectors with evidence, read-only guard, `assess`, `verify`, `diagram`, plain-language `show`, `new` folders from tested `adb4u` deployments (classic and serverless without a VNet), hub-spoke assessed against the Azure data exfiltration protection blog, MCP server, CI on Windows/macOS/Linux |
-| GCP (done) | 5 baselines from `gcpdb4u` as-is, each with `lpw`, `new-vpc` and `existing-vpc` builds; customer-managed VPC, Private Service Connect, CMEK, Private Google Access, deny-by-default egress, serverless NCC and network policy; VPC Service Controls and `restricted.googleapis.com` assessed against the GCP data exfiltration protection guide; plan/state and live collectors; `workspace-guardrails` for the bare minimum |
-| Next · AWS | `awsdb4u` patterns (back-end PrivateLink, customer-managed VPC), VPC endpoints, Network Firewall, KMS, serverless; SRA as reference |
+| Consistency (done) | The same five patterns and baselines on every cloud (`classic-no-pl`, `classic-backend-pl`, `classic-full-pl`, `classic-dep`, `serverless`), hardening as options, the bare minimum (IP access lists from your ranges, enforced serverless egress, Unity Catalog) everywhere, context-based ingress check, GCP serverless (`serverless-ws`) |
+| Azure (done) | Baselines, plan/state/live collectors with evidence, read-only guard, `assess`, `verify`, `diagram`, plain-language `show`, `new` folders from tested `adb4u` deployments (classic and serverless without a VNet), hub-spoke assessed against the Azure data exfiltration protection blog, MCP server, CI on Windows/macOS/Linux |
+| GCP (done) | Baselines from `gcpdb4u` as-is, classic ones with `new-vpc` and `existing-vpc` (standard creation) and `lpw` (least-privilege) builds; customer-managed VPC, Private Service Connect, CMEK, Private Google Access, deny-by-default egress, serverless NCC and network policy; VPC Service Controls and `restricted.googleapis.com` assessed against the GCP data exfiltration protection guide; plan/state and live collectors; `workspace-guardrails` for the bare minimum |
+| Next · AWS | The same five baselines from `awsdb4u` (customer-managed VPC, back-end and front-end PrivateLink, Network Firewall, KMS, serverless); SRA as reference |

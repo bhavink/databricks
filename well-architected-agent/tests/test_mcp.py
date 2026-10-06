@@ -47,11 +47,12 @@ def test_assess_and_verify_over_mcp(tmp_path):
     async def go(session):
         baselines = _payload(await session.call_tool("list_baselines", {}))
         facts = _payload(await session.call_tool("collect_tfplan", {"tf_json_path": str(plan)}))
-        md = _payload(await session.call_tool("assess", {"facts": [facts], "baseline": "classic-standard"}))
+        md = _payload(await session.call_tool("assess", {"facts": [facts], "baseline": "classic-no-pl"}))
         verdict = _payload(await session.call_tool("verify", {"tf_json_path": str(state),
-                                                              "baseline": "classic-full-private"}))
-        book = _payload(await session.call_tool("new_workspace", {"baseline": "classic-full-private"}))
-        shown = _payload(await session.call_tool("describe_baseline", {"baseline": "classic-standard"}))
+                                                              "baseline": "classic-full-pl"}))
+        book = _payload(await session.call_tool("new_workspace", {
+            "baseline": "classic-full-pl", "inputs": {"allowed_ip_ranges": ["203.0.113.0/24"]}, "options": ["cmk"]}))
+        shown = _payload(await session.call_tool("describe_baseline", {"baseline": "classic-no-pl"}))
         arch = _payload(await session.call_tool("diagram", {"tf_json_path": str(state)}))
         patterns = _payload(await session.call_tool("list_patterns", {}))
         return baselines, md, verdict, book, shown, arch, patterns
@@ -63,8 +64,8 @@ def test_assess_and_verify_over_mcp(tmp_path):
     assert set(book["files"]) == {"inputs.tfvars", "stage-1-deploy.tfvars", "stage-2-lockdown.tfvars",
                                   "README.md", "baseline.json", ".gitignore"}
     assert "adb4u/deployments/full-private/main.tf" in book["bundle"]
-    assert book["write_with"].startswith("wa-agent new --cloud azure --baseline classic-full-private")
-    assert "classic-high-security" in {b["id"] for b in baselines}
+    assert book["write_with"].startswith("wa-agent new --cloud azure --baseline classic-full-pl --option cmk")
+    assert "classic-full-pl" in {b["id"] for b in baselines}
     assert "## Prescription" in md and "AZ-OPS-001" in md
     assert verdict["verdict"] == "PASS" and verdict["input"] == "terraform-state"
     assert sorted(p.name for p in tmp_path.iterdir()) == ["plan.json", "state.json"]  # nothing written

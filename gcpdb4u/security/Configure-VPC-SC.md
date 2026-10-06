@@ -311,7 +311,7 @@ This still requires requests to originate from:
 
 Before configuring VPC-SC, ensure you have:
 
-- [ ] Customer-managed or Databricks-managed VPC network configured
+- [ ] Customer-managed VPC network configured
 - [ ] Workspace subnet(s) created
 - [ ] Private Google Access enabled on subnets
 - [ ] DNS configuration for `restricted.googleapis.com` completed

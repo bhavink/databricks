@@ -34,7 +34,7 @@ body:
     id: command
     attributes:
       label: What you ran
-      placeholder: wa-agent assess --facts ws.facts.json --baseline classic-standard
+      placeholder: wa-agent assess --facts ws.facts.json --baseline classic-no-pl
       render: text
     validations:
       required: true

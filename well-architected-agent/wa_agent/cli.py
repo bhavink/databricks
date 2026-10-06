@@ -6,10 +6,11 @@
   python -m wa_agent patterns --cloud azure
   python -m wa_agent collect tfplan --cloud azure --plan plan.json -o facts.json
   python -m wa_agent collect live --cloud azure --workspace <arm id> [--profile P] [--account-profile A] -o facts.json
-  python -m wa_agent new --baseline classic-high-security --out ./my-ws --set location=eastus2
-  python -m wa_agent verify --tf-json state.json --baseline classic-full-private
+  python -m wa_agent new --baseline classic-full-pl --option cmk --out ./my-ws \
+      --set location=eastus2 --set allowed_ip_ranges='["203.0.113.0/24"]'
+  python -m wa_agent verify --tf-json state.json --baseline classic-full-pl --option cmk
   python -m wa_agent assess --cloud azure --facts facts.json [--facts more.json] \
-      [--set workspace.compute_mode=serverless] [--baseline classic-high-security] \
+      [--set workspace.compute_mode=serverless] [--baseline classic-full-pl] [--option public-access] \
       [--format md|json] [--fail-on-gaps]
 """
 
@@ -86,7 +87,7 @@ def cmd_assess(args) -> int:
         facts = merge(facts, json.loads(Path(path).read_text(encoding="utf-8")))
     for assignment in args.set or []:
         apply_override(facts, assignment)
-    result = assess(cat, facts, args.target, args.baseline)
+    result = assess(cat, facts, args.target, args.baseline, args.option or ())
     render = report.to_json if args.format == "json" else report.to_markdown
     _write(render(result, cat, facts), args.output)
     if args.fail_on_gaps and not result.score["conformant"]:
@@ -102,7 +103,7 @@ def cmd_verify(args) -> int:
     kind = "state" if facts["source"] == "terraform-state" else "plan"  # before extra facts are merged
     for path in args.facts or []:
         facts = merge(facts, json.loads(Path(path).read_text(encoding="utf-8")))
-    result = assess(cat, facts, baseline_id=args.baseline)
+    result = assess(cat, facts, baseline_id=args.baseline, options=args.option or ())
     render = report.to_json if args.format == "json" else report.to_markdown
     _write(render(result, cat, facts), args.output)
     score = result.score
@@ -123,7 +124,7 @@ def cmd_new(args) -> int:
         if not sep or not name:
             raise ValueError(f"--set {assignment!r}: expected name=value")
         answers[name.strip()] = parse_answer(raw)
-    written = generate(cat, args.baseline, args.out, answers, build_id=args.build)
+    written = generate(cat, args.baseline, args.out, answers, build_id=args.build, options=args.option or ())
     for path in written:
         print(path)
     print(f"next: read {args.out}/README.md — you run Terraform; the agent changes nothing", file=sys.stderr)
@@ -203,6 +204,8 @@ def main(argv=None) -> int:
     a.add_argument("--set", action="append", help="override a fact: path=value")
     a.add_argument("--baseline", help="use-case baseline id (see `baselines`); default: detected pattern")
     a.add_argument("--target", help="raw target pattern id (advanced; see `patterns`)")
+    a.add_argument("--option", action="append", metavar="ID",
+                    help="baseline option to hold the workspace to (repeatable; see `show <baseline>`)")
     a.add_argument("--format", choices=["md", "json"], default="md")
     a.add_argument("--fail-on-gaps", action="store_true", help="exit 1 if required controls fail or are unknown")
     a.add_argument("-o", "--output")
@@ -212,6 +215,8 @@ def main(argv=None) -> int:
     v.add_argument("--cloud", default="azure", choices=CLOUDS)
     v.add_argument("--tf-json", required=True, help="terraform show -json output (state after apply, or a plan)")
     v.add_argument("--baseline", required=True, help="baseline the deployment was meant to build")
+    v.add_argument("--option", action="append", metavar="ID",
+                    help="baseline option to hold the workspace to (repeatable; see `show <baseline>`)")
     v.add_argument("--facts", action="append", help="extra facts to merge (e.g. live account-level facts)")
     v.add_argument("--workspace", help="workspace address or name, when the state has several workspaces")
     v.add_argument("--format", choices=["md", "json"], default="md")
@@ -223,6 +228,8 @@ def main(argv=None) -> int:
     n.add_argument("--baseline", required=True)
     n.add_argument("--out", required=True, help="new directory to create (must not exist)")
     n.add_argument("--build", help="which build, when the baseline offers several (see `show <baseline>`)")
+    n.add_argument("--option", action="append", metavar="ID",
+                    help="baseline option to hold the workspace to (repeatable; see `show <baseline>`)")
     n.add_argument("--set", action="append", metavar="NAME=VALUE",
                    help="answer a Terraform variable (repeatable); JSON values for lists/booleans")
     n.set_defaults(func=cmd_new)
@@ -235,7 +242,7 @@ def main(argv=None) -> int:
     d.set_defaults(func=cmd_doctor)
 
     m = sub.add_parser("demo", help="see a full report from a real, sanitized workspace recording (no setup)")
-    m.add_argument("--baseline", default="classic-standard")
+    m.add_argument("--baseline", default="classic-full-pl")
     m.add_argument("-o", "--output")
     m.set_defaults(func=cmd_demo)
 

@@ -272,7 +272,7 @@ def _provenance(facts: dict, ws_id: str, ws: dict) -> dict:
     ws_show = f"az databricks workspace show --ids {ws_id}"
     subnet_show = f"az network vnet subnet show --ids {subnets}"
     acct_ws = f"databricks account workspaces get {ws.get('workspaceId')}"
-    blocked = (facts.get("access") or {}).keys() == {"ip_access_lists_enabled"}
+    blocked = (facts.get("access") or {}).keys() - {"context_ingress_enforced"} == {"ip_access_lists_enabled"}
     table = {
         "workspace.compute_mode": f"{ws_show} -> computeMode",
         "workspace.sku": f"{ws_show} -> sku.name",
@@ -323,6 +323,8 @@ def _provenance(facts: dict, ws_id: str, ws: dict) -> dict:
         "serverless.ncc_private_endpoint_rules":
             "databricks account network-connectivity get-network-connectivity-configuration "
             "-> azure_private_endpoint_rules[] (ESTABLISHED)",
+        "access.context_ingress_enforced":
+            f"databricks account network-policies get-network-policy-rpc {policy} -> ingress (RESTRICTED_ACCESS)",
         "serverless.network_policy_id":
             f"databricks account workspace-network-configuration get-workspace-network-option-rpc {ws.get('workspaceId')}",
         "serverless.egress_restricted": f"databricks account network-policies get-network-policy-rpc {policy} "
@@ -486,7 +488,7 @@ def _databricks(run: Runner, ws: dict, profile: str | None, account_profile: str
     if not profile:
         # No login for this workspace: leave workspace-level facts unknown (the report says how to
         # log in). Never fall back to the CLI's default profile, which may be another workspace.
-        return out | _account(run, ws, account_profile)
+        return _with_account(out, _account(run, ws, account_profile))
     base = ["databricks", "-o", "json", "--profile", profile]
 
     governance: dict = {}
@@ -525,7 +527,14 @@ def _databricks(run: Runner, ws: dict, profile: str | None, account_profile: str
     if governance:
         out["governance"] = governance
 
-    return out | _account(run, ws, account_profile)
+    return _with_account(out, _account(run, ws, account_profile))
+
+
+def _with_account(out: dict, account: dict) -> dict:
+    """Workspace facts plus account facts, merged per namespace (both may set `access`)."""
+    for ns, values in account.items():
+        out[ns] = {**out[ns], **values} if isinstance(values, dict) and isinstance(out.get(ns), dict) else values
+    return out
 
 
 def _account(run: Runner, ws: dict, account_profile: str | None) -> dict:
@@ -553,6 +562,7 @@ def _account(run: Runner, ws: dict, account_profile: str | None) -> dict:
             if isinstance(policy, dict):
                 out["serverless"]["network_policy_id"] = policy_id
                 out["serverless"]["egress_restricted"] = egress_restricted(policy)
+                out["access"] = {"context_ingress_enforced": ingress_restricted(policy)}
     return out
 
 
@@ -561,6 +571,16 @@ def egress_restricted(policy: dict) -> bool:
     access = (policy.get("egress") or {}).get("network_access") or {}
     enforcement = (access.get("policy_enforcement") or {}).get("enforcement_mode", "ENFORCED")
     return access.get("restriction_mode") == "RESTRICTED_ACCESS" and enforcement != "DRY_RUN"
+
+
+def ingress_restricted(policy: dict) -> bool:
+    """Context-based ingress: public or private access is RESTRICTED_ACCESS in `ingress` (dry run doesn't count)."""
+    def one(value):
+        value = value[0] if isinstance(value, list) and value else value
+        return value if isinstance(value, dict) else {}
+    ingress = one(policy.get("ingress"))
+    return any(one(ingress.get(kind)).get("restriction_mode") == "RESTRICTED_ACCESS"
+               for kind in ("public_access", "private_access"))
 
 
 def replay_runner(calls: list[dict]) -> Runner:

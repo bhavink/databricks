@@ -109,6 +109,7 @@ class Assessment:
     target: dict
     findings: list[Finding]
     baseline: dict | None = None
+    options: list = field(default_factory=list)
 
     def tier_of(self, check_id: str) -> str:
         if check_id in self.target["required"]:
@@ -131,16 +132,35 @@ class Assessment:
         }
 
 
-def apply_baseline(pattern: dict, baseline: dict) -> dict:
-    """The baseline's pattern with its extra checks promoted to required."""
-    extra = list(baseline.get("require") or [])
+def select_options(baseline: dict, option_ids=()) -> list[dict]:
+    """The baseline's options named in option_ids, in catalog order."""
+    offered = {o["id"]: o for o in baseline.get("options") or []}
+    unknown = sorted(set(option_ids or ()) - set(offered))
+    if unknown:
+        raise ValueError(f"baseline {baseline['id']!r} has no option {unknown}; choose from {sorted(offered)}")
+    return [o for o in baseline.get("options") or [] if o["id"] in set(option_ids or ())]
+
+
+def apply_baseline(pattern: dict, baseline: dict, option_ids=()) -> dict:
+    """The baseline's pattern with its extra checks, and those of chosen options, promoted to required.
+
+    A chosen option may waive a check (e.g. public access on a full Private Link
+    workspace); options not chosen show their checks as recommended.
+    """
+    chosen = select_options(baseline, option_ids)
+    extra = list(baseline.get("require") or []) + [c for o in chosen for c in o.get("require") or []]
+    waived = {c for o in chosen for c in o.get("waive") or []}
+    offered = [c for o in baseline.get("options") or [] if o not in chosen for c in o.get("require") or []]
+    required = [c for c in dict.fromkeys(pattern["required"] + extra) if c not in waived]
     target = dict(pattern)
-    target["required"] = pattern["required"] + [c for c in extra if c not in pattern["required"]]
-    target["recommended"] = [c for c in pattern["recommended"] if c not in extra]
+    target["required"] = required
+    target["recommended"] = [c for c in dict.fromkeys(pattern["recommended"] + offered)
+                             if c not in required and c not in waived]
     return target
 
 
-def assess(catalog: dict, facts: dict, target_id: str | None = None, baseline_id: str | None = None) -> Assessment:
+def assess(catalog: dict, facts: dict, target_id: str | None = None, baseline_id: str | None = None,
+           options=()) -> Assessment:
     patterns = catalog["patterns"]
     by_id = {p["id"]: p for p in patterns["patterns"]}
     detected = detect_pattern(patterns, facts)
@@ -152,7 +172,10 @@ def assess(catalog: dict, facts: dict, target_id: str | None = None, baseline_id
         if baseline_id not in baselines:
             raise ValueError(f"unknown baseline {baseline_id!r}; choose from {sorted(baselines)}")
         baseline = baselines[baseline_id]
-        return Assessment(detected, apply_baseline(by_id[baseline["pattern"]], baseline), findings, baseline)
+        return Assessment(detected, apply_baseline(by_id[baseline["pattern"]], baseline, options), findings, baseline,
+                          select_options(baseline, options))
+    if options:
+        raise ValueError("options belong to a baseline; pass --baseline with --option")
     if target_id:
         if target_id not in by_id:
             raise ValueError(f"unknown target pattern {target_id!r}; choose from {sorted(by_id)}")

@@ -42,6 +42,20 @@ variable "enable_ip_access_list" {
   default     = true
 }
 
+variable "disable_data_leak_features" {
+  type        = bool
+  description = "Turn off notebook export, results download and the notebook table clipboard"
+  default     = false
+}
+
+# ----------------------------------------------------------------- governance
+
+variable "metastore_id" {
+  type        = string
+  description = "Unity Catalog metastore to assign (same region). Empty when the account assigns one automatically."
+  default     = ""
+}
+
 # ----------------------------------------------------------------- serverless egress
 
 variable "enable_ncc" {

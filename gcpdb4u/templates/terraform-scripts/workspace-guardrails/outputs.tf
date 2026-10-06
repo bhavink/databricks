@@ -13,6 +13,11 @@ output "network_policy_id" {
   value       = local.bound_network_policy_id
 }
 
+output "metastore_id" {
+  description = "Metastore assigned by this root (empty when assigned automatically)"
+  value       = var.metastore_id
+}
+
 output "ip_access_lists" {
   description = "IP access list labels applied to the workspace"
   value       = sort(keys(local.ip_access_lists))

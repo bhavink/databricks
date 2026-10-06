@@ -107,6 +107,7 @@ def validate_baselines(baselines: list[dict], patterns: dict, checks: list[dict]
         for ref in b.get("require") or []:
             if ref not in check_ids:
                 raise CatalogError(f"baseline {b['id']}: references unknown check {ref}")
+        _validate_options(b, check_ids, set(patterns.get("minimum_required") or []))
         if b.get("build") and b.get("builds"):
             raise CatalogError(f"baseline {b['id']}: use either build or builds, not both")
         if b.get("build"):
@@ -120,6 +121,36 @@ def validate_baselines(baselines: list[dict], patterns: dict, checks: list[dict]
             _validate_build(f"{b['id']}:{x['id']}", x, check_ids)
 
 
+def _validate_options(b: dict, check_ids: set, minimum: set) -> None:
+    options = b.get("options") or []
+    ids = [o.get("id") for o in options]
+    if len(ids) != len(set(ids)) or None in ids:
+        raise CatalogError(f"baseline {b['id']}: every option needs a unique id")
+    builds = b.get("builds") or ([{"id": "default", **b["build"]}] if b.get("build") else [])
+    by_build = {x["id"]: {st["name"] for st in x["stages"]} for x in builds}
+    for o in options:
+        where = f"baseline {b['id']} option {o['id']}"
+        if not o.get("name") or not o.get("summary"):
+            raise CatalogError(f"{where}: needs a name and a summary")
+        for ref in (o.get("require") or []) + (o.get("waive") or []):
+            if ref not in check_ids:
+                raise CatalogError(f"{where}: references unknown check {ref}")
+        if set(o.get("waive") or []) & minimum:
+            raise CatalogError(f"{where}: the bare minimum can't be waived")
+        for entry in o.get("set") or []:
+            targets = entry.get("builds") or list(by_build)
+            for bid in targets:
+                if bid not in by_build:
+                    raise CatalogError(f"{where}: unknown build {bid}")
+                if entry.get("stage") not in by_build[bid]:
+                    raise CatalogError(f"{where}: build {bid} has no stage {entry.get('stage')!r}")
+    for x in builds:
+        for u in x.get("unsupported") or []:
+            if not set(u.get("options") or []) <= set(ids) or not u.get("options") or not u.get("reason"):
+                raise CatalogError(f"baseline {b['id']} build {x['id']}: unsupported entries need known options "
+                                   "and a reason")
+
+
 def _validate_build(bid: str, build: dict, check_ids: set) -> None:
     where = f"baseline {bid} build"
     if "source" in build or not (build.get("deployment") or all(st.get("deployment") for st in build.get("stages") or [])):
@@ -127,6 +158,8 @@ def _validate_build(bid: str, build: dict, check_ids: set) -> None:
     if not build.get("stages"):
         raise CatalogError(f"{where}: needs at least one stage")
     for i, stage in enumerate(build["stages"], 1):
+        if stage.get("ip_access_list") not in (None, "tfvar", "file"):
+            raise CatalogError(f"{where} stage {i}: ip_access_list is tfvar or file")
         for var, src in (stage.get("outputs") or {}).items():
             if not isinstance(src, dict) or not 1 <= src.get("stage", 0) < i or not src.get("output"):
                 raise CatalogError(f"{where} stage {i}: output {var} must come from an earlier stage")

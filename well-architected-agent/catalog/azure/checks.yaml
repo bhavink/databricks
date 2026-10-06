@@ -561,13 +561,65 @@ checks:
       - https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
     remediation:
       fix_type: in_place
-      summary: Enable IP access lists and add an ALLOW list of corporate ranges.
+      summary: >-
+        Enable IP access lists with an ALLOW list of your known IP ranges
+        (corporate egress, VPN, automation, and the IP you run Terraform
+        from); only you can supply them.
       module: adb4u/modules/workspace
       terraform: |
         module "workspace" {
           enable_ip_access_lists = true
           allowed_ip_ranges      = ["203.0.113.0/24"]
         }
+
+  - id: AZ-ING-002
+    control: NET.CONTEXT_BASED_INGRESS
+    title: Context-based ingress policy is enforced
+    pillar: security
+    severity: medium
+    rule: {fact: access.context_ingress_enforced, op: equals, value: true}
+    rationale: >-
+      Complements IP access lists (a request must pass both): rules combine
+      who is calling (users, service principals, selected identities), what
+      they reach (UI, APIs by scope, Apps) and from where (IP ranges,
+      registered private endpoints). Useful for SaaS clients without stable
+      IPs and to pin privileged service principals to trusted networks.
+      Configured on the same account network policy as serverless egress.
+    sources:
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/front-end/context-based-ingress
+      - https://learn.microsoft.com/en-us/azure/databricks/security/network/front-end/manage-ingress-workspace
+    remediation:
+      fix_type: in_place
+      maturity: validated
+      summary: >-
+        Optional. Add an `ingress` block (public and/or private access in
+        RESTRICTED_ACCESS, with allow and deny rules) to the workspace's
+        network policy, starting with `ingress_dry_run` and the
+        system.access.inbound_network table to see what would be denied;
+        then move the rules to `ingress`.
+      module: https://learn.microsoft.com/en-us/azure/databricks/security/network/front-end/manage-ingress-workspace
+      terraform: |
+        resource "databricks_account_network_policy" "this" {
+          network_policy_id = "<workspace>-policy"
+          account_id        = var.databricks_account_id
+          egress = { ... }            # the serverless egress policy you already have
+          ingress_dry_run = {          # observe first; rename to `ingress` to enforce
+            public_access = {
+              restriction_mode = "RESTRICTED_ACCESS"
+              allow_rules = [
+                {
+                  label  = "corporate-users"
+                  origin = { included_ip_ranges = { ip_ranges = ["203.0.113.0/24"] } }
+                  destination = { all_destinations = true }
+                },
+              ]
+            }
+          }
+        }
+      caveats:
+        - Needs the Premium (Azure) or Enterprise (AWS, GCP) tier and a Databricks provider version that supports `ingress` on databricks_account_network_policy.
+        - A policy supports one enforcement mode at a time; deny rules are evaluated before allow rules.
+        - It doesn't widen IP access lists; Databricks recommends migrating them into the ingress policy over time.
 
   # ------------------------------------------------------------- encryption
   - id: AZ-ENC-001

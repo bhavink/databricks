@@ -13,6 +13,9 @@ from wa_agent.engine import FAIL, NOT_APPLICABLE, PASS, UNKNOWN, assess, evaluat
 from wa_agent.facts import merge
 
 
+IPS = {"allowed_ip_ranges": ["203.0.113.0/24"]}
+
+
 def statuses(result):
     return {f.check["id"]: f.status for f in result.findings}
 
@@ -36,7 +39,7 @@ def test_non_pl_plan_detects_pattern_and_surfaces_known_gaps(azure_catalog):
     result = assess(azure_catalog, facts)
     s = statuses(result)
 
-    assert result.detected["id"] == "az-classic-non-pl"
+    assert result.detected["id"] == "classic-no-pl"
     for passing in ("AZ-NET-001", "AZ-NET-002", "AZ-NET-003", "AZ-NET-004", "AZ-NET-005",
                     "AZ-NET-007", "AZ-NET-008", "AZ-SRV-001", "AZ-ING-001", "AZ-UC-001", "AZ-UC-002"):
         assert s[passing] == PASS, passing
@@ -55,7 +58,7 @@ def test_full_private_plan(azure_catalog):
     result = assess(azure_catalog, facts)
     s = statuses(result)
 
-    assert result.detected["id"] == "az-classic-full-private"
+    assert result.detected["id"] == "classic-full-pl"
     for check in result.target["required"]:
         assert s[check] in (PASS, NOT_APPLICABLE), check
     assert result.score["conformant"] is True
@@ -65,18 +68,18 @@ def test_full_private_plan(azure_catalog):
 
 def test_declared_target_reports_upgrade_gaps(azure_catalog):
     facts = azure_tfplan.collect(non_pl_plan())
-    result = assess(azure_catalog, facts, "az-classic-dep-hub-spoke")
+    result = assess(azure_catalog, facts, "classic-dep")
     s = statuses(result)
     assert result.tier_of("AZ-NET-006") == "required"
     assert s["AZ-NET-006"] == FAIL
     assert s["AZ-PL-001"] == FAIL
 
 
-def test_managed_vnet_is_antipattern(azure_catalog):
+def test_classic_without_own_vnet_fails_net_001(azure_catalog):
     plan = {"resource_changes": [rc("azurerm_databricks_workspace.this", "azurerm_databricks_workspace",
                                     {"name": "legacy", "custom_parameters": [{"no_public_ip": False}]})]}
     result = assess(azure_catalog, azure_tfplan.collect(plan))
-    assert result.detected["id"] == "az-classic-managed-vnet"
+    assert result.detected["id"] == "classic-no-pl"
     assert statuses(result)["AZ-NET-001"] == FAIL
 
 
@@ -93,7 +96,7 @@ def test_serverless_override(azure_catalog):
     facts = azure_tfplan.collect(non_pl_plan())
     facts["workspace"]["compute_mode"] = "serverless"
     result = assess(azure_catalog, facts)
-    assert result.detected["id"] == "az-serverless"
+    assert result.detected["id"] == "serverless"
     assert statuses(result)["AZ-NET-002"] == NOT_APPLICABLE
 
 
@@ -145,7 +148,7 @@ def test_cli_end_to_end(tmp_path, capsys):
     assert main(["collect", "tfplan", "--plan", str(plan), "-o", str(facts)]) == 0
     assert main(["assess", "--facts", str(facts), "--format", "json", "--fail-on-gaps"]) == 0
     assert json.loads(capsys.readouterr().out)["score"]["conformant"] is True
-    assert main(["assess", "--facts", str(facts), "--target", "az-classic-dep-hub-spoke", "--fail-on-gaps",
+    assert main(["assess", "--facts", str(facts), "--target", "classic-dep", "--fail-on-gaps",
                  "-o", str(tmp_path / "r.md")]) == 1
 
 
@@ -178,7 +181,7 @@ def test_live_collector_with_fake_cli(azure_catalog):
     facts = azure_live.collect(ws_id, run=fake, databricks_profile="ws")
     result = assess(azure_catalog, facts)
     s = statuses(result)
-    assert result.detected["id"] == "az-classic-non-pl"
+    assert result.detected["id"] == "classic-no-pl"
     assert s["AZ-NET-005"] == PASS
     assert s["AZ-OPS-001"] == FAIL
     assert s["AZ-UC-002"] == PASS
@@ -196,9 +199,11 @@ def replay(name):
 def test_live_replay_backend_pl_without_ip_access_lists(azure_catalog):
     # Recorded: back-end + browser-auth private endpoints, public front-end,
     # no IP access lists, default outbound access, Microsoft.Storage.Global SE.
+    # Front-end and back-end Private Link with public access on: full Private
+    # Link with the public-access option.
     result = assess(azure_catalog, replay("live-backend-pl-ws1.calls.json"))
     s = statuses(result)
-    assert result.detected["id"] == "az-classic-backend-pl"
+    assert result.detected["id"] == "classic-full-pl"
     assert s["AZ-ING-001"] == FAIL
     assert s["AZ-NET-005"] == FAIL
     assert s["AZ-PL-003"] == FAIL  # AllRules with back-end Private Link
@@ -214,10 +219,10 @@ def test_live_replay_ip_acl_blocked_scanner(azure_catalog):
     # Recorded from an IP the workspace's access list rejects: enforcement is
     # proven, but the allow-list count and metastore stay unknown, not failed.
     facts = replay("live-backend-pl-ws2.calls.json")
-    assert facts["access"] == {"ip_access_lists_enabled": True}
+    assert facts["access"] == {"ip_access_lists_enabled": True, "context_ingress_enforced": False}
     result = assess(azure_catalog, facts)
     s = statuses(result)
-    assert result.detected["id"] == "az-classic-backend-pl"
+    assert result.detected["id"] == "classic-full-pl"
     assert s["AZ-PL-003"] == PASS  # NoAzureDatabricksRules
     assert s["AZ-NET-007"] == FAIL
     assert s["AZ-UC-001"] == UNKNOWN
@@ -233,13 +238,19 @@ def test_live_replay_ip_acl_blocked_scanner(azure_catalog):
 
 def test_baseline_promotes_extra_checks_to_required(azure_catalog):
     facts = azure_tfplan.collect(full_private_plan())
-    plain = assess(azure_catalog, facts, baseline_id="classic-full-private")
-    strict = assess(azure_catalog, facts, baseline_id="classic-high-security")
+    plain = assess(azure_catalog, facts, baseline_id="classic-full-pl")
+    strict = assess(azure_catalog, facts, baseline_id="classic-full-pl", options=["cmk"])
     assert plain.score["conformant"] is True
     assert plain.tier_of("AZ-ENC-001") == "recommended"
     assert strict.tier_of("AZ-ENC-001") == "required"
     assert strict.score["conformant"] is False  # fixture has no CMK
-    assert strict.baseline["id"] == "classic-high-security"
+    assert strict.baseline["id"] == "classic-full-pl"
+    assert [o["id"] for o in strict.options] == ["cmk"]
+    public = assess(azure_catalog, facts, baseline_id="classic-full-pl", options=["public-access"])
+    assert plain.tier_of("AZ-PL-004") == "required" and public.tier_of("AZ-PL-004") == "advisory"
+    assert public.tier_of("AZ-ING-001") == "required"  # the bare minimum is never waived
+    with pytest.raises(ValueError, match="no option"):
+        assess(azure_catalog, facts, baseline_id="classic-full-pl", options=["nope"])
 
 
 def test_baseline_errors(azure_catalog):
@@ -247,7 +258,7 @@ def test_baseline_errors(azure_catalog):
     with pytest.raises(ValueError, match="unknown baseline"):
         assess(azure_catalog, facts, baseline_id="nope")
     with pytest.raises(ValueError, match="not both"):
-        assess(azure_catalog, facts, target_id="az-classic-non-pl", baseline_id="classic-standard")
+        assess(azure_catalog, facts, target_id="classic-no-pl", baseline_id="classic-no-pl")
 
 
 def test_baseline_report_flags_compute_mode_mismatch(azure_catalog):
@@ -262,7 +273,8 @@ def test_baseline_report_flags_compute_mode_mismatch(azure_catalog):
 def test_every_baseline_maps_to_existing_repo_path(azure_catalog):
     repo = __import__("pathlib").Path(__file__).resolve().parents[2]
     for b in azure_catalog["baselines"]:
-        assert b["deployment"].startswith("https://www.databricks.com/blog/") or (repo / b["deployment"]).exists(), b["deployment"]
+        assert b["deployment"].startswith(("https://www.databricks.com/blog/", "https://learn.microsoft.com/")) or (
+            repo / b["deployment"]).exists(), b["deployment"]
 
 
 @pytest.mark.parametrize("args", [
@@ -308,9 +320,10 @@ def state_from_plan(plan):
 def test_verify_state_against_baseline(tmp_path, capsys):
     state = tmp_path / "state.json"
     state.write_text(json.dumps(state_from_plan(full_private_plan())), encoding="utf-8")
-    assert main(["verify", "--tf-json", str(state), "--baseline", "classic-full-private", "-o", str(tmp_path / "a.md")]) == 0
+    assert main(["verify", "--tf-json", str(state), "--baseline", "classic-full-pl", "-o", str(tmp_path / "a.md")]) == 0
     assert "verify PASS: Terraform state" in capsys.readouterr().err
-    assert main(["verify", "--tf-json", str(state), "--baseline", "classic-high-security", "-o", str(tmp_path / "b.md")]) == 1
+    assert main(["verify", "--tf-json", str(state), "--baseline", "classic-full-pl", "--option", "cmk",
+                 "-o", str(tmp_path / "b.md")]) == 1
     assert "verify FAIL" in capsys.readouterr().err
 
 
@@ -327,7 +340,7 @@ def test_rule1_outputs_never_overwrite(tmp_path):
 
 def test_caveats_render_in_prescription_and_gap(azure_catalog):
     facts = replay("live-backend-pl-ws1.calls.json")
-    result = assess(azure_catalog, facts, baseline_id="classic-high-security")
+    result = assess(azure_catalog, facts, baseline_id="classic-full-pl")
     md = report.to_markdown(result, azure_catalog, facts)
     assert "**AZ-STO-002**" in md and "(has caveats)" in md
     assert "- Irreversible: enabling it deletes the access connector in the managed" in md
@@ -335,7 +348,7 @@ def test_caveats_render_in_prescription_and_gap(azure_catalog):
 
 def test_storage_firewall_not_required_for_standard_baseline(azure_catalog):
     facts = azure_tfplan.collect(non_pl_plan())
-    result = assess(azure_catalog, facts, baseline_id="classic-standard")
+    result = assess(azure_catalog, facts, baseline_id="classic-no-pl")
     assert result.tier_of("AZ-STO-002") == "advisory"  # non-pl has no private endpoint subnet
 
 
@@ -343,7 +356,8 @@ def test_every_build_tfvar_is_a_declared_deployment_variable(azure_catalog):
     from wa_agent.new import check_build
 
     built = [b for b in azure_catalog["baselines"] if b.get("build")]
-    assert {b["id"] for b in built} == {b["id"] for b in azure_catalog["baselines"]} - {"classic-exfiltration-protection"}
+    # back-end-only Private Link and hub-spoke are assess-only
+    assert {b["id"] for b in built} == {b["id"] for b in azure_catalog["baselines"]} - {"classic-dep", "classic-backend-pl"}
     for b in built:
         check_build(b)
 
@@ -352,7 +366,7 @@ def test_new_bundles_tested_terraform_with_inputs_and_stages(azure_catalog, tmp_
     from wa_agent.new import generate
 
     out = tmp_path / "ws"
-    generate(azure_catalog, "classic-high-security", str(out), {"location": "eastus2", "tag_owner": "me@example.com"})
+    generate(azure_catalog, "classic-full-pl", str(out), {"location": "eastus2", "tag_owner": "me@example.com", **IPS})
     assert sorted(p.name for p in out.iterdir()) == [".gitignore", "README.md", "baseline.json", "inputs.tfvars",
                                                     "stage-1-deploy.tfvars", "stage-2-lockdown.tfvars", "terraform"]
     lockdown = (out / "stage-2-lockdown.tfvars").read_text(encoding="utf-8")
@@ -370,9 +384,9 @@ def test_new_bundles_tested_terraform_with_inputs_and_stages(azure_catalog, tmp_
     assert readme.count("terraform init") == 1  # one root, initialized once
     assert "$env:BOOK" in readme and "$env:TF_VAR_<name>" in readme  # PowerShell equivalent
     assert "az login" in readme and "--cloud azure" in readme
-    assert "wa-agent verify --cloud azure --tf-json state.json --baseline classic-high-security" in readme
+    assert "wa-agent verify --cloud azure --tf-json state.json --baseline classic-full-pl" in readme
     meta = json.loads((out / "baseline.json").read_text(encoding="utf-8"))
-    assert meta["placeholders"] == ["allowed_ip_ranges", "diagnostic_log_analytics_workspace_id",
+    assert meta["placeholders"] == ["diagnostic_log_analytics_workspace_id",  # IP ranges are answered, not REPLACE_ME
                                     "resource_group_name", "tag_keepuntil", "workspace_prefix"]
     assert all(len(h) == 64 for h in meta["files"].values())
     assert not [p for p in out.rglob("*") if p.name.endswith((".tfstate", ".tfvars")) and "terraform" in p.parts]
@@ -405,22 +419,48 @@ def test_new_answers_are_validated(azure_catalog, tmp_path):
     assert parse_answer('["10.0.0.0/24"]') == ["10.0.0.0/24"] and parse_answer("true") is True
     assert parse_answer("eastus2") == "eastus2"
     with pytest.raises(ValueError, match="not a variable"):
-        render(azure_catalog, "serverless", {"no_such_variable": 1})
+        render(azure_catalog, "serverless", {"no_such_variable": 1, **IPS})
     with pytest.raises(ValueError, match="TF_VAR_databricks_account_id"):
-        render(azure_catalog, "serverless", {"databricks_account_id": "x"})
+        render(azure_catalog, "serverless", {"databricks_account_id": "x", **IPS})
+
+
+def test_new_needs_the_users_known_ip_ranges(azure_catalog):
+    from wa_agent.new import render
+
+    with pytest.raises(ValueError, match="known IP ranges"):
+        render(azure_catalog, "classic-no-pl")
+    with pytest.raises(ValueError, match="whole internet"):
+        render(azure_catalog, "classic-no-pl", {"allowed_ip_ranges": ["0.0.0.0/0"]})
+    with pytest.raises(ValueError, match="not a CIDR"):
+        render(azure_catalog, "classic-no-pl", {"allowed_ip_ranges": ["office"]})
+    stage = render(azure_catalog, "classic-no-pl", IPS)["stage-1-deploy.tfvars"]
+    assert 'allowed_ip_ranges' in stage and '"203.0.113.0/24"' in stage and "REPLACE_ME_corporate" not in stage
+
+
+def test_options_switch_on_tested_settings_or_say_how(azure_catalog):
+    from wa_agent.new import render
+
+    files = render(azure_catalog, "classic-full-pl", IPS, options=["public-access", "cmk", "data-leak"])
+    assert "enable_cmk_managed_services" in files["stage-1-deploy.tfvars"]
+    lockdown = files["stage-2-lockdown.tfvars"]
+    assert "enable_public_network_access             = true" in lockdown and "203.0.113.0/24" in lockdown
+    readme = files["README.md"]
+    assert "--option public-access --option cmk --option data-leak" in readme
+    assert "do them yourself" in readme and "`data-leak`" in readme  # full-private has no setting for it
+    assert json.loads(files["baseline.json"])["options"] == ["public-access", "cmk", "data-leak"]
 
 
 def test_new_refuses_without_tested_deployment_and_never_overwrites(azure_catalog, tmp_path):
     from wa_agent.new import generate
 
     cat = copy.deepcopy(azure_catalog)
-    cat["baselines"].append({"id": "untested", "name": "x", "use_case": "x", "pattern": "az-serverless",
+    cat["baselines"].append({"id": "untested", "name": "x", "use_case": "x", "pattern": "serverless",
                              "deployment": "adb4u/README.md"})
     with pytest.raises(ValueError, match="no tested deployment"):
         generate(cat, "untested", str(tmp_path / "a"))
     (tmp_path / "b").mkdir()
     with pytest.raises(ValueError, match="never overwrites"):
-        generate(azure_catalog, "classic-standard", str(tmp_path / "b"))
+        generate(azure_catalog, "classic-no-pl", str(tmp_path / "b"), IPS)
     assert not (tmp_path / "a").exists()
 
 
@@ -433,10 +473,10 @@ def test_serverless_workspace_from_official_module_is_detected_and_verifies(azur
     assert facts["_evidence"]["workspace.compute_mode"] == ["terraform:azapi_resource.workspace"]
     result = assess(azure_catalog, facts, baseline_id="serverless")
     assert result.score["conformant"], statuses(result)
-    high = statuses(assess(azure_catalog, facts, baseline_id="serverless-high-security"))
+    high = statuses(assess(azure_catalog, facts, baseline_id="serverless"))
     assert high["AZ-ENC-001"] == FAIL and high["AZ-WS-001"] == FAIL and high["AZ-SRV-003"] == FAIL
     secured = azure_tfplan.collect(serverless_plan(cmk=True, leak_features_off=True, storage_pe=True))
-    assert assess(azure_catalog, secured, baseline_id="serverless-high-security").score["conformant"]
+    assert assess(azure_catalog, secured, baseline_id="serverless").score["conformant"]
 
 
 def test_plan_with_several_workspaces_needs_a_selection(azure_catalog):
@@ -570,21 +610,25 @@ def test_doctor_redacts_by_default(monkeypatch, capsys):
 def test_baselines_read_as_titled_controls_by_area(azure_catalog):
     from wa_agent.describe import controls, to_markdown
 
-    rows = controls(azure_catalog, "classic-high-security")
+    rows = controls(azure_catalog, "classic-full-pl")
     assert [r["phase"] for r in rows] == sorted(r["phase"] for r in rows)
     promoted = {r["check"]: r["level"] for r in rows}
-    assert promoted["AZ-ENC-001"] == "required"  # baseline `require` promotes recommended controls
-    md = to_markdown(azure_catalog, "classic-standard")
+    assert promoted["AZ-ENC-001"] == "recommended"  # offered by the cmk option, not chosen
+    assert promoted["AZ-UC-001"] == "required"  # bare minimum
+    md = to_markdown(azure_catalog, "classic-no-pl")
+    assert "## Options" in md and "| `cmk` |" in md and "allowed_ip_ranges" in md
     assert "## Network" in md and "| Required | Workspace is VNet-injected (customer-managed VNet) | `AZ-NET-001` |" in md
-    assert to_markdown(azure_catalog, "az-classic-non-pl").startswith("# Classic — VNet-injected, Non-Private Link")
+    assert to_markdown(azure_catalog, "classic-no-pl").startswith("# Classic — your VNet, no Private Link")
     with pytest.raises(ValueError, match="unknown baseline or pattern"):
         to_markdown(azure_catalog, "nope")
 
 
 def test_report_lists_controls_by_title_not_bare_ids(azure_catalog):
     facts = azure_tfplan.collect(non_pl_plan())
-    md = report.to_markdown(assess(azure_catalog, facts, baseline_id="classic-high-security"), azure_catalog, facts)
-    assert "- Customer-managed key for managed services (`AZ-ENC-001`)" in md
+    md = report.to_markdown(assess(azure_catalog, facts, baseline_id="classic-full-pl", options=["cmk"]),
+                            azure_catalog, facts)
+    assert "requires Customer-managed key for managed services (`AZ-ENC-001`)" in md
+    assert "Options not chosen" in md and "`public-access`" in md
 
 
 def test_diagram_is_drawn_from_the_plan_and_deterministic():
@@ -608,7 +652,7 @@ def test_diagram_is_drawn_from_the_plan_and_deterministic():
 def test_cli_show_and_diagram(tmp_path, capsys):
     plan = tmp_path / "plan.json"
     plan.write_text(json.dumps(non_pl_plan()), encoding="utf-8")
-    assert main(["show", "classic-standard"]) == 0
+    assert main(["show", "classic-no-pl"]) == 0
     assert "## Observability" in capsys.readouterr().out
     out = tmp_path / "architecture.md"
     assert main(["diagram", "--tf-json", str(plan), "-o", str(out)]) == 0
@@ -618,7 +662,7 @@ def test_cli_show_and_diagram(tmp_path, capsys):
 def test_run_book_draws_each_stage_and_the_result(azure_catalog):
     from wa_agent.new import render
 
-    readme = render(azure_catalog, "classic-full-private")["README.md"]
+    readme = render(azure_catalog, "classic-full-pl", IPS)["README.md"]
     assert "wa-agent diagram --tf-json stage1.plan.json -o stage1.architecture.md" in readme
     assert "wa-agent diagram --tf-json state.json -o architecture.md" in readme
 
@@ -667,7 +711,7 @@ def test_hub_spoke_is_assessed_not_generated(azure_catalog, tmp_path):
     from wa_agent.new import generate
 
     with pytest.raises(ValueError, match="no tested deployment"):
-        generate(azure_catalog, "classic-exfiltration-protection", str(tmp_path / "x"))
+        generate(azure_catalog, "classic-dep", str(tmp_path / "x"))
 
 
 def _hub_spoke_fake(firewall_ip="10.0.0.4", app_rules=True, firewall_logs=True):
@@ -717,13 +761,13 @@ def test_live_hub_spoke_follows_peering_to_the_firewall_and_its_rules(azure_cata
     facts = azure_live.collect(ws_id, run=fake, databricks_profile="ws")
     net = facts["network"]
     assert net["hub_peering"] and net["firewall_present"] and net["firewall_application_rules"] and net["firewall_logs"]
-    s = statuses(assess(azure_catalog, facts, baseline_id="classic-exfiltration-protection"))
+    s = statuses(assess(azure_catalog, facts, baseline_id="classic-dep"))
     assert s["AZ-NET-006"] == s["AZ-NET-010"] == s["AZ-NET-011"] == s["AZ-OPS-002"] == PASS
     assert "ruleCollectionGroups" in facts["_evidence"]["network.firewall_application_rules"][0]
 
     _, fake = _hub_spoke_fake(app_rules=False, firewall_logs=False)
     s = statuses(assess(azure_catalog, azure_live.collect(ws_id, run=fake, databricks_profile="ws"),
-                        baseline_id="classic-exfiltration-protection"))
+                        baseline_id="classic-dep"))
     assert s["AZ-NET-011"] == FAIL and s["AZ-OPS-002"] == FAIL
 
 
@@ -731,7 +775,7 @@ def test_live_hub_spoke_unknown_when_next_hop_is_not_a_readable_azure_firewall(a
     ws_id, fake = _hub_spoke_fake(firewall_ip="10.9.9.9")  # an NVA, or a firewall we can't read
     facts = azure_live.collect(ws_id, run=fake, databricks_profile="ws")
     assert "firewall_application_rules" not in facts["network"]
-    s = statuses(assess(azure_catalog, facts, baseline_id="classic-exfiltration-protection"))
+    s = statuses(assess(azure_catalog, facts, baseline_id="classic-dep"))
     assert s["AZ-NET-011"] == UNKNOWN and s["AZ-OPS-002"] == UNKNOWN and s["AZ-NET-010"] == PASS
 
 

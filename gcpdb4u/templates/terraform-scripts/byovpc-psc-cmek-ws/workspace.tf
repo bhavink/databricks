@@ -165,26 +165,11 @@ resource "databricks_workspace_conf" "this" {
 }
 
 resource "databricks_ip_access_list" "this" {
-  depends_on = [databricks_workspace_conf.this]
-  provider   = databricks.workspace
-  label      = "allow corp vpn1"
-  list_type  = "ALLOW"
-  ip_addresses = [
-    "69.174.135.244",
-    "165.225.0.0/17",
-    "185.46.212.0/22",
-    "104.129.192.0/20",
-    "165.225.192.0/18",
-    "147.161.128.0/17",
-    "136.226.0.0/16",
-    "137.83.128.0/18",
-    "167.103.0.0/16",
-    "34.236.11.250/32",
-    "44.228.166.17/32",
-    "18.158.110.150/32",
-    "18.193.11.166/32",
-    "44.230.222.179/32"
-  ]
+  depends_on   = [databricks_workspace_conf.this]
+  provider     = databricks.workspace
+  label        = "allow corp vpn1"
+  list_type    = "ALLOW"
+  ip_addresses = var.allowed_ip_ranges
 
 }
 output "service_account" {
@@ -201,4 +186,28 @@ output "ingress_firewall_enabled" {
 
 output "ingress_firewall_ip_allowed" {
   value = databricks_ip_access_list.this.ip_addresses
+}
+
+# IP access list entries (ALLOW). Set your own known ranges (corporate egress,
+# VPN, automation) and include the IP you run Terraform from. The default is
+# the original example list, kept so existing deployments do not change.
+variable "allowed_ip_ranges" {
+  type        = list(string)
+  description = "IP ranges allowed to reach the workspace front-end (ALLOW list)"
+  default = [
+    "69.174.135.244",
+    "165.225.0.0/17",
+    "185.46.212.0/22",
+    "104.129.192.0/20",
+    "165.225.192.0/18",
+    "147.161.128.0/17",
+    "136.226.0.0/16",
+    "137.83.128.0/18",
+    "167.103.0.0/16",
+    "34.236.11.250/32",
+    "44.228.166.17/32",
+    "18.158.110.150/32",
+    "18.193.11.166/32",
+    "44.230.222.179/32"
+  ]
 }

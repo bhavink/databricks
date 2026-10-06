@@ -14,31 +14,36 @@
 catalog_version: "2026.10.0"
 cloud: azure
 
+# Same five patterns on every cloud: classic (your own VNet/VPC) with no
+# Private Link, back-end Private Link only, full Private Link (front-end and
+# back-end), data exfiltration protection, and serverless.
+#
 # Bare minimum for every pattern and baseline, whatever else is used: an IP
-# access list on any public front-end (inbound users and apps) and an
-# enforced serverless egress policy. The loader adds these to every
+# access list on any public front-end (inbound users and apps), an enforced
+# serverless egress policy and Unity Catalog. The loader adds these to every
 # pattern's `required` list.
 minimum_required:
   - AZ-ING-001
   - AZ-SRV-002
+  - AZ-UC-001
 
 detection_order:
-  - az-serverless
-  - az-classic-managed-vnet
-  - az-classic-dep-hub-spoke
-  - az-classic-full-private
-  - az-classic-backend-pl
-  - az-classic-non-pl
+  - serverless
+  - classic-dep
+  - classic-full-pl
+  - classic-backend-pl
+  - classic-no-pl
 
 patterns:
-  - id: az-serverless
+  - id: serverless
     name: Serverless workspace
     compute_mode: serverless
     tier: 2
     summary: >-
-      No customer VNet. All compute is Databricks-managed serverless; network
-      posture is governed by Private Link (front-end), IP access lists, NCC
-      private endpoint rules and serverless egress (network) policies.
+      No customer VNet: compute runs in the Databricks serverless compute plane.
+      A VNet of yours is needed only for a private front-end (Private Link).
+      Governed by IP access lists, NCC private endpoint rules and an enforced
+      serverless egress policy.
     signature: {fact: workspace.compute_mode, op: equals, value: serverless}
     references:
       - https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/
@@ -51,29 +56,17 @@ patterns:
       - AZ-WS-001
       - AZ-SRV-003
       - AZ-ENC-001
+      - AZ-ING-002
 
-  - id: az-classic-managed-vnet
-    name: Classic — Databricks-managed VNet (anti-pattern)
-    compute_mode: classic
-    tier: 0
-    summary: >-
-      Classic compute in a Databricks-managed VNet. No control over egress,
-      routing, NSGs or private endpoints. Migrate to a VNet-injected pattern.
-    signature: {fact: workspace.vnet_injected, op: equals, value: false}
-    references:
-      - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/vnet-inject
-    required:
-      - AZ-NET-001
-    recommended: []
-
-  - id: az-classic-dep-hub-spoke
-    name: Classic — Hub-spoke with egress firewall (Data Exfiltration Protection)
+  - id: classic-dep
+    name: Classic — data exfiltration protection (hub-spoke egress firewall)
     compute_mode: classic
     tier: 3
     summary: >-
-      VNet-injected spoke peered to a hub with Azure Firewall (or NVA). UDR
+      Your VNet (a spoke) peered to a hub with Azure Firewall (or NVA). UDR
       0.0.0.0/0 to the firewall, FQDN allowlisting, Private Link front-end and
-      back-end, private DBFS, service endpoint policies, CMK.
+      back-end, storage over private endpoints, CMK. Assessed against the Azure
+      data exfiltration protection blog.
     signature:
       all_of:
         - {fact: workspace.vnet_injected, op: equals, value: true}
@@ -110,20 +103,21 @@ patterns:
       - AZ-ENC-002
       - AZ-ENC-003
       - AZ-SRV-003
+      - AZ-ING-002
 
-  - id: az-classic-full-private
-    name: Classic — Full Private (air-gapped)
+  - id: classic-full-pl
+    name: Classic — your VNet, full Private Link (front-end and back-end)
     compute_mode: classic
     tier: 3
     summary: >-
-      VNet-injected, SCC, Private Link for UI/API and SCC relay, public network
-      access disabled, private endpoints for DBFS and UC storage, no internet
-      egress (packages from internal mirrors), NCC Private Link for serverless.
+      Private Link for users (front-end, with browser authentication) and for
+      compute (back-end); DBFS over private endpoints. Public access is off,
+      unless you choose to allow selected clients on known IPs (IP access lists).
     signature:
       all_of:
         - {fact: workspace.vnet_injected, op: equals, value: true}
         - {fact: private_link.ui_api, op: equals, value: true}
-        - {fact: workspace.public_network_access_enabled, op: equals, value: false}
+        - {fact: private_link.browser_authentication, op: equals, value: true}
     references:
       - adb4u/docs/patterns/02-FULL-PRIVATE.md
       - adb4u/deployments/full-private
@@ -150,21 +144,19 @@ patterns:
       - AZ-ENC-001
       - AZ-ENC-002
       - AZ-ENC-003
+      - AZ-ING-002
 
-  - id: az-classic-backend-pl
-    name: Classic — Back-end Private Link, public front-end
+  - id: classic-backend-pl
+    name: Classic — your VNet, back-end Private Link only
     compute_mode: classic
     tier: 2
     summary: >-
-      VNet-injected with SCC; compute reaches the control plane over the
-      databricks_ui_api private endpoint, while users reach the workspace
-      over the internet, restricted by IP access lists. Compute egress still
-      needs an explicit path (NAT Gateway or firewall).
+      Compute reaches the control plane over Private Link; users reach the
+      workspace over the internet, restricted by IP access lists.
     signature:
       all_of:
         - {fact: workspace.vnet_injected, op: equals, value: true}
         - {fact: private_link.ui_api, op: equals, value: true}
-        - {fact: workspace.public_network_access_enabled, op: equals, value: true}
     references:
       - https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link
       - adb4u/modules/workspace/variables.tf
@@ -189,16 +181,19 @@ patterns:
       - AZ-ENC-001
       - AZ-ENC-002
       - AZ-ENC-003
+      - AZ-ING-002
 
-  - id: az-classic-non-pl
-    name: Classic — VNet-injected, Non-Private Link
+  - id: classic-no-pl
+    name: Classic — your VNet, no Private Link
     compute_mode: classic
     tier: 1
     summary: >-
-      VNet-injected with SCC (no public IP), public control plane, NAT Gateway
-      for stable egress, storage via service endpoints (+ service endpoint
-      policies), NCC for serverless, IP access lists on the public front-end.
-    signature: {fact: workspace.vnet_injected, op: equals, value: true}
+      VNet-injected with secure cluster connectivity (no public IPs), NAT
+      Gateway for stable egress, storage via service endpoints (and service
+      endpoint policies), NCC for serverless, IP access lists on the public
+      front-end.
+    # Last in detection_order: every classic workspace not matched above.
+    signature: {fact: workspace.compute_mode, op: equals, value: classic}
     references:
       - adb4u/docs/patterns/01-NON-PL.md
       - adb4u/deployments/non-pl
@@ -219,3 +214,4 @@ patterns:
       - AZ-ENC-001
       - AZ-ENC-002
       - AZ-ENC-003
+      - AZ-ING-002

@@ -59,7 +59,10 @@ def list_baselines(cloud: str = "azure") -> list[dict]:
     return [
         {"id": b["id"], "name": b["name"], "use_case": b["use_case"].strip(), "pattern": b["pattern"],
          "deployment": b["deployment"], "extra_required_controls": _titled(cat, b.get("require") or []),
-         "builds": [{"id": x["id"], "for": x.get("for", "").strip()} for x in builds(b)]}
+         "builds": [{"id": x["id"], "for": x.get("for", "").strip()} for x in builds(b)],
+         "options": [{"id": o["id"], "name": o["name"], "summary": o["summary"].strip(),
+                      "requires": _titled(cat, o.get("require") or []), "waives": _titled(cat, o.get("waive") or [])}
+                     for o in b.get("options") or []]}
         for b in cat["baselines"]
     ]
 
@@ -129,25 +132,26 @@ def collect_live(workspace: str, cloud: str = "azure", profile: str | None = Non
 
 @server.tool(annotations=READ_ONLY)
 def assess(facts: list[dict], baseline: str | None = None, target: str | None = None,
-           cloud: str = "azure", format: str = "md") -> str:
+           cloud: str = "azure", format: str = "md", options: list[str] | None = None) -> str:
     """Assess facts (one or more fact sets, merged) against a baseline (preferred),
-    a raw target pattern, or the detected pattern. Returns the report (md or json)."""
+    a raw target pattern, or the detected pattern. options: the baseline options the
+    workspace is held to (list_baselines shows them). Returns the report (md or json)."""
     cat = catalog_mod.load(cloud)
     merged: dict = {}
     for f in facts:
         merged = merge(merged, f)
-    return _render(run_assess(cat, merged, target, baseline), cat, merged, format)
+    return _render(run_assess(cat, merged, target, baseline, options or ()), cat, merged, format)
 
 
 @server.tool(annotations=READ_ONLY)
 def verify(tf_json_path: str, baseline: str, cloud: str = "azure", format: str = "md",
-           workspace: str | None = None) -> dict:
+           workspace: str | None = None, options: list[str] | None = None) -> dict:
     """Post-apply validation: score a `terraform show -json` state (or plan) against
     the baseline it was meant to build. Returns verdict, score and report."""
     cat = catalog_mod.load(cloud)
     facts = collector(cloud, "tfplan").collect(json.loads(Path(tf_json_path).read_text(encoding="utf-8")),
                                                workspace=workspace)
-    result = run_assess(cat, facts, baseline_id=baseline)
+    result = run_assess(cat, facts, baseline_id=baseline, options=options or ())
     return {
         "verdict": "PASS" if result.score["conformant"] else "FAIL",
         "input": facts["source"],
@@ -157,21 +161,26 @@ def verify(tf_json_path: str, baseline: str, cloud: str = "azure", format: str =
 
 
 @server.tool(annotations=READ_ONLY)
-def new_workspace(baseline: str, inputs: dict | None = None, cloud: str = "azure", build: str | None = None) -> dict:
+def new_workspace(baseline: str, inputs: dict | None = None, cloud: str = "azure", build: str | None = None,
+                  options: list[str] | None = None) -> dict:
     """Deployment for a brand-new workspace from the baseline's tested Terraform (this repo's
     deployment, or the official Databricks SRA pinned to a reviewed commit): inputs.tfvars from
     `inputs` (Terraform variable -> value; unanswered required ones become REPLACE_ME_*), staged
     tfvars and a step-by-step README (plan -> assess -> apply -> verify). When the baseline offers
-    several builds, pass `build` (list_baselines shows them); builds are peers with no default. Returns file contents
+    several builds, pass `build` (list_baselines shows them); builds are peers with no default. `options`
+    switch on baseline options (e.g. cmk). IP access lists are part of the bare minimum: ask the user for
+    their known IP ranges and pass them as inputs["allowed_ip_ranges"] (a list of CIDRs); never invent
+    them. Returns file contents
     and the list of Terraform files to bundle; writes nothing. To write the folder with the
     Terraform included, the user runs `wa-agent new --baseline <id> --out <dir>`."""
     from .new import render
 
-    files = render(catalog_mod.load(cloud), baseline, inputs, build_id=build)
+    files = render(catalog_mod.load(cloud), baseline, inputs, build_id=build, options=options or ())
     manifest = json.loads(files["baseline.json"])
     return {"files": files, "bundle": sorted(manifest.get("files", {})),
             "write_with": f"wa-agent new --cloud {cloud} --baseline {baseline}"
-                          + (f" --build {build}" if build else "") + " --out <new-dir>"}
+                          + (f" --build {build}" if build else "")
+                          + "".join(f" --option {o}" for o in options or []) + " --out <new-dir>"}
 
 
 def main() -> None:

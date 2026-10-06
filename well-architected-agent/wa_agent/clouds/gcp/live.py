@@ -82,7 +82,7 @@ def collect(workspace: str, run=common.cli_runner, databricks_profile: str | Non
 
     info = {
         "name": ws.get("workspace_name"),
-        "compute_mode": "classic",
+        "compute_mode": "serverless" if ws.get("compute_mode") == "SERVERLESS" else "classic",
         "customer_managed_vpc": bool(ws.get("network_id")),
         "cmk_managed_services": bool(ws.get("managed_services_customer_managed_key_id")),
         "cmk_storage": bool(ws.get("storage_customer_managed_key_id")),
@@ -216,6 +216,7 @@ def _provenance(facts: dict, ws: dict) -> dict:
         "operations.audit_log_delivery": "databricks account log-delivery list -> AUDIT_LOGS, ENABLED",
         "serverless.": "databricks account workspaces get / network-policies get-network-policy-rpc",
         "access.": "databricks workspace-conf get-status / ip-access-lists list",
+        "access.context_ingress_enforced": "databricks account network-policies get-network-policy-rpc -> ingress",
         "governance.": "databricks metastores current",
     }
     out = {}

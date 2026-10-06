@@ -635,6 +635,12 @@ resource "databricks_ip_access_list" "this"
 
 **Note:** When `public_access_enabled = false`, IP lists don't affect access (already private).
 
+Set `allowed_ip_ranges` to your known IP ranges (corporate egress, VPN,
+automation, and the IP you run Terraform from). The feature is enabled on
+the workspace first (`databricks_workspace_conf`), then the ALLOW list is
+applied (`depends_on`). The default is the original example list, kept so
+existing deployments don't change; replace it with your own.
+
 ---
 
 ## DNS Configuration

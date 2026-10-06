@@ -39,6 +39,7 @@ PROVENANCE = {
     "serverless.ncc_bound": ("databricks_mws_ncc_binding", "databricks_mws_workspaces"),
     "serverless.egress_restricted": ("databricks_account_network_policy", "databricks_workspace_network_option"),
     "access.": ("databricks_workspace_conf", "databricks_ip_access_list"),
+    "access.context_ingress_enforced": ("databricks_account_network_policy", "databricks_workspace_network_option"),
     "governance.metastore_assigned": ("databricks_metastore_assignment",),
     "operations.audit_log_delivery": ("databricks_mws_log_delivery",),
 }
@@ -81,10 +82,12 @@ def _collect(doc: dict, rs: list[dict], workspace: str | None) -> dict:
     keys = _of_type(rs, "databricks_mws_customer_managed_keys")
     if ws:
         v = ws["values"]
+        serverless = v.get("compute_mode") == "SERVERLESS"
         info = {
             "name": v.get("workspace_name"),
-            "compute_mode": "classic",
-            "customer_managed_vpc": _is_set(v.get("network_id")) or bool(_of_type(rs, "databricks_mws_networks")),
+            "compute_mode": "serverless" if serverless else "classic",
+            "customer_managed_vpc": not serverless and (
+                _is_set(v.get("network_id")) or bool(_of_type(rs, "databricks_mws_networks"))),
             "cmk_managed_services": _is_set(v.get("managed_services_customer_managed_key_id")),
             "cmk_storage": _is_set(v.get("storage_customer_managed_key_id")),
         }

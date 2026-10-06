@@ -38,7 +38,7 @@ uv run wa-agent demo
 uv run wa-agent doctor                              # tools and logins (output is redacted, safe to share)
 uv run wa-agent doctor --workspace <name-or-url>    # preflight: what is reachable, how to fix the rest
 uv run wa-agent collect live --cloud azure --workspace <name-or-url> -o ws.facts.json
-uv run wa-agent assess --facts ws.facts.json --baseline classic-standard -o report.md
+uv run wa-agent assess --facts ws.facts.json --baseline classic-no-pl -o report.md
 ```
 
 **What you need**
@@ -78,7 +78,7 @@ A tool that looks at a Databricks workspace and tells you:
 ```mermaid
 flowchart LR
   WS["Your workspace<br/>(or Terraform plan/state)"] -->|"read-only scan"| AGENT["Well-Architected Agent"]
-  BASE["Baseline you pick<br/>e.g. classic-high-security"] -->|"what good looks like"| AGENT
+  BASE["Baseline you pick<br/>e.g. classic-full-pl"] -->|"what good looks like"| AGENT
   AGENT -->|"report"| YOU["You decide<br/>what to apply"]
 ```
 
@@ -122,32 +122,39 @@ flowchart TD
 
 ## Pick a baseline
 
-A baseline is **what the workspace is supposed to be**. Pick the one that
-matches your use case, just like picking a deployment folder in the repo.
+A baseline is **what the workspace is supposed to be**. There are five, with
+the same names on every cloud. Classic means compute runs in a VNet/VPC you
+bring (new or existing); serverless means it runs in the Databricks
+serverless compute plane.
 
 ```mermaid
 flowchart TD
   Q1["Do you need classic compute<br/>in your own network?"] -->|"no"| SL["serverless"]
-  SL -->|"regulated data?"| SLH["serverless-high-security"]
-  Q1 -->|"yes"| Q2["Must users reach the<br/>workspace only privately?"]
+  Q1 -->|"yes"| Q4["Must all egress be inspected<br/>(firewall or VPC Service Controls)?"]
+  Q4 -->|"yes"| DEP["classic-dep"]
+  Q4 -->|"no"| Q2["Should users reach the<br/>workspace privately?"]
+  Q2 -->|"yes"| FP["classic-full-pl<br/>(option: public-access for selected clients)"]
   Q2 -->|"no, internet + IP lists is fine"| Q3["Private path from<br/>compute to control plane?"]
-  Q3 -->|"no"| STD["classic-standard"]
-  Q3 -->|"yes"| PL["classic-private-link"]
-  Q2 -->|"yes"| Q4["Must all egress be<br/>inspected by a firewall?"]
-  Q4 -->|"no"| FP["classic-full-private"]
-  FP -->|"regulated data?"| HS["classic-high-security"]
-  Q4 -->|"yes"| DEP["classic-exfiltration-protection"]
+  Q3 -->|"no"| NOPL["classic-no-pl"]
+  Q3 -->|"yes"| BPL["classic-backend-pl"]
 ```
 
 | Baseline | In one line |
 |---|---|
-| `serverless` | No network to manage. Serverless only. |
-| `serverless-high-security` | Serverless + private storage access + customer-managed keys. |
-| `classic-standard` | Your VNet, no public IPs, NAT egress, IP-restricted front-end. |
-| `classic-private-link` | Compute talks to Databricks privately; users come over the internet. |
-| `classic-full-private` | Nothing public. Private Link for users and compute. |
-| `classic-high-security` | Full private + keys everywhere + locked-down storage and serverless egress. |
-| `classic-exfiltration-protection` | Hub-spoke; every byte of egress goes through a firewall. |
+| `classic-no-pl` | Your VNet/VPC, no public IPs, NAT egress, IP-restricted front-end. |
+| `classic-backend-pl` | Compute talks to Databricks privately; users come over the internet. Assess only. |
+| `classic-full-pl` | Private Link for users and compute. Public access off, or on for selected clients. |
+| `classic-dep` | Data exfiltration protection: every byte of egress inspected. Assess only. |
+| `serverless` | No network to manage. A VNet/VPC only if you want a private front-end. |
+
+**Always on, every baseline:** IP access lists with *your* known IP ranges,
+an enforced serverless egress policy, and Unity Catalog.
+
+**Options** you add on top with `--option`: `cmk` (customer-managed keys),
+`data-leak` (export and download off), `public-access` (on `classic-full-pl`),
+`storage-lockdown` / `storage-private` (Azure), and `context-ingress`
+(rules on who, what and from where, on top of IP access lists).
+`wa-agent show <baseline>` lists them.
 
 List them any time: `uv run wa-agent baselines`.
 
@@ -174,7 +181,7 @@ databricks auth login --profile my-account \
 uv run wa-agent collect live --cloud azure --workspace <name-or-url> -o out/ws.facts.json
 # profiles are matched automatically; pass --profile / --account-profile to override
 
-uv run wa-agent assess --facts out/ws.facts.json --baseline classic-full-private -o out/ws.report.md
+uv run wa-agent assess --facts out/ws.facts.json --baseline classic-full-pl -o out/ws.report.md
 ```
 
 What happens under the hood:
@@ -206,8 +213,8 @@ uv run wa-agent doctor    # prints the exact registration line for your assistan
 ```
 
 Register it once, start a new session, then just ask, e.g. *"What does
-`classic-high-security` require?"* or *"Preflight workspace `<name>`, then
-assess it against `classic-private-link`."*
+`classic-full-pl` require, and what does `cmk` add?"* or *"Preflight workspace
+`<name>`, then assess it against `classic-full-pl` with `public-access`."*
 
 Full steps are in the README: [register and check it's connected](README.md#use-it-from-your-ai-assistant),
 [all 10 tools](README.md#use-it-from-your-ai-assistant), [more example prompts](README.md#use-it-from-your-ai-assistant),
@@ -253,7 +260,8 @@ flowchart LR
 ```
 
 ```bash
-wa-agent new --baseline classic-full-private --out ./my-ws --set location=eastus2
+wa-agent new --baseline classic-full-pl --out ./my-ws --set location=eastus2 \
+  --set allowed_ip_ranges='["203.0.113.0/24"]'   # your known IP ranges, required
 ```
 
 That creates `./my-ws/` with everything needed:
@@ -261,7 +269,7 @@ That creates `./my-ws/` with everything needed:
 | File | What it is |
 |---|---|
 | `terraform/` | The tested Terraform, copied from this repo |
-| `inputs.tfvars` | The required settings. Your `--set` answers; anything unanswered is a `REPLACE_ME_*` |
+| `inputs.tfvars` | The required settings. Your `--set` answers; anything unanswered is a `REPLACE_ME_*`. Your IP ranges go into the stage files (or `ip_access_list.yaml`) |
 | `stage-N-*.tfvars` | What the baseline turns on, one file per stage (for full private: *deploy*, then *lockdown* from inside your network) |
 | `README.md` | Every command, in order |
 | `baseline.json` | What was used: baseline, commit, and a checksum of every copied file |
@@ -295,7 +303,7 @@ enforced. Run from an allowed network to see their contents.
 
 **Which clouds?** Azure and Google Cloud (`--cloud gcp`). AWS is next.
 
-**On GCP, which build should I pick?** Each GCP baseline offers three, as equals: `lpw` (one root, creates everything), `new-vpc` (`infra4db` for the network, then the workspace) and `existing-vpc` (your own VPC). `wa-agent new` asks you to choose with `--build`.
+**On GCP, which build should I pick?** First: may Databricks create the IAM roles, role bindings and firewall rules in your project when it creates the workspace? Most teams say yes (standard creation, which Databricks recommends): pick `new-vpc` (`infra4db` for the network, then the workspace) or `existing-vpc` (your own VPC). If your security policy says no, use `lpw`, the least-privilege workspace: you create those yourself, separately, in two applies. `wa-agent new` asks you to choose with `--build`.
 
 ---
 

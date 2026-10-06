@@ -1,57 +1,144 @@
 # Databricks on Google Cloud baselines.
 #
-# Same model as catalog/azure/baselines.yaml. Ground truth is gcpdb4u, used
-# as-is. Each baseline offers several builds, as peers (no default):
-#   lpw           one root (gcpdb4u lpw), two applies
-#   new-vpc       infra4db -> byovpc-* -> workspace-guardrails
-#   existing-vpc  byovpc-* -> workspace-guardrails
-# workspace-guardrails adds the bare minimum (IP access lists, NCC, enforced
-# serverless network policy) that the byovpc-* roots don't include.
+# Same model and the same five ids as catalog/azure/baselines.yaml:
+#   classic-no-pl  classic-backend-pl  classic-full-pl  classic-dep  serverless
+# Ground truth is gcpdb4u, used as-is. Classic baselines offer several
+# builds (pick with --build; no default, but order matters: standard first):
+#   new-vpc       standard: infra4db -> byovpc-* -> workspace-guardrails
+#   existing-vpc  standard: byovpc-* -> workspace-guardrails
+#   lpw           special case, least-privilege: one root (gcpdb4u lpw), two applies;
+#                 you create IAM roles and firewall rules, not Databricks
+# serverless is serverless-ws -> workspace-guardrails. workspace-guardrails
+# adds the bare minimum (IP access lists, NCC, enforced serverless network
+# policy, metastore assignment) that the other roots don't include.
+# `options` are hardening chosen on top (see the Azure file); `set` applies
+# them per build and stage, `unsupported` lists combinations a build can't do.
+# `ip_access_list: file` writes ip_access_list.yaml from the user's
+# allowed_ip_ranges; `tfvar` passes them as a variable.
 # Stage values may use ${var.name} (an answer or earlier stage value) and
 # `outputs` (an earlier root's terraform output, read at plan time).
-# Data exfiltration protection is assess-only: no build.
+# backend-pl and data exfiltration protection are assess-only: no build.
+#
+# Generated; edit the data, keep the shape.
 
 baselines:
-- id: gcp-classic-standard
-  name: Classic — standard
-  use_case: Customer-managed VPC with Private Google Access and Cloud NAT; public front-end restricted by IP access
-    lists; enforced serverless egress policy. Dev/test or low-sensitivity data.
-  pattern: gcp-classic-byovpc
-  deployment: gcpdb4u/templates/terraform-scripts/byovpc-ws
+- id: serverless
+  name: Serverless workspace
+  use_case: No customer network to manage; serverless SQL, notebooks, jobs and apps only, with default storage.
+    A VPC is needed only for a private front-end (PSC).
+  pattern: serverless
+  deployment: gcpdb4u/templates/terraform-scripts/serverless-ws
   require: []
-  builds:
-  - id: lpw
-    for: One root creates the VPC, least-privilege service accounts and CMK, in two applies (lpw is generally available).
-    deployment: gcpdb4u/templates/terraform-scripts/lpw
-    prepare:
-    - In terraform/gcpdb4u/templates/terraform-scripts/lpw run ./prereqs.sh once per GCP project (APIs, service
-      agents, deployer roles), then add the deployer service account as an account admin in the account console
-      (RUNBOOK.md step 0).
-    - Create account groups once (identities/) and note your regional metastore name (metastore/), as in RUNBOOK.md
-      steps 1-2.
-    stages:
-    - name: provision
-      note: 'Apply 1 of 2: everything is built and the workspace is created bare. First edit ip_access_list.yaml
-        (include the IP you run Terraform from) and network_policy.yaml (destinations serverless workloads need)
-        in this folder.'
+  options:
+  - id: cmk
+    name: Customer-managed key for managed services
+    summary: Notebooks, secrets and queries encrypted with your Cloud KMS key.
+    require:
+    - GCP-ENC-001
+    manual: Add a databricks_mws_customer_managed_keys (MANAGED_SERVICES) and set managed_services_customer_managed_key_id
+      on the workspace; serverless-ws has no setting for it.
+  - id: data-leak
+    name: Data-leak features off
+    summary: Notebook export, results download and the notebook table clipboard are disabled.
+    require:
+    - GCP-WS-001
+    set:
+    - stage: guardrails
       tfvars:
-        expected_workspace_status: PROVISIONING
-        create_vpc: true
-        enable_private_access: false
-        public_access_enabled: true
+        disable_data_leak_features: true
+    manual: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to "false" (databricks_workspace_conf,
+      or workspace-guardrails with disable_data_leak_features = true after this root).
+  - id: context-ingress
+    name: Context-based ingress
+    summary: Allow and deny rules on identity, request type and network source, on top of IP access lists (a request
+      must pass both).
+    require:
+    - GCP-ING-002
+    manual: Add an ingress (start with ingress_dry_run) block to the workspace's network policy in the account console
+      or Terraform; see the GCP-ING-002 fix in the report.
+  build:
+    deployment: gcpdb4u/templates/terraform-scripts/serverless-ws
+    stages:
+    - name: workspace
+      deployment: gcpdb4u/templates/terraform-scripts/serverless-ws
+      note: 'Creates the serverless workspace: no VPC, no compute service accounts, default storage.'
+      tfvars: {}
+    - name: guardrails
+      deployment: gcpdb4u/templates/terraform-scripts/workspace-guardrails
+      note: 'Bare-minimum controls the workspace root doesn''t include: IP access lists (from your allowed_ip_ranges),
+        an NCC, an enforced serverless network policy and the Unity Catalog metastore assignment (set metastore_id
+        to "" if your account assigns one automatically). First edit network_policy.yaml in this folder (destinations
+        serverless workloads need).'
+      tfvars:
         enable_ip_access_list: true
         enable_ncc: true
         enable_network_policy: true
         network_policy_enforcement_mode: ENFORCED
-        metastore_name: ${var.metastore_name}
-    - name: running
-      note: 'Apply 2 of 2: attaches the network, keys, PSC, NCC, metastore, IP access lists and the serverless network
-        policy.'
+        metastore_id: ${var.metastore_id}
+      outputs:
+        workspace_url:
+          stage: 1
+          output: workspace_url
+      ip_access_list: file
+- id: classic-no-pl
+  name: Classic — your VPC, no Private Service Connect
+  use_case: Your VPC (new, existing or shared) with Private Google Access and Cloud NAT; public front-end restricted
+    to your known IP ranges; enforced serverless egress policy.
+  pattern: classic-no-pl
+  deployment: gcpdb4u/templates/terraform-scripts/byovpc-ws
+  require: []
+  options:
+  - id: cmk
+    name: Customer-managed keys
+    summary: Managed services, workspace storage and compute disks encrypted with your Cloud KMS key.
+    require:
+    - GCP-ENC-001
+    - GCP-ENC-002
+    set:
+    - builds:
+      - lpw
+      stage: provision
+    - builds:
+      - new-vpc
+      stage: network
       tfvars:
-        expected_workspace_status: RUNNING
+        create_cmk_resources: true
+    - builds:
+      - new-vpc
+      stage: workspace
+      deployment: gcpdb4u/templates/terraform-scripts/byovpc-cmek-ws
+    - builds:
+      - existing-vpc
+      stage: workspace
+      deployment: gcpdb4u/templates/terraform-scripts/byovpc-cmek-ws
+  - id: data-leak
+    name: Data-leak features off
+    summary: Notebook export, results download and the notebook table clipboard are disabled.
+    require:
+    - GCP-WS-001
+    set:
+    - builds:
+      - new-vpc
+      - existing-vpc
+      stage: guardrails
+      tfvars:
+        disable_data_leak_features: true
+    manual: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to "false" (databricks_workspace_conf,
+      or workspace-guardrails with disable_data_leak_features = true after this root).
+  - id: context-ingress
+    name: Context-based ingress
+    summary: Allow and deny rules on identity, request type and network source, on top of IP access lists (a request
+      must pass both).
+    require:
+    - GCP-ING-002
+    manual: Add an ingress (start with ingress_dry_run) block to the workspace's network policy in the account console
+      or Terraform; see the GCP-ING-002 fix in the report.
+  builds:
   - id: new-vpc
-    for: 'Teams that keep the network in its own Terraform root: infra4db creates the VPC, then byovpc-ws creates
-      the workspace on it.'
+    for: 'Standard creation (most teams): your workspace-creator service account has the roles Databricks needs,
+      and Databricks creates the IAM roles, role bindings and VPC firewall rules when it creates the workspace.
+      Teams that keep the network in its own Terraform root: infra4db creates the VPC, then byovpc-ws creates the
+      workspace on it.'
     stages:
     - name: network
       deployment: gcpdb4u/templates/terraform-scripts/infra4db
@@ -74,20 +161,25 @@ baselines:
         node_subnet: subnet-${var.google_region}
     - name: guardrails
       deployment: gcpdb4u/templates/terraform-scripts/workspace-guardrails
-      note: 'Bare-minimum controls the workspace root doesn''t include: IP access lists, an NCC and an enforced
-        serverless network policy. First edit ip_access_list.yaml (include your own IP) and network_policy.yaml
-        in this folder.'
+      note: 'Bare-minimum controls the workspace root doesn''t include: IP access lists (from your allowed_ip_ranges),
+        an NCC, an enforced serverless network policy and the Unity Catalog metastore assignment (set metastore_id
+        to "" if your account assigns one automatically). First edit network_policy.yaml in this folder (destinations
+        serverless workloads need).'
       tfvars:
         enable_ip_access_list: true
         enable_ncc: true
         enable_network_policy: true
         network_policy_enforcement_mode: ENFORCED
+        metastore_id: ${var.metastore_id}
       outputs:
         workspace_url:
           stage: 2
           output: workspace_url
+      ip_access_list: file
   - id: existing-vpc
-    for: 'Teams with an existing VPC (or shared VPC): byovpc-ws creates the workspace on it.'
+    for: 'Standard creation (most teams): your workspace-creator service account has the roles Databricks needs,
+      and Databricks creates the IAM roles, role bindings and VPC firewall rules when it creates the workspace.
+      Teams with an existing VPC (or shared VPC): byovpc-ws creates the workspace on it.'
     stages:
     - name: workspace
       deployment: gcpdb4u/templates/terraform-scripts/byovpc-ws
@@ -96,29 +188,26 @@ baselines:
       tfvars: {}
     - name: guardrails
       deployment: gcpdb4u/templates/terraform-scripts/workspace-guardrails
-      note: 'Bare-minimum controls the workspace root doesn''t include: IP access lists, an NCC and an enforced
-        serverless network policy. First edit ip_access_list.yaml (include your own IP) and network_policy.yaml
-        in this folder.'
+      note: 'Bare-minimum controls the workspace root doesn''t include: IP access lists (from your allowed_ip_ranges),
+        an NCC, an enforced serverless network policy and the Unity Catalog metastore assignment (set metastore_id
+        to "" if your account assigns one automatically). First edit network_policy.yaml in this folder (destinations
+        serverless workloads need).'
       tfvars:
         enable_ip_access_list: true
         enable_ncc: true
         enable_network_policy: true
         network_policy_enforcement_mode: ENFORCED
+        metastore_id: ${var.metastore_id}
       outputs:
         workspace_url:
           stage: 1
           output: workspace_url
-- id: gcp-classic-cmek
-  name: Classic — customer-managed keys
-  use_case: Standard, plus customer-managed keys for managed services, workspace storage and compute disks.
-  pattern: gcp-classic-byovpc
-  deployment: gcpdb4u/templates/terraform-scripts/byovpc-cmek-ws
-  require:
-  - GCP-ENC-001
-  - GCP-ENC-002
-  builds:
+      ip_access_list: file
   - id: lpw
-    for: One root creates the VPC, least-privilege service accounts and CMK, in two applies (lpw is generally available).
+    for: 'Special case, least-privilege workspace (LPW, generally available): for security-conscious or regulated
+      accounts where Databricks must not create IAM roles or firewall rules. You create them yourself, decoupled
+      from workspace creation: one root, two applies (provisioning, then running), and it creates the VPC, service
+      accounts and CMK.'
     deployment: gcpdb4u/templates/terraform-scripts/lpw
     prepare:
     - In terraform/gcpdb4u/templates/terraform-scripts/lpw run ./prereqs.sh once per GCP project (APIs, service
@@ -128,9 +217,9 @@ baselines:
       steps 1-2.
     stages:
     - name: provision
-      note: 'Apply 1 of 2: everything is built and the workspace is created bare. First edit ip_access_list.yaml
-        (include the IP you run Terraform from) and network_policy.yaml (destinations serverless workloads need)
-        in this folder.'
+      note: 'Apply 1 of 2: everything is built and the workspace is created bare. ip_access_list.yaml in this folder
+        is written from your allowed_ip_ranges; edit network_policy.yaml (destinations serverless workloads need)
+        first.'
       tfvars:
         expected_workspace_status: PROVISIONING
         create_vpc: true
@@ -141,217 +230,115 @@ baselines:
         enable_network_policy: true
         network_policy_enforcement_mode: ENFORCED
         metastore_name: ${var.metastore_name}
+      ip_access_list: file
     - name: running
       note: 'Apply 2 of 2: attaches the network, keys, PSC, NCC, metastore, IP access lists and the serverless network
         policy.'
       tfvars:
         expected_workspace_status: RUNNING
-  - id: new-vpc
-    for: 'Teams that keep the network in its own Terraform root: infra4db creates the VPC, then byovpc-cmek-ws creates
-      the workspace on it.'
-    stages:
-    - name: network
-      deployment: gcpdb4u/templates/terraform-scripts/infra4db
-      copy_example: terraform.tfvars.remove
-      note: Creates the VPC, subnet, Cloud NAT, firewall rules and Google APIs DNS and KMS key. Key subnet_configs
-        and psc_attachments by region, as in its example.
-      tfvars:
-        workspace_type: non-psc
-        create_psc_resources: false
-        create_cmk_resources: true
-        databricks_regions:
-          ${var.google_region}:
-            region: ${var.google_region}
-    - name: workspace
-      deployment: gcpdb4u/templates/terraform-scripts/byovpc-cmek-ws
-      note: Set the rest in this root's providers.auto.tfvars and workspace.auto.tfvars, including databricks_account_id
-        (a value there overrides the environment variable).
-      tfvars:
-        google_vpc_id: ${var.network_name}
-        node_subnet: subnet-${var.google_region}
-    - name: guardrails
-      deployment: gcpdb4u/templates/terraform-scripts/workspace-guardrails
-      note: 'Bare-minimum controls the workspace root doesn''t include: IP access lists, an NCC and an enforced
-        serverless network policy. First edit ip_access_list.yaml (include your own IP) and network_policy.yaml
-        in this folder.'
-      tfvars:
-        enable_ip_access_list: true
-        enable_ncc: true
-        enable_network_policy: true
-        network_policy_enforcement_mode: ENFORCED
-      outputs:
-        workspace_url:
-          stage: 2
-          output: workspace_url
-  - id: existing-vpc
-    for: 'Teams with an existing VPC (or shared VPC): byovpc-cmek-ws creates the workspace on it.'
-    stages:
-    - name: workspace
-      deployment: gcpdb4u/templates/terraform-scripts/byovpc-cmek-ws
-      note: Set the VPC, subnet of your existing network, and the rest, in this root's providers.auto.tfvars and
-        workspace.auto.tfvars, including databricks_account_id (a value there overrides the environment variable).
-      tfvars: {}
-    - name: guardrails
-      deployment: gcpdb4u/templates/terraform-scripts/workspace-guardrails
-      note: 'Bare-minimum controls the workspace root doesn''t include: IP access lists, an NCC and an enforced
-        serverless network policy. First edit ip_access_list.yaml (include your own IP) and network_policy.yaml
-        in this folder.'
-      tfvars:
-        enable_ip_access_list: true
-        enable_ncc: true
-        enable_network_policy: true
-        network_policy_enforcement_mode: ENFORCED
-      outputs:
-        workspace_url:
-          stage: 1
-          output: workspace_url
-- id: gcp-classic-psc
-  name: Classic — Private Service Connect, public front-end
-  use_case: Front-end and back-end Private Service Connect; users may also come over the internet, restricted by
-    IP access lists.
-  pattern: gcp-classic-psc
-  deployment: gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
-  require:
-  - GCP-PL-002
-  - GCP-DNS-001
-  builds:
-  - id: lpw
-    for: One root creates the VPC, least-privilege service accounts and CMK, in two applies (lpw is generally available).
-    deployment: gcpdb4u/templates/terraform-scripts/lpw
-    prepare:
-    - In terraform/gcpdb4u/templates/terraform-scripts/lpw run ./prereqs.sh once per GCP project (APIs, service
-      agents, deployer roles), then add the deployer service account as an account admin in the account console
-      (RUNBOOK.md step 0).
-    - Create account groups once (identities/) and note your regional metastore name (metastore/), as in RUNBOOK.md
-      steps 1-2.
-    stages:
-    - name: provision
-      note: 'Apply 1 of 2: everything is built and the workspace is created bare. First edit ip_access_list.yaml
-        (include the IP you run Terraform from) and network_policy.yaml (destinations serverless workloads need)
-        in this folder.'
-      tfvars:
-        expected_workspace_status: PROVISIONING
-        create_vpc: true
-        enable_private_access: true
-        public_access_enabled: true
-        enable_ip_access_list: true
-        enable_ncc: true
-        enable_network_policy: true
-        network_policy_enforcement_mode: ENFORCED
-        metastore_name: ${var.metastore_name}
-    - name: running
-      note: 'Apply 2 of 2: attaches the network, keys, PSC, NCC, metastore, IP access lists and the serverless network
-        policy.'
-      tfvars:
-        expected_workspace_status: RUNNING
-  - id: new-vpc
-    for: 'Teams that keep the network in its own Terraform root: infra4db creates the VPC, then byovpc-psc-ws creates
-      the workspace on it.'
-    stages:
-    - name: network
-      deployment: gcpdb4u/templates/terraform-scripts/infra4db
-      copy_example: terraform.tfvars.remove
-      note: Creates the VPC, subnet, Cloud NAT, firewall rules and Google APIs DNS, PSC subnet and endpoints. Key
-        subnet_configs and psc_attachments by region, as in its example. After the workspace exists, add frontend_pe_ip
-        / backend_pe_ip to databricks_regions and the workspace to `workspaces` in this root's terraform.tfvars,
-        and re-apply it, to create the workspace's private DNS records (infra4db README).
-      tfvars:
-        workspace_type: psc
-        create_psc_resources: true
-        create_cmk_resources: false
-        databricks_regions:
-          ${var.google_region}:
-            region: ${var.google_region}
-    - name: workspace
-      deployment: gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
-      note: Set the rest in this root's providers.auto.tfvars and workspace.auto.tfvars, including databricks_account_id
-        (a value there overrides the environment variable).
-      tfvars:
-        google_vpc_id: ${var.network_name}
-        node_subnet: subnet-${var.google_region}
-        google_pe_subnet: psc-subnet-${var.google_region}
-        relay_pe: ${var.google_region}-relay-psc-ep
-        workspace_pe: ${var.google_region}-workspace-psc-ep
-        relay_pe_ip_name: ${var.google_region}-relay-pe-ip
-        workspace_pe_ip_name: ${var.google_region}-workspace-pe-ip
-    - name: guardrails
-      deployment: gcpdb4u/templates/terraform-scripts/workspace-guardrails
-      note: 'Bare-minimum controls the workspace root doesn''t include: an NCC and an enforced serverless network
-        policy. First edit network_policy.yaml in this folder.'
-      tfvars:
-        enable_ip_access_list: false
-        enable_ncc: true
-        enable_network_policy: true
-        network_policy_enforcement_mode: ENFORCED
-      outputs:
-        workspace_url:
-          stage: 2
-          output: workspace_url
-  - id: existing-vpc
-    for: 'Teams with an existing VPC (or shared VPC): byovpc-psc-ws creates the workspace on it.'
-    stages:
-    - name: workspace
-      deployment: gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
-      note: Set the VPC, subnet and PSC endpoint names of your existing network, and the rest, in this root's providers.auto.tfvars
-        and workspace.auto.tfvars, including databricks_account_id (a value there overrides the environment variable).
-      tfvars: {}
-    - name: guardrails
-      deployment: gcpdb4u/templates/terraform-scripts/workspace-guardrails
-      note: 'Bare-minimum controls the workspace root doesn''t include: an NCC and an enforced serverless network
-        policy. First edit network_policy.yaml in this folder.'
-      tfvars:
-        enable_ip_access_list: false
-        enable_ncc: true
-        enable_network_policy: true
-        network_policy_enforcement_mode: ENFORCED
-      outputs:
-        workspace_url:
-          stage: 1
-          output: workspace_url
-- id: gcp-classic-high-security
-  name: Classic — highly secure (regulated)
-  use_case: Private Service Connect with public access disabled, customer-managed keys, private DNS, data-leak features
-    off, enforced serverless egress policy.
-  pattern: gcp-classic-psc-private
+- id: classic-backend-pl
+  name: Classic — your VPC, back-end Private Service Connect only
+  use_case: 'Compute reaches the control plane over Private Service Connect; users reach the workspace over the
+    internet, restricted to your known IP ranges. Assess-only: the gcpdb4u PSC roots also create the front-end endpoint,
+    so they build classic-full-pl (with public-access).'
+  pattern: classic-backend-pl
+  deployment: https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
+  require: []
+  options:
+  - id: cmk
+    name: Customer-managed keys
+    summary: Managed services, workspace storage and compute disks encrypted with your Cloud KMS key.
+    require:
+    - GCP-ENC-001
+    - GCP-ENC-002
+    manual: Customer-managed keys for managed services and workspace storage (databricks_mws_customer_managed_keys).
+  - id: data-leak
+    name: Data-leak features off
+    summary: Notebook export, results download and the notebook table clipboard are disabled.
+    require:
+    - GCP-WS-001
+    manual: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to "false" (databricks_workspace_conf,
+      or workspace-guardrails with disable_data_leak_features = true after this root).
+  - id: context-ingress
+    name: Context-based ingress
+    summary: Allow and deny rules on identity, request type and network source, on top of IP access lists (a request
+      must pass both).
+    require:
+    - GCP-ING-002
+    manual: Add an ingress (start with ingress_dry_run) block to the workspace's network policy in the account console
+      or Terraform; see the GCP-ING-002 fix in the report.
+- id: classic-full-pl
+  name: Classic — your VPC, full Private Service Connect
+  use_case: Private Service Connect for users and compute, private DNS, Private Google Access. Public access is
+    off, unless you choose public-access to let selected clients in from known IPs.
+  pattern: classic-full-pl
   deployment: gcpdb4u/templates/terraform-scripts/byovpc-psc-cmek-ws
-  require:
-  - GCP-ENC-001
-  - GCP-ENC-002
-  - GCP-WS-001
+  require: []
+  options:
+  - id: public-access
+    name: Public access for selected clients
+    summary: Keep the public front-end on, restricted by IP access lists, for clients that can't use Private Service
+      Connect (front-end PSC stays).
+    waive:
+    - GCP-PL-003
+    set:
+    - builds:
+      - lpw
+      stage: provision
+      tfvars:
+        public_access_enabled: true
+    - builds:
+      - new-vpc
+      stage: network
+      tfvars:
+        create_cmk_resources: false
+    - builds:
+      - new-vpc
+      - existing-vpc
+      stage: workspace
+      deployment: gcpdb4u/templates/terraform-scripts/byovpc-psc-ws
+  - id: cmk
+    name: Customer-managed keys
+    summary: Managed services, workspace storage and compute disks encrypted with your Cloud KMS key.
+    require:
+    - GCP-ENC-001
+    - GCP-ENC-002
+    set:
+    - builds:
+      - lpw
+      stage: provision
+    - builds:
+      - new-vpc
+      - existing-vpc
+      stage: workspace
+  - id: data-leak
+    name: Data-leak features off
+    summary: Notebook export, results download and the notebook table clipboard are disabled.
+    require:
+    - GCP-WS-001
+    set:
+    - builds:
+      - new-vpc
+      - existing-vpc
+      stage: guardrails
+      tfvars:
+        disable_data_leak_features: true
+    manual: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to "false" (databricks_workspace_conf,
+      or workspace-guardrails with disable_data_leak_features = true after this root).
+  - id: context-ingress
+    name: Context-based ingress
+    summary: Allow and deny rules on identity, request type and network source, on top of IP access lists (a request
+      must pass both).
+    require:
+    - GCP-ING-002
+    manual: Add an ingress (start with ingress_dry_run) block to the workspace's network policy in the account console
+      or Terraform; see the GCP-ING-002 fix in the report.
   builds:
-  - id: lpw
-    for: One root creates the VPC, least-privilege service accounts and CMK, in two applies (lpw is generally available).
-    deployment: gcpdb4u/templates/terraform-scripts/lpw
-    prepare:
-    - In terraform/gcpdb4u/templates/terraform-scripts/lpw run ./prereqs.sh once per GCP project (APIs, service
-      agents, deployer roles), then add the deployer service account as an account admin in the account console
-      (RUNBOOK.md step 0).
-    - Create account groups once (identities/) and note your regional metastore name (metastore/), as in RUNBOOK.md
-      steps 1-2.
-    stages:
-    - name: provision
-      note: 'Apply 1 of 2: everything is built and the workspace is created bare. First edit ip_access_list.yaml
-        (include the IP you run Terraform from) and network_policy.yaml (destinations serverless workloads need)
-        in this folder. Public access is off from the start and can''t be changed later: run Terraform from a network
-        that reaches the workspace PSC endpoint.'
-      tfvars:
-        expected_workspace_status: PROVISIONING
-        create_vpc: true
-        enable_private_access: true
-        public_access_enabled: false
-        enable_ip_access_list: true
-        enable_ncc: true
-        enable_network_policy: true
-        network_policy_enforcement_mode: ENFORCED
-        metastore_name: ${var.metastore_name}
-    - name: running
-      note: 'Apply 2 of 2: attaches the network, keys, PSC, NCC, metastore, IP access lists and the serverless network
-        policy.'
-      tfvars:
-        expected_workspace_status: RUNNING
   - id: new-vpc
-    for: 'Teams that keep the network in its own Terraform root: infra4db creates the VPC, then byovpc-psc-cmek-ws
-      creates the workspace on it.'
+    for: 'Standard creation (most teams): your workspace-creator service account has the roles Databricks needs,
+      and Databricks creates the IAM roles, role bindings and VPC firewall rules when it creates the workspace.
+      Teams that keep the network in its own Terraform root: infra4db creates the VPC, PSC endpoints and KMS key,
+      then byovpc-psc-cmek-ws creates the workspace (public access off, CMK) on it.'
     stages:
     - name: network
       deployment: gcpdb4u/templates/terraform-scripts/infra4db
@@ -379,45 +366,116 @@ baselines:
         workspace_pe: ${var.google_region}-workspace-psc-ep
         relay_pe_ip_name: ${var.google_region}-relay-pe-ip
         workspace_pe_ip_name: ${var.google_region}-workspace-pe-ip
+      ip_access_list: tfvar
     - name: guardrails
       deployment: gcpdb4u/templates/terraform-scripts/workspace-guardrails
-      note: 'Bare-minimum controls the workspace root doesn''t include: an NCC and an enforced serverless network
-        policy. First edit network_policy.yaml in this folder.'
+      note: 'Bare-minimum controls the workspace root doesn''t include: an NCC, an enforced serverless network policy
+        and the Unity Catalog metastore assignment (set metastore_id to "" if your account assigns one automatically).
+        The workspace root applies the IP access list. First edit network_policy.yaml in this folder.'
       tfvars:
         enable_ip_access_list: false
         enable_ncc: true
         enable_network_policy: true
         network_policy_enforcement_mode: ENFORCED
+        metastore_id: ${var.metastore_id}
       outputs:
         workspace_url:
           stage: 2
           output: workspace_url
+    unsupported:
+    - options:
+      - public-access
+      - cmk
+      reason: 'the gcpdb4u PSC roots fix both together (byovpc-psc-ws: public on, no CMK; byovpc-psc-cmek-ws: public
+        off, CMK); choose one of the two, or the lpw build (least-privilege) if that suits your security policy.'
   - id: existing-vpc
-    for: 'Teams with an existing VPC (or shared VPC): byovpc-psc-cmek-ws creates the workspace on it.'
+    for: 'Standard creation (most teams): your workspace-creator service account has the roles Databricks needs,
+      and Databricks creates the IAM roles, role bindings and VPC firewall rules when it creates the workspace.
+      Teams with an existing (or shared) VPC: byovpc-psc-cmek-ws creates the workspace (public access off, CMK)
+      on it.'
     stages:
     - name: workspace
       deployment: gcpdb4u/templates/terraform-scripts/byovpc-psc-cmek-ws
       note: Set the VPC, subnet and PSC endpoint names of your existing network, and the rest, in this root's providers.auto.tfvars
         and workspace.auto.tfvars, including databricks_account_id (a value there overrides the environment variable).
       tfvars: {}
+      ip_access_list: tfvar
     - name: guardrails
       deployment: gcpdb4u/templates/terraform-scripts/workspace-guardrails
-      note: 'Bare-minimum controls the workspace root doesn''t include: an NCC and an enforced serverless network
-        policy. First edit network_policy.yaml in this folder.'
+      note: 'Bare-minimum controls the workspace root doesn''t include: an NCC, an enforced serverless network policy
+        and the Unity Catalog metastore assignment (set metastore_id to "" if your account assigns one automatically).
+        The workspace root applies the IP access list. First edit network_policy.yaml in this folder.'
       tfvars:
         enable_ip_access_list: false
         enable_ncc: true
         enable_network_policy: true
         network_policy_enforcement_mode: ENFORCED
+        metastore_id: ${var.metastore_id}
       outputs:
         workspace_url:
           stage: 1
           output: workspace_url
-- id: gcp-classic-exfiltration-protection
+    unsupported:
+    - options:
+      - public-access
+      - cmk
+      reason: 'the gcpdb4u PSC roots fix both together (byovpc-psc-ws: public on, no CMK; byovpc-psc-cmek-ws: public
+        off, CMK); choose one of the two, or the lpw build (least-privilege) if that suits your security policy.'
+  - id: lpw
+    for: 'Special case, least-privilege workspace (LPW, generally available): for security-conscious or regulated
+      accounts where Databricks must not create IAM roles or firewall rules. You create them yourself, decoupled
+      from workspace creation: one root, two applies (provisioning, then running), and it creates the VPC, service
+      accounts and CMK.'
+    deployment: gcpdb4u/templates/terraform-scripts/lpw
+    prepare:
+    - In terraform/gcpdb4u/templates/terraform-scripts/lpw run ./prereqs.sh once per GCP project (APIs, service
+      agents, deployer roles), then add the deployer service account as an account admin in the account console
+      (RUNBOOK.md step 0).
+    - Create account groups once (identities/) and note your regional metastore name (metastore/), as in RUNBOOK.md
+      steps 1-2.
+    stages:
+    - name: provision
+      note: 'Apply 1 of 2: everything is built and the workspace is created bare. ip_access_list.yaml in this folder
+        is written from your allowed_ip_ranges; edit network_policy.yaml (destinations serverless workloads need)
+        first. Public access is off from the start and can''t be changed later: run Terraform from a network that
+        reaches the workspace PSC endpoint.'
+      tfvars:
+        expected_workspace_status: PROVISIONING
+        create_vpc: true
+        enable_private_access: true
+        public_access_enabled: false
+        enable_ip_access_list: true
+        enable_ncc: true
+        enable_network_policy: true
+        network_policy_enforcement_mode: ENFORCED
+        metastore_name: ${var.metastore_name}
+      ip_access_list: file
+    - name: running
+      note: 'Apply 2 of 2: attaches the network, keys, PSC, NCC, metastore, IP access lists and the serverless network
+        policy.'
+      tfvars:
+        expected_workspace_status: RUNNING
+- id: classic-dep
   name: Classic — data exfiltration protection (VPC Service Controls)
-  use_case: High security, plus a VPC Service Controls perimeter, Google APIs over restricted.googleapis.com and
-    deny-by-default egress. Assessed against the GCP data exfiltration protection guide.
-  pattern: gcp-classic-dep
+  use_case: Full Private Service Connect with public access off, plus a VPC Service Controls perimeter, Google APIs
+    over restricted.googleapis.com and deny-by-default egress. Assessed against the GCP data exfiltration protection
+    guide.
+  pattern: classic-dep
   deployment: https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection
-  require:
-  - GCP-WS-001
+  require: []
+  options:
+  - id: data-leak
+    name: Data-leak features off
+    summary: Notebook export, results download and the notebook table clipboard are disabled.
+    require:
+    - GCP-WS-001
+    manual: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to "false" (databricks_workspace_conf,
+      or workspace-guardrails with disable_data_leak_features = true after this root).
+  - id: context-ingress
+    name: Context-based ingress
+    summary: Allow and deny rules on identity, request type and network source, on top of IP access lists (a request
+      must pass both).
+    require:
+    - GCP-ING-002
+    manual: Add an ingress (start with ingress_dry_run) block to the workspace's network policy in the account console
+      or Terraform; see the GCP-ING-002 fix in the report.

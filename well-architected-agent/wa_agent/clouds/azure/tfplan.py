@@ -22,7 +22,7 @@ correlation.
 from __future__ import annotations
 
 from ...facts import COMPUTED, EVIDENCE
-from .live import egress_restricted
+from .live import egress_restricted, ingress_restricted
 
 DATABRICKS_DELEGATION = "Microsoft.Databricks/workspaces"
 DBX_ZONE = "privatelink.azuredatabricks.net"
@@ -105,6 +105,7 @@ PROVENANCE = {
     "serverless.ncc_private_endpoint_rules": ("databricks_mws_ncc_private_endpoint_rule",),
     "serverless.egress_restricted": ("databricks_account_network_policy", "databricks_workspace_network_option"),
     "access.": ("databricks_workspace_conf", "databricks_ip_access_list"),
+    "access.context_ingress_enforced": ("databricks_account_network_policy", "databricks_workspace_network_option"),
     "governance.metastore_assigned": ("databricks_metastore_assignment",),
     "governance.access_connector": ("azurerm_databricks_access_connector",),
     "operations.diagnostic_settings": ("azurerm_monitor_diagnostic_setting",),
@@ -346,10 +347,16 @@ def _access(rs) -> dict:
         # Unset means the Databricks default, which is enabled.
         return str(conf.get(key, "")).lower() != "false"
 
-    return {
+    out = {
         "ip_access_lists_enabled": enabled,
         "ip_access_list_count": len(allow_lists),
         "notebook_export_enabled": feature_enabled("enableExportNotebook"),
         "results_download_enabled": feature_enabled("enableResultsDownloading"),
         "table_clipboard_enabled": feature_enabled("enableNotebookTableClipboard"),
     }
+    policies = _of_type(rs, "databricks_account_network_policy")
+    if policies:
+        # Context-based ingress lives on the same network policy object as serverless egress.
+        out["context_ingress_enforced"] = bool(_of_type(rs, "databricks_workspace_network_option")) and any(
+            ingress_restricted(r["values"]) for r in policies)
+    return out

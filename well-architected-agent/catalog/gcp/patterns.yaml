@@ -7,45 +7,56 @@
 catalog_version: "2026.10.0"
 cloud: gcp
 
+# Same five patterns on every cloud (see catalog/azure/patterns.yaml). On
+# Google Cloud, Private Link is Private Service Connect (PSC).
+#
 # Bare minimum for every pattern and baseline, whatever else is used: an IP
-# access list on any public front-end and an enforced serverless egress policy.
+# access list on any public front-end, an enforced serverless egress policy
+# and Unity Catalog.
 minimum_required:
   - GCP-ING-001
   - GCP-SRV-002
+  - GCP-UC-001
 
 detection_order:
-  - gcp-classic-managed-vpc
-  - gcp-classic-dep
-  - gcp-classic-psc-private
-  - gcp-classic-psc
-  - gcp-classic-byovpc
+  - serverless
+  - classic-dep
+  - classic-full-pl
+  - classic-backend-pl
+  - classic-no-pl
 
 patterns:
-  - id: gcp-classic-managed-vpc
-    name: Classic — Databricks-managed VPC (anti-pattern)
-    compute_mode: classic
-    tier: 0
+  - id: serverless
+    name: Serverless workspace
+    compute_mode: serverless
+    tier: 2
     summary: >-
-      Databricks creates and manages the VPC. No control over subnets,
-      firewall, egress or Private Service Connect; migrate to a
-      customer-managed VPC.
-    signature: {fact: workspace.customer_managed_vpc, op: equals, value: false}
+      No customer VPC: compute runs in the Databricks serverless compute
+      plane and data in default storage (or your buckets, through Unity
+      Catalog). A VPC of yours is needed only for a private front-end (PSC).
+      Governed by IP access lists, an NCC and an enforced serverless egress
+      policy.
+    signature: {fact: workspace.compute_mode, op: equals, value: serverless}
     references:
-      - https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc
+      - https://docs.databricks.com/gcp/en/admin/workspace/serverless-workspaces
+      - gcpdb4u/templates/terraform-scripts/serverless-ws
     required:
-      - GCP-NET-001
-      - GCP-UC-001
-    recommended: []
+      - GCP-SRV-001
+      - GCP-OPS-001
+    recommended:
+      - GCP-ENC-001
+      - GCP-WS-001
+      - GCP-ING-002
 
-  - id: gcp-classic-dep
+  - id: classic-dep
     name: Classic — data exfiltration protection (VPC Service Controls)
     compute_mode: classic
     tier: 3
     summary: >-
-      Customer-managed VPC with front-end and back-end Private Service
-      Connect and no public access, a VPC Service Controls perimeter,
-      Google APIs over restricted.googleapis.com, deny-by-default egress,
-      customer-managed keys.
+      Your VPC with front-end and back-end Private Service Connect and no
+      public access, a VPC Service Controls perimeter, Google APIs over
+      restricted.googleapis.com, deny-by-default egress, customer-managed keys.
+      Assessed against the GCP data exfiltration protection guide.
     signature:
       all_of:
         - {fact: workspace.customer_managed_vpc, op: equals, value: true}
@@ -74,19 +85,21 @@ patterns:
       - GCP-NET-004
       - GCP-PL-004
       - GCP-WS-001
+      - GCP-ING-002
 
-  - id: gcp-classic-psc-private
-    name: Classic — Private Service Connect, no public access
+  - id: classic-full-pl
+    name: Classic — your VPC, full Private Service Connect (front-end and back-end)
     compute_mode: classic
     tier: 3
     summary: >-
-      Customer-managed VPC with front-end and back-end Private Service
-      Connect; public access disabled, private DNS, Private Google Access.
+      Private Service Connect for users (front-end) and for compute (back-end),
+      private DNS, Private Google Access. Public access is off, unless you
+      choose to allow selected clients on known IPs (IP access lists).
     signature:
       all_of:
         - {fact: workspace.customer_managed_vpc, op: equals, value: true}
+        - {fact: private_link.backend_psc, op: equals, value: true}
         - {fact: private_link.frontend_psc, op: equals, value: true}
-        - {fact: workspace.public_access_enabled, op: equals, value: false}
     references:
       - https://docs.databricks.com/gcp/en/security/network/classic/private-service-connect
       - gcpdb4u/templates/terraform-scripts/byovpc-psc-cmek-ws
@@ -108,15 +121,15 @@ patterns:
       - GCP-ENC-001
       - GCP-ENC-002
       - GCP-WS-001
+      - GCP-ING-002
 
-  - id: gcp-classic-psc
-    name: Classic — Private Service Connect, public front-end
+  - id: classic-backend-pl
+    name: Classic — your VPC, back-end Private Service Connect only
     compute_mode: classic
     tier: 2
     summary: >-
-      Customer-managed VPC with back-end Private Service Connect (and
-      optionally front-end); users may also reach the workspace over the
-      internet, restricted by IP access lists.
+      Compute reaches the control plane over Private Service Connect; users
+      reach the workspace over the internet, restricted by IP access lists.
     signature:
       all_of:
         - {fact: workspace.customer_managed_vpc, op: equals, value: true}
@@ -139,15 +152,17 @@ patterns:
       - GCP-ENC-001
       - GCP-ENC-002
       - GCP-WS-001
+      - GCP-ING-002
 
-  - id: gcp-classic-byovpc
-    name: Classic — customer-managed VPC
+  - id: classic-no-pl
+    name: Classic — your VPC, no Private Service Connect
     compute_mode: classic
     tier: 1
     summary: >-
-      Customer-managed (optionally shared) VPC with Private Google Access and
-      Cloud NAT; public front-end restricted by IP access lists.
-    signature: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+      Your VPC (new, existing or shared) with Private Google Access and Cloud
+      NAT; public front-end restricted by IP access lists.
+    # Last in detection_order: every classic workspace not matched above.
+    signature: {fact: workspace.compute_mode, op: equals, value: classic}
     references:
       - https://docs.databricks.com/gcp/en/security/network/classic/customer-managed-vpc
       - gcpdb4u/templates/terraform-scripts/byovpc-ws
@@ -164,3 +179,4 @@ patterns:
       - GCP-ENC-001
       - GCP-ENC-002
       - GCP-WS-001
+      - GCP-ING-002

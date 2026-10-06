@@ -54,6 +54,8 @@ SAMPLES = {
     "metastore_name": "wacheck-ms",
     "network_name": "wacheck-vpc",
 }
+# The user's known IP ranges (`--set allowed_ip_ranges=...`), required by every build.
+ANSWERS = {"allowed_ip_ranges": ["203.0.113.0/24", "198.51.100.10/32"]}
 # Values a stage reads from an earlier root's `terraform output`.
 OUTPUT_SAMPLES = {"workspace_url": "https://1111111111111111.1.gcp.databricks.com"}
 ENV = {"TF_VAR_databricks_account_id": "00000000-0000-0000-0000-000000000000",
@@ -97,12 +99,21 @@ def resolves(want, got) -> bool:
     return want == got
 
 
-def check(cat: dict, b: dict, build: dict, repo: Path, tmp: Path) -> list[str]:
+def option_sets(b: dict, build: dict) -> list[tuple[str, ...]]:
+    """No options, each option alone, and all of them, minus combinations the build can't do."""
+    ids = [o["id"] for o in b.get("options") or []]
+    sets = [(), *[(i,) for i in ids], tuple(ids)]
+    blocked = [set(u["options"]) for u in build.get("unsupported") or []]
+    return [s for s in dict.fromkeys(sets) if not any(x <= set(s) for x in blocked)]
+
+
+def check(cat: dict, b: dict, build: dict, repo: Path, tmp: Path, options=()) -> list[str]:
     """Failures for one build: every root's values must resolve as the run book layers them."""
     failures = []
-    out = tmp / f"{b['id']}-{build['id']}"
-    generate(cat, b["id"], str(out), build_id=build["id"])
-    rendered = apply_answers(build, {})
+    tag = "-".join((cat["cloud"], b["id"], build["id"], *options))
+    out = tmp / tag
+    generate(cat, b["id"], str(out), dict(ANSWERS), build_id=build["id"], options=options)
+    rendered = apply_answers(check_build(b, repo, build["id"], options), dict(ANSWERS))
     for root in roots(rendered):
         stages = [(i, st) for i, st in enumerate(rendered["stages"], 1) if stage_root(rendered, st) == root]
         var_files = [f"-var-file={repo / root / name}" for name in auto_tfvars(repo / root, repo)]
@@ -117,7 +128,7 @@ def check(cat: dict, b: dict, build: dict, repo: Path, tmp: Path) -> list[str]:
         for _, st in stages:
             expected.update(json.loads(fill(json.dumps(st["tfvars"]))))
         expr = "jsonencode({" + ", ".join(f"{k} = var.{k}" for k in sorted(expected)) + "})" if expected else '"none"'
-        scratch = variables_only(repo / root, tmp / f"vars-{b['id']}-{build['id']}-{Path(root).name}")
+        scratch = variables_only(repo / root, tmp / f"vars-{tag}-{Path(root).name}")
         proc = run(["terraform", "console", "-no-color", *var_files, *extra], scratch, input=expr)
         # console exits 0 even when a validation rule rejects a value
         if proc.returncode != 0 or "Error:" in proc.stderr:
@@ -140,15 +151,18 @@ def main(repo_root: str | None = None) -> int:
             cat = catalog.load(cloud)
             for b in cat["baselines"]:
                 for build in builds(b):
-                    check_build(b, repo, build["id"])
-                    problems = check(cat, b, build, repo, tmp)
-                    label = f"{cloud} {b['id']}" + (f" [{build['id']}]" if build["id"] != "default" else "")
-                    if problems:
-                        failures += 1
-                        print(f"FAIL {label}: " + " | ".join(problems), flush=True)
-                    else:
-                        n = sum(len(st["tfvars"]) for st in build["stages"])
-                        print(f"ok   {label}: {n} tfvars resolve as intended in {', '.join(roots(build))}", flush=True)
+                    for options in option_sets(b, build):
+                        built = check_build(b, repo, build["id"], options)
+                        problems = check(cat, b, build, repo, tmp, options)
+                        label = (f"{cloud} {b['id']}" + (f" [{build['id']}]" if build["id"] != "default" else "")
+                                 + "".join(f" +{o}" for o in options))
+                        if problems:
+                            failures += 1
+                            print(f"FAIL {label}: " + " | ".join(problems), flush=True)
+                        else:
+                            n = sum(len(st["tfvars"]) for st in built["stages"])
+                            print(f"ok   {label}: {n} tfvars resolve as intended in {', '.join(roots(built))}",
+                                  flush=True)
     return 1 if failures else 0
 
 

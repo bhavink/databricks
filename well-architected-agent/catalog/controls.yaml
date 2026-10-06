@@ -63,6 +63,8 @@ controls:
      title: Private DNS resolves workspace endpoints to private IPs}
   - {id: NET.IP_ACCESS_LISTS, phase: 4, pillar: security,
      title: IP access lists restrict any public front-end}
+  - {id: NET.CONTEXT_BASED_INGRESS, phase: 4, pillar: security,
+     title: Context-based ingress combines identity, request type and network source}
   - {id: NET.DATA_LEAK_FEATURES, phase: 4, pillar: security,
      title: Workspace features that could leak data are disabled}
   - {id: NET.SERVERLESS_NCC, phase: 4, pillar: security,

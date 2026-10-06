@@ -1,33 +1,85 @@
 # Azure baselines: the use-case entry point for an assessment.
 #
-# A baseline is "what this workspace is supposed to be". It picks a
-# reference pattern, can promote extra checks to required (`require`),
-# and points at the deployment in this repo that builds it.
+# One baseline per pattern, with the same ids on every cloud:
+#   classic-no-pl  classic-backend-pl  classic-full-pl  classic-dep  serverless
 #
-#   python -m wa_agent baselines
-#   python -m wa_agent assess --facts f.json --baseline classic-high-security
+# A baseline is "what this workspace is supposed to be". It picks a
+# reference pattern, can promote extra checks to required (`require`), and
+# points at the deployment in this repo that builds it. Every baseline has
+# the bare minimum (IP access lists, an enforced serverless egress policy,
+# Unity Catalog) from patterns.yaml.
+#
+#   wa-agent baselines
+#   wa-agent assess --facts f.json --baseline classic-full-pl --option cmk
+#
+# `options` are hardening you choose on top: a chosen option makes its
+# checks required (and may waive one, e.g. public access on full Private
+# Link); options not chosen show as recommended. `set` is how `wa-agent new`
+# turns an option on in a build (tfvars, or another root, per stage);
+# `manual` says how to do it yourself where the Terraform has no setting.
 #
 # `build` (optional) is how `wa-agent new` turns a baseline into a deployment:
 # a deployment in this repo (copied into the output) plus tfvars per stage,
 # layered on top of inputs.tfvars (the root's required variables, answered
-# with --set). This repo is the only source of Terraform; other repositories
-# (e.g. the Databricks SRA) may be cited as references, never built from.
-# `env` lists variables set with TF_VAR_* and never written to files;
-# `workspace` picks the workspace when the plan has several; `known_gaps` are
-# checks the Terraform does not cover. Baselines without a deployment here have
-# no `build` block, and `new` refuses rather than improvise.
+# with --set). `ip_access_list: tfvar` passes the user's known IP ranges
+# (--set allowed_ip_ranges=[...], required) as `allowed_ip_ranges`. This repo
+# is the only source of Terraform; other repositories (e.g. the Databricks
+# SRA) may be cited as references, never built from. `env` lists variables
+# set with TF_VAR_* and never written to files; `known_gaps` are checks the
+# Terraform does not cover. Baselines without a deployment here have no
+# `build`, and `new` refuses rather than improvise.
 #
-# With no --baseline, the workspace is scored against the pattern it is
-# detected as. BYOR (adb4u/deployments/byor) is a delivery model, not a
-# posture: any classic baseline can be built on BYOR infrastructure.
+# BYOR (adb4u/deployments/byor) is a delivery model, not a posture: any
+# classic baseline can be built on BYOR infrastructure.
 
 baselines:
   - id: serverless
     name: Serverless workspace
-    use_case: No customer network to manage; serverless SQL, notebooks, jobs and apps only.
-    pattern: az-serverless
+    use_case: >-
+      No customer network to manage; serverless SQL, notebooks, jobs and apps
+      only. A VNet is created only for a private front-end.
+    pattern: serverless
     deployment: adb4u/deployments/serverless
     require: []
+    options:
+      - id: cmk
+        name: Customer-managed key for managed services
+        summary: Notebooks, secrets and queries encrypted with your Key Vault key.
+        require: [AZ-ENC-001]
+        set:
+          - stage: deploy
+            tfvars:
+              managed_services_cmk_key_id: "REPLACE_ME_managed_services_cmk_key_uri"
+      - id: storage-private
+        name: Private connectivity to your storage
+        summary: NCC private endpoint rules from serverless to your storage accounts (approve them after apply).
+        require: [AZ-SRV-003]
+        set:
+          - stage: deploy
+            tfvars:
+              serverless_private_endpoint_storage_account_ids: ["REPLACE_ME_storage_account_resource_id"]
+      - id: data-leak
+        name: Data-leak features off
+        summary: Notebook export, results download and the notebook table clipboard are disabled.
+        require: [AZ-WS-001]
+        set:
+          - stage: deploy
+            tfvars:
+              additional_workspace_config:
+                enableExportNotebook: "false"
+                enableResultsDownloading: "false"
+                enableNotebookTableClipboard: "false"
+      - &context-ingress
+        id: context-ingress
+        name: Context-based ingress
+        summary: >-
+          Allow and deny rules on identity, request type and network source,
+          on top of IP access lists (a request must pass both).
+        require: [AZ-ING-002]
+        manual: >-
+          Add an ingress (start with ingress_dry_run) block to the workspace's
+          network policy in the account console or Terraform; see the AZ-ING-002
+          fix in the report.
     build:
       deployment: adb4u/deployments/serverless
       stages:
@@ -35,121 +87,122 @@ baselines:
           note: >-
             Serverless egress is restricted and enforced with an empty allowlist: add the FQDNs and
             storage accounts your workloads need (serverless_allowed_internet_destinations,
-            serverless_allowed_storage_accounts) before applying.
+            serverless_allowed_storage_accounts) before applying. With cmk, the Key Vault must grant the
+            AzureDatabricks application get, wrapKey and unwrapKey on the key; with storage-private, approve
+            each private endpoint on the storage account after apply.
+          ip_access_list: tfvar
           tfvars:
             enable_public_network_access: true
             enable_ip_access_lists: true
-            allowed_ip_ranges: ["REPLACE_ME_corporate_egress_cidr"]
             enable_network_policy: true
             network_policy_enforcement_mode: "ENFORCED"
             serverless_allowed_internet_destinations: []
             enable_diagnostic_settings: true
             diagnostic_log_analytics_workspace_id: "REPLACE_ME_log_analytics_workspace_resource_id"
 
-  - id: serverless-high-security
-    name: Serverless workspace — highly secure
-    use_case: >-
-      Serverless only, with private connectivity to customer storage, enforced
-      serverless egress restrictions and customer-managed keys.
-    pattern: az-serverless
-    deployment: adb4u/deployments/serverless
-    require:
-      - AZ-WS-001
-      - AZ-SRV-003
-      - AZ-ENC-001
-    build:
-      deployment: adb4u/deployments/serverless
-      stages:
-        - name: deploy
-          note: >-
-            Serverless egress is restricted and enforced with an empty allowlist: add the FQDNs and
-            storage accounts your workloads need (serverless_allowed_internet_destinations,
-            serverless_allowed_storage_accounts) before applying. The Key Vault must grant the
-            AzureDatabricks application get, wrapKey and unwrapKey on the CMK key, and each storage
-            private endpoint must be approved on the storage account after apply.
-          tfvars:
-            enable_public_network_access: true
-            enable_ip_access_lists: true
-            allowed_ip_ranges: ["REPLACE_ME_corporate_egress_cidr"]
-            enable_network_policy: true
-            network_policy_enforcement_mode: "ENFORCED"
-            serverless_allowed_internet_destinations: []
-            enable_diagnostic_settings: true
-            diagnostic_log_analytics_workspace_id: "REPLACE_ME_log_analytics_workspace_resource_id"
-            managed_services_cmk_key_id: "REPLACE_ME_managed_services_cmk_key_uri"
-            serverless_private_endpoint_storage_account_ids: ["REPLACE_ME_storage_account_resource_id"]
-            additional_workspace_config:
-              enableExportNotebook: "false"
-              enableResultsDownloading: "false"
-              enableNotebookTableClipboard: "false"
-
-  - id: classic-standard
-    name: Classic — standard (no Private Link)
+  - id: classic-no-pl
+    name: Classic — your VNet, no Private Link
     use_case: >-
       Classic compute in your VNet with secure cluster connectivity, NAT
-      egress and a public, IP-restricted front-end. Dev/test or low-sensitivity data.
-    pattern: az-classic-non-pl
+      egress and a public front-end restricted to your known IP ranges.
+    pattern: classic-no-pl
     deployment: adb4u/deployments/non-pl
     require: []
+    options:
+      - &cmk-classic
+        id: cmk
+        name: Customer-managed keys
+        summary: Managed services, managed disks and DBFS root encrypted with your Key Vault key.
+        require: [AZ-ENC-001, AZ-ENC-002, AZ-ENC-003]
+        set:
+          - stage: deploy
+            tfvars:
+              enable_cmk_managed_services: true
+              enable_cmk_managed_disks: true
+              enable_cmk_dbfs_root: true
+      - &data-leak-classic
+        id: data-leak
+        name: Data-leak features off
+        summary: Notebook export, results download and the notebook table clipboard are disabled.
+        require: [AZ-WS-001]
+        manual: >-
+          Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to "false"
+          (databricks_workspace_conf, or the workspace admin settings); this deployment has no setting for it.
+      - *context-ingress
     build:
       deployment: adb4u/deployments/non-pl
       stages:
         - name: deploy
           note: Serverless egress is restricted and enforced with an empty allowlist (bare minimum); add the destinations serverless workloads need (serverless_allowed_internet_destinations) before applying.
+          ip_access_list: tfvar
           tfvars:
             enable_nat_gateway: true
             enable_service_endpoint_policy: true
             enable_ip_access_lists: true
-            allowed_ip_ranges: ["REPLACE_ME_corporate_egress_cidr"]
             enable_network_policy: true
             network_policy_enforcement_mode: "ENFORCED"
             serverless_allowed_internet_destinations: []
             enable_diagnostic_settings: true
             diagnostic_log_analytics_workspace_id: "REPLACE_ME_log_analytics_workspace_resource_id"
 
-  - id: classic-private-link
-    name: Classic — Private Link (back-end), public front-end
+  # Assess-only: adb4u's Private Link deployment (full-private) always adds
+  # the front-end endpoints too, so it builds classic-full-pl (with
+  # public-access for a public front-end), not back-end only.
+  - id: classic-backend-pl
+    name: Classic — your VNet, back-end Private Link only
     use_case: >-
       Compute-to-control-plane traffic over Private Link; users reach the
-      workspace over the internet, restricted by IP access lists.
-    pattern: az-classic-backend-pl
-    deployment: adb4u/deployments/full-private
+      workspace over the internet, restricted to your known IP ranges.
+    pattern: classic-backend-pl
+    deployment: https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/private-link
     require: []
-    build:
-      deployment: adb4u/deployments/full-private
-      stages:
-        - name: deploy
-          note: Serverless egress is restricted and enforced with an empty allowlist (bare minimum); add the destinations serverless workloads need (serverless_allowed_internet_destinations) before applying.
-          tfvars:
-            enable_public_network_access: true
-            enable_ip_access_lists: true
-            allowed_ip_ranges: ["REPLACE_ME_corporate_egress_cidr"]
-            enable_nat_gateway: true
-            enable_ncc: true
-            enable_network_policy: true
-            network_policy_enforcement_mode: "ENFORCED"
-            serverless_allowed_internet_destinations: []
-            enable_service_endpoint_policy: true
-            enable_diagnostic_settings: true
-            diagnostic_log_analytics_workspace_id: "REPLACE_ME_log_analytics_workspace_resource_id"
+    options:
+      - *cmk-classic
+      - *data-leak-classic
+      - *context-ingress
 
-  - id: classic-full-private
-    name: Classic — full private
+  - id: classic-full-pl
+    name: Classic — your VNet, full Private Link
     use_case: >-
-      No public access to the workspace; Private Link for users and compute;
-      private DBFS and UC storage; no internet egress.
-    pattern: az-classic-full-private
+      Private Link for users and compute; private DBFS and UC storage; no
+      internet egress. Public access is off, unless you choose public-access
+      to let selected clients in from known IPs.
+    pattern: classic-full-pl
     deployment: adb4u/deployments/full-private
     require: []
+    options:
+      - id: public-access
+        name: Public access for selected clients
+        summary: >-
+          Keep the public front-end on, restricted by IP access lists, for
+          clients that can't use Private Link (front-end Private Link stays).
+        waive: [AZ-PL-004]
+        set:
+          - stage: lockdown
+            ip_access_list: tfvar
+            tfvars:
+              enable_public_network_access: true
+              enable_ip_access_lists: true
+      - *cmk-classic
+      - id: storage-lockdown
+        name: Storage lockdown
+        summary: Workspace storage firewall on, and a service endpoint policy limiting storage egress.
+        require: [AZ-STO-002, AZ-NET-008]
+        set:
+          - stage: lockdown
+            tfvars:
+              enable_default_storage_firewall: true
+      - *data-leak-classic
+      - *context-ingress
     build:
       deployment: adb4u/deployments/full-private
       stages:
         - name: deploy
-          note: Public access stays on so Terraform can reach the workspace API from outside the VNet.
+          note: Public access stays on (restricted to your IP ranges) so Terraform can reach the workspace API from outside the VNet.
+          ip_access_list: tfvar
           tfvars:
             enable_public_network_access: true
             enable_ip_access_lists: true
-            allowed_ip_ranges: ["REPLACE_ME_terraform_runner_egress_cidr"]
             enable_nat_gateway: false
             enable_ncc: false
             enable_service_endpoint_policy: true
@@ -157,70 +210,30 @@ baselines:
             diagnostic_log_analytics_workspace_id: "REPLACE_ME_log_analytics_workspace_resource_id"
         - name: lockdown
           note: >-
-            Run from inside the private network (VPN, ExpressRoute or jump box); the public front-end is
-            closed in this stage. Serverless egress is restricted and enforced with an empty allowlist
-            (bare minimum); add the destinations serverless workloads need before applying.
+            Run from inside the private network (VPN, ExpressRoute or jump box) unless public-access is
+            chosen: the public front-end is closed in this stage. Serverless egress is restricted and
+            enforced with an empty allowlist (bare minimum); add the destinations serverless workloads
+            need before applying. With storage-lockdown, read the storage firewall caveats first.
           tfvars:
             enable_public_network_access: false
             enable_ncc: true
-            enable_network_policy: true
-            network_policy_enforcement_mode: "ENFORCED"
-            serverless_allowed_internet_destinations: []
-
-  - id: classic-high-security
-    name: Classic — highly secure (regulated)
-    use_case: >-
-      Full private plus customer-managed keys everywhere, workspace storage
-      firewall, enforced serverless egress policy and storage egress policy.
-    pattern: az-classic-full-private
-    deployment: adb4u/deployments/full-private
-    require:
-      - AZ-WS-001
-      - AZ-ENC-001
-      - AZ-ENC-002
-      - AZ-ENC-003
-      - AZ-STO-002
-      - AZ-SRV-002
-      - AZ-NET-008
-    build:
-      deployment: adb4u/deployments/full-private
-      stages:
-        - name: deploy
-          note: Public access stays on so Terraform can reach the workspace API from outside the VNet.
-          tfvars:
-            enable_public_network_access: true
-            enable_ip_access_lists: true
-            allowed_ip_ranges: ["REPLACE_ME_terraform_runner_egress_cidr"]
-            enable_nat_gateway: false
-            enable_ncc: false
-            enable_cmk_managed_services: true
-            enable_cmk_managed_disks: true
-            enable_cmk_dbfs_root: true
-            enable_service_endpoint_policy: true
-            enable_diagnostic_settings: true
-            diagnostic_log_analytics_workspace_id: "REPLACE_ME_log_analytics_workspace_resource_id"
-        - name: lockdown
-          note: >-
-            Run from inside the private network. Enables the storage firewall (after the DBFS private
-            endpoints exist; read its caveats first) and an enforced serverless network policy.
-          tfvars:
-            enable_public_network_access: false
-            enable_ncc: true
-            enable_default_storage_firewall: true
             enable_network_policy: true
             network_policy_enforcement_mode: "ENFORCED"
             serverless_allowed_internet_destinations: []
 
   # Assess-only by design: grounded in the Azure data exfiltration protection
   # blog (the definitive guide for hub-spoke); no deployment, so no `build`.
-  - id: classic-exfiltration-protection
-    name: Classic — data exfiltration protection (hub-spoke firewall)
+  - id: classic-dep
+    name: Classic — data exfiltration protection (hub-spoke egress firewall)
     use_case: >-
       Hub-spoke with all compute egress inspected and FQDN-allowlisted by a
       firewall, Private Link front-end and back-end, CMK.
-    pattern: az-classic-dep-hub-spoke
+    pattern: classic-dep
     deployment: https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks
     require:
       - AZ-ENC-001
       - AZ-ENC-002
       - AZ-ENC-003
+    options:
+      - *data-leak-classic
+      - *context-ingress

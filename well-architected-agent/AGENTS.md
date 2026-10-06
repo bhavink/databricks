@@ -32,10 +32,10 @@ Use the MCP server (`wa-agent-mcp`) if it is configured; otherwise use the CLI:
 wa-agent baselines
 wa-agent collect live --cloud azure --workspace <arm-id> --profile <ws> --account-profile <acct> -o out/ws.facts.json
 wa-agent collect live --cloud gcp --workspace <name-or-url> --account-profile <gcp-acct> -o out/gcp.facts.json
-wa-agent assess --facts out/ws.facts.json --baseline <baseline-id> -o out/ws.report.md
-wa-agent verify --tf-json state.json --baseline <baseline-id>
-wa-agent new --baseline <baseline-id> --out <new-dir> --set name=value   # tested Terraform + run book; the user runs it
-wa-agent new --cloud gcp --baseline <id> --build <lpw|new-vpc|existing-vpc> --out <new-dir>
+wa-agent assess --facts out/ws.facts.json --baseline <baseline-id> [--option <id>] -o out/ws.report.md
+wa-agent verify --tf-json state.json --baseline <baseline-id> [--option <id>]
+wa-agent new --baseline <baseline-id> --out <new-dir> --set allowed_ip_ranges='["<cidr>"]' --set name=value
+wa-agent new --cloud gcp --baseline <id> --build <lpw|new-vpc|existing-vpc> [--option <id>] --out <new-dir> ...
 ```
 
 Relay fix caveats (**Before you apply**) and maturity labels verbatim.
@@ -43,8 +43,19 @@ Relay fix caveats (**Before you apply**) and maturity labels verbatim.
 Run `preflight` (MCP) or `wa-agent doctor --workspace <name>` before a live scan and relay its fixes.
 Ask the user which baseline applies if they haven't said. Never invent a
 baseline id; list them first. Pass `--cloud gcp` (or `cloud: "gcp"` in MCP) for Google Cloud.
-When a baseline offers several builds, they are equals: show each one's `for` text and
-let the user choose; never pick one for them.
+When a baseline offers several builds, show each one's `for` text and let the user
+choose; never pick one for them. On GCP, ask first whether Databricks may create
+IAM roles and firewall rules in their project: standard builds (`new-vpc`,
+`existing-vpc`) are the common case; `lpw` (least-privilege) is the special case
+for teams that must create those themselves.
+Baselines have the same ids on every cloud: `classic-no-pl`, `classic-backend-pl`,
+`classic-full-pl`, `classic-dep`, `serverless`. Options (`cmk`, `public-access`,
+`data-leak`, `context-ingress`, ...) are the user's choice too: show them
+(`describe_baseline`) and pass only those the user picks.
+IP access lists are part of the bare minimum and need the user's own known IP
+ranges (corporate egress, VPN, automation, and the IP they run Terraform from).
+Always ask for them and pass them as `allowed_ip_ranges`; never invent, guess or
+widen them (0.0.0.0/0 is refused).
 
 ## Changing this codebase
 

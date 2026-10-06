@@ -11,6 +11,9 @@ from wa_agent.engine import FAIL, NOT_APPLICABLE, PASS, UNKNOWN, assess
 from wa_agent.facts import merge
 
 
+IPS = {"allowed_ip_ranges": ["203.0.113.0/24"]}
+
+
 @pytest.fixture(scope="module")
 def gcp_catalog():
     return catalog.load("gcp")
@@ -102,9 +105,9 @@ def test_catalog_requires_the_bare_minimum_everywhere(gcp_catalog):
 
 def test_new_vpc_build_plans_merge_into_a_conformant_high_security_workspace(gcp_catalog):
     facts = collected(infra4db(), byovpc_psc_cmek(public=False), guardrails(ip_acl=False))
-    result = assess(gcp_catalog, facts, baseline_id="gcp-classic-high-security")
+    result = assess(gcp_catalog, facts, baseline_id="classic-full-pl")
     s = statuses(result)
-    assert result.detected["id"] == "gcp-classic-psc-private"
+    assert result.detected["id"] == "classic-full-pl"
     assert s["GCP-ING-001"] == NOT_APPLICABLE  # no public front-end
     assert s["GCP-SRV-002"] == PASS and s["GCP-PL-003"] == PASS and s["GCP-ENC-002"] == PASS
     assert s["GCP-WS-001"] == FAIL  # data-leak settings are at their defaults in these roots
@@ -112,23 +115,23 @@ def test_new_vpc_build_plans_merge_into_a_conformant_high_security_workspace(gcp
 
 
 def test_without_guardrails_the_bare_minimum_fails(gcp_catalog):
-    s = statuses(assess(gcp_catalog, collected(infra4db(psc=False), plan(workspace())), baseline_id="gcp-classic-standard"))
+    s = statuses(assess(gcp_catalog, collected(infra4db(psc=False), plan(workspace())), baseline_id="classic-no-pl"))
     assert s["GCP-ING-001"] == FAIL and s["GCP-SRV-002"] == FAIL
     s = statuses(assess(gcp_catalog, collected(infra4db(psc=False), plan(workspace()), guardrails()),
-                        baseline_id="gcp-classic-standard"))
+                        baseline_id="classic-no-pl"))
     assert s["GCP-ING-001"] == PASS and s["GCP-SRV-002"] == PASS and s["GCP-NET-004"] == PASS
 
 
 def test_dep_needs_restricted_google_apis_and_a_perimeter(gcp_catalog):
     facts = collected(infra4db(restricted=False), byovpc_psc_cmek(), guardrails(ip_acl=False))
-    s = statuses(assess(gcp_catalog, facts, baseline_id="gcp-classic-exfiltration-protection"))
+    s = statuses(assess(gcp_catalog, facts, baseline_id="classic-dep"))
     assert s["GCP-NET-005"] == PASS  # infra4db's deny-egress-all
     assert s["GCP-NET-006"] == FAIL  # infra4db points *.googleapis.com at private.googleapis.com
     assert s["GCP-NET-007"] == UNKNOWN  # the perimeter isn't in these plans
     restricted = collected(infra4db(restricted=True), byovpc_psc_cmek(),
                            plan(rc("google_access_context_manager_service_perimeter.dbx",
                                    "google_access_context_manager_service_perimeter", {})))
-    s = statuses(assess(gcp_catalog, restricted, baseline_id="gcp-classic-exfiltration-protection"))
+    s = statuses(assess(gcp_catalog, restricted, baseline_id="classic-dep"))
     assert s["GCP-NET-006"] == PASS and s["GCP-NET-007"] == PASS
 
 
@@ -144,7 +147,7 @@ def test_lpw_plan_with_its_toggles(gcp_catalog):
     )
     facts = gcp_tfplan.collect(lpw)
     assert facts["workspace"]["customer_managed_vpc"] and facts["workspace"]["public_access_enabled"]
-    s = statuses(assess(gcp_catalog, facts, baseline_id="gcp-classic-cmek"))
+    s = statuses(assess(gcp_catalog, facts, baseline_id="classic-no-pl", options=["cmk"]))
     assert s["GCP-ENC-001"] == s["GCP-ENC-002"] == s["GCP-ING-001"] == s["GCP-SRV-002"] == PASS
     assert s["GCP-NET-004"] == FAIL  # lpw relies on PSC/PGA rather than Cloud NAT in this shape
 
@@ -152,13 +155,19 @@ def test_lpw_plan_with_its_toggles(gcp_catalog):
 def test_every_gcp_build_renders_and_builds_are_peers(gcp_catalog):
     from wa_agent.new import builds, render
 
-    answers = {"lpw": {"google_region": "us-central1", "metastore_name": "ms"},
-               "new-vpc": {"google_region": "us-central1", "network_name": "dbx-vpc"},
-               "existing-vpc": {"google_region": "us-central1"}}
+    answers = {"lpw": {"google_region": "us-central1", "metastore_name": "ms", **IPS},
+               "new-vpc": {"google_region": "us-central1", "network_name": "dbx-vpc", **IPS},
+               "existing-vpc": {"google_region": "us-central1", **IPS},
+               "default": {"google_region": "us-central1", **IPS}}
     for b in gcp_catalog["baselines"]:
         options = builds(b)
-        if b["id"] == "gcp-classic-exfiltration-protection":
+        if b["id"] in ("classic-dep", "classic-backend-pl"):  # assess-only
             assert options == []
+            continue
+        if b["id"] == "serverless":
+            assert [o["id"] for o in options] == ["default"]
+            files = render(gcp_catalog, "serverless", answers["default"])
+            assert "serverless-ws" in files["README.md"] and "inputs-workspace-guardrails.tfvars" in files
             continue
         assert {o["id"] for o in options} == {"lpw", "new-vpc", "existing-vpc"}
         with pytest.raises(ValueError, match="choose one with --build"):
@@ -174,8 +183,8 @@ def test_every_gcp_build_renders_and_builds_are_peers(gcp_catalog):
 def test_new_vpc_links_roots_and_reads_the_workspace_url(gcp_catalog):
     from wa_agent.new import render
 
-    files = render(gcp_catalog, "gcp-classic-psc", {"google_region": "us-central1", "network_name": "dbx-vpc"},
-                   build_id="new-vpc")
+    files = render(gcp_catalog, "classic-full-pl", {"google_region": "us-central1", "network_name": "dbx-vpc", **IPS},
+                   build_id="new-vpc", options=["public-access"])
     ws = files["stage-2-workspace.tfvars"]
     assert 'google_vpc_id        = "dbx-vpc"' in ws and 'node_subnet          = "subnet-us-central1"' in ws
     assert 'relay_pe             = "us-central1-relay-psc-ep"' in ws
@@ -187,14 +196,24 @@ def test_new_vpc_links_roots_and_reads_the_workspace_url(gcp_catalog):
     assert "inputs-workspace-guardrails.tfvars" in files
     meta = json.loads(files["baseline.json"])
     assert meta["build"] == "new-vpc" and len(meta["deployments"]) == 3
+    assert '"203.0.113.0/24"' in ws  # the PSC root applies the user's IP ranges
+    with pytest.raises(ValueError, match="can't do public-access [+] cmk"):
+        render(gcp_catalog, "classic-full-pl", {"google_region": "us-central1", **IPS}, build_id="new-vpc",
+               options=["public-access", "cmk"])
+    private = render(gcp_catalog, "classic-full-pl", {"google_region": "us-central1", **IPS}, build_id="existing-vpc")
+    assert "byovpc-psc-cmek-ws" in json.loads(private["baseline.json"])["deployments"][0]
 
 
 def test_bundle_includes_committed_example_config_but_never_state(gcp_catalog, tmp_path):
     from wa_agent.new import generate
 
     out = tmp_path / "book"
-    generate(gcp_catalog, "gcp-classic-standard", str(out), {"google_region": "us-central1"}, build_id="existing-vpc")
+    generate(gcp_catalog, "classic-no-pl", str(out), {"google_region": "us-central1", **IPS}, build_id="existing-vpc",
+             options=["data-leak"])
     root = out / "terraform" / "gcpdb4u" / "templates" / "terraform-scripts"
+    acl = (root / "workspace-guardrails" / "ip_access_list.yaml").read_text(encoding="utf-8")
+    assert "- 203.0.113.0/24" in acl and "office-allow" not in acl  # written from the answer, not the sample
+    assert "disable_data_leak_features" in (out / "stage-2-guardrails.tfvars").read_text(encoding="utf-8")
     assert (root / "byovpc-ws" / "workspace.auto.tfvars").is_file()  # committed example config, used as-is
     assert (root / "workspace-guardrails" / "network_policy.yaml").is_file()
     assert not [p for p in out.rglob("*") if p.name.endswith(".tfstate") or p.name == "terraform.tfvars"]
@@ -264,7 +283,7 @@ def test_live_scan_reads_account_api_and_gcloud(gcp_catalog):
     assert facts["network"] == {"smallest_subnet_prefix_length": 24, "private_google_access": True, "cloud_nat": True,
                                 "egress_deny_default": True, "google_apis_endpoint": "restricted",
                                 "service_perimeter": True}
-    s = statuses(assess(gcp_catalog, facts, baseline_id="gcp-classic-exfiltration-protection"))
+    s = statuses(assess(gcp_catalog, facts, baseline_id="classic-dep"))
     for check in ("GCP-NET-005", "GCP-NET-006", "GCP-NET-007", "GCP-PL-001", "GCP-PL-002", "GCP-PL-003",
                   "GCP-PL-004", "GCP-DNS-001", "GCP-ENC-001", "GCP-SRV-002", "GCP-OPS-001"):
         assert s[check] == PASS, check
@@ -284,3 +303,34 @@ def test_live_scan_needs_an_account_profile_and_stays_read_only():
                  ["databricks", "account", "workspaces", "delete", "1"]):
         with pytest.raises(Exception):
             gcp_live.assert_read_only(args)
+
+
+def test_serverless_workspace_has_no_network_and_keeps_the_bare_minimum(gcp_catalog):
+    srv = plan(rc("databricks_mws_workspaces.this", "databricks_mws_workspaces",
+                  {"workspace_name": "labs-srv", "compute_mode": "SERVERLESS", "location": "us-east4"}),
+               *guardrails()["resource_changes"],
+               rc("databricks_metastore_assignment.this[0]", "databricks_metastore_assignment", {}))
+    facts = gcp_tfplan.collect(srv)
+    assert facts["workspace"]["compute_mode"] == "serverless" and facts["workspace"]["customer_managed_vpc"] is False
+    result = assess(gcp_catalog, facts, baseline_id="serverless")
+    s = statuses(result)
+    assert result.detected["id"] == "serverless"
+    assert s["GCP-NET-001"] == s["GCP-ENC-002"] == s["GCP-PL-001"] == NOT_APPLICABLE
+    assert s["GCP-ING-001"] == s["GCP-SRV-002"] == s["GCP-UC-001"] == PASS
+    assert result.tier_of("GCP-UC-001") == "required"  # bare minimum
+
+
+def test_context_based_ingress_is_read_from_the_network_policy(gcp_catalog):
+    rules = guardrails()["resource_changes"]
+    for r in rules:
+        if r["type"] == "databricks_account_network_policy":
+            r["change"]["after"]["ingress_dry_run"] = {"public_access": {"restriction_mode": "RESTRICTED_ACCESS"}}
+    facts = gcp_tfplan.collect(plan(workspace(), *rules))
+    assert facts["access"]["context_ingress_enforced"] is False  # dry run only
+    for r in rules:
+        if r["type"] == "databricks_account_network_policy":
+            r["change"]["after"]["ingress"] = r["change"]["after"].pop("ingress_dry_run")
+    facts = gcp_tfplan.collect(plan(workspace(), *rules))
+    assert facts["access"]["context_ingress_enforced"] is True
+    result = assess(gcp_catalog, facts, baseline_id="classic-no-pl", options=["context-ingress"])
+    assert result.tier_of("GCP-ING-002") == "required" and statuses(result)["GCP-ING-002"] == PASS

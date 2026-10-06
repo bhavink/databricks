@@ -517,6 +517,12 @@ resource "databricks_ip_access_list" "this"
 - IP access lists for additional security
 - Allows specified IP ranges to access workspace
 
+Set `allowed_ip_ranges` to your known IP ranges (corporate egress, VPN,
+automation, and the IP you run Terraform from). The feature is enabled on
+the workspace first (`databricks_workspace_conf`), then the ALLOW list is
+applied (`depends_on`). The default is the original example list, kept so
+existing deployments don't change; replace it with your own.
+
 ---
 
 ## DNS Configuration

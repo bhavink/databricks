@@ -103,6 +103,7 @@ def to_dict(assessment: Assessment, catalog: dict, facts: dict) -> dict:
         "detected_pattern": assessment.detected["id"] if assessment.detected else None,
         "target_pattern": assessment.target["id"],
         "baseline": assessment.baseline["id"] if assessment.baseline else None,
+        "options": [o["id"] for o in assessment.options],
         "score": assessment.score,
         "findings": [
             {
@@ -163,6 +164,16 @@ def to_markdown(assessment: Assessment, catalog: dict, facts: dict) -> str:
         extra = assessment.baseline.get("require") or []
         if extra:
             lines += ["Baseline adds required controls:", ""] + [f"- {label(catalog, c)}" for c in extra] + [""]
+        for o in assessment.options:
+            lines += [f"Option `{o['id']}` ({o['name']}): "
+                      + "; ".join([f"requires {label(catalog, c)}" for c in o.get("require") or []]
+                                  + [f"waives {label(catalog, c)}" for c in o.get("waive") or []]) + "."]
+        not_chosen = [o for o in assessment.baseline.get("options") or [] if o not in assessment.options]
+        if assessment.options:
+            lines += [""]
+        if not_chosen:
+            lines += ["Options not chosen (their controls show as recommended): "
+                      + ", ".join(f"`{o['id']}`" for o in not_chosen) + ".", ""]
     if assessment.detected and assessment.detected["id"] != target["id"]:
         lines += [f"Detected `{assessment.detected['id']}`; scoring against the declared target `{target['id']}`.", ""]
     if assessment.detected and assessment.detected["compute_mode"] != target["compute_mode"]:

@@ -92,7 +92,7 @@ def mermaid(facts: dict) -> list[str]:
             nsg = " · NSG" if _on(net.get("all_subnets_have_nsg")) else ""
             lines.append(f'  VNET["Your VNet: classic compute<br/>{subnets}{nsg}"]')
         else:
-            lines.append('  VNET["Databricks-managed VNet: classic compute"]')
+            lines.append('  VNET["Classic compute: not in your VNet"]')
         lines.append('  WS -->|"runs clusters in"| VNET')
         scc = "secure cluster connectivity, no public IPs" if _on(ws.get("no_public_ip")) else "public IPs on nodes"
         path = "over Private Link" if _on(pl.get("ui_api")) else "over the internet"
@@ -142,6 +142,8 @@ def mermaid(facts: dict) -> list[str]:
 
 def cloud_of(rs: list[dict]) -> str:
     gcp = any(r["type"].startswith(("google_", "databricks_mws_networks", "databricks_mws_vpc_endpoint"))
+              # `location` is the GCP-only region field (e.g. serverless-ws has no google_* resource)
+              or (r["type"] == "databricks_mws_workspaces" and (r.get("values") or {}).get("location"))
               for r in rs)
     azure = any(r["type"].startswith(("azurerm_", "azapi_")) for r in rs)
     return "gcp" if gcp and not azure else "azure"
@@ -158,7 +160,7 @@ def gcp_mermaid(facts: dict) -> list[str]:
         '%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Space Grotesk, Helvetica, Arial, sans-serif", '
         '"lineColor": "#1a1a1a", "edgeLabelBackground": "#ffffff", "primaryTextColor": "#1a1a1a"}}}%%',
         "flowchart LR",
-        f'  WS["Databricks workspace<br/>{ws.get("name") or "workspace"} · classic"]',
+        f'  WS["Databricks workspace<br/>{ws.get("name") or "workspace"} · {ws.get("compute_mode") or "classic"}"]',
         '  USERS["Users and tools"]',
     ]
     if _on(pl.get("frontend_psc")) and ws.get("public_access_enabled") is False:
