@@ -7,11 +7,12 @@ how to fix it, with Terraform from this repo. Works **pre-deployment**
 (Terraform plan) and **post-deployment** (live, read-only scan), and builds
 new workspaces from the repo's tested Terraform.
 
-Status: **Azure and GCP complete. AWS: plan and state review, diagrams and
-new workspaces;** the live AWS scan is next.
+Status: **Azure, GCP and AWS complete.** On AWS the agent works from
+Terraform plans and states (review, diagrams, new workspaces, verify); it
+doesn't scan a running AWS workspace.
 
 New here? Read the **[simple guide](GUIDE.md)** (what / why / when / how), or flip through the
-**[presentation](https://bhavink.github.io/databricks/presentations/well-architected-agent.html)** (16 slides, also in [`presentations/`](../presentations/well-architected-agent.html)).
+**[presentation](https://bhavink.github.io/databricks/presentations/well-architected-agent.html)**.
 
 > **Disclaimer.** Community project, provided "as is", without warranty of any
 > kind. Not an official Databricks or Microsoft product. You are responsible
@@ -48,7 +49,7 @@ uv run wa-agent assess --facts ws.facts.json --baseline classic-no-pl -o report.
 # Google Cloud: the same, with --cloud gcp (same baseline ids on every cloud)
 uv run wa-agent collect live --cloud gcp --workspace <name-or-url> -o gcp.facts.json
 uv run wa-agent assess --cloud gcp --facts gcp.facts.json --baseline classic-no-pl -o gcp-report.md
-# AWS: from a Terraform plan or state for now (terraform show -json)
+# AWS: from a Terraform plan or state (terraform show -json)
 uv run wa-agent collect tfplan --cloud aws --plan plan.json -o aws.facts.json
 uv run wa-agent assess --cloud aws --facts aws.facts.json --baseline classic-full-pl -o aws-report.md
 ```
@@ -558,10 +559,10 @@ builds, and how it reads what it's given.
 
 **AWS**
 
-- **Plans and states first.** The collector reads plans of the `awsdb4u`
-  roots and the SRA; the live scan (account API plus read-only `aws` calls) is
-  next. Until then, `collect live --cloud aws` says so and points at
-  `collect tfplan`.
+- **Plans and states, no live scan.** The collector reads plans and states of
+  the `awsdb4u` roots, the SRA and any Terraform using the same resources. A
+  running AWS workspace is assessed from its Terraform state (`terraform show
+  -json`); `collect live --cloud aws` says so and points at `collect tfplan`.
 - **The SRA custom network is someone else's VPC.** With `classic-full-pl`
   on the SRA, the VPC, subnets and endpoints come from your network team's
   Terraform: add that plan with another `--facts`, or the VPC checks are
@@ -584,5 +585,4 @@ pinned SRA build on AWS.
 | Consistency (done) | The same five patterns and baselines on every cloud (`classic-no-pl`, `classic-backend-pl`, `classic-full-pl`, `classic-dep`, `serverless`), hardening as options, the bare minimum (IP access lists from your ranges, enforced serverless egress, Unity Catalog) everywhere, context-based ingress check, GCP serverless (`serverless-ws`) |
 | Azure (done) | Baselines, plan/state/live collectors with evidence, read-only guard, `assess`, `verify`, `diagram`, plain-language `show`, `new` folders from tested `adb4u` deployments (classic and serverless without a VNet), hub-spoke assessed against the Azure data exfiltration protection blog, MCP server, CI on Windows/macOS/Linux |
 | GCP (done) | Baselines from `gcpdb4u` as-is, classic ones with `new-vpc` and `existing-vpc` (standard creation) and `lpw` (least-privilege) builds; customer-managed VPC, Private Service Connect, CMEK, Private Google Access, deny-by-default egress, serverless NCC and network policy; VPC Service Controls and `restricted.googleapis.com` assessed against the GCP data exfiltration protection guide; plan/state and live collectors; `workspace-guardrails` for the bare minimum |
-| AWS (plans, builds) | The same five baselines; `awsdb4u` builds (`databricks-aws-production`, `serverless-ws`, new `workspace-guardrails`) and the SRA at a pinned commit (the only `classic-dep` build); customer-managed VPC, two AZs, S3 gateway endpoint and policy, controlled egress, back-end and front-end PrivateLink, KMS, serverless NCC and network policy, context-based ingress; plan/state collector and diagram |
-| Next · AWS live | Live collector (account API, read-only `aws ec2` / `aws network-firewall` calls), replay fixtures |
+| AWS (done) | The same five baselines; `awsdb4u` builds (`databricks-aws-production`, `serverless-ws`, new `workspace-guardrails`) and the SRA at a pinned commit (the only `classic-dep` build); customer-managed VPC, two AZs, S3 gateway endpoint and policy, controlled egress, back-end and front-end PrivateLink, KMS, serverless NCC and network policy, context-based ingress; plan/state collector and diagram |

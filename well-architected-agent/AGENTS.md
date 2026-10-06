@@ -36,7 +36,7 @@ wa-agent assess --facts out/ws.facts.json --baseline <baseline-id> [--option <id
 wa-agent verify --tf-json state.json --baseline <baseline-id> [--option <id>]
 wa-agent new --baseline <baseline-id> --out <new-dir> --set allowed_ip_ranges='["<cidr>"]' --set name=value
 wa-agent new --cloud gcp --baseline <id> --build <lpw|new-vpc|existing-vpc> [--option <id>] --out <new-dir> ...
-wa-agent collect tfplan --cloud aws --plan plan.json -o out/aws.facts.json   # AWS: plans and states only for now
+wa-agent collect tfplan --cloud aws --plan plan.json -o out/aws.facts.json   # AWS: plans and states (no live scan)
 wa-agent new --cloud aws --baseline <id> --build <awsdb4u|sra> [--option <id>] --out <new-dir> ...
 ```
 
@@ -45,7 +45,7 @@ Relay fix caveats (**Before you apply**) and maturity labels verbatim.
 Run `preflight` (MCP) or `wa-agent doctor --workspace <name>` before a live scan and relay its fixes.
 Ask the user which baseline applies if they haven't said. Never invent a
 baseline id; list them first. Pass `--cloud gcp` / `--cloud aws` (or `cloud: "gcp"` / `"aws"` in MCP) for
-Google Cloud and AWS. There is no live AWS scan yet: ask for a `terraform show -json` plan or state instead.
+Google Cloud and AWS. AWS has no live scan: ask for a `terraform show -json` plan or state instead.
 When a baseline offers several builds, show each one's `for` text and let the user
 choose; never pick one for them. On GCP, ask first whether Databricks may create
 IAM roles and firewall rules in their project: standard builds (`new-vpc`,

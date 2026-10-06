@@ -10,7 +10,7 @@
 > Always check against the official documentation and your own security and
 > compliance requirements.
 
-Prefer slides? The [presentation](https://bhavink.github.io/databricks/presentations/well-architected-agent.html) covers the same ground in 16 slides.
+Prefer slides? The [presentation](https://bhavink.github.io/databricks/presentations/well-architected-agent.html) covers the same ground.
 
 ---
 
@@ -303,7 +303,7 @@ enforced. Run from an allowed network to see their contents.
 **Does an LLM decide the findings?** No. Findings come from rules in
 `catalog/`. Same input, same output.
 
-**Which clouds?** Azure, Google Cloud (`--cloud gcp`) and AWS (`--cloud aws`). On AWS the agent reads Terraform plans and states and builds new workspaces; the live scan of a running AWS workspace is next.
+**Which clouds?** Azure, Google Cloud (`--cloud gcp`) and AWS (`--cloud aws`). On AWS the agent works from Terraform plans and states and builds new workspaces; to check a running AWS workspace, give it the workspace's Terraform state.
 
 **On AWS, `awsdb4u` or `sra`?** Both build the same baselines. `awsdb4u` is this repo's Terraform, copied into your folder. `sra` is the Databricks Security Reference Architecture: the agent doesn't copy it, the run book tells you to clone it at a pinned commit, and it's the only build for `classic-dep`. Pick `sra` if your team already standardises on it. The SRA keeps the public front-end on, limited to your IP ranges, so its private builds list "public access off" as a known gap.
 

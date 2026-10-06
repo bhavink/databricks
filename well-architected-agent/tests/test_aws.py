@@ -281,7 +281,7 @@ def test_every_aws_build_renders(aws_catalog):
             files = render(aws_catalog, b["id"], build_answers, build_id=o["id"] if len(options) > 1 else None)
             readme = files["README.md"]
             assert "--cloud aws" in readme and "DATABRICKS_CLIENT_SECRET" in readme
-            assert "collect live" not in readme  # no live scan for AWS yet
+            assert "collect live" not in readme  # AWS has no live scan
             text = "\n".join(v for k, v in files.items() if k.endswith(".tfvars"))
             assert "client_secret =" not in text  # credentials only from the environment
             if o.get("external"):

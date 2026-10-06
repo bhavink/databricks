@@ -455,7 +455,7 @@ td code{white-space:nowrap}
       </div>
       <div class="seq-step r">
         <div class="seq-num">3</div>
-        <div class="seq-body"><strong>Health-check a running workspace</strong><p><code>collect live</code> reads it with allow-listed read commands only; <code>assess</code> scores it. Azure and Google Cloud today.</p></div>
+        <div class="seq-body"><strong>Health-check a running workspace</strong><p><code>collect live</code> reads it with allow-listed read commands only; <code>assess</code> scores it. Azure and Google Cloud; on AWS, use the workspace's Terraform state.</p></div>
       </div>
       <div class="seq-step r">
         <div class="seq-num">4</div>
@@ -593,7 +593,7 @@ module "workspace" {
         <tr><td><strong>Plan and state review</strong></td><td>yes</td><td>yes</td><td>yes</td></tr>
         <tr><td><strong>Architecture diagram</strong></td><td>yes</td><td>yes</td><td>yes</td></tr>
         <tr><td><strong>New workspace and verify</strong></td><td>yes</td><td>yes</td><td>yes (<code>awsdb4u</code>, <code>sra</code>)</td></tr>
-        <tr><td><strong>Live, read-only scan</strong></td><td>yes</td><td>yes</td><td><span class="chip chip-red">next</span></td></tr>
+        <tr><td><strong>Live, read-only scan</strong></td><td>yes</td><td>yes</td><td>no, by design: checked from Terraform state</td></tr>
         <tr><td><strong>Data exfiltration protection</strong></td><td>hub-spoke firewall, assessed</td><td>VPC Service Controls and <code>restricted.googleapis.com</code>, assessed</td><td>no internet path or a firewall, S3 endpoint policy; built with the SRA</td></tr>
       </tbody>
     </table>
@@ -675,7 +675,7 @@ claude mcp add --scope user databricks-wa -- \
     <div class="col">
       <div class="card r"><h4>Context-based ingress is a how-to</h4><p>The check passes on enforced <code>ingress</code> rules; <code>ingress_dry_run</code> is for testing and doesn't count. The report gives the Terraform to add them, starting in dry run.</p></div>
       <div class="card r"><h4>Account-level facts can be outside a plan</h4><p>Audit log delivery, for example, often lives in another root: add that plan, or set the fact after checking the account console.</p></div>
-      <div class="card card-red r"><h4>Next: the live AWS scan</h4><p>Account API plus read-only <code>aws</code> calls, with replay fixtures, the same way Azure and Google Cloud are tested today.</p></div>
+      <div class="card card-red r"><h4>AWS is assessed from Terraform</h4><p>Plans before apply, state after. There is no live AWS scan: a running workspace is checked from its <code>terraform show -json</code> state.</p></div>
     </div>
   </div>
 </div>
