@@ -1,14 +1,15 @@
 # Well-Architected Agent: correctness and drift checks.
 # No cloud credentials are used: Terraform tests use mock providers and
-# validation needs no backend. The weekly run catches official docs that move.
+# validation needs no backend. The tfvars check clones the SRA at its pinned
+# commit. The weekly run catches official docs that move.
 name: well-architected-agent
 
 on:
   pull_request:
-    paths: ["well-architected-agent/**", "adb4u/modules/**", "adb4u/deployments/**", "gcpdb4u/templates/**", ".github/workflows/well-architected-agent.yml"]
+    paths: ["well-architected-agent/**", "adb4u/modules/**", "adb4u/deployments/**", "gcpdb4u/templates/**", "awsdb4u/**", ".github/workflows/well-architected-agent.yml"]
   push:
     branches: [master]
-    paths: ["well-architected-agent/**", "adb4u/modules/**", "adb4u/deployments/**", "gcpdb4u/templates/**"]
+    paths: ["well-architected-agent/**", "adb4u/modules/**", "adb4u/deployments/**", "gcpdb4u/templates/**", "awsdb4u/**"]
   schedule:
     - cron: "0 6 * * 1"
   workflow_dispatch:
@@ -57,15 +58,15 @@ jobs:
           terraform_wrapper: false
       - run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
       - name: Format
-        run: terraform fmt -check -recursive adb4u/modules adb4u/deployments/non-pl adb4u/deployments/full-private adb4u/deployments/serverless gcpdb4u/templates/terraform-scripts/workspace-guardrails gcpdb4u/templates/terraform-scripts/serverless-ws
+        run: terraform fmt -check -recursive adb4u/modules adb4u/deployments/non-pl adb4u/deployments/full-private adb4u/deployments/serverless gcpdb4u/templates/terraform-scripts/workspace-guardrails gcpdb4u/templates/terraform-scripts/serverless-ws awsdb4u/workspace-guardrails awsdb4u/serverless-ws
       - name: Module tests (mock providers)
         run: |
-          for m in adb4u/modules/monitoring adb4u/modules/ncc adb4u/modules/workspace adb4u/deployments/serverless gcpdb4u/templates/terraform-scripts/workspace-guardrails gcpdb4u/templates/terraform-scripts/serverless-ws; do
+          for m in adb4u/modules/monitoring adb4u/modules/ncc adb4u/modules/workspace adb4u/deployments/serverless gcpdb4u/templates/terraform-scripts/workspace-guardrails gcpdb4u/templates/terraform-scripts/serverless-ws awsdb4u/workspace-guardrails awsdb4u/serverless-ws; do
             (cd $m && terraform init -backend=false -input=false && terraform test)
           done
       - name: Validate deployments
         run: |
-          for d in adb4u/deployments/non-pl adb4u/deployments/full-private adb4u/deployments/serverless gcpdb4u/templates/terraform-scripts/workspace-guardrails gcpdb4u/templates/terraform-scripts/serverless-ws; do
+          for d in adb4u/deployments/non-pl adb4u/deployments/full-private adb4u/deployments/serverless gcpdb4u/templates/terraform-scripts/workspace-guardrails gcpdb4u/templates/terraform-scripts/serverless-ws awsdb4u/workspace-guardrails awsdb4u/serverless-ws; do
             (cd $d && terraform init -backend=false -input=false && terraform validate)
           done
       - uses: astral-sh/setup-uv@v6

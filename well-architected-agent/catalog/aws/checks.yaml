@@ -1,0 +1,490 @@
+# Databricks on AWS checks.
+#
+# Same structure as catalog/azure/checks.yaml. Ground truth is awsdb4u
+# (battle-tested, used as-is) and the official Databricks on AWS docs;
+# data exfiltration protection is grounded in "Data Exfiltration Protection
+# with Databricks on AWS". The Databricks Security Reference Architecture
+# (SRA, pinned commit) is cited as a reference.
+
+checks:
+  # ------------------------------------------------------------------ network
+  - id: AWS-NET-001
+    control: NET.CUSTOMER_MANAGED_NETWORK
+    title: Workspace uses a customer-managed VPC
+    pillar: security
+    severity: high
+    when: {fact: workspace.compute_mode, op: equals, value: classic}
+    rule: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rationale: >-
+      A customer-managed VPC puts subnets, route tables, security groups,
+      NAT, VPC endpoints and PrivateLink under your control; it is the base
+      for every other network control.
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc
+      - awsdb4u/aws-pl-ws/databricks-aws-production
+    remediation:
+      fix_type: recreate
+      summary: >-
+        Create the VPC, subnets and security group and a new workspace with a network
+        configuration that references them (databricks-aws-production); the network of an
+        existing workspace can only be changed to another customer-managed VPC.
+      module: awsdb4u/aws-pl-ws/databricks-aws-production
+      terraform: |
+        resource "databricks_mws_networks" "network" {
+          provider           = databricks.account
+          account_id         = var.databricks_account_id
+          network_name       = "${var.prefix}-network"
+          vpc_id             = var.vpc_id
+          subnet_ids         = var.private_subnet_ids
+          security_group_ids = [var.workspace_security_group_id]
+        }
+
+  - id: AWS-NET-002
+    control: NET.COMPUTE_SUBNETS
+    title: Compute subnets span at least two availability zones
+    pillar: reliability
+    severity: medium
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: network.subnet_az_count, op: gte, value: 2}
+    rationale: >-
+      Databricks needs at least two private subnets for the workspace, each
+      in a different availability zone, so compute survives the loss of a
+      zone. Subnets can't be resized after creation (netmask /17 to /26).
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc
+      - awsdb4u/aws-pl-ws/databricks-aws-production/docs/01-ARCHITECTURE.md
+    remediation:
+      fix_type: recreate
+      summary: Create private subnets in two availability zones and update the network configuration.
+      module: awsdb4u/aws-pl-ws/databricks-aws-production
+      terraform: |
+        private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
+        availability_zones   = []   # empty: the first two available zones are chosen
+
+  - id: AWS-NET-003
+    control: NET.PRIVATE_PATH_TO_CLOUD_STORAGE
+    title: S3 traffic uses a gateway endpoint
+    pillar: performance_efficiency
+    severity: medium
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: network.s3_gateway_endpoint, op: equals, value: true}
+    rationale: >-
+      An S3 gateway endpoint keeps compute traffic to S3 (workspace storage,
+      Unity Catalog data) on the AWS network instead of the NAT gateway and
+      the internet, and it costs nothing.
+    sources:
+      - https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-s3.html
+      - https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc
+      - awsdb4u/aws-pl-ws/databricks-aws-production/modules/networking/vpc_endpoints.tf
+    remediation:
+      fix_type: additive
+      summary: Add an S3 gateway endpoint on the compute subnets' route tables.
+      module: awsdb4u/aws-pl-ws/databricks-aws-production
+      terraform: |
+        resource "aws_vpc_endpoint" "s3" {
+          vpc_id            = aws_vpc.databricks_vpc.id
+          service_name      = "com.amazonaws.${var.region}.s3"
+          vpc_endpoint_type = "Gateway"
+          route_table_ids   = aws_route_table.private[*].id
+        }
+
+  - id: AWS-NET-004
+    control: NET.EXPLICIT_EGRESS
+    title: Classic compute egress uses an explicit path (NAT gateway or firewall)
+    pillar: reliability
+    severity: medium
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule:
+      any_of:
+        - {fact: network.nat_gateway, op: equals, value: true}
+        - {fact: network.egress_controlled, op: equals, value: true}
+    rationale: >-
+      Compute nodes have no public IPs (secure cluster connectivity), so a
+      NAT gateway per availability zone, or a firewall, gives a stable,
+      known egress path. A VPC with no internet path at all also passes.
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc
+      - https://docs.databricks.com/aws/en/security/network/classic/secure-cluster-connectivity
+      - awsdb4u/aws-pl-ws/databricks-aws-production/modules/networking/main.tf
+    remediation:
+      fix_type: additive
+      summary: Add a NAT gateway in a public subnet per availability zone and route 0.0.0.0/0 from the private subnets to it.
+      module: awsdb4u/aws-pl-ws/databricks-aws-production
+
+  - id: AWS-NET-005
+    control: NET.EGRESS_FIREWALL
+    title: Classic compute egress is filtered (firewall) or has no internet path
+    pillar: security
+    severity: high
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: network.egress_controlled, op: equals, value: true}
+    rationale: >-
+      Data exfiltration protection: classic compute may reach only the
+      destinations you allow. Either all egress goes through an inspecting
+      firewall (AWS Network Firewall with an FQDN allowlist, as in the AWS
+      data exfiltration protection blog), or the VPC has no internet path at
+      all and reaches AWS services and Databricks only through endpoints
+      (the SRA's isolated network).
+    sources:
+      - https://www.databricks.com/blog/2021/02/02/data-exfiltration-protection-with-databricks-on-aws.html
+      - https://docs.aws.amazon.com/network-firewall/latest/developerguide/what-is-aws-network-firewall.html
+      - https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/aws/tf
+    remediation:
+      fix_type: manual
+      summary: >-
+        Route 0.0.0.0/0 from the compute subnets through AWS Network Firewall with an allowlist of
+        the Databricks and AWS destinations workloads need, or build the workspace on an isolated
+        VPC (no NAT or internet gateway) with the SRA build.
+      module: https://www.databricks.com/blog/2021/02/02/data-exfiltration-protection-with-databricks-on-aws.html
+      caveats:
+        - An isolated VPC blocks package repositories too; serve libraries from S3 or a private mirror.
+
+  - id: AWS-NET-006
+    control: NET.STORAGE_EGRESS_POLICY
+    title: The S3 endpoint policy limits access to approved buckets
+    pillar: security
+    severity: medium
+    when: {fact: network.s3_gateway_endpoint, op: equals, value: true}
+    rule: {fact: network.s3_endpoint_policy_restricted, op: equals, value: true}
+    rationale: >-
+      Without a policy the S3 gateway endpoint reaches every bucket in
+      every account; an endpoint policy limited to your buckets and the
+      Databricks artifact, log and system-table buckets of your region
+      closes that path for data exfiltration.
+    sources:
+      - https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-access.html
+      - https://www.databricks.com/blog/2021/02/02/data-exfiltration-protection-with-databricks-on-aws.html
+      - https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/aws/tf
+    remediation:
+      fix_type: in_place
+      summary: >-
+        Attach a policy to the S3 gateway endpoint that allows your buckets and the regional
+        Databricks buckets only (the SRA's s3_vpc_endpoint_policy is a worked example).
+      terraform: |
+        resource "aws_vpc_endpoint_policy" "s3" {
+          vpc_endpoint_id = aws_vpc_endpoint.s3.id
+          policy          = data.aws_iam_policy_document.s3_endpoint.json   # your buckets + Databricks regional buckets
+        }
+      caveats:
+        - Include the Databricks artifact, log and system-table buckets of your region, or clusters fail to start.
+
+  # ------------------------------------------------------------- PrivateLink
+  - id: AWS-PL-001
+    control: NET.PRIVATE_LINK_BACKEND
+    title: Compute reaches the control plane over PrivateLink (back-end)
+    pillar: security
+    severity: high
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: private_link.backend, op: equals, value: true}
+    rationale: >-
+      Back-end PrivateLink (the secure cluster connectivity relay and the
+      REST API endpoint in your VPC) keeps compute-to-control-plane traffic
+      off the internet.
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/classic/privatelink
+      - awsdb4u/aws-pl-ws/databricks-aws-production/modules/networking/vpc_endpoints.tf
+    remediation:
+      fix_type: recreate
+      summary: >-
+        Create the workspace (REST API) and relay VPC endpoints, register them, and reference
+        them in the network configuration (databricks-aws-production with enable_private_link = true).
+      module: awsdb4u/aws-pl-ws/databricks-aws-production
+      terraform: |
+        enable_private_link = true
+
+  - id: AWS-PL-002
+    control: NET.PRIVATE_LINK_FRONTEND
+    title: Users reach the workspace over PrivateLink (front-end)
+    pillar: security
+    severity: high
+    when: {fact: workspace.customer_managed_vpc, op: equals, value: true}
+    rule: {fact: private_link.frontend, op: equals, value: true}
+    rationale: >-
+      Front-end PrivateLink (a workspace endpoint plus private access
+      settings) lets users and tools reach the UI and APIs privately, from
+      networks connected to the endpoint's VPC.
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/classic/privatelink
+      - awsdb4u/aws-pl-ws/databricks-aws-production/modules/databricks_workspace/main.tf
+    remediation:
+      fix_type: in_place
+      summary: Attach private access settings and a registered workspace VPC endpoint (databricks-aws-production).
+      module: awsdb4u/aws-pl-ws/databricks-aws-production
+
+  - id: AWS-PL-003
+    control: NET.PUBLIC_ACCESS_DISABLED
+    title: Public access to the front-end is disabled
+    pillar: security
+    severity: high
+    when: {fact: private_link.frontend, op: equals, value: true}
+    rule: {fact: workspace.public_access_enabled, op: equals, value: false}
+    rationale: >-
+      With front-end PrivateLink, public_access_enabled = false in the
+      private access settings blocks every request that doesn't come
+      through a registered endpoint.
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/classic/privatelink
+      - awsdb4u/aws-pl-ws/databricks-aws-production/modules/databricks_workspace/main.tf
+    remediation:
+      fix_type: in_place
+      summary: Set public_access_enabled = false on the private access settings.
+      module: awsdb4u/aws-pl-ws/databricks-aws-production
+      terraform: |
+        public_access_enabled = false
+      caveats:
+        - Run Terraform and the agent from a network that reaches the workspace endpoint afterwards.
+
+  - id: AWS-PL-004
+    control: NET.BACKEND_PRIVATE_ONLY
+    title: Private access is limited to this workspace's registered endpoints
+    pillar: security
+    severity: low
+    when: {fact: private_link.frontend, op: equals, value: true}
+    rule: {fact: workspace.private_access_level, op: equals, value: ENDPOINT}
+    rationale: >-
+      private_access_level = ENDPOINT admits only the VPC endpoints you list
+      in the private access settings; ACCOUNT admits any endpoint
+      registered in the Databricks account.
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/classic/privatelink
+    remediation:
+      fix_type: in_place
+      summary: Set private_access_level = ENDPOINT and list the allowed VPC endpoint ids.
+      module: awsdb4u/aws-pl-ws/databricks-aws-production
+      terraform: |
+        private_access_level = "ENDPOINT"
+
+  # ---------------------------------------------------------------- inbound
+  - id: AWS-ING-001
+    control: NET.IP_ACCESS_LISTS
+    title: The public front-end is restricted to your IP ranges
+    pillar: security
+    severity: high
+    when: {fact: workspace.public_access_enabled, op: equals, value: true}
+    rule:
+      any_of:
+        - all_of:
+            - {fact: access.ip_access_lists_enabled, op: equals, value: true}
+            - {fact: access.ip_access_list_count, op: gte, value: 1}
+        - {fact: access.public_ingress_ip_restricted, op: equals, value: true}
+    rationale: >-
+      Bare minimum for any workspace reachable from the internet: only your
+      corporate and automation networks can reach the UI and APIs. Either
+      workspace IP access lists or context-based ingress that limits public
+      access to your IP ranges counts (the SRA uses the latter).
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/front-end/ip-access-list
+      - https://docs.databricks.com/aws/en/security/network/front-end/context-based-ingress
+      - awsdb4u/workspace-guardrails
+      - awsdb4u/aws-pl-ws/databricks-aws-production/modules/databricks_workspace/main.tf
+    remediation:
+      maturity: validated
+      fix_type: additive
+      summary: >-
+        Enable IP access lists with an ALLOW list of your known IP ranges (corporate egress,
+        VPN, automation; only you can supply them): databricks-aws-production
+        (enable_ip_access_lists), or workspace-guardrails after any other workspace root.
+      module: awsdb4u/workspace-guardrails
+      caveats:
+        - Include the IP you run Terraform from, or Terraform locks itself out of the workspace.
+
+  - id: AWS-ING-002
+    control: NET.CONTEXT_BASED_INGRESS
+    title: Context-based ingress policy is enforced
+    pillar: security
+    severity: medium
+    rule: {fact: access.context_ingress_enforced, op: equals, value: true}
+    rationale: >-
+      Complements IP access lists (a request must pass both): rules combine
+      who is calling (users, service principals, selected identities), what
+      they reach (UI, APIs by scope, Apps) and from where (IP ranges,
+      registered VPC endpoints). Useful for SaaS clients without stable
+      IPs and to pin privileged service principals to trusted networks.
+      Configured on the same account network policy as serverless egress.
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/front-end/context-based-ingress
+      - https://docs.databricks.com/aws/en/security/network/front-end/manage-ingress-workspace
+    remediation:
+      fix_type: in_place
+      maturity: validated
+      summary: >-
+        Optional. Add an `ingress` block (public and/or private access in
+        RESTRICTED_ACCESS, with allow and deny rules) to the workspace's
+        network policy, starting with `ingress_dry_run` and the
+        system.access.inbound_network table to see what would be denied;
+        then move the rules to `ingress`.
+      module: https://docs.databricks.com/aws/en/security/network/front-end/manage-ingress-workspace
+      terraform: |
+        resource "databricks_account_network_policy" "this" {
+          network_policy_id = "<workspace>-policy"
+          account_id        = var.databricks_account_id
+          egress = { ... }            # the serverless egress policy you already have
+          ingress_dry_run = {          # observe first; rename to `ingress` to enforce
+            public_access = {
+              restriction_mode = "RESTRICTED_ACCESS"
+              allow_rules = [
+                {
+                  label  = "corporate-users"
+                  origin = { included_ip_ranges = { ip_ranges = ["203.0.113.0/24"] } }
+                  destination = { all_destinations = true }
+                },
+              ]
+            }
+          }
+        }
+      caveats:
+        - Needs the Enterprise tier and a Databricks provider version that supports `ingress` on databricks_account_network_policy.
+        - A policy supports one enforcement mode at a time; deny rules are evaluated before allow rules.
+        - It doesn't widen IP access lists; Databricks recommends migrating them into the ingress policy over time.
+
+  # ------------------------------------------------------------- serverless
+  - id: AWS-SRV-001
+    control: NET.SERVERLESS_NCC
+    title: Network connectivity config is bound to the workspace
+    pillar: security
+    severity: medium
+    rule: {fact: serverless.ncc_bound, op: equals, value: true}
+    rationale: >-
+      The NCC governs how serverless compute reaches your resources
+      (private endpoint rules, stable egress).
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/serverless-network-security/
+      - awsdb4u/workspace-guardrails
+    remediation:
+      maturity: validated
+      fix_type: additive
+      summary: Create an NCC in the workspace region and bind it (workspace-guardrails).
+      module: awsdb4u/workspace-guardrails
+
+  - id: AWS-SRV-002
+    control: NET.SERVERLESS_EGRESS_POLICY
+    title: Serverless egress is restricted by an enforced network policy
+    pillar: security
+    severity: high
+    rule: {fact: serverless.egress_restricted, op: equals, value: true}
+    rationale: >-
+      Bare minimum for any workspace: serverless compute runs in the
+      Databricks account, outside your VPC and firewall, so only an
+      enforced RESTRICTED_ACCESS network policy limits where it can send
+      data.
+    sources:
+      - https://docs.databricks.com/aws/en/security/network/serverless-network-security/network-policies
+      - awsdb4u/workspace-guardrails
+    remediation:
+      maturity: validated
+      fix_type: in_place
+      summary: >-
+        Bind a RESTRICTED_ACCESS network policy in ENFORCED mode with the destinations workloads
+        need (network_policy.yaml): workspace-guardrails.
+      module: awsdb4u/workspace-guardrails
+      caveats:
+        - An empty allowlist blocks package installs from serverless; start in DRY_RUN to see what would be blocked.
+
+  # ------------------------------------------------------------- encryption
+  - id: AWS-ENC-001
+    control: STO.CMK_MANAGED_SERVICES
+    title: Customer-managed key for managed services
+    pillar: security
+    severity: medium
+    rule: {fact: workspace.cmk_managed_services, op: equals, value: true}
+    rationale: Encrypts notebooks, secrets and queries in the control plane with your KMS key.
+    sources:
+      - https://docs.databricks.com/aws/en/security/keys/customer-managed-keys
+      - awsdb4u/aws-pl-ws/databricks-aws-production/modules/kms/main.tf
+    remediation:
+      fix_type: in_place
+      summary: Register a KMS key for MANAGED_SERVICES and attach it to the workspace (enable_workspace_cmk = true).
+      module: awsdb4u/aws-pl-ws/databricks-aws-production
+      terraform: |
+        resource "databricks_mws_customer_managed_keys" "workspace_cmk" {
+          provider   = databricks.account
+          account_id = var.databricks_account_id
+          aws_key_info {
+            key_arn   = var.workspace_storage_key_arn
+            key_alias = var.workspace_storage_key_alias
+          }
+          use_cases = ["STORAGE", "MANAGED_SERVICES"]
+        }
+
+  - id: AWS-ENC-002
+    control: STO.CMK_WORKSPACE_STORAGE
+    title: Customer-managed key for workspace storage and compute volumes
+    pillar: security
+    severity: medium
+    when: {fact: workspace.compute_mode, op: equals, value: classic}
+    rule: {fact: workspace.cmk_storage, op: equals, value: true}
+    rationale: >-
+      The STORAGE key encrypts the workspace root bucket and the EBS volumes
+      of classic compute nodes.
+    sources:
+      - https://docs.databricks.com/aws/en/security/keys/customer-managed-keys
+      - awsdb4u/aws-pl-ws/databricks-aws-production/modules/kms/main.tf
+    remediation:
+      fix_type: in_place
+      summary: Register a KMS key for STORAGE and attach it to the workspace (enable_workspace_cmk = true).
+      module: awsdb4u/aws-pl-ws/databricks-aws-production
+      caveats:
+        - The key policy must allow the cross-account role to use it for EBS.
+
+  # --------------------------------------------------- governance & audit
+  - id: AWS-UC-001
+    control: GOV.UC_METASTORE
+    title: Unity Catalog metastore is assigned
+    pillar: data_ai_governance
+    severity: high
+    rule: {fact: governance.metastore_assigned, op: equals, value: true}
+    rationale: Unity Catalog governs data access, lineage and audit for every workload.
+    sources:
+      - https://docs.databricks.com/aws/en/data-governance/unity-catalog/
+      - awsdb4u/aws-pl-ws/databricks-aws-production/modules/unity_catalog
+    remediation:
+      fix_type: additive
+      summary: Assign the region's metastore to the workspace (databricks-aws-production, or workspace-guardrails metastore_id).
+      module: awsdb4u/aws-pl-ws/databricks-aws-production/modules/unity_catalog
+
+  - id: AWS-OPS-001
+    control: OPS.AUDIT_LOG_DELIVERY
+    title: Audit logs are delivered to an S3 bucket
+    pillar: operational_excellence
+    severity: medium
+    rule: {fact: operations.audit_log_delivery, op: equals, value: true}
+    rationale: >-
+      Audit log delivery writes workspace and account audit events to your
+      S3 bucket for retention and SIEM; the system.access.audit table is
+      the in-platform view.
+    sources:
+      - https://docs.databricks.com/aws/en/admin/account-settings/audit-log-delivery
+      - https://docs.databricks.com/aws/en/admin/system-tables/audit-logs
+    remediation:
+      fix_type: additive
+      summary: Configure account audit log delivery to an S3 bucket you own (account console, the Account API, or the SRA).
+
+  - id: AWS-WS-001
+    control: NET.DATA_LEAK_FEATURES
+    title: Notebook export, results download and table clipboard are disabled
+    pillar: security
+    severity: medium
+    rule:
+      all_of:
+        - {fact: access.notebook_export_enabled, op: equals, value: false}
+        - {fact: access.results_download_enabled, op: equals, value: false}
+        - {fact: access.table_clipboard_enabled, op: equals, value: false}
+    rationale: >-
+      These workspace settings are the simplest user-driven exfiltration
+      paths; regulated workspaces turn them off.
+    sources:
+      - https://www.databricks.com/blog/2021/02/02/data-exfiltration-protection-with-databricks-on-aws.html
+      - awsdb4u/workspace-guardrails
+    remediation:
+      fix_type: in_place
+      summary: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to false.
+      module: awsdb4u/workspace-guardrails
+      terraform: |
+        resource "databricks_workspace_conf" "leak" {
+          provider = databricks.workspace
+          custom_config = {
+            enableExportNotebook         = "false"
+            enableResultsDownloading     = "false"
+            enableNotebookTableClipboard = "false"
+          }
+        }

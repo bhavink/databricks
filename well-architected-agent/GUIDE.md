@@ -301,7 +301,9 @@ enforced. Run from an allowed network to see their contents.
 **Does an LLM decide the findings?** No. Findings come from rules in
 `catalog/`. Same input, same output.
 
-**Which clouds?** Azure and Google Cloud (`--cloud gcp`). AWS is next.
+**Which clouds?** Azure, Google Cloud (`--cloud gcp`) and AWS (`--cloud aws`). On AWS the agent reads Terraform plans and states and builds new workspaces; the live scan of a running AWS workspace is next.
+
+**On AWS, `awsdb4u` or `sra`?** Both build the same baselines. `awsdb4u` is this repo's Terraform, copied into your folder. `sra` is the Databricks Security Reference Architecture: the agent doesn't copy it, the run book tells you to clone it at a pinned commit, and it's the only build for `classic-dep`. Pick `sra` if your team already standardises on it. The SRA keeps the public front-end on, limited to your IP ranges, so its private builds list "public access off" as a known gap.
 
 **On GCP, which build should I pick?** First: may Databricks create the IAM roles, role bindings and firewall rules in your project when it creates the workspace? Most teams say yes (standard creation, which Databricks recommends): pick `new-vpc` (`infra4db` for the network, then the workspace) or `existing-vpc` (your own VPC). If your security policy says no, use `lpw`, the least-privilege workspace: you create those yourself, separately, in two applies. `wa-agent new` asks you to choose with `--build`.
 

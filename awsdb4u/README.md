@@ -17,6 +17,8 @@ awsdb4u/
 │   │   ├── terraform.tfvars.example    # Configuration template
 │   │   └── quick-destroy.sh            # Safe cleanup script
 │   └── modular-version/                # Legacy version (deprecated)
+├── serverless-ws/                      # Serverless workspace (no VPC)
+├── workspace-guardrails/               # Bare-minimum controls for any workspace
 └── README.md                           # This file
 ```
 
@@ -53,6 +55,17 @@ cp terraform.tfvars.example terraform.tfvars
 terraform init
 terraform apply
 ```
+
+---
+
+### **serverless-ws** and **workspace-guardrails**
+
+- [`serverless-ws`](serverless-ws): a serverless workspace (`compute_mode = "SERVERLESS"`): no VPC, no cross-account role, default storage.
+- [`workspace-guardrails`](workspace-guardrails): adds the bare-minimum controls to any workspace, created here or elsewhere: IP access lists from your ranges, a network connectivity configuration (NCC), an enforced serverless network policy, the Unity Catalog metastore assignment, and optionally the data-leak settings off. Every part can be turned off.
+
+Both are `validated` (`terraform validate` and mock-provider `terraform test`) and not yet applied to a real account.
+
+The [Well-Architected Agent](../well-architected-agent) builds new workspaces from these folders as-is, with the same five baselines as on Azure and GCP (`classic-no-pl`, `classic-backend-pl`, `classic-full-pl`, `classic-dep`, `serverless`): `databricks-aws-production` (`enable_private_link` switches no-pl and full-pl) or `serverless-ws`, each followed by `workspace-guardrails`. It can also point at the [Databricks Security Reference Architecture](https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/aws/tf) at a pinned commit (cloned by you, not copied here), the build it uses for data exfiltration protection. It reviews Terraform plans and states of existing workspaces too.
 
 ---
 

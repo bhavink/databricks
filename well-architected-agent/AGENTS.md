@@ -36,18 +36,22 @@ wa-agent assess --facts out/ws.facts.json --baseline <baseline-id> [--option <id
 wa-agent verify --tf-json state.json --baseline <baseline-id> [--option <id>]
 wa-agent new --baseline <baseline-id> --out <new-dir> --set allowed_ip_ranges='["<cidr>"]' --set name=value
 wa-agent new --cloud gcp --baseline <id> --build <lpw|new-vpc|existing-vpc> [--option <id>] --out <new-dir> ...
+wa-agent collect tfplan --cloud aws --plan plan.json -o out/aws.facts.json   # AWS: plans and states only for now
+wa-agent new --cloud aws --baseline <id> --build <awsdb4u|sra> [--option <id>] --out <new-dir> ...
 ```
 
 Relay fix caveats (**Before you apply**) and maturity labels verbatim.
 
 Run `preflight` (MCP) or `wa-agent doctor --workspace <name>` before a live scan and relay its fixes.
 Ask the user which baseline applies if they haven't said. Never invent a
-baseline id; list them first. Pass `--cloud gcp` (or `cloud: "gcp"` in MCP) for Google Cloud.
+baseline id; list them first. Pass `--cloud gcp` / `--cloud aws` (or `cloud: "gcp"` / `"aws"` in MCP) for
+Google Cloud and AWS. There is no live AWS scan yet: ask for a `terraform show -json` plan or state instead.
 When a baseline offers several builds, show each one's `for` text and let the user
 choose; never pick one for them. On GCP, ask first whether Databricks may create
 IAM roles and firewall rules in their project: standard builds (`new-vpc`,
 `existing-vpc`) are the common case; `lpw` (least-privilege) is the special case
-for teams that must create those themselves.
+for teams that must create those themselves. On AWS, `sra` is the Databricks SRA,
+cloned by the user at a pinned commit; say so, and relay its known gaps.
 Baselines have the same ids on every cloud: `classic-no-pl`, `classic-backend-pl`,
 `classic-full-pl`, `classic-dep`, `serverless`. Options (`cmk`, `public-access`,
 `data-leak`, `context-ingress`, ...) are the user's choice too: show them
@@ -62,9 +66,11 @@ widen them (0.0.0.0/0 is refused).
 - A new check needs an official doc in `sources` (the loader enforces this) and
   a collector that emits its facts, with provenance in `_evidence`.
 - `new` only uses tested Terraform from this repo; it is the definitive source.
-  Other repositories (e.g. the Databricks SRA) may be cited as references, never
-  built from. Never generate Terraform, and never write account or subscription
-  IDs to files.
+  The one exception is an `external` build (the AWS SRA): pinned to a full
+  commit, never copied, its variables recorded in the catalog and checked by
+  CI against a clone. Don't add others without the repo owner's say-so. Never
+  generate Terraform, and never write account or subscription IDs or secrets
+  to files.
 - A new live command must be a read and must be added to `READ_ONLY_COMMANDS`.
   Never add a write verb.
 - Keep output deterministic: no timestamps, no randomness, sorted output.

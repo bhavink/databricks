@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import yaml
@@ -92,7 +93,21 @@ def validate(patterns: dict, checks: list[dict]) -> None:
                 raise CatalogError(f"{p['id']}: references unknown check {ref}")
 
 
-def validate_baselines(baselines: list[dict], patterns: dict, checks: list[dict]) -> None:
+def validate_external(external: dict) -> None:
+    """External Terraform a build may reference: pinned to a commit, never copied into this repo."""
+    for eid, e in external.items():
+        for key in ("name", "repo", "commit", "path", "license", "variables", "required"):
+            if not e.get(key):
+                raise CatalogError(f"external {eid}: missing {key}")
+        if not e["repo"].startswith("https://github.com/") or not re.fullmatch(r"[0-9a-f]{40}", e["commit"]):
+            raise CatalogError(f"external {eid}: needs a GitHub repo and a full 40-character commit")
+        if not set(e["required"]) <= set(e["variables"]):
+            raise CatalogError(f"external {eid}: required lists variables it doesn't declare")
+
+
+def validate_baselines(baselines: list[dict], patterns: dict, checks: list[dict], external: dict | None = None) -> None:
+    external = external or {}
+    validate_external(external)
     pattern_ids = {p["id"] for p in patterns["patterns"]}
     check_ids = {c["id"] for c in checks}
     ids = [b["id"] for b in baselines]
@@ -111,14 +126,14 @@ def validate_baselines(baselines: list[dict], patterns: dict, checks: list[dict]
         if b.get("build") and b.get("builds"):
             raise CatalogError(f"baseline {b['id']}: use either build or builds, not both")
         if b.get("build"):
-            _validate_build(b["id"], b["build"], check_ids)
+            _validate_build(b["id"], b["build"], check_ids, external)
         ids = [x.get("id") for x in b.get("builds") or []]
         if len(ids) != len(set(ids)) or None in ids:
             raise CatalogError(f"baseline {b['id']}: every build needs a unique id")
         for x in b.get("builds") or []:
             if not x.get("for"):
                 raise CatalogError(f"baseline {b['id']} build {x['id']}: say who it is for (`for`)")
-            _validate_build(f"{b['id']}:{x['id']}", x, check_ids)
+            _validate_build(f"{b['id']}:{x['id']}", x, check_ids, external)
 
 
 def _validate_options(b: dict, check_ids: set, minimum: set) -> None:
@@ -151,15 +166,24 @@ def _validate_options(b: dict, check_ids: set, minimum: set) -> None:
                                    "and a reason")
 
 
-def _validate_build(bid: str, build: dict, check_ids: set) -> None:
+def _validate_build(bid: str, build: dict, check_ids: set, external: dict) -> None:
     where = f"baseline {bid} build"
-    if "source" in build or not (build.get("deployment") or all(st.get("deployment") for st in build.get("stages") or [])):
+    if build.get("external"):
+        # The one exception to repo-only builds: pinned external Terraform, cloned by the user.
+        if build["external"] not in external:
+            raise CatalogError(f"{where}: unknown external {build['external']!r}")
+        if build.get("deployment") or any(st.get("deployment") for st in build.get("stages") or []):
+            raise CatalogError(f"{where}: an external build runs its external root only")
+    elif "source" in build or not (build.get("deployment")
+                                   or all(st.get("deployment") for st in build.get("stages") or [])):
         raise CatalogError(f"{where}: builds must use a deployment in this repo (deployment: <path>)")
     if not build.get("stages"):
         raise CatalogError(f"{where}: needs at least one stage")
     for i, stage in enumerate(build["stages"], 1):
         if stage.get("ip_access_list") not in (None, "tfvar", "file"):
             raise CatalogError(f"{where} stage {i}: ip_access_list is tfvar or file")
+        if stage.get("ip_access_list_var") and stage.get("ip_access_list") != "tfvar":
+            raise CatalogError(f"{where} stage {i}: ip_access_list_var needs ip_access_list: tfvar")
         for var, src in (stage.get("outputs") or {}).items():
             if not isinstance(src, dict) or not 1 <= src.get("stage", 0) < i or not src.get("output"):
                 raise CatalogError(f"{where} stage {i}: output {var} must come from an earlier stage")
@@ -212,7 +236,13 @@ def load(cloud: str, root: Path = CATALOG_ROOT) -> dict:
     controls = load_controls(root)
     attach_controls(checks, controls, cloud)
     baselines_file = base / "baselines.yaml"
-    baselines = yaml.safe_load(baselines_file.read_text(encoding="utf-8"))["baselines"] if baselines_file.exists() else []
-    validate_baselines(baselines, patterns, checks)
+    data = yaml.safe_load(baselines_file.read_text(encoding="utf-8")) if baselines_file.exists() else {}
+    baselines, external = data.get("baselines") or [], data.get("external") or {}
+    validate_baselines(baselines, patterns, checks, external)
+    # Each external build carries its external definition, so `new` needs nothing else.
+    for b in baselines:
+        for x in ([b["build"]] if b.get("build") else []) + (b.get("builds") or []):
+            if x.get("external"):
+                x["external_def"] = dict(external[x["external"]], id=x["external"])
     return {"version": patterns["catalog_version"], "cloud": cloud, "patterns": patterns, "checks": checks,
-            "baselines": baselines, "controls": controls}
+            "baselines": baselines, "controls": controls, "external": external}

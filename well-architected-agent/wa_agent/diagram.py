@@ -5,6 +5,7 @@ every managed resource. Deterministic: same input, same Markdown."""
 
 from __future__ import annotations
 
+from .clouds.aws import tfplan as aws_tfplan
 from .clouds.azure import tfplan
 from .clouds.gcp import tfplan as gcp_tfplan
 from .facts import COMPUTED
@@ -34,6 +35,13 @@ AREAS = (
     ("Keys & identity", ("google_kms", "databricks_mws_customer_managed_keys", "google_service_account",
                          "google_project_iam", "google_compute_subnetwork_iam")),
     ("Observability", ("databricks_mws_log_delivery", "google_logging")),
+    # Databricks on AWS
+    ("Private Link & DNS", ("aws_vpc_endpoint", "aws_route53")),
+    ("Network", ("aws_vpc", "aws_subnet", "aws_route", "aws_nat_gateway", "aws_internet_gateway", "aws_eip",
+                 "aws_security_group", "aws_network_acl", "aws_networkfirewall", "aws_default_")),
+    ("Unity Catalog & storage", ("aws_s3", "databricks_mws_storage_configurations")),
+    ("Keys & identity", ("aws_kms", "aws_iam", "databricks_mws_credentials")),
+    ("Observability", ("aws_cloudtrail", "aws_cloudwatch")),
 )
 WORKSPACE_TYPES = ("azapi_resource",)  # azapi workspaces are classified by their ARM type
 
@@ -141,12 +149,18 @@ def mermaid(facts: dict) -> list[str]:
 
 
 def cloud_of(rs: list[dict]) -> str:
-    gcp = any(r["type"].startswith(("google_", "databricks_mws_networks", "databricks_mws_vpc_endpoint"))
-              # `location` is the GCP-only region field (e.g. serverless-ws has no google_* resource)
-              or (r["type"] == "databricks_mws_workspaces" and (r.get("values") or {}).get("location"))
-              for r in rs)
+    def workspace_field(field: str) -> bool:
+        return any(r["type"] == "databricks_mws_workspaces" and (r.get("values") or {}).get(field) for r in rs)
+
+    # `aws_region` and `location` are the region fields of an AWS and a GCP workspace (a serverless-ws plan
+    # has no cloud resource at all)
+    aws = any(r["type"].startswith("aws_") for r in rs) or workspace_field("aws_region")
+    gcp = any(r["type"].startswith("google_") for r in rs) or workspace_field("location") or (
+        not aws and any(r["type"].startswith(("databricks_mws_networks", "databricks_mws_vpc_endpoint")) for r in rs))
     azure = any(r["type"].startswith(("azurerm_", "azapi_")) for r in rs)
-    return "gcp" if gcp and not azure else "azure"
+    if azure:
+        return "azure"
+    return "aws" if aws else "gcp" if gcp else "azure"
 
 
 def gcp_mermaid(facts: dict) -> list[str]:
@@ -203,20 +217,85 @@ def gcp_mermaid(facts: dict) -> list[str]:
     return lines
 
 
+def aws_mermaid(facts: dict) -> list[str]:
+    ws = facts.get("workspace") or {}
+    net = facts.get("network") or {}
+    pl = facts.get("private_link") or {}
+    srv = facts.get("serverless") or {}
+    acc = facts.get("access") or {}
+    lines = [
+        "```mermaid",
+        '%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Space Grotesk, Helvetica, Arial, sans-serif", '
+        '"lineColor": "#1a1a1a", "edgeLabelBackground": "#ffffff", "primaryTextColor": "#1a1a1a"}}}%%',
+        "flowchart LR",
+        f'  WS["Databricks workspace<br/>{ws.get("name") or "workspace"} · {ws.get("compute_mode") or "classic"}"]',
+        '  USERS["Users and tools"]',
+    ]
+    if _on(acc.get("public_ingress_ip_restricted")):
+        restriction = "context-based ingress, known IPs"
+    elif _on(acc.get("ip_access_lists_enabled")):
+        restriction = "IP access list"
+    else:
+        restriction = "no IP restriction"
+    if _on(pl.get("frontend")) and ws.get("public_access_enabled") is False:
+        lines.append('  USERS -->|"HTTPS via PrivateLink only"| WS')
+    elif _on(pl.get("frontend")):
+        lines.append(f'  USERS -->|"HTTPS via PrivateLink, or internet · {restriction}"| WS')
+    elif ws or acc:
+        lines.append(f'  USERS -->|"HTTPS over internet · {restriction}"| WS')
+    if ws.get("customer_managed_vpc") or net.get("subnet_az_count") or net.get("nat_gateway") is not None:
+        zones = net.get("subnet_az_count")
+        size = net.get("smallest_subnet_prefix_length")
+        detail = " · ".join(x for x in (f"{zones} AZs" if zones else "", f"subnets /{size}" if size else "") if x)
+        lines.append(f'  VPC["Your VPC: classic compute{"<br/>" + detail if detail else ""}"]')
+        lines.append('  WS -->|"runs clusters in"| VPC')
+        path = "over PrivateLink" if _on(pl.get("backend")) else "over the internet"
+        lines.append(f'  VPC -->|"secure cluster connectivity · {path}"| CP["Databricks control plane"]')
+        if _on(net.get("egress_controlled")) and not _on(net.get("nat_gateway")):
+            lines.append('  VPC -->|"no internet path"| NET["Internet"]')
+        elif _on(net.get("egress_controlled")):
+            lines.append('  VPC -->|"via firewall · allowed destinations only"| NET["Internet"]')
+        elif _on(net.get("nat_gateway")):
+            lines.append('  VPC -->|"outbound via NAT gateway"| NET["Internet"]')
+        if _on(net.get("s3_gateway_endpoint")):
+            policy = " · endpoint policy" if _on(net.get("s3_endpoint_policy_restricted")) else ""
+            lines.append(f'  VPC -->|"S3 gateway endpoint{policy}"| S3["Amazon S3<br/>workspace and data"]')
+    if srv:
+        policy = "egress restricted and enforced" if _on(srv.get("egress_restricted")) else "egress not restricted"
+        lines.append('  SRV["Serverless compute<br/>Databricks account"]')
+        lines.append(f'  WS -->|"serverless workloads · NCC {"bound" if _on(srv.get("ncc_bound")) else "not bound"}"| SRV')
+        lines.append(f'  SRV -->|"{policy}"| SNET["Internet"]')
+    if _on((facts.get("governance") or {}).get("metastore_assigned")):
+        lines.append('  WS -->|"metastore assignment"| UC["Unity Catalog metastore"]')
+    keys = [label for k, label in (("cmk_managed_services", "managed services"), ("cmk_storage", "storage and EBS"))
+            if _on(ws.get(k))]
+    if keys:
+        lines.append(f'  KMS["AWS KMS<br/>customer-managed keys"] -->|"encrypts {", ".join(keys)}"| WS')
+    if _on((facts.get("operations") or {}).get("audit_log_delivery")):
+        lines.append('  WS -->|"audit log delivery"| LOGS["S3 log bucket"]')
+    lines += ["  classDef default fill:#ffffff,stroke:#1a1a1a,color:#1a1a1a",
+              "  classDef focus fill:#ffffff,stroke:#cc3311,stroke-width:2px,color:#1a1a1a",
+              "  class WS focus", "```"]
+    return lines
+
+
+COLLECTORS = {"azure": (tfplan, mermaid), "gcp": (gcp_tfplan, gcp_mermaid), "aws": (aws_tfplan, aws_mermaid)}
+
+
 def to_markdown(doc: dict, workspace: str | None = None) -> str:
     rs = tfplan.resources(doc)
-    gcp = cloud_of(rs) == "gcp"
-    facts = (gcp_tfplan if gcp else tfplan).collect(doc, workspace=workspace)
+    collector, draw = COLLECTORS[cloud_of(rs)]
+    facts = collector.collect(doc, workspace=workspace)
     kind = "plan" if facts["source"] == "terraform-plan" else "state"
     ws = facts.get("workspace") or {}
     lines = [f"# Architecture — {ws.get('name') or 'Terraform ' + kind}", "",
              f"Generated from a Terraform {kind} ({len(rs)} managed resources). The agent changed nothing.", ""]
-    lines += gcp_mermaid(facts) if gcp else mermaid(facts)
+    lines += draw(facts)
 
     groups: dict[str, list[dict]] = {}
     for r in rs:
         groups.setdefault(area_of(r), []).append(r)
-    order = [a for a, _ in AREAS] + ["Other"]
+    order = list(dict.fromkeys(a for a, _ in AREAS)) + ["Other"]
     lines += ["", "## Manifest", "", "| Area | Resource type | Count |", "|---|---|---|"]
     for area in order:
         counts: dict[str, int] = {}

@@ -1,13 +1,14 @@
 Databricks Well-Architected Agent
 ==============
 
-Assesses a Databricks deployment on **Azure** or **Google Cloud** against
-**proven reference patterns** and reports what is missing and exactly how to
-fix it, with Terraform from this repo. Works **pre-deployment** (Terraform
-plan) and **post-deployment** (live, read-only scan), and builds new
-workspaces from the repo's tested Terraform.
+Assesses a Databricks deployment on **Azure**, **Google Cloud** or **AWS**
+against **proven reference patterns** and reports what is missing and exactly
+how to fix it, with Terraform from this repo. Works **pre-deployment**
+(Terraform plan) and **post-deployment** (live, read-only scan), and builds
+new workspaces from the repo's tested Terraform.
 
-Status: **Azure and GCP complete.** AWS is next.
+Status: **Azure and GCP complete. AWS: plan and state review, diagrams and
+new workspaces;** the live AWS scan is next.
 
 New here? Read the **[simple guide](GUIDE.md)** (what / why / when / how).
 
@@ -46,6 +47,9 @@ uv run wa-agent assess --facts ws.facts.json --baseline classic-no-pl -o report.
 # Google Cloud: the same, with --cloud gcp (same baseline ids on every cloud)
 uv run wa-agent collect live --cloud gcp --workspace <name-or-url> -o gcp.facts.json
 uv run wa-agent assess --cloud gcp --facts gcp.facts.json --baseline classic-no-pl -o gcp-report.md
+# AWS: from a Terraform plan or state for now (terraform show -json)
+uv run wa-agent collect tfplan --cloud aws --plan plan.json -o aws.facts.json
+uv run wa-agent assess --cloud aws --facts aws.facts.json --baseline classic-full-pl -o aws-report.md
 ```
 
 **What you need**
@@ -59,6 +63,7 @@ uv run wa-agent assess --cloud gcp --facts gcp.facts.json --baseline classic-no-
 | Live GCP scan | `gcloud` logged in (or impersonating a service account) with Viewer on the network (host) and workspace projects; for VPC Service Controls, Access Context Manager Reader on the organization | `gcloud auth login` |
 | GCP account facts (network, PSC, keys, NCC, network policy, audit log delivery) | Databricks account admin profile for Google Cloud; GCP scans start here | `databricks auth login --host https://accounts.gcp.databricks.com --account-id <id>` |
 | Plan / state review, new workspaces | Terraform 1.5+ | `terraform version` |
+| New AWS workspaces (to apply) | AWS credentials Terraform can use, and a Databricks account admin (service principal via `DATABRICKS_CLIENT_ID` / `DATABRICKS_CLIENT_SECRET`, or `DATABRICKS_CONFIG_PROFILE`) | `aws sts get-caller-identity` |
 
 The workspace can be given as a name, URL, numeric id or (Azure) resource id;
 matching Databricks CLI profiles are picked automatically. Anything the agent
@@ -177,13 +182,13 @@ in the Databricks serverless compute plane. A private front-end (Private
 Link / Private Service Connect) needs a VNet/VPC and subnet of yours either
 way.
 
-| Pattern / baseline | What it is | Azure | Google Cloud |
-|---|---|---|---|
-| `classic-no-pl` | Your VNet/VPC, no Private Link; public front-end restricted to your IP ranges | [`non-pl`](../adb4u/deployments/non-pl) | [`infra4db`](../gcpdb4u/templates/terraform-scripts/infra4db) → [`byovpc-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-ws), or [`lpw`](../gcpdb4u/templates/terraform-scripts/lpw) (least-privilege) |
-| `classic-backend-pl` | Back-end Private Link only (compute to control plane); public front-end restricted to your IP ranges | assess only | assess only |
-| `classic-full-pl` | Front-end and back-end Private Link; public access off, or on for selected clients (`public-access` option) | [`full-private`](../adb4u/deployments/full-private) | [`byovpc-psc-cmek-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-psc-cmek-ws) / [`byovpc-psc-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-psc-ws), or [`lpw`](../gcpdb4u/templates/terraform-scripts/lpw) (least-privilege) |
-| `classic-dep` | Data exfiltration protection | hub-spoke egress firewall, assessed against the [Azure DEP blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks) | VPC Service Controls, `restricted.googleapis.com`, deny-by-default egress, assessed against the [GCP DEP guide](https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection) and [`vpcsc-policy`](../gcpdb4u/templates/vpcsc-policy) |
-| `serverless` | No customer network (a VNet/VPC only for a private front-end) | [`serverless`](../adb4u/deployments/serverless) | [`serverless-ws`](../gcpdb4u/templates/terraform-scripts/serverless-ws) → [`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) |
+| Pattern / baseline | What it is | Azure | Google Cloud | AWS |
+|---|---|---|---|---|
+| `classic-no-pl` | Your VNet/VPC, no Private Link; public front-end restricted to your IP ranges | [`non-pl`](../adb4u/deployments/non-pl) | [`infra4db`](../gcpdb4u/templates/terraform-scripts/infra4db) → [`byovpc-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-ws), or [`lpw`](../gcpdb4u/templates/terraform-scripts/lpw) (least-privilege) | [`databricks-aws-production`](../awsdb4u/aws-pl-ws/databricks-aws-production) → [`workspace-guardrails`](../awsdb4u/workspace-guardrails) |
+| `classic-backend-pl` | Back-end Private Link only (compute to control plane); public front-end restricted to your IP ranges | assess only | assess only | assess only |
+| `classic-full-pl` | Front-end and back-end Private Link; public access off, or on for selected clients (`public-access` option) | [`full-private`](../adb4u/deployments/full-private) | [`byovpc-psc-cmek-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-psc-cmek-ws) / [`byovpc-psc-ws`](../gcpdb4u/templates/terraform-scripts/byovpc-psc-ws), or [`lpw`](../gcpdb4u/templates/terraform-scripts/lpw) (least-privilege) | [`databricks-aws-production`](../awsdb4u/aws-pl-ws/databricks-aws-production) → [`workspace-guardrails`](../awsdb4u/workspace-guardrails), or the SRA on an existing VPC |
+| `classic-dep` | Data exfiltration protection | hub-spoke egress firewall, assessed against the [Azure DEP blog](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks) | VPC Service Controls, `restricted.googleapis.com`, deny-by-default egress, assessed against the [GCP DEP guide](https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection) and [`vpcsc-policy`](../gcpdb4u/templates/vpcsc-policy) | no internet path (or a firewall), S3 endpoint policy, CMK, assessed against the [AWS DEP blog](https://www.databricks.com/blog/2021/02/02/data-exfiltration-protection-with-databricks-on-aws.html); built with the SRA (isolated network) |
+| `serverless` | No customer network (a VNet/VPC only for a private front-end) | [`serverless`](../adb4u/deployments/serverless) | [`serverless-ws`](../gcpdb4u/templates/terraform-scripts/serverless-ws) → [`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) | [`serverless-ws`](../awsdb4u/serverless-ws) → [`workspace-guardrails`](../awsdb4u/workspace-guardrails), or the SRA |
 
 Back-end-only Private Link is assess-only because the repo's Private Link
 Terraform always adds the front-end endpoints too; it builds `classic-full-pl`
@@ -193,7 +198,8 @@ customer-managed network check: the network type is fixed at creation, so
 the fix is a new workspace on your own VNet/VPC.
 
 **Bare minimum in every baseline, on every cloud:** IP access lists on any
-public front-end, an enforced serverless egress policy (network policy in
+public front-end (on AWS, context-based ingress limited to your IP ranges
+also counts: that is how the SRA does it), an enforced serverless egress policy (network policy in
 `RESTRICTED_ACCESS`), and Unity Catalog. They are declared once per cloud
 (`minimum_required` in `patterns.yaml`), can't be waived, and every `new`
 build turns them on. IP access lists only work with **your** known IP ranges
@@ -209,14 +215,14 @@ the ALLOW list is applied; every root used here does it in that order.
 
 ### Options: hardening you choose on top
 
-| Option | Adds | Azure | Google Cloud |
-|---|---|---|---|
-| `public-access` (`classic-full-pl`) | Keeps the public front-end on for selected clients, behind IP access lists; front-end Private Link stays | `full-private` with public access on | `lpw`, or `byovpc-psc-ws` (no CMK) |
-| `cmk` | Customer-managed keys | managed services, managed disks, DBFS root | managed services, workspace storage, disks (`lpw` always; `byovpc-cmek-ws` / `byovpc-psc-cmek-ws`) |
-| `storage-lockdown` (Azure `classic-full-pl`) | Workspace storage firewall and a service endpoint policy | `full-private` | — |
-| `storage-private` (Azure `serverless`) | NCC private endpoints from serverless to your storage | `serverless` | — |
-| `data-leak` | Notebook export, results download and table clipboard off | `serverless`; manual on classic | `workspace-guardrails` (`disable_data_leak_features`); manual on `lpw` |
-| `context-ingress` | Context-based ingress: allow and deny rules on identity, request type (UI, APIs by scope, Apps) and network source, on top of IP access lists (a request must pass both) | how-to (`AZ-ING-002`) | how-to (`GCP-ING-002`) |
+| Option | Adds | Azure | Google Cloud | AWS |
+|---|---|---|---|---|
+| `public-access` (`classic-full-pl`) | Keeps the public front-end on for selected clients, behind IP access lists; front-end Private Link stays | `full-private` with public access on | `lpw`, or `byovpc-psc-ws` (no CMK) | `databricks-aws-production` (`public_access_enabled`); the SRA always |
+| `cmk` | Customer-managed keys | managed services, managed disks, DBFS root | managed services, workspace storage, disks (`lpw` always; `byovpc-cmek-ws` / `byovpc-psc-cmek-ws`) | managed services, workspace storage and EBS (`databricks-aws-production`; the SRA always); manual on `serverless-ws` |
+| `storage-lockdown` (Azure `classic-full-pl`) | Workspace storage firewall and a service endpoint policy | `full-private` | — | — |
+| `storage-private` (Azure `serverless`) | NCC private endpoints from serverless to your storage | `serverless` | — | — |
+| `data-leak` | Notebook export, results download and table clipboard off | `serverless`; manual on classic | `workspace-guardrails` (`disable_data_leak_features`); manual on `lpw` | `workspace-guardrails` (`disable_data_leak_features`); manual after the SRA |
+| `context-ingress` | Context-based ingress: allow and deny rules on identity, request type (UI, APIs by scope, Apps) and network source, on top of IP access lists (a request must pass both) | how-to (`AZ-ING-002`) | how-to (`GCP-ING-002`) | the SRA; how-to (`AWS-ING-002`) on `awsdb4u` |
 
 A chosen option makes its controls required (`--option <id>` on `assess`,
 `verify` and `new`); options you don't choose show as recommended. Where a
@@ -260,6 +266,26 @@ metastore assignment) that the other roots don't include; `lpw` has them
 built in. The `gcpdb4u` PSC roots fix public access and CMK together, so on
 `new-vpc` / `existing-vpc` `public-access` and `cmk` can't be combined; choose
 one, or `lpw` if least-privilege creation suits your security policy.
+
+### Builds on AWS
+
+Each baseline offers `awsdb4u` (this repo) and, where it fits, `sra`; pick
+one with `--build`.
+
+| Build | Terraform | For |
+|---|---|---|
+| `awsdb4u` | [`databricks-aws-production`](../awsdb4u/aws-pl-ws/databricks-aws-production) (new VPC; `enable_private_link` switches `classic-no-pl` and `classic-full-pl`) or [`serverless-ws`](../awsdb4u/serverless-ws), then [`workspace-guardrails`](../awsdb4u/workspace-guardrails) | Most teams |
+| `sra` | The [Databricks Security Reference Architecture](https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/aws/tf) `aws/tf` root at a pinned commit: an isolated network for `classic-dep`, your existing VPC (custom network) for `classic-full-pl`, `compute_mode = SERVERLESS` for `serverless` | Teams standardising on the SRA; the only `classic-dep` build |
+
+The SRA is the one build from outside this repo. `new` never copies it (it
+has its own licence): the run book clones the pinned commit, and the folder
+holds only the inputs and stage tfvars. The variables `new` checks your
+answers against are recorded in `catalog/aws/baselines.yaml` (`external`),
+and CI compares them with a clone of that commit. The SRA keeps the public
+front-end on, limited to your IP ranges by context-based ingress, so its
+`classic-full-pl` and `classic-dep` builds list the public-access-off check
+(`AWS-PL-003`) as a known gap; `--option public-access` holds the workspace
+to that design.
 
 **Architecture diagram and manifest** of what any Terraform plan or state deploys
 (this repo's deployments or your own): a Mermaid diagram drawn from the
@@ -338,6 +364,7 @@ Assistants that read [`AGENTS.md`](AGENTS.md) (Codex, Cursor, and others;
 - *"Verify `./state.json` against `classic-full-pl` with `cmk`."*
 - *"Set up a new `serverless` workspace in `eastus2` with prefix `demo`; our office egress is 203.0.113.0/24."* (the assistant shows the files; `wa-agent new` writes the folder)
 - *"Which GCP builds can create `classic-full-pl`, and what does each need from me?"*
+- *"Compare the `awsdb4u` and `sra` builds of `classic-full-pl` on AWS."*
 - *"How would I add context-based ingress to this workspace?"*
 
 ```mermaid
@@ -363,13 +390,17 @@ uv run wa-agent new --cloud gcp --baseline classic-full-pl --build new-vpc --opt
   --set allowed_ip_ranges='["203.0.113.0/24"]'
 uv run wa-agent new --cloud gcp --baseline serverless --out ./my-srv \
   --set google_region=us-east4 --set allowed_ip_ranges='["203.0.113.0/24"]'
+uv run wa-agent new --cloud aws --baseline classic-dep --out ./my-aws-dep \
+  --set region=us-west-2 --set resource_prefix=dep --set admin_user=admin@example.com \
+  --set allowed_ip_ranges='["203.0.113.0/24"]'
 # ./my-ws: the tested Terraform (terraform/), inputs, staged tfvars and a
 # README: plan → assess → apply (you run it) → verify
 ```
 
 `new` only uses tested Terraform from this repo (`build` in `baselines.yaml`),
-never generated code. This repo is the definitive source; other repositories
-such as the Databricks SRA are cited as references only.
+never generated code. This repo is the definitive source; the one exception
+is the AWS `sra` build, which points at the Databricks SRA at a pinned commit
+for you to clone (see [Builds on AWS](#builds-on-aws)).
 
 | Baselines | Terraform |
 |---|---|
@@ -377,8 +408,10 @@ such as the Databricks SRA are cited as references only.
 | Azure `serverless` | [`adb4u/deployments/serverless`](../adb4u/deployments/serverless): the same ARM call as the official [SRA `serverless_workspace` module](https://github.com/databricks/terraform-databricks-sra/tree/main/azure/tf/modules/serverless_workspace), without its VNet; copied into the folder |
 | GCP `classic-no-pl`, `classic-full-pl` | `gcpdb4u` as-is: `infra4db` → `byovpc-*`, or `byovpc-*` alone (standard creation), each followed by `workspace-guardrails`; or `lpw` (least-privilege) |
 | GCP `serverless` | [`serverless-ws`](../gcpdb4u/templates/terraform-scripts/serverless-ws) → [`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) |
+| AWS `classic-no-pl`, `classic-full-pl`, `serverless` | `awsdb4u` as-is: `databricks-aws-production` or `serverless-ws`, then `workspace-guardrails`; or the SRA (`sra`, cloned at a pinned commit) |
+| AWS `classic-dep` | The SRA on an isolated network (`sra`); `awsdb4u` has no data exfiltration protection root |
 | `classic-backend-pl` | None: the repo's Private Link Terraform always adds the front-end endpoints, so it builds `classic-full-pl` |
-| `classic-dep` | None by design: assessed against the [Azure](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks) and [GCP](https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection) data exfiltration protection guides (and the `vpcsc-policy` samples), not deployed |
+| Azure and GCP `classic-dep` | None by design: assessed against the [Azure](https://www.databricks.com/blog/data-exfiltration-protection-with-azure-databricks) and [GCP](https://www.databricks.com/blog/databricks-gcp-practitioners-guide-data-exfiltration-protection) data exfiltration protection guides (and the `vpcsc-policy` samples), not deployed |
 
 Your IP ranges (`allowed_ip_ranges`) go where each root reads them: a
 variable, or the root's `ip_access_list.yaml`, written from your answer.
@@ -391,10 +424,11 @@ copy-paste: names follow from your answers (e.g. `subnet-<region>` from
 root's `terraform output` at plan time. The bundle holds what the repo
 tracks, including each root's own example config; local tfvars, state and
 keys are never copied.
-Account and subscription IDs stay in `TF_VAR_*` and are never written. In CI,
-every emitted value is resolved through `terraform console` against the real
-Terraform (`tools/check_new_tfvars.py`), and the generated folder is
-initialized and validated.
+Account and subscription IDs and Databricks client secrets stay in the
+environment (`TF_VAR_*`, `DATABRICKS_*`) and are never written. In CI, every
+emitted value is resolved through `terraform console` against the real
+Terraform (`tools/check_new_tfvars.py`; for the SRA, a clone of the pinned
+commit), and the generated folder is initialized and validated.
 
 **Pre-deployment (Terraform plan):**
 
@@ -463,22 +497,25 @@ Each fix states how proven its repo implementation is:
 
 Everything in this repo today is `tested`, except the new GCP roots
 [`workspace-guardrails`](../gcpdb4u/templates/terraform-scripts/workspace-guardrails) and
-[`serverless-ws`](../gcpdb4u/templates/terraform-scripts/serverless-ws), and the context-based ingress how-to
-(`validated`).
+[`serverless-ws`](../gcpdb4u/templates/terraform-scripts/serverless-ws), the new AWS roots
+[`workspace-guardrails`](../awsdb4u/workspace-guardrails) and [`serverless-ws`](../awsdb4u/serverless-ws),
+and the context-based ingress how-to (`validated`). The SRA is labelled a
+reference build: Databricks maintains it, this repo pins and checks it.
 
 ## Scope and design choices
 
-The Terraform in `adb4u` and `gcpdb4u` has been deployed and validated, and the
-agent uses it as-is. This section describes what the agent assesses, what it
+The Terraform in `adb4u`, `gcpdb4u` and `awsdb4u` has been deployed and
+validated, and the agent uses it as-is. This section describes what the agent assesses, what it
 builds, and how it reads what it's given.
 
 **All clouds**
 
-- **Assessed, not built.** `new` builds only from Terraform in this repo.
-  Back-end-only Private Link (every Private Link root here also creates the
-  front-end endpoint) and `classic-dep` (Azure hub-spoke, following the Azure
-  data exfiltration protection blog; GCP VPC Service Controls,
-  `restricted.googleapis.com` and the egress lockdown) are assessed.
+- **Assessed, not built.** `new` builds from Terraform in this repo (and, on
+  AWS, the pinned SRA). Back-end-only Private Link (every Private Link root
+  here also creates the front-end endpoint) and `classic-dep` on Azure
+  (hub-spoke, following the Azure data exfiltration protection blog) and GCP
+  (VPC Service Controls, `restricted.googleapis.com` and the egress lockdown)
+  are assessed.
 - **Options a root has no setting for become run-book steps.** For example,
   `data-leak` on Azure classic and GCP `lpw`: the generated README lists it as a
   manual step.
@@ -518,15 +555,33 @@ builds, and how it reads what it's given.
   `byovpc-psc-cmek-ws`: public off, CMK), so on `new-vpc` / `existing-vpc` pick
   one; `lpw` supports both together.
 
+**AWS**
+
+- **Plans and states first.** The collector reads plans of the `awsdb4u`
+  roots and the SRA; the live scan (account API plus read-only `aws` calls) is
+  next. Until then, `collect live --cloud aws` says so and points at
+  `collect tfplan`.
+- **The SRA custom network is someone else's VPC.** With `classic-full-pl`
+  on the SRA, the VPC, subnets and endpoints come from your network team's
+  Terraform: add that plan with another `--facts`, or the VPC checks are
+  *not evaluable*.
+- **Egress is controlled when nothing reaches the internet, or a firewall
+  does.** No NAT gateway and no internet gateway (the SRA isolated network),
+  or an AWS Network Firewall in the plan; firewall rules are checked for
+  presence, not compared with the Databricks list.
+- **The S3 endpoint policy must restrict something.** A policy that allows
+  every action on every resource counts as no policy.
+
 ## Roadmap
 
 This repo stays the definitive source: every cloud's Terraform lands in its
-`*db4u` folder; other repositories (such as the Databricks SRA) are cited as
-references.
+`*db4u` folder; other repositories are cited as references, apart from the
+pinned SRA build on AWS.
 
 | | Scope |
 |---|---|
 | Consistency (done) | The same five patterns and baselines on every cloud (`classic-no-pl`, `classic-backend-pl`, `classic-full-pl`, `classic-dep`, `serverless`), hardening as options, the bare minimum (IP access lists from your ranges, enforced serverless egress, Unity Catalog) everywhere, context-based ingress check, GCP serverless (`serverless-ws`) |
 | Azure (done) | Baselines, plan/state/live collectors with evidence, read-only guard, `assess`, `verify`, `diagram`, plain-language `show`, `new` folders from tested `adb4u` deployments (classic and serverless without a VNet), hub-spoke assessed against the Azure data exfiltration protection blog, MCP server, CI on Windows/macOS/Linux |
 | GCP (done) | Baselines from `gcpdb4u` as-is, classic ones with `new-vpc` and `existing-vpc` (standard creation) and `lpw` (least-privilege) builds; customer-managed VPC, Private Service Connect, CMEK, Private Google Access, deny-by-default egress, serverless NCC and network policy; VPC Service Controls and `restricted.googleapis.com` assessed against the GCP data exfiltration protection guide; plan/state and live collectors; `workspace-guardrails` for the bare minimum |
-| Next · AWS | The same five baselines from `awsdb4u` (customer-managed VPC, back-end and front-end PrivateLink, Network Firewall, KMS, serverless); SRA as reference |
+| AWS (plans, builds) | The same five baselines; `awsdb4u` builds (`databricks-aws-production`, `serverless-ws`, new `workspace-guardrails`) and the SRA at a pinned commit (the only `classic-dep` build); customer-managed VPC, two AZs, S3 gateway endpoint and policy, controlled egress, back-end and front-end PrivateLink, KMS, serverless NCC and network policy, context-based ingress; plan/state collector and diagram |
+| Next · AWS live | Live collector (account API, read-only `aws ec2` / `aws network-firewall` calls), replay fixtures |

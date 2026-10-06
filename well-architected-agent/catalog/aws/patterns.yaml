@@ -1,0 +1,179 @@
+# Databricks on AWS reference patterns.
+#
+# Same model as catalog/azure/patterns.yaml: detection by `signature` in
+# `detection_order`, scoring by `required` / `recommended`. Grounded in
+# awsdb4u (battle-tested), the official Databricks on AWS docs and the AWS
+# data exfiltration protection blog. The Databricks Security Reference
+# Architecture (SRA) is cited as a reference and offered as one build.
+
+catalog_version: "2026.10.0"
+cloud: aws
+
+# Same five patterns on every cloud (see catalog/azure/patterns.yaml). On
+# AWS, Private Link is AWS PrivateLink.
+#
+# Bare minimum for every pattern and baseline, whatever else is used: an IP
+# restriction on any public front-end (IP access lists, or context-based
+# ingress limited to your IP ranges), an enforced serverless egress policy
+# and Unity Catalog.
+minimum_required:
+  - AWS-ING-001
+  - AWS-SRV-002
+  - AWS-UC-001
+
+detection_order:
+  - serverless
+  - classic-dep
+  - classic-full-pl
+  - classic-backend-pl
+  - classic-no-pl
+
+patterns:
+  - id: serverless
+    name: Serverless workspace
+    compute_mode: serverless
+    tier: 2
+    summary: >-
+      No customer VPC: compute runs in the Databricks serverless compute
+      plane and data in default storage (or your buckets, through Unity
+      Catalog). A VPC of yours is needed only for a private front-end
+      (PrivateLink). Governed by an IP restriction, an NCC and an enforced
+      serverless egress policy.
+    signature: {fact: workspace.compute_mode, op: equals, value: serverless}
+    references:
+      - https://docs.databricks.com/aws/en/admin/workspace/serverless-workspaces
+      - awsdb4u/serverless-ws
+    required:
+      - AWS-SRV-001
+      - AWS-OPS-001
+    recommended:
+      - AWS-ENC-001
+      - AWS-WS-001
+      - AWS-ING-002
+
+  - id: classic-dep
+    name: Classic — data exfiltration protection (controlled egress)
+    compute_mode: classic
+    tier: 3
+    summary: >-
+      Your VPC with front-end and back-end PrivateLink, classic compute
+      egress that is either inspected by a firewall or has no internet path
+      at all, an S3 gateway endpoint with a policy limited to approved
+      buckets, customer-managed keys. Assessed against the AWS data
+      exfiltration protection blog.
+    signature:
+      all_of:
+        - {fact: workspace.customer_managed_vpc, op: equals, value: true}
+        - {fact: network.egress_controlled, op: equals, value: true}
+    references:
+      - https://www.databricks.com/blog/2021/02/02/data-exfiltration-protection-with-databricks-on-aws.html
+      - https://github.com/databricks/terraform-databricks-sra/tree/bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4/aws/tf
+    required:
+      - AWS-NET-001
+      - AWS-NET-002
+      - AWS-NET-003
+      - AWS-NET-005
+      - AWS-NET-006
+      - AWS-PL-001
+      - AWS-PL-002
+      - AWS-PL-003
+      - AWS-ENC-001
+      - AWS-ENC-002
+      - AWS-OPS-001
+      - AWS-SRV-001
+    recommended:
+      - AWS-PL-004
+      - AWS-WS-001
+      - AWS-ING-002
+
+  - id: classic-full-pl
+    name: Classic — your VPC, full PrivateLink (front-end and back-end)
+    compute_mode: classic
+    tier: 3
+    summary: >-
+      AWS PrivateLink for users (front-end) and for compute (back-end), an
+      S3 gateway endpoint, STS and Kinesis interface endpoints. Public
+      access is off, unless you choose to allow selected clients on known
+      IPs.
+    signature:
+      all_of:
+        - {fact: workspace.customer_managed_vpc, op: equals, value: true}
+        - {fact: private_link.backend, op: equals, value: true}
+        - {fact: private_link.frontend, op: equals, value: true}
+    references:
+      - https://docs.databricks.com/aws/en/security/network/classic/privatelink
+      - awsdb4u/aws-pl-ws/databricks-aws-production
+    required:
+      - AWS-NET-001
+      - AWS-NET-002
+      - AWS-NET-003
+      - AWS-NET-004
+      - AWS-PL-001
+      - AWS-PL-002
+      - AWS-PL-003
+      - AWS-OPS-001
+      - AWS-SRV-001
+    recommended:
+      - AWS-NET-005
+      - AWS-NET-006
+      - AWS-PL-004
+      - AWS-ENC-001
+      - AWS-ENC-002
+      - AWS-WS-001
+      - AWS-ING-002
+
+  - id: classic-backend-pl
+    name: Classic — your VPC, back-end PrivateLink only
+    compute_mode: classic
+    tier: 2
+    summary: >-
+      Compute reaches the control plane over PrivateLink; users reach the
+      workspace over the internet, restricted to your known IP ranges.
+    signature:
+      all_of:
+        - {fact: workspace.customer_managed_vpc, op: equals, value: true}
+        - {fact: private_link.backend, op: equals, value: true}
+    references:
+      - https://docs.databricks.com/aws/en/security/network/classic/privatelink
+      - awsdb4u/aws-pl-ws/databricks-aws-production
+    required:
+      - AWS-NET-001
+      - AWS-NET-002
+      - AWS-NET-003
+      - AWS-NET-004
+      - AWS-PL-001
+      - AWS-OPS-001
+      - AWS-SRV-001
+    recommended:
+      - AWS-PL-002
+      - AWS-ENC-001
+      - AWS-ENC-002
+      - AWS-WS-001
+      - AWS-ING-002
+
+  - id: classic-no-pl
+    name: Classic — your VPC, no PrivateLink
+    compute_mode: classic
+    tier: 1
+    summary: >-
+      Your VPC with private subnets in two availability zones, NAT gateways,
+      an S3 gateway endpoint and secure cluster connectivity; public
+      front-end restricted to your known IP ranges.
+    # Last in detection_order: every classic workspace not matched above.
+    signature: {fact: workspace.compute_mode, op: equals, value: classic}
+    references:
+      - https://docs.databricks.com/aws/en/security/network/classic/customer-managed-vpc
+      - awsdb4u/aws-pl-ws/databricks-aws-production
+    required:
+      - AWS-NET-001
+      - AWS-NET-002
+      - AWS-NET-003
+      - AWS-NET-004
+      - AWS-OPS-001
+    recommended:
+      - AWS-SRV-001
+      - AWS-PL-001
+      - AWS-ENC-001
+      - AWS-ENC-002
+      - AWS-WS-001
+      - AWS-ING-002

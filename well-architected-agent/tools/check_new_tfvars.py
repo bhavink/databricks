@@ -1,7 +1,8 @@
 """Release check: every tfvar `wa-agent new` emits must be accepted by the real
 Terraform root and resolve to the baseline's value when layered as the run book
 layers it (inputs.tfvars, then each stage). Needs `terraform`; no cloud
-access.
+access, except a clone of each external build (the SRA) at its pinned commit;
+that clone also checks the variables the catalog records for it.
 
 Values are evaluated against the deployment's variable definitions only (types
 and validation rules), in a scratch root with no providers or modules: no
@@ -22,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from wa_agent import catalog  # noqa: E402
 from wa_agent.clouds import CLOUDS  # noqa: E402
 from wa_agent.new import (_variable_blocks, apply_answers, auto_tfvars, builds, check_build,  # noqa: E402
-                          generate, inputs_file, roots, stage_root)
+                          deployment_variables, external_root, generate, inputs_file, roots, stage_root)
 
 # Sample value for every REPLACE_ME_<name> placeholder the catalog emits. A new
 # placeholder without a sample fails the check, so this list stays complete.
@@ -53,24 +54,46 @@ SAMPLES = {
     "google_service_account_email": "automation-sa@wacheck-prj.iam.gserviceaccount.com",
     "metastore_name": "wacheck-ms",
     "network_name": "wacheck-vpc",
+    # AWS (awsdb4u roots and the SRA)
+    "region": "us-west-2",
+    "aws_account_id": "123456789012",
+    "workspace_name": "wacheck-ws",
+    "workspace_admin_email": "admin@example.com",
+    "admin_user": "admin@example.com",
+    "resource_prefix": "wacheck",
+    "root_storage_bucket_name": "wacheck-root",
+    "unity_catalog_bucket_name": "wacheck-uc",
+    "unity_catalog_external_bucket_name": "wacheck-uc-ext",
+    "unity_catalog_root_storage_bucket_name": "wacheck-uc-root",
+    "metastore_exists": False,
+    "custom_vpc_id": "vpc-0123456789abcdef0",
+    "custom_private_subnet_ids": ["subnet-0123456789abcdef0", "subnet-0123456789abcdef1"],
+    "custom_sg_id": "sg-0123456789abcdef0",
+    "custom_general_access_vpce_id": "vpce-0123456789abcdef0",
+    "custom_scc_relay_vpce_id": "vpce-0123456789abcdef1",
 }
 # The user's known IP ranges (`--set allowed_ip_ranges=...`), required by every build.
 ANSWERS = {"allowed_ip_ranges": ["203.0.113.0/24", "198.51.100.10/32"]}
 # Values a stage reads from an earlier root's `terraform output`.
-OUTPUT_SAMPLES = {"workspace_url": "https://1111111111111111.1.gcp.databricks.com"}
+OUTPUT_SAMPLES = {"workspace_url": "https://1111111111111111.1.gcp.databricks.com", "workspace_id": "1111111111111111"}
 ENV = {"TF_VAR_databricks_account_id": "00000000-0000-0000-0000-000000000000",
+       "TF_VAR_databricks_client_id": "00000000-0000-0000-0000-000000000002",
+       "TF_VAR_databricks_client_secret": "not-a-secret",
        "TF_INPUT": "0"}  # never prompt: a missing value must fail, not hang CI
 TIMEOUT = 120
 
 
+def _sample(name: str):
+    if name not in SAMPLES:
+        raise SystemExit(f"no sample value for placeholder REPLACE_ME_{name}; add it to SAMPLES")
+    return SAMPLES[name]
+
+
 def fill(text: str) -> str:
-    """Replace every REPLACE_ME_<name> (whole value or inside a string) with its sample."""
-    def sample(m):
-        name = m.group(1)
-        if name not in SAMPLES:
-            raise SystemExit(f"no sample value for placeholder REPLACE_ME_{name}; add it to SAMPLES")
-        return SAMPLES[name]
-    return re.sub(r"REPLACE_ME_([A-Za-z0-9_]+)", sample, text)
+    """Replace every REPLACE_ME_<name> with its sample: a whole quoted value takes any type (JSON is valid HCL for
+    strings, bools and lists), a placeholder inside a longer string takes a string."""
+    text = re.sub(r'"REPLACE_ME_([A-Za-z0-9_]+)"', lambda m: json.dumps(_sample(m.group(1))), text)
+    return re.sub(r"REPLACE_ME_([A-Za-z0-9_]+)", lambda m: str(_sample(m.group(1))), text)
 
 
 def run(cmd, cwd, **kw):
@@ -88,6 +111,32 @@ def variables_only(root: Path, scratch: Path) -> Path:
               for name, body in _variable_blocks(tf.read_text(encoding="utf-8"))]
     (scratch / "variables.tf").write_text("\n".join(blocks), encoding="utf-8")
     return scratch
+
+
+def clone_external(ext: dict, tmp: Path) -> Path:
+    """The external repo at its pinned commit (only that commit is fetched); returns the clone directory."""
+    target = tmp / "external" / Path(ext["repo"]).name
+    if not target.is_dir():
+        target.mkdir(parents=True)
+        for cmd in (["git", "init", "-q"], ["git", "fetch", "-q", "--depth", "1", ext["repo"], ext["commit"]],
+                    ["git", "checkout", "-q", "FETCH_HEAD"]):
+            proc = subprocess.run(cmd, cwd=target, capture_output=True, text=True, timeout=TIMEOUT)
+            if proc.returncode:
+                raise SystemExit(f"can't fetch {ext['repo']} at {ext['commit']}: {proc.stderr.strip()}")
+    return target
+
+
+def external_drift(ext: dict, clone: Path) -> list[str]:
+    """Differences between the variables the catalog records and the external root at its commit."""
+    declared = deployment_variables(clone / ext["path"])
+    problems = []
+    if set(ext["variables"]) != set(declared):
+        problems.append(f"variables: catalog has {sorted(set(ext['variables']) - set(declared))} not in the root, "
+                        f"the root has {sorted(set(declared) - set(ext['variables']))} not in the catalog")
+    required = {n for n, v in declared.items() if v["required"]}
+    if set(ext["required"]) != required:
+        problems.append(f"required: catalog {sorted(ext['required'])}, root {sorted(required)}")
+    return problems
 
 
 def resolves(want, got) -> bool:
@@ -114,10 +163,16 @@ def check(cat: dict, b: dict, build: dict, repo: Path, tmp: Path, options=()) ->
     out = tmp / tag
     generate(cat, b["id"], str(out), dict(ANSWERS), build_id=build["id"], options=options)
     rendered = apply_answers(check_build(b, repo, build["id"], options), dict(ANSWERS))
+    ext = rendered.get("external_def")
     for root in roots(rendered):
         stages = [(i, st) for i, st in enumerate(rendered["stages"], 1) if stage_root(rendered, st) == root]
-        var_files = [f"-var-file={repo / root / name}" for name in auto_tfvars(repo / root, repo)]
-        var_files += [f"-var-file={repo / root / st['copy_example']}" for _, st in stages if st.get("copy_example")]
+        if ext and root == external_root(rendered):
+            directory = clone_external(ext, tmp) / ext["path"]
+            var_files = []
+        else:
+            directory = repo / root
+            var_files = [f"-var-file={directory / name}" for name in auto_tfvars(directory, repo)]
+        var_files += [f"-var-file={directory / st['copy_example']}" for _, st in stages if st.get("copy_example")]
         for name in [inputs_file(rendered, root)] + [f"stage-{i}-{st['name']}.tfvars" for i, st in stages]:
             filled = out / f"filled-{name}"
             filled.write_text(fill((out / name).read_text(encoding="utf-8")), encoding="utf-8")
@@ -128,7 +183,7 @@ def check(cat: dict, b: dict, build: dict, repo: Path, tmp: Path, options=()) ->
         for _, st in stages:
             expected.update(json.loads(fill(json.dumps(st["tfvars"]))))
         expr = "jsonencode({" + ", ".join(f"{k} = var.{k}" for k in sorted(expected)) + "})" if expected else '"none"'
-        scratch = variables_only(repo / root, tmp / f"vars-{tag}-{Path(root).name}")
+        scratch = variables_only(directory, tmp / f"vars-{tag}-{Path(root).name}")
         proc = run(["terraform", "console", "-no-color", *var_files, *extra], scratch, input=expr)
         # console exits 0 even when a validation rule rejects a value
         if proc.returncode != 0 or "Error:" in proc.stderr:
@@ -149,6 +204,14 @@ def main(repo_root: str | None = None) -> int:
         tmp = Path(tmp_name)
         for cloud in CLOUDS:
             cat = catalog.load(cloud)
+            for ext_id, ext in (cat.get("external") or {}).items():
+                problems = external_drift(ext, clone_external(ext, tmp))
+                if problems:
+                    failures += 1
+                    print(f"FAIL {cloud} external {ext_id} at {ext['commit'][:12]}: " + " | ".join(problems), flush=True)
+                else:
+                    print(f"ok   {cloud} external {ext_id}: recorded variables match {ext['repo']} at "
+                          f"{ext['commit'][:12]}", flush=True)
             for b in cat["baselines"]:
                 for build in builds(b):
                     for options in option_sets(b, build):

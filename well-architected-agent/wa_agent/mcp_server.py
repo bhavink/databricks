@@ -50,7 +50,7 @@ def _titled(cat: dict, ids: list[str]) -> list[dict]:
 
 @server.tool(annotations=READ_ONLY)
 def list_baselines(cloud: str = "azure") -> list[dict]:
-    """List use-case baselines (cloud: azure or gcp): id, name, use case, reference pattern, and the
+    """List use-case baselines (cloud: azure, gcp or aws): id, name, use case, reference pattern, and the
     builds that create it (several builds are peers: ask the user which one fits). Use
     describe_baseline to show a baseline's controls; present controls by their titles, not by ids."""
     from .new import builds

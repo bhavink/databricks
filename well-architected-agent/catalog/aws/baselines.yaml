@@ -1,0 +1,448 @@
+# Databricks on AWS baselines.
+#
+# Same model and the same five ids as catalog/azure/baselines.yaml:
+#   classic-no-pl  classic-backend-pl  classic-full-pl  classic-dep  serverless
+# Ground truth is awsdb4u, used as-is:
+#   awsdb4u  aws-pl-ws/databricks-aws-production (new VPC; enable_private_link
+#            switches no-pl / full-pl) -> workspace-guardrails, or
+#            serverless-ws -> workspace-guardrails
+# One build per baseline may use the Databricks Security Reference
+# Architecture instead (`sra`): referenced at a pinned commit, cloned by the
+# user, never copied into this repo (it has its own licence). `external`
+# below records what `new` needs to know about it offline; CI checks it
+# against a clone of that commit.
+# workspace-guardrails adds the bare minimum the workspace roots don't
+# include (NCC, enforced serverless network policy; IP access lists and the
+# metastore assignment where the root has none).
+# `options` are hardening chosen on top (see the Azure file); `set` applies
+# them per build and stage (a `set` entry without tfvars means the build
+# already does it), `unsupported` lists combinations a build can't do.
+# `ip_access_list: tfvar` passes the user's allowed_ip_ranges to the
+# variable named by `ip_access_list_var`; `file` writes ip_access_list.yaml.
+# backend-pl is assess-only: no build.
+#
+# Edit the data, keep the shape.
+
+external:
+  sra:
+    name: Databricks Security Reference Architecture (SRA)
+    repo: https://github.com/databricks/terraform-databricks-sra
+    commit: bc5af72e46e9ddcf21b7eb246b4e4bad0e3d3be4
+    path: aws/tf
+    license: Databricks License (see LICENSE in the SRA repo); used as a reference, not copied here.
+    # Variables of aws/tf at the commit above (CI compares with a clone).
+    variables: [admin_user, artifact_storage_bucket, audit_log_delivery_exists, aws_account_id, aws_partition,
+      cmk_admin_arn, compliance_standards, compute_mode, context_based_ingress_ip_acl, create_service_direct_vpce,
+      cross_workspace_ingress_allowed_workspace_ids, custom_general_access_mws_vpce_id, custom_general_access_vpce_id,
+      custom_metastore_name, custom_private_subnet_ids, custom_scc_relay_mws_vpce_id, custom_scc_relay_vpce_id,
+      custom_service_direct_mws_vpce_id, custom_service_direct_vpce_id, custom_sg_id, custom_vpc_id,
+      databricks_account_id, databricks_gov_shard, databricks_provider_host, deployment_name,
+      disable_legacy_features_at_account_level, enable_automatic_cluster_update, enable_compliance_security_profile,
+      enable_enhanced_security_monitoring, enable_security_analysis_tool, general_access_config,
+      log_storage_bucket_config, metastore_exists, network_configuration, private_subnets_cidr,
+      privatelink_subnets_cidr, region, region_name_config, resource_prefix, scc_relay_config,
+      serverless_private_endpoint_rules, service_direct_config, service_direct_limited_az_regions, sg_egress_ports,
+      shared_datasets_bucket, system_table_bucket_config, vpc_cidr_range, workspace_display_name]
+    required: [admin_user, compliance_standards, databricks_account_id, metastore_exists, network_configuration,
+      region, resource_prefix]
+
+baselines:
+- id: serverless
+  name: Serverless workspace
+  use_case: No customer network to manage; serverless SQL, notebooks, jobs and apps only, with default storage.
+    A VPC is needed only for a private front-end (PrivateLink).
+  pattern: serverless
+  deployment: awsdb4u/serverless-ws
+  require: []
+  options:
+  - id: cmk
+    name: Customer-managed key for managed services
+    summary: Notebooks, secrets and queries encrypted with your KMS key.
+    require:
+    - AWS-ENC-001
+    manual: Add a databricks_mws_customer_managed_keys (MANAGED_SERVICES) and set managed_services_customer_managed_key_id
+      on the workspace; neither serverless root has a setting for it.
+  - id: data-leak
+    name: Data-leak features off
+    summary: Notebook export, results download and the notebook table clipboard are disabled.
+    require:
+    - AWS-WS-001
+    set:
+    - builds:
+      - awsdb4u
+      stage: guardrails
+      tfvars:
+        disable_data_leak_features: true
+    manual: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to "false" (databricks_workspace_conf,
+      or awsdb4u workspace-guardrails with disable_data_leak_features = true, enable_ip_access_list = false, enable_ncc
+      = false and enable_network_policy = false after the SRA).
+  - id: context-ingress
+    name: Context-based ingress
+    summary: Allow and deny rules on identity, request type and network source, on top of IP access lists (a request
+      must pass both).
+    require:
+    - AWS-ING-002
+    set:
+    - builds:
+      - sra
+      stage: workspace
+    manual: Add an ingress (start with ingress_dry_run) block to the workspace's network policy in the account console
+      or Terraform; see the AWS-ING-002 fix in the report.
+  builds:
+  - id: awsdb4u
+    for: 'Most teams: serverless-ws creates the workspace (no VPC, no AWS resources), then workspace-guardrails adds
+      IP access lists, an NCC, an enforced serverless network policy and the metastore assignment.'
+    stages:
+    - name: workspace
+      deployment: awsdb4u/serverless-ws
+      note: 'Creates the serverless workspace: no VPC, no cross-account role, default storage. Sign in to the Databricks
+        account as an account admin (DATABRICKS_CLIENT_ID / DATABRICKS_CLIENT_SECRET, or DATABRICKS_CONFIG_PROFILE).'
+      tfvars:
+        region: ${var.region}
+    - name: guardrails
+      deployment: awsdb4u/workspace-guardrails
+      note: 'Bare-minimum controls the workspace root doesn''t include: IP access lists (from your allowed_ip_ranges),
+        an NCC, an enforced serverless network policy and the Unity Catalog metastore assignment (set metastore_id
+        to "" if your account assigns one automatically). First edit network_policy.yaml in this folder (destinations
+        serverless workloads need).'
+      tfvars:
+        enable_ip_access_list: true
+        enable_ncc: true
+        enable_network_policy: true
+        network_policy_enforcement_mode: ENFORCED
+        metastore_id: ${var.metastore_id}
+      outputs:
+        workspace_id:
+          stage: 1
+          output: workspace_id
+        workspace_url:
+          stage: 1
+          output: workspace_url
+      ip_access_list: file
+  - id: sra
+    for: 'Teams standardising on the Databricks Security Reference Architecture: one SRA root (compute_mode SERVERLESS)
+      creates the workspace, NCC, enforced network policy (context-based ingress limited to your IP ranges) and
+      metastore. Referenced at a pinned commit; you clone it.'
+    external: sra
+    stages:
+    - name: workspace
+      note: 'One apply of the SRA aws/tf root. Public access is limited to your allowed_ip_ranges by context-based
+        ingress on the account network policy. Set metastore_exists = false to create the regional metastore here,
+        true to use the one the account has.'
+      tfvars:
+        compute_mode: SERVERLESS
+        network_configuration: isolated
+        compliance_standards: []
+        region: ${var.region}
+        resource_prefix: ${var.resource_prefix}
+        admin_user: ${var.admin_user}
+      ip_access_list: tfvar
+      ip_access_list_var: context_based_ingress_ip_acl
+- id: classic-no-pl
+  name: Classic — your VPC, no PrivateLink
+  use_case: Your VPC with private subnets in two availability zones, NAT gateways, an S3 gateway endpoint and
+    secure cluster connectivity; public front-end restricted to your known IP ranges; enforced serverless egress
+    policy.
+  pattern: classic-no-pl
+  deployment: awsdb4u/aws-pl-ws/databricks-aws-production
+  require: []
+  options:
+  - id: cmk
+    name: Customer-managed keys
+    summary: Managed services, workspace storage and compute volumes encrypted with your KMS key.
+    require:
+    - AWS-ENC-001
+    - AWS-ENC-002
+    set:
+    - stage: workspace
+      tfvars:
+        enable_encryption: true
+        enable_workspace_cmk: true
+  - id: data-leak
+    name: Data-leak features off
+    summary: Notebook export, results download and the notebook table clipboard are disabled.
+    require:
+    - AWS-WS-001
+    set:
+    - stage: guardrails
+      tfvars:
+        disable_data_leak_features: true
+  - id: context-ingress
+    name: Context-based ingress
+    summary: Allow and deny rules on identity, request type and network source, on top of IP access lists (a request
+      must pass both).
+    require:
+    - AWS-ING-002
+    manual: Add an ingress (start with ingress_dry_run) block to the workspace's network policy in the account console
+      or Terraform; see the AWS-ING-002 fix in the report.
+  build:
+    deployment: awsdb4u/aws-pl-ws/databricks-aws-production
+    env:
+    - databricks_account_id
+    - databricks_client_id
+    - databricks_client_secret
+    stages:
+    - name: workspace
+      deployment: awsdb4u/aws-pl-ws/databricks-aws-production
+      note: Creates the VPC (two private subnets, NAT gateways, S3 gateway, STS and Kinesis endpoints), IAM, buckets,
+        the workspace, IP access lists and Unity Catalog. Set the bucket names and aws_account_id in the inputs file;
+        set metastore_id there to use the region's existing metastore (one per region).
+      tfvars:
+        region: ${var.region}
+        enable_private_link: false
+        enable_ip_access_lists: true
+        workspace_admin_email: ${var.workspace_admin_email}
+      ip_access_list: tfvar
+      ip_access_list_var: allowed_ip_addresses
+    - name: guardrails
+      deployment: awsdb4u/workspace-guardrails
+      note: 'Bare-minimum controls the workspace root doesn''t include: an NCC and an enforced serverless network
+        policy. The workspace root applies the IP access list and assigns the metastore. First edit network_policy.yaml
+        in this folder (destinations serverless workloads need).'
+      tfvars:
+        enable_ip_access_list: false
+        enable_ncc: true
+        enable_network_policy: true
+        network_policy_enforcement_mode: ENFORCED
+        metastore_id: ''
+      outputs:
+        workspace_id:
+          stage: 1
+          output: workspace_id
+        workspace_url:
+          stage: 1
+          output: workspace_url
+- id: classic-backend-pl
+  name: Classic — your VPC, back-end PrivateLink only
+  use_case: 'Compute reaches the control plane over PrivateLink; users reach the workspace over the internet, restricted
+    to your known IP ranges. Assess-only: the awsdb4u and SRA roots also attach front-end private access settings,
+    so they build classic-full-pl (with public-access).'
+  pattern: classic-backend-pl
+  deployment: https://docs.databricks.com/aws/en/security/network/classic/privatelink
+  require: []
+  options:
+  - id: cmk
+    name: Customer-managed keys
+    summary: Managed services, workspace storage and compute volumes encrypted with your KMS key.
+    require:
+    - AWS-ENC-001
+    - AWS-ENC-002
+    manual: Customer-managed keys for managed services and workspace storage (databricks_mws_customer_managed_keys).
+  - id: data-leak
+    name: Data-leak features off
+    summary: Notebook export, results download and the notebook table clipboard are disabled.
+    require:
+    - AWS-WS-001
+    manual: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to "false" (databricks_workspace_conf,
+      or workspace-guardrails with disable_data_leak_features = true after this root).
+  - id: context-ingress
+    name: Context-based ingress
+    summary: Allow and deny rules on identity, request type and network source, on top of IP access lists (a request
+      must pass both).
+    require:
+    - AWS-ING-002
+    manual: Add an ingress (start with ingress_dry_run) block to the workspace's network policy in the account console
+      or Terraform; see the AWS-ING-002 fix in the report.
+- id: classic-full-pl
+  name: Classic — your VPC, full PrivateLink
+  use_case: AWS PrivateLink for users and compute, an S3 gateway endpoint, STS and Kinesis endpoints. Public access
+    is off, unless you choose public-access to let selected clients in from known IPs.
+  pattern: classic-full-pl
+  deployment: awsdb4u/aws-pl-ws/databricks-aws-production
+  require: []
+  options:
+  - id: public-access
+    name: Public access for selected clients
+    summary: Keep the public front-end on, restricted to your IP ranges, for clients that can't use PrivateLink (front-end
+      PrivateLink stays).
+    waive:
+    - AWS-PL-003
+    set:
+    - builds:
+      - awsdb4u
+      stage: workspace
+      tfvars:
+        public_access_enabled: true
+    - builds:
+      - sra
+      stage: workspace
+  - id: cmk
+    name: Customer-managed keys
+    summary: Managed services, workspace storage and compute volumes encrypted with your KMS key.
+    require:
+    - AWS-ENC-001
+    - AWS-ENC-002
+    set:
+    - builds:
+      - awsdb4u
+      stage: workspace
+      tfvars:
+        enable_encryption: true
+        enable_workspace_cmk: true
+    - builds:
+      - sra
+      stage: workspace
+  - id: data-leak
+    name: Data-leak features off
+    summary: Notebook export, results download and the notebook table clipboard are disabled.
+    require:
+    - AWS-WS-001
+    set:
+    - builds:
+      - awsdb4u
+      stage: guardrails
+      tfvars:
+        disable_data_leak_features: true
+    manual: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to "false" (databricks_workspace_conf,
+      or awsdb4u workspace-guardrails with disable_data_leak_features = true, enable_ip_access_list = false, enable_ncc
+      = false and enable_network_policy = false after the SRA).
+  - id: context-ingress
+    name: Context-based ingress
+    summary: Allow and deny rules on identity, request type and network source, on top of IP access lists (a request
+      must pass both).
+    require:
+    - AWS-ING-002
+    set:
+    - builds:
+      - sra
+      stage: workspace
+    manual: Add an ingress (start with ingress_dry_run) block to the workspace's network policy in the account console
+      or Terraform; see the AWS-ING-002 fix in the report.
+  builds:
+  - id: awsdb4u
+    for: 'Most teams: databricks-aws-production creates a new VPC with workspace and relay endpoints, private access
+      settings (public access off), IAM, buckets, the workspace, IP access lists and Unity Catalog; workspace-guardrails
+      adds the NCC and the enforced serverless network policy.'
+    env:
+    - databricks_account_id
+    - databricks_client_id
+    - databricks_client_secret
+    stages:
+    - name: workspace
+      deployment: awsdb4u/aws-pl-ws/databricks-aws-production
+      note: 'Creates the VPC with workspace and relay VPC endpoints, private access settings, IAM, buckets, the workspace,
+        IP access lists and Unity Catalog. Set the bucket names and aws_account_id in the inputs file; set metastore_id
+        there to use the region''s existing metastore (one per region). With public access off, run Terraform from
+        a network that reaches the workspace endpoint (VPN, Direct Connect or a host in the VPC): this root also creates
+        workspace-level resources.'
+      tfvars:
+        region: ${var.region}
+        enable_private_link: true
+        public_access_enabled: false
+        enable_ip_access_lists: true
+        workspace_admin_email: ${var.workspace_admin_email}
+      ip_access_list: tfvar
+      ip_access_list_var: allowed_ip_addresses
+    - name: guardrails
+      deployment: awsdb4u/workspace-guardrails
+      note: 'Bare-minimum controls the workspace root doesn''t include: an NCC and an enforced serverless network
+        policy. The workspace root applies the IP access list and assigns the metastore. First edit network_policy.yaml
+        in this folder (destinations serverless workloads need).'
+      tfvars:
+        enable_ip_access_list: false
+        enable_ncc: true
+        enable_network_policy: true
+        network_policy_enforcement_mode: ENFORCED
+        metastore_id: ''
+      outputs:
+        workspace_id:
+          stage: 1
+          output: workspace_id
+        workspace_url:
+          stage: 1
+          output: workspace_url
+  - id: sra
+    for: 'Teams standardising on the Databricks Security Reference Architecture, with an existing VPC (SRA custom
+      network: your VPC, subnets, security group and registered PrivateLink endpoints). It adds CMKs, an NCC, the
+      enforced network policy and the metastore. Referenced at a pinned commit; you clone it.'
+    external: sra
+    stages:
+    - name: workspace
+      note: 'One apply of the SRA aws/tf root on your existing network: replace the custom_* values with your VPC,
+        private subnets (a list), security group and PrivateLink endpoint ids. The VPC needs STS and Kinesis interface
+        endpoints and an S3 gateway endpoint. Set metastore_exists = false to create the regional metastore here,
+        true to use the one the account has; audit_log_delivery_exists = true if the account already delivers audit
+        logs.'
+      tfvars:
+        compute_mode: HYBRID
+        network_configuration: custom
+        compliance_standards: []
+        region: ${var.region}
+        resource_prefix: ${var.resource_prefix}
+        admin_user: ${var.admin_user}
+        aws_account_id: ${var.aws_account_id}
+        custom_vpc_id: ${var.custom_vpc_id}
+        custom_private_subnet_ids: ${var.custom_private_subnet_ids}
+        custom_sg_id: ${var.custom_sg_id}
+        custom_general_access_vpce_id: ${var.custom_general_access_vpce_id}
+        custom_scc_relay_vpce_id: ${var.custom_scc_relay_vpce_id}
+      ip_access_list: tfvar
+      ip_access_list_var: context_based_ingress_ip_acl
+    known_gaps:
+    - check: AWS-PL-003
+      reason: The SRA keeps public_access_enabled = true on its private access settings and limits the public front-end
+        to your IP ranges with context-based ingress; choose --option public-access to hold the workspace to that.
+- id: classic-dep
+  name: Classic — data exfiltration protection (controlled egress)
+  use_case: Full PrivateLink, classic compute with no internet path (or a firewall), an S3 gateway endpoint limited
+    to approved buckets, customer-managed keys. Assessed against the AWS data exfiltration protection blog.
+  pattern: classic-dep
+  deployment: https://www.databricks.com/blog/2021/02/02/data-exfiltration-protection-with-databricks-on-aws.html
+  require: []
+  options:
+  - id: data-leak
+    name: Data-leak features off
+    summary: Notebook export, results download and the notebook table clipboard are disabled.
+    require:
+    - AWS-WS-001
+    manual: Set enableExportNotebook, enableResultsDownloading and enableNotebookTableClipboard to "false" (databricks_workspace_conf,
+      or awsdb4u workspace-guardrails with disable_data_leak_features = true, enable_ip_access_list = false, enable_ncc
+      = false and enable_network_policy = false after the SRA).
+  - id: context-ingress
+    name: Context-based ingress
+    summary: Allow and deny rules on identity, request type and network source, on top of IP access lists (a request
+      must pass both).
+    require:
+    - AWS-ING-002
+    set:
+    - builds:
+      - sra
+      stage: workspace
+  builds:
+  - id: sra
+    for: 'The Databricks Security Reference Architecture on an isolated network: a new VPC with no NAT or internet
+      gateway, PrivateLink endpoints, S3, STS and Kinesis endpoints with restrictive policies, CMKs, an NCC, the
+      enforced network policy and the metastore. Referenced at a pinned commit; you clone it. awsdb4u has no
+      data exfiltration protection root; a firewall (hub-and-spoke) design is assessed, not built.'
+    external: sra
+    stages:
+    - name: workspace
+      note: 'One apply of the SRA aws/tf root (isolated network: classic compute has no internet path, so libraries
+        come from S3 or a private mirror). Set metastore_exists = false to create the regional metastore here, true
+        to use the one the account has; audit_log_delivery_exists = true if the account already delivers audit logs.'
+      tfvars:
+        compute_mode: HYBRID
+        network_configuration: isolated
+        compliance_standards: []
+        region: ${var.region}
+        resource_prefix: ${var.resource_prefix}
+        admin_user: ${var.admin_user}
+        aws_account_id: ${var.aws_account_id}
+        vpc_cidr_range: 10.0.0.0/18
+        private_subnets_cidr:
+        - 10.0.0.0/22
+        - 10.0.4.0/22
+        - 10.0.8.0/22
+        privatelink_subnets_cidr:
+        - 10.0.28.0/26
+        - 10.0.28.64/26
+        - 10.0.28.128/26
+        # list(string) in the SRA
+        sg_egress_ports: ['443', '2443', '5432', '6666', '8443', '8444', '8445', '8446', '8447', '8448',
+          '8449', '8450', '8451']
+      ip_access_list: tfvar
+      ip_access_list_var: context_based_ingress_ip_acl
+    known_gaps:
+    - check: AWS-PL-003
+      reason: The SRA keeps public_access_enabled = true on its private access settings and limits the public front-end
+        to your IP ranges with context-based ingress.

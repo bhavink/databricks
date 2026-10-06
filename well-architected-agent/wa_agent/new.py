@@ -24,6 +24,11 @@ a different root than the one before it; stage values can refer to answers
 Nothing existing is modified. The Terraform is used as-is; the user runs it
 and `verify` checks the resulting state. Baselines without tested Terraform
 have no build, and `new` refuses rather than improvise.
+
+One exception to "copied from this repo": a build may name `external`
+Terraform (the Databricks SRA on AWS) at a pinned commit. It is never
+copied; the run book clones that commit, and the catalog records its
+variables so `new` works offline (CI checks them against the clone).
 """
 
 from __future__ import annotations
@@ -60,6 +65,10 @@ SIGN_IN = {
               "export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)"],
     "gcp": ["gcloud auth login",
             "export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)"],
+    "aws": ["aws sso login --profile <profile>   # or any AWS credentials Terraform can use",
+            "export AWS_PROFILE=<profile>",
+            "# Databricks account admin: a service principal, or DATABRICKS_CONFIG_PROFILE=<account-profile>",
+            "export DATABRICKS_CLIENT_ID=<client-id> DATABRICKS_CLIENT_SECRET=<client-secret>"],
 }
 LIVE_SCAN = {
     "azure": "wa-agent collect live --cloud azure --workspace <name-or-arm-id> --profile <ws> --account-profile <acct> "
@@ -209,8 +218,27 @@ def render_ip_acl(ranges: list[str], baseline_id: str) -> str:
     ])
 
 
+def external_root(build: dict) -> str | None:
+    """`<clone dir>/<path>` of an external build's root, relative to terraform/; None for repo builds."""
+    ext = build.get("external_def")
+    return f"{PurePosixPath(ext['repo']).name}/{ext['path']}" if ext else None
+
+
 def stage_root(build: dict, stage: dict) -> str:
-    return stage.get("deployment") or build["deployment"]
+    return stage.get("deployment") or build.get("deployment") or external_root(build)
+
+
+def root_variables(build: dict, root: str, repo_root: Path = REPO_ROOT) -> dict[str, dict]:
+    """A root's variables: read from this repo, or recorded in the catalog for an external root."""
+    ext = build.get("external_def")
+    if ext and root == external_root(build):
+        return {n: {"required": n in ext["required"], "description": ""} for n in ext["variables"]}
+    return deployment_variables(repo_root / root)
+
+
+def ip_var(stage: dict) -> str:
+    """The variable a `tfvar` stage passes the user's IP ranges in."""
+    return stage.get("ip_access_list_var") or IP_RANGES
 
 
 def roots(build: dict) -> list[str]:
@@ -290,7 +318,7 @@ def apply_answers(build: dict, answers: dict | None) -> dict:
     for stage in build["stages"]:
         tfvars = {k: answers.get(k, v) for k, v in stage["tfvars"].items()}
         if stage.get("ip_access_list") == "tfvar":
-            tfvars[IP_RANGES] = ranges
+            tfvars[ip_var(stage)] = ranges
         tfvars = {k: _substitute(v, known) for k, v in tfvars.items()}
         for k, v in tfvars.items():
             if PLACEHOLDER not in json.dumps(v):
@@ -310,11 +338,13 @@ def resolve_inputs(build: dict, answers: dict | None, repo_root: Path = REPO_ROO
     out = {}
     for root in roots(build):
         directory = repo_root / root
-        variables = deployment_variables(directory)
+        variables = root_variables(build, root, repo_root)
         declared_any |= set(variables)
         stages = [s for s in build["stages"] if stage_root(build, s) == root]
         staged = {k for s in stages for k in s["tfvars"]} | {k for s in stages for k in s.get("outputs") or {}}
-        examples = auto_tfvars(directory, repo_root) + [s["copy_example"] for s in stages if s.get("copy_example")]
+        local = root != external_root(build)
+        examples = (auto_tfvars(directory, repo_root) if local else []) + [
+            s["copy_example"] for s in stages if s.get("copy_example")]
         covered = staged | env | example_assignments(directory, examples)
         values = {n: f"{PLACEHOLDER}_{n}" for n, v in variables.items() if v["required"] and n not in covered}
         values.update({k: v for k, v in answers.items() if k in variables and k not in staged})
@@ -350,11 +380,11 @@ def check_build(baseline: dict, repo_root: Path = REPO_ROOT, build_id: str | Non
         root = stage_root(build, stage)
         names = set(stage["tfvars"]) | set(stage.get("outputs") or {})
         if stage.get("ip_access_list") == "tfvar":
-            names.add(IP_RANGES)
+            names.add(ip_var(stage))
         if stage.get("ip_access_list") == "file" and not (repo_root / root / IP_ACL_FILE).is_file():
             raise ValueError(f"baseline {baseline['id']} build {build['id']} stage {stage['name']}: "
                              f"{root} has no {IP_ACL_FILE}")
-        unknown = sorted(names - declared_variables(root, repo_root))
+        unknown = sorted(names - set(root_variables(build, root, repo_root)))
         if unknown:
             raise ValueError(f"baseline {baseline['id']} build {build['id']} stage {stage['name']}: "
                              f"not variables of {root}: {unknown}")
@@ -452,7 +482,9 @@ def render_readme(baseline: dict, build: dict, inputs: dict, commit: str, cloud:
     stages = build["stages"]
     env = list(build.get("env", DEFAULT_ENV))
     workspace = f" --workspace {build['workspace']}" if build.get("workspace") else ""
-    links = ", ".join(f"[`{r}`]({REPO_URL}/tree/{commit}/{r})" for r in roots(build))
+    ext = build.get("external_def")
+    local_roots = [r for r in roots(build) if r != external_root(build)]
+    links = ", ".join(f"[`{r}`]({REPO_URL}/tree/{commit}/{r})" for r in local_roots)
     named = build["id"] != "default"
     lines = [
         f"# New workspace — {baseline['name']}" + (f" (build `{build['id']}`)" if named else ""),
@@ -471,9 +503,13 @@ def render_readme(baseline: dict, build: dict, inputs: dict, commit: str, cloud:
                                       else "the stage files" for st in stages if st.get("ip_access_list")}))
                   + ". Review them before applying: anything else is locked out.", ""]
     opt_flags = "".join(f" --option {o}" for o in build.get("options", []))
+    if local_roots:
+        lines += [f"Tested Terraform: {links} at `{commit}`, copied into `terraform/`.", ""]
+    if ext:
+        lines += [f"Reference Terraform: {ext['name']}, [`{ext['path']}`]({ext['repo']}/tree/{ext['commit']}/"
+                  f"{ext['path']}) at `{ext['commit']}`. Not copied by the agent: you clone it in step 0. "
+                  f"Licence: {ext['license']}", ""]
     lines += [
-        f"Tested Terraform: {links} at `{commit}`, copied into `terraform/`.",
-        "",
         "> The agent changed nothing. You run every command below; verify afterwards.",
         "",
         "## 0. Prepare",
@@ -482,12 +518,15 @@ def render_readme(baseline: dict, build: dict, inputs: dict, commit: str, cloud:
     if build.get("prepare"):
         lines += ["Once, before anything else:", ""] + [f"- {p.strip()}" for p in build["prepare"]] + [""]
     lines += ["```bash", "# from this folder (bash/zsh); never commit these values", 'export BOOK="$(pwd)"']
+    if ext:
+        clone = f'"$BOOK/terraform/{PurePosixPath(ext["repo"]).name}"'
+        lines += [f"git clone {ext['repo']} {clone}", f"git -C {clone} checkout {ext['commit']}"]
     lines += SIGN_IN.get(cloud, [])
     lines += [f"export TF_VAR_{name}=<{name}>" for name in env]
     lines += ["```", "",
               "PowerShell: `$env:BOOK = (Get-Location).Path` and `$env:TF_VAR_<name> = \"<value>\"`, "
               "then use `$env:BOOK` wherever `$BOOK` appears.", ""]
-    examples = [f"`terraform/{r}/{n}`" for r in roots(build) for n in auto_tfvars(repo_root / r, repo_root)]
+    examples = [f"`terraform/{r}/{n}`" for r in local_roots for n in auto_tfvars(repo_root / r, repo_root)]
     if examples:
         lines += ["Edit the committed example config (values in `<angle brackets>` are placeholders; the "
                   "inputs and stage files override what they set): " + ", ".join(examples) + ".", ""]
@@ -558,8 +597,9 @@ def render_readme(baseline: dict, build: dict, inputs: dict, commit: str, cloud:
             "-o verify.md",
             f"wa-agent diagram --tf-json state.json{workspace} -o architecture.md",
         ]
-    lines += ["# optional, from a network the workspace allows:", LIVE_SCAN.get(cloud, LIVE_SCAN["azure"])]
-    if not multi:
+    if cloud in LIVE_SCAN:
+        lines += ["# optional, from a network the workspace allows:", LIVE_SCAN[cloud]]
+    if not multi and cloud in LIVE_SCAN:
         lines += [f"wa-agent verify --cloud {cloud} --tf-json state.json{workspace} --facts live.facts.json "
                   f"--baseline {baseline['id']}{opt_flags} -o verify-live.md"]
     lines += ["```", "", "Intermediate stages are expected to show gaps (for example public access still on)."]
@@ -610,7 +650,8 @@ def render(catalog: dict, baseline_id: str, answers: dict | None = None, repo_ro
     for root in sorted({stage_root(build, st) for st in build["stages"] if st.get("ip_access_list") == "file"}):
         files[f"terraform/{root}/{IP_ACL_FILE}"] = render_ip_acl(ranges, baseline_id)
         generated.append(f"{root}/{IP_ACL_FILE}")
-    paths = sorted({p for root in roots(build) for p in bundle_files(root, repo_root)})
+    ext = build.get("external_def")
+    paths = sorted({p for root in roots(build) if root != external_root(build) for p in bundle_files(root, repo_root)})
     manifest = {
         "baseline": baseline_id,
         "build": build["id"],
@@ -621,11 +662,13 @@ def render(catalog: dict, baseline_id: str, answers: dict | None = None, repo_ro
         "deployments": roots(build),
         "source": REPO_URL,
         "commit": commit,
-        "matches_commit": matches_commit(paths, repo_root),
+        "matches_commit": matches_commit(paths, repo_root) if paths else None,
         "files": {p: hashlib.sha256((repo_root / p).read_bytes()).hexdigest() for p in paths},
     }
     if len(roots(build)) == 1:
         manifest["deployment"] = roots(build)[0]
+    if ext:
+        manifest["external"] = {k: ext[k] for k in ("id", "repo", "commit", "path")}
     files["baseline.json"] = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
     files[".gitignore"] = ("*.plan\n*.plan.json\n*.facts.json\nstate*.json\n*.tfstate*\n.terraform/\n"
                            "inputs*.tfvars\nterraform.tfvars\n")

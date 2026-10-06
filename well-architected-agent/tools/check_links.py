@@ -34,6 +34,9 @@ def references(cat: dict) -> dict[str, list[str]]:
             for root in [build.get("deployment")] + [st.get("deployment") for st in build.get("stages") or []]:
                 if root:
                     refs.setdefault(root, []).append(b["id"])
+            ext = build.get("external_def")
+            if ext:  # the pinned commit of an external build
+                refs.setdefault(f"{ext['repo']}/tree/{ext['commit']}/{ext['path']}", []).append(b["id"])
     return refs
 
 
