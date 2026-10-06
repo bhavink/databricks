@@ -185,6 +185,11 @@ Classic workspaces also run serverless SQL, notebooks and jobs, so the
 
 ## Baselines — pick what the workspace is supposed to be
 
+**Bare minimum in every baseline:** whatever else you choose, an IP access list
+on any public front-end (inbound users and apps) and an enforced serverless
+egress policy are required. They are declared once per cloud
+(`minimum_required` in `patterns.yaml`), and every `new` build turns them on.
+
 Like the deployments in `adb4u/deployments/`, the agent has one baseline
 per use case. A baseline chooses a reference pattern, can make extra
 controls mandatory, and links to the deployment that builds it.

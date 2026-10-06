@@ -14,6 +14,14 @@
 catalog_version: "2026.10.0"
 cloud: azure
 
+# Bare minimum for every pattern and baseline, whatever else is used: an IP
+# access list on any public front-end (inbound users and apps) and an
+# enforced serverless egress policy. The loader adds these to every
+# pattern's `required` list.
+minimum_required:
+  - AZ-ING-001
+  - AZ-SRV-002
+
 detection_order:
   - az-serverless
   - az-classic-managed-vnet
@@ -37,8 +45,6 @@ patterns:
       - adb4u/docs/guides/01-SERVERLESS-SETUP.md
     required:
       - AZ-SRV-001
-      - AZ-SRV-002
-      - AZ-ING-001
       - AZ-UC-001
       - AZ-OPS-001
     recommended:
@@ -90,7 +96,6 @@ patterns:
       - AZ-STO-001
       - AZ-STO-002
       - AZ-SRV-001
-      - AZ-SRV-002
       - AZ-UC-001
       - AZ-UC-002
       - AZ-OPS-001
@@ -105,7 +110,6 @@ patterns:
       - AZ-ENC-002
       - AZ-ENC-003
       - AZ-SRV-003
-      - AZ-ING-001
 
   - id: az-classic-full-private
     name: Classic — Full Private (air-gapped)
@@ -143,7 +147,6 @@ patterns:
       - AZ-WS-001
       - AZ-NET-009
       - AZ-STO-002
-      - AZ-SRV-002
       - AZ-ENC-001
       - AZ-ENC-002
       - AZ-ENC-003
@@ -174,7 +177,6 @@ patterns:
       - AZ-PL-001
       - AZ-PL-003
       - AZ-DNS-001
-      - AZ-ING-001
       - AZ-SRV-001
       - AZ-UC-001
       - AZ-UC-002
@@ -184,7 +186,6 @@ patterns:
       - AZ-NET-007
       - AZ-NET-008
       - AZ-STO-002
-      - AZ-SRV-002
       - AZ-ENC-001
       - AZ-ENC-002
       - AZ-ENC-003
@@ -209,14 +210,12 @@ patterns:
       - AZ-NET-005
       - AZ-NET-007
       - AZ-SRV-001
-      - AZ-ING-001
       - AZ-UC-001
       - AZ-UC-002
       - AZ-OPS-001
     recommended:
       - AZ-NET-009
       - AZ-NET-008
-      - AZ-SRV-002
       - AZ-ENC-001
       - AZ-ENC-002
       - AZ-ENC-003

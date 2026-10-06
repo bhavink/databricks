@@ -261,7 +261,7 @@ sequenceDiagram
 |-------|--------------|---------|-------------|
 | **Workspace Creation** | [create-ws-ingress.yaml](../templates/vpcsc-policy/create-ws-ingress.yaml) | Allow workspace creation and initial resource setup | Before creating workspace |
 | **Post-Creation Operation** | [ingress.yaml](../templates/vpcsc-policy/ingress.yaml) + [egress.yaml](../templates/vpcsc-policy/egress.yaml) | Full operational policies for running workspaces | After workspace is created |
-| **Least Privilege Workspaces (LPW)** | Special policies (see separate folder) | Highly restricted, maximum-security environments | Special use case - not common |
+| **Least Privilege Workspaces (LPW)** | Special policies (see separate folder) | Highly restricted, maximum-security environments | Generally available; workspace service accounts get only explicit permissions |
 
 ---
 
@@ -276,7 +276,7 @@ Before proceeding, **update all policy YAML files** with your relevant project n
 | [create-ws-ingress.yaml](../templates/vpcsc-policy/create-ws-ingress.yaml) | Workspace creation ingress policy | **During** workspace creation | Allows Control Plane to create Consumer SA and DBFS buckets |
 | [ingress.yaml](../templates/vpcsc-policy/ingress.yaml) | Operational ingress policy | **After** workspace creation | Allows ongoing workspace management and log delivery |
 | [egress.yaml](../templates/vpcsc-policy/egress.yaml) | Operational egress policy | **After** workspace creation | Allows cluster nodes to access Control Plane and Artifact Registry |
-| LPW policies | Least privilege workspace policies | Special use case | Highly restricted - separate folder (not common) |
+| LPW policies | Least privilege workspace policies | Least-privilege workspaces (GA) | Highly restricted - separate folder |
 
 ### Why Use ANY_IDENTITY for Consumer SA?
 

@@ -96,6 +96,10 @@ def full_private_plan():
            "azurerm_private_dns_zone_virtual_network_link", {"private_dns_zone_name": None},
            {"private_dns_zone_name": True}),
         rc("module.ncc.databricks_mws_ncc_private_endpoint_rule.uc_dfs", "databricks_mws_ncc_private_endpoint_rule", {}),
+        rc("module.ncc.databricks_account_network_policy.this[0]", "databricks_account_network_policy",
+           {"egress": {"network_access": {"restriction_mode": "RESTRICTED_ACCESS",
+                                          "policy_enforcement": {"enforcement_mode": "ENFORCED"}}}}),
+        rc("module.ncc.databricks_workspace_network_option.this[0]", "databricks_workspace_network_option", {}),
         rc("azurerm_monitor_diagnostic_setting.databricks", "azurerm_monitor_diagnostic_setting", {}),
     ]
     plan["resource_changes"] = changes

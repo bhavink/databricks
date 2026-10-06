@@ -79,6 +79,9 @@ def validate(patterns: dict, checks: list[dict]) -> None:
             _validate_rule(c["when"], f"{where}.when")
 
     known = set(ids)
+    for ref in patterns.get("minimum_required") or []:
+        if ref not in known:
+            raise CatalogError(f"minimum_required references unknown check {ref}")
     pattern_ids = {p["id"] for p in patterns["patterns"]}
     if set(patterns["detection_order"]) != pattern_ids:
         raise CatalogError("detection_order must list every pattern exactly once")
@@ -119,6 +122,14 @@ def _validate_build(bid: str, build: dict, check_ids: set) -> None:
             raise CatalogError(f"{where}: known_gaps entries need a known check and a reason")
 
 
+def apply_minimum(patterns: dict) -> None:
+    """Make the cloud's bare-minimum checks required in every pattern."""
+    minimum = patterns.get("minimum_required") or []
+    for p in patterns["patterns"]:
+        p["required"] = list(minimum) + [c for c in p["required"] if c not in minimum]
+        p["recommended"] = [c for c in p["recommended"] if c not in minimum]
+
+
 def load_controls(root: Path = CATALOG_ROOT) -> dict:
     data = yaml.safe_load((root / "controls.yaml").read_text(encoding="utf-8"))
     ids = [c["id"] for c in data["controls"]]
@@ -151,6 +162,7 @@ def load(cloud: str, root: Path = CATALOG_ROOT) -> dict:
     patterns = yaml.safe_load((base / "patterns.yaml").read_text(encoding="utf-8"))
     checks = yaml.safe_load((base / "checks.yaml").read_text(encoding="utf-8"))["checks"]
     validate(patterns, checks)
+    apply_minimum(patterns)
     controls = load_controls(root)
     attach_controls(checks, controls, cloud)
     baselines_file = base / "baselines.yaml"

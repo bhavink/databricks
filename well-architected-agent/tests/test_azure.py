@@ -45,7 +45,8 @@ def test_non_pl_plan_detects_pattern_and_surfaces_known_gaps(azure_catalog):
     assert s["AZ-SRV-002"] == FAIL
     assert s["AZ-PL-003"] == NOT_APPLICABLE
     assert s["AZ-STO-002"] == FAIL  # storage firewall not set in config
-    assert result.score == {"required_passed": 10, "required_evaluated": 11,
+    # Serverless egress is part of the bare minimum, so it now counts as required.
+    assert result.score == {"required_passed": 10, "required_evaluated": 12,
                             "required_unknown": 0, "conformant": False}
 
 
@@ -56,9 +57,10 @@ def test_full_private_plan(azure_catalog):
 
     assert result.detected["id"] == "az-classic-full-private"
     for check in result.target["required"]:
-        assert s[check] == PASS, check
+        assert s[check] in (PASS, NOT_APPLICABLE), check
     assert result.score["conformant"] is True
-    assert s["AZ-ING-001"] == NOT_APPLICABLE  # public access disabled
+    assert s["AZ-ING-001"] == NOT_APPLICABLE  # public access disabled: nothing public to restrict
+    assert s["AZ-SRV-002"] == PASS
 
 
 def test_declared_target_reports_upgrade_gaps(azure_catalog):
@@ -755,3 +757,16 @@ def test_hub_spoke_reads_stay_on_the_allowlist():
     for args in (["az", "network", "vnet", "peering", "create", "-g", "rg"], ["az", "resource", "delete", "--ids", "x"]):
         with pytest.raises(azure_live.ReadOnlyViolation):
             azure_live.assert_read_only(args)
+
+
+
+def test_ip_access_lists_and_serverless_egress_are_required_everywhere(azure_catalog):
+    minimum = {"AZ-ING-001", "AZ-SRV-002"}
+    for p in azure_catalog["patterns"]["patterns"]:
+        assert minimum <= set(p["required"]), p["id"]
+        assert not minimum & set(p["recommended"]), p["id"]
+    for b in azure_catalog["baselines"]:
+        tv = {k: v for st in (b.get("build") or {}).get("stages", []) for k, v in st["tfvars"].items()}
+        if b.get("build"):
+            assert tv.get("enable_ip_access_lists") is True and tv.get("enable_network_policy") is True, b["id"]
+            assert tv.get("network_policy_enforcement_mode") == "ENFORCED", b["id"]

@@ -95,11 +95,15 @@ baselines:
       deployment: adb4u/deployments/non-pl
       stages:
         - name: deploy
+          note: Serverless egress is restricted and enforced with an empty allowlist (bare minimum); add the destinations serverless workloads need (serverless_allowed_internet_destinations) before applying.
           tfvars:
             enable_nat_gateway: true
             enable_service_endpoint_policy: true
             enable_ip_access_lists: true
             allowed_ip_ranges: ["REPLACE_ME_corporate_egress_cidr"]
+            enable_network_policy: true
+            network_policy_enforcement_mode: "ENFORCED"
+            serverless_allowed_internet_destinations: []
             enable_diagnostic_settings: true
             diagnostic_log_analytics_workspace_id: "REPLACE_ME_log_analytics_workspace_resource_id"
 
@@ -115,12 +119,16 @@ baselines:
       deployment: adb4u/deployments/full-private
       stages:
         - name: deploy
+          note: Serverless egress is restricted and enforced with an empty allowlist (bare minimum); add the destinations serverless workloads need (serverless_allowed_internet_destinations) before applying.
           tfvars:
             enable_public_network_access: true
             enable_ip_access_lists: true
             allowed_ip_ranges: ["REPLACE_ME_corporate_egress_cidr"]
             enable_nat_gateway: true
             enable_ncc: true
+            enable_network_policy: true
+            network_policy_enforcement_mode: "ENFORCED"
+            serverless_allowed_internet_destinations: []
             enable_service_endpoint_policy: true
             enable_diagnostic_settings: true
             diagnostic_log_analytics_workspace_id: "REPLACE_ME_log_analytics_workspace_resource_id"
@@ -148,10 +156,16 @@ baselines:
             enable_diagnostic_settings: true
             diagnostic_log_analytics_workspace_id: "REPLACE_ME_log_analytics_workspace_resource_id"
         - name: lockdown
-          note: Run from inside the private network (VPN, ExpressRoute or jump box); the public front-end is closed in this stage.
+          note: >-
+            Run from inside the private network (VPN, ExpressRoute or jump box); the public front-end is
+            closed in this stage. Serverless egress is restricted and enforced with an empty allowlist
+            (bare minimum); add the destinations serverless workloads need before applying.
           tfvars:
             enable_public_network_access: false
             enable_ncc: true
+            enable_network_policy: true
+            network_policy_enforcement_mode: "ENFORCED"
+            serverless_allowed_internet_destinations: []
 
   - id: classic-high-security
     name: Classic — highly secure (regulated)
